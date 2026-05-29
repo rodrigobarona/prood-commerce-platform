@@ -1,0 +1,42 @@
+import createClient, { type Client, type Middleware } from "openapi-fetch"
+import type { paths } from "./schema"
+
+export type { paths }
+export type CommerceApiClient = Client<paths>
+
+export interface CreateCommerceApiClientOptions {
+  /** Base URL including `/v1`, e.g. `https://api.example.com/v1` */
+  baseUrl: string
+  apiKey?: string
+  /** Raw `Cookie` header value (Better Auth session for dashboard SSR). */
+  cookie?: string
+  /** Request `Host` for storefront tenant resolution. */
+  host?: string
+  fetch?: typeof fetch
+}
+
+export function createCommerceApiClient(
+  options: CreateCommerceApiClientOptions
+): CommerceApiClient {
+  const middleware: Middleware = {
+    onRequest({ request }) {
+      if (options.apiKey) {
+        request.headers.set("x-api-key", options.apiKey)
+      }
+      if (options.cookie) {
+        request.headers.set("cookie", options.cookie)
+      }
+      if (options.host) {
+        request.headers.set("host", options.host)
+      }
+      return request
+    },
+  }
+
+  const client = createClient<paths>({
+    baseUrl: options.baseUrl.replace(/\/$/, ""),
+    fetch: options.fetch,
+  })
+  client.use(middleware)
+  return client
+}

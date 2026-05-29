@@ -1,0 +1,22 @@
+{
+  "name": "@prood/api-client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "codegen": "openapi-typescript ../../apps/docs/openapi/commerce.json -o ./src/schema.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "openapi-fetch": "^0.17.0"
+  },
+  "devDependencies": {
+    "@prood/typescript-config": "workspace:*",
+    "@types/node": "^24",
+    "openapi-typescript": "^7.13.0",
+    "typescript": "^5"
+  }
+}

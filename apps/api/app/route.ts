@@ -17,6 +17,7 @@ export async function GET() {
       docs: "/docs/api",
       agentConfiguration: "/.well-known/agent-configuration",
       auth: "/api/auth",
+      mcp: "/mcp",
     })
   } catch (err) {
     return errorResponse(err)
