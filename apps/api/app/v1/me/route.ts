@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server"
-import { withApiTenant } from "@/lib/auth-tenant"
+import { requireCaller } from "@/lib/auth-tenant"
 import { errorResponse } from "@/lib/api"
 
 // Echoes the resolved caller — useful for verifying API keys, sessions, and
 // host-based tenant resolution end to end.
 export async function GET() {
   try {
-    const caller = await withApiTenant("storefront", async (c) => c)
+    const caller = await requireCaller("storefront")
     return NextResponse.json({
       organizationId: caller.orgId,
       scopes: caller.scopes,

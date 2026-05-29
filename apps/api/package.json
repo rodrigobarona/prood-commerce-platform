@@ -15,20 +15,23 @@
   },
   "dependencies": {
     "@better-auth/api-key": "1.6.11",
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "@neondatabase/serverless": "^1.1.0",
     "@prood/commerce": "workspace:*",
     "better-auth": "^1.6.11",
     "drizzle-orm": "^0.45.2",
+    "mcp-handler": "^1.1.0",
     "next": "16.2.6",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@prood/eslint-config": "workspace:^",
+    "@prood/typescript-config": "workspace:*",
     "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@prood/eslint-config": "workspace:^",
-    "@prood/typescript-config": "workspace:*",
     "drizzle-kit": "^0.31.9",
     "eslint": "^9",
     "typescript": "^5"

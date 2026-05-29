@@ -1,4 +1,5 @@
 import { getPageImage, getPageMarkdownUrl, source } from '@/lib/source';
+import { APIPage } from '@/components/api-page';
 import {
   DocsBody,
   DocsDescription,
@@ -17,6 +18,17 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
   const params = await props.params;
   const page = source.getPage(params.slug);
   if (!page) notFound();
+
+  if (page.type === 'openapi') {
+    return (
+      <DocsPage toc={page.data.toc} full>
+        <DocsTitle>{page.data.title}</DocsTitle>
+        <DocsBody>
+          <APIPage {...page.data.getAPIPageProps()} />
+        </DocsBody>
+      </DocsPage>
+    );
+  }
 
   const MDX = page.data.body;
   const markdownUrl = getPageMarkdownUrl(page).url;

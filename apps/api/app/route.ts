@@ -13,8 +13,8 @@ export async function GET() {
       version: "v1",
       adapter: config.adapter,
       currency: config.currency,
-      docs: "/v1/docs",
       openapi: "/v1/openapi.json",
+      docs: "/docs/api",
     })
   } catch (err) {
     return errorResponse(err)

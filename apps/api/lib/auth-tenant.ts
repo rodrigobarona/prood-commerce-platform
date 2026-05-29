@@ -1,6 +1,6 @@
 import "server-only"
 import { headers } from "next/headers"
-import { CommerceError, withTenant } from "@prood/commerce"
+import { CommerceError } from "@prood/commerce"
 import { getAuth, getActiveOrganizationId } from "@/lib/auth"
 import { lookupTenantByHost } from "@/lib/tenant-db"
 
@@ -73,14 +73,13 @@ export async function resolveApiCaller(): Promise<ApiCaller | null> {
 }
 
 /**
- * Resolve the tenant for the request, authorize the required scope, and run
- * `fn` inside `withTenant(orgId)` so every DB query is RLS-scoped to that store.
- * Throws CommerceError (401/403) which the route maps via `errorResponse`.
+ * Resolve and authorize the caller for `scope`, or throw 401/403.
+ *
+ * Returns the tenant (organization) id; tenant DB scoping is owned by the
+ * service layer (storefront functions take a `tenantId` argument; admin
+ * functions are wrapped in `withTenant`), so this only authorizes.
  */
-export async function withApiTenant<T>(
-  scope: ApiScope,
-  fn: (caller: ApiCaller) => Promise<T>
-): Promise<T> {
+export async function requireCaller(scope: ApiScope): Promise<ApiCaller> {
   const caller = await resolveApiCaller()
   if (!caller) {
     throw new CommerceError("Authentication required", "UNAUTHORIZED")
@@ -88,5 +87,5 @@ export async function withApiTenant<T>(
   if (!caller.scopes.includes(scope)) {
     throw new CommerceError("Insufficient scope for this resource", "FORBIDDEN")
   }
-  return withTenant(caller.orgId, () => fn(caller))
+  return caller
 }
