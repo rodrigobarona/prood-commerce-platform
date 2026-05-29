@@ -56,3 +56,10 @@ export async function fetchOrder(id: string): Promise<Order> {
   const api = await getCommerceApi()
   return unwrap(api.GET("/orders/{id}", { params: { path: { id } } }))
 }
+
+export async function fetchCustomerOrders(
+  query: Record<string, string | number | undefined> = {}
+): Promise<{ items: Order[]; total: number }> {
+  const api = await getCommerceApi()
+  return unwrap(api.GET("/orders", { params: { query } }))
+}

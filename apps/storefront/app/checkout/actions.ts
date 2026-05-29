@@ -1,16 +1,9 @@
 "use server"
 
-import type { Address } from "@prood/commerce/types"
-import {
-  getShippingMethods,
-  placeOrder,
-  priceToMajorAmount,
-  revalidateProducts,
-  setBillingAddress,
-  setShippingAddress,
-  setShippingMethod,
-} from "@prood/commerce"
+import type { Address, Order } from "@prood/commerce/types"
+import { priceToMajorAmount, revalidateProducts } from "@prood/commerce"
 import { clearCartId, getCartId } from "@/lib/cart-cookie"
+import { getCommerceApi } from "@/lib/commerce-api"
 import { resolveTenantId } from "@/lib/tenant"
 
 type CheckoutAddress = Omit<Address, "id" | "isDefault">
@@ -28,20 +21,64 @@ export interface StartCheckoutInput {
   providerId?: string
 }
 
+async function unwrap<T>(
+  promise: Promise<{ data?: unknown; error?: unknown }>
+): Promise<T> {
+  const { data, error } = await promise
+  if (error) throw error
+  if (data === undefined) throw new Error("Empty API response")
+  return data as T
+}
+
 export async function startCheckout(input: StartCheckoutInput): Promise<CheckoutResult> {
   try {
     const cartId = await getCartId()
     if (!cartId) return { ok: false, error: "No active cart" }
 
     const tenantId = await resolveTenantId()
+    const api = await getCommerceApi()
     const address = input.address as CheckoutAddress
-    await setShippingAddress(cartId, address, tenantId)
-    await setBillingAddress(cartId, address, tenantId)
 
-    const methods = await getShippingMethods(cartId, tenantId)
-    if (methods[0]) await setShippingMethod(cartId, methods[0].id, tenantId)
+    const addressBody = {
+      ...address,
+      phone: address.phone ?? undefined,
+      street2: address.street2 ?? undefined,
+      state: address.state ?? undefined,
+      postalCode: address.postalCode ?? undefined,
+      district: address.district ?? undefined,
+      nationalAddress: address.nationalAddress ?? undefined,
+      additionalNumber: address.additionalNumber ?? undefined,
+    }
 
-    const order = await placeOrder(cartId, tenantId)
+    await unwrap(
+      api.PUT("/carts/{id}/shipping-address", {
+        params: { path: { id: cartId } },
+        body: addressBody,
+      })
+    )
+    await unwrap(
+      api.PUT("/carts/{id}/billing-address", {
+        params: { path: { id: cartId } },
+        body: addressBody,
+      })
+    )
+
+    const methods = await unwrap<{ id: string }[]>(
+      api.GET("/carts/{id}/shipping-methods", { params: { path: { id: cartId } } })
+    )
+    if (methods[0]) {
+      await unwrap(
+        api.PATCH("/carts/{id}/shipping-method", {
+          params: { path: { id: cartId } },
+          body: { methodId: methods[0].id },
+        })
+      )
+    }
+
+    const order = await unwrap<Order>(
+      api.POST("/carts/{id}/place-order", { params: { path: { id: cartId } } })
+    )
+
     revalidateProducts(tenantId)
 
     const providerId = input.providerId ?? process.env.DEFAULT_PAYMENT_PROVIDER ?? "stripe"

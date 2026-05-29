@@ -163,6 +163,9 @@ importers:
       '@phosphor-icons/react':
         specifier: ^2.1.10
         version: 2.1.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@prood/api-client':
+        specifier: workspace:*
+        version: link:../../packages/api-client
       '@prood/commerce':
         specifier: workspace:*
         version: link:../../packages/commerce
@@ -306,6 +309,9 @@ importers:
       '@phosphor-icons/react':
         specifier: ^2.1.10
         version: 2.1.10(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@prood/api-client':
+        specifier: workspace:*
+        version: link:../../packages/api-client
       '@prood/commerce':
         specifier: workspace:*
         version: link:../../packages/commerce

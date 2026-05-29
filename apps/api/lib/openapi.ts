@@ -8,6 +8,10 @@ import {
   createCategoryBody,
   createProductBody,
   fulfillOrderBody,
+  refundOrderBody,
+  checkoutAddressBody,
+  setShippingMethodBody,
+  listCustomerOrdersQuery,
   searchProductsQuery,
   updateCartItemBody,
   updateCategoryBody,
@@ -184,6 +188,57 @@ export function buildOpenApiDocument() {
           scope: "storefront",
         }),
       },
+      "/carts/{id}/shipping-methods": pathItem(
+        "GET",
+        "List shipping methods for cart",
+        "listCartShippingMethods",
+        { pathTemplate: "/carts/{id}/shipping-methods", scope: "storefront" }
+      ),
+      "/carts/{id}/payment-methods": pathItem(
+        "GET",
+        "List payment methods for cart",
+        "listCartPaymentMethods",
+        { pathTemplate: "/carts/{id}/payment-methods", scope: "storefront" }
+      ),
+      "/carts/{id}/shipping-address": pathItem(
+        "PUT",
+        "Set shipping address",
+        "setCartShippingAddress",
+        {
+          pathTemplate: "/carts/{id}/shipping-address",
+          scope: "storefront",
+          body: checkoutAddressBody,
+        }
+      ),
+      "/carts/{id}/billing-address": pathItem(
+        "PUT",
+        "Set billing address",
+        "setCartBillingAddress",
+        {
+          pathTemplate: "/carts/{id}/billing-address",
+          scope: "storefront",
+          body: checkoutAddressBody,
+        }
+      ),
+      "/carts/{id}/shipping-method": pathItem(
+        "PATCH",
+        "Select shipping method",
+        "setCartShippingMethod",
+        {
+          pathTemplate: "/carts/{id}/shipping-method",
+          scope: "storefront",
+          body: setShippingMethodBody,
+        }
+      ),
+      "/carts/{id}/place-order": pathItem("POST", "Place order from cart", "placeOrder", {
+        pathTemplate: "/carts/{id}/place-order",
+        scope: "storefront",
+        responses: { "201": { description: "Order created" } },
+      }),
+      "/orders": pathItem("GET", "List customer orders", "listOrders", {
+        scope: "storefront",
+        query: listCustomerOrdersQuery,
+      }),
       "/orders/{id}": pathItem("GET", "Get order by id", "getOrder", {
         pathTemplate: "/orders/{id}",
         scope: "storefront",
@@ -244,6 +299,11 @@ export function buildOpenApiDocument() {
         pathTemplate: "/admin/orders/{id}/fulfill",
         scope: "admin",
         body: fulfillOrderBody,
+      }),
+      "/admin/orders/{id}/refund": pathItem("POST", "Refund order", "adminRefundOrder", {
+        pathTemplate: "/admin/orders/{id}/refund",
+        scope: "admin",
+        body: refundOrderBody,
       }),
       "/admin/customers": pathItem("GET", "List customers", "adminListCustomers", {
         scope: "admin",

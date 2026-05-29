@@ -113,6 +113,17 @@ export async function fulfillOrder(id: string, input: FulfillOrderInput) {
   )
 }
 
+export async function refundOrder(id: string, note?: string) {
+  await requireOrgId()
+  const api = await getCommerceApi()
+  return unwrap(
+    api.POST("/admin/orders/{id}/refund", {
+      params: { path: { id } },
+      body: note ? { note } : {},
+    })
+  )
+}
+
 export async function listCustomers(query: Record<string, string | number | undefined> = {}) {
   await requireOrgId()
   const api = await getCommerceApi()

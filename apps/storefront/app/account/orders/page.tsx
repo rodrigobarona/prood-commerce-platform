@@ -1,9 +1,8 @@
 import { redirect } from "next/navigation"
 import type { Order } from "@prood/commerce/types"
-import { getCustomerOrders } from "@prood/commerce"
 import { OrderCard } from "@prood/ui/components/order-card"
 import { getCurrentUser } from "@/lib/auth"
-import { resolveTenantId } from "@/lib/tenant"
+import { fetchCustomerOrders } from "@/lib/commerce-data"
 
 export const metadata = { title: "Orders" }
 
@@ -13,8 +12,7 @@ export default async function OrdersPage() {
 
   let orders: Order[] = []
   try {
-    const tenantId = await resolveTenantId()
-    const result = await getCustomerOrders({ perPage: 50 }, tenantId)
+    const result = await fetchCustomerOrders({ perPage: 50 })
     orders = result.items
   } catch {
     /* DB unavailable */

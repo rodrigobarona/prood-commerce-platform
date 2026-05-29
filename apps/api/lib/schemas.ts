@@ -152,6 +152,35 @@ export const fulfillOrderBody = z.object({
   note: z.string().optional(),
 })
 
+export const refundOrderBody = z.object({
+  note: z.string().optional(),
+})
+
+/** Checkout address (no id / isDefault). */
+export const checkoutAddressBody = z.object({
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  phone: z.string().optional(),
+  street: z.string().min(1),
+  street2: z.string().optional(),
+  city: z.string().min(1),
+  state: z.string().optional(),
+  country: z.string().min(1),
+  postalCode: z.string().optional(),
+  district: z.string().optional(),
+  nationalAddress: z.string().optional(),
+  additionalNumber: z.string().optional(),
+})
+
+export const setShippingMethodBody = z.object({
+  methodId: z.string().min(1),
+})
+
+export const listCustomerOrdersQuery = z.object({
+  page: z.coerce.number().int().positive().optional(),
+  perPage: z.coerce.number().int().positive().max(100).optional(),
+})
+
 export type SearchProductsQuery = z.infer<typeof searchProductsQuery>
 export type AdminListQuery = z.infer<typeof adminListQuery>
 export type AdminListOrdersQuery = z.infer<typeof adminListOrdersQuery>

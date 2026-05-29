@@ -13,9 +13,21 @@ import {
   applyCoupon,
   removeCoupon,
   getOrder,
+  getCustomerOrders,
+  getShippingMethods,
+  getPaymentMethods,
+  setShippingAddress,
+  setBillingAddress,
+  setShippingMethod,
+  placeOrder,
   getAdmin,
   withTenant,
 } from "@prood/commerce"
+import type { PaginationParams } from "@prood/commerce"
+import type { z } from "zod"
+import { checkoutAddressBody } from "./schemas"
+
+type ApiCheckoutAddress = z.infer<typeof checkoutAddressBody>
 import type {
   AddToCartInput,
   AdminListParams,
@@ -104,10 +116,32 @@ export const carts = {
   removeCoupon: (orgId: string, cartId: string) => removeCoupon(cartId, orgId),
 }
 
+export const checkout = {
+  getShippingMethods: (orgId: string, cartId: string) =>
+    getShippingMethods(cartId, orgId),
+  getPaymentMethods: (orgId: string, cartId: string) =>
+    getPaymentMethods(cartId, orgId),
+  setShippingAddress: (orgId: string, cartId: string, address: ApiCheckoutAddress) =>
+    setShippingAddress(
+      cartId,
+      address as Parameters<typeof setShippingAddress>[1],
+      orgId
+    ),
+  setBillingAddress: (orgId: string, cartId: string, address: ApiCheckoutAddress) =>
+    setBillingAddress(
+      cartId,
+      address as Parameters<typeof setBillingAddress>[1],
+      orgId
+    ),
+  setShippingMethod: (orgId: string, cartId: string, methodId: string) =>
+    setShippingMethod(cartId, methodId, orgId),
+  placeOrder: (orgId: string, cartId: string) => placeOrder(cartId, orgId),
+}
+
 export const orders = {
-  // Tenant-scoped order lookup by id. Customer-scoped order *lists* need an
-  // end-customer identity, which the tenant/admin auth surface does not resolve.
   get: (orgId: string, id: string) => getOrder(id, orgId),
+  list: (orgId: string, params?: PaginationParams) =>
+    getCustomerOrders(params, orgId),
 }
 
 export const admin = {
@@ -135,6 +169,8 @@ export const admin = {
     withTenant(orgId, async () => (await getAdmin()).getOrder(id)),
   fulfillOrder: (orgId: string, id: string, input: FulfillOrderInput) =>
     withTenant(orgId, async () => (await getAdmin()).fulfillOrder(id, input)),
+  refundOrder: (orgId: string, id: string, note?: string) =>
+    withTenant(orgId, async () => (await getAdmin()).refundOrder(id, note)),
   listCustomers: (orgId: string, q: AdminListQuery) =>
     withTenant(orgId, async () => (await getAdmin()).listCustomers(toAdminListParams(q))),
   getCustomer: (orgId: string, id: string) =>
