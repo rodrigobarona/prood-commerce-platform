@@ -8,18 +8,20 @@ import { CartButton } from "@/components/layout/cart-button"
 import { MobileMenu, type NavLink } from "@/components/layout/mobile-menu"
 import { Search } from "@/components/layout/search"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
+import { resolveTenantId } from "@/lib/tenant"
 
 export async function Header() {
+  const tenantId = await resolveTenantId()
   let categories: Category[] = []
   let storeName = "Commerce"
 
   try {
-    categories = await getCategories()
+    categories = await getCategories(undefined, tenantId)
   } catch {
     // DB unavailable (e.g. during build without DATABASE_URL) — render shell only.
   }
   try {
-    const store = await getStoreInfo()
+    const store = await getStoreInfo(tenantId)
     if (store) storeName = localized(store.name) || storeName
   } catch {
     // ignore — fall back to default name

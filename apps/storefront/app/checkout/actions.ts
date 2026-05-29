@@ -11,6 +11,7 @@ import {
   setShippingMethod,
 } from "@workspace/commerce"
 import { clearCartId, getCartId } from "@/lib/cart-cookie"
+import { resolveTenantId } from "@/lib/tenant"
 
 type CheckoutAddress = Omit<Address, "id" | "isDefault">
 
@@ -32,15 +33,16 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
     const cartId = await getCartId()
     if (!cartId) return { ok: false, error: "No active cart" }
 
+    const tenantId = await resolveTenantId()
     const address = input.address as CheckoutAddress
-    await setShippingAddress(cartId, address)
-    await setBillingAddress(cartId, address)
+    await setShippingAddress(cartId, address, tenantId)
+    await setBillingAddress(cartId, address, tenantId)
 
-    const methods = await getShippingMethods(cartId)
-    if (methods[0]) await setShippingMethod(cartId, methods[0].id)
+    const methods = await getShippingMethods(cartId, tenantId)
+    if (methods[0]) await setShippingMethod(cartId, methods[0].id, tenantId)
 
-    const order = await placeOrder(cartId)
-    revalidateProducts()
+    const order = await placeOrder(cartId, tenantId)
+    revalidateProducts(tenantId)
 
     const providerId = input.providerId ?? process.env.DEFAULT_PAYMENT_PROVIDER ?? "stripe"
     const checkoutUrl = process.env.CHECKOUT_URL ?? "http://localhost:3100"

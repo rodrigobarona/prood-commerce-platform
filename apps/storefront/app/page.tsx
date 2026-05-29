@@ -5,26 +5,29 @@ import { getCategories, getProducts, getStoreInfo } from "@workspace/commerce"
 import { HeroBanner } from "@workspace/ui/components/hero-banner"
 import { localized } from "@workspace/ui/lib/commerce"
 import { ConnectedProductGrid } from "@/components/commerce/connected-product-grid"
+import { resolveTenantId } from "@/lib/tenant"
 
 export default async function HomePage() {
+  const tenantId = await resolveTenantId()
+
   let products: Product[] = []
   let categories: Category[] = []
   let storeName = "Commerce"
   let tagline: string | undefined
 
   try {
-    const result = await getProducts({ perPage: 8 })
+    const result = await getProducts({ perPage: 8 }, tenantId)
     products = result.products.items
   } catch {
     /* DB unavailable */
   }
   try {
-    categories = await getCategories()
+    categories = await getCategories(undefined, tenantId)
   } catch {
     /* DB unavailable */
   }
   try {
-    const store = await getStoreInfo()
+    const store = await getStoreInfo(tenantId)
     if (store) {
       storeName = localized(store.name) || storeName
       tagline = store.description ? localized(store.description) : undefined

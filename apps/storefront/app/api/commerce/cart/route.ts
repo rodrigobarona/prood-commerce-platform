@@ -2,13 +2,15 @@ import { NextResponse } from "next/server"
 import { createCart, getCart } from "@workspace/commerce"
 import { errorResponse } from "@/lib/api"
 import { getCartId, setCartId } from "@/lib/cart-cookie"
+import { resolveTenantId } from "@/lib/tenant"
 
 export async function GET() {
   try {
     const id = await getCartId()
     if (!id) return NextResponse.json({ cart: null })
     try {
-      const cart = await getCart(id)
+      const tenantId = await resolveTenantId()
+      const cart = await getCart(id, tenantId)
       return NextResponse.json({ cart })
     } catch {
       // Stale / missing cart — treat as empty so the client creates a fresh one.
@@ -21,7 +23,8 @@ export async function GET() {
 
 export async function POST() {
   try {
-    const cart = await createCart()
+    const tenantId = await resolveTenantId()
+    const cart = await createCart(tenantId)
     await setCartId(cart.id)
     return NextResponse.json({ cart })
   } catch (err) {

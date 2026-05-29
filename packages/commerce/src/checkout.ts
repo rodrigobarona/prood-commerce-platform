@@ -16,7 +16,7 @@ import type {
   ReviewSummary,
   ShippingMethod,
 } from '@commercejs/types'
-import { getAdapter } from './adapter'
+import { getAdapter, runScoped } from './adapter'
 import { getPaymentProvider } from './payments'
 
 type CheckoutAddress = Omit<Address, 'id' | 'isDefault'>
@@ -39,56 +39,90 @@ export function priceToMajorAmount(price: Price): number {
 
 // ---- Shipping & payment options ----
 
-export async function getShippingMethods(cartId: string): Promise<ShippingMethod[]> {
-  return (await getAdapter()).getShippingMethods(cartId)
+export async function getShippingMethods(
+  cartId: string,
+  tenantId?: string,
+): Promise<ShippingMethod[]> {
+  return runScoped(tenantId, async () => (await getAdapter()).getShippingMethods(cartId))
 }
 
-export async function getPaymentMethods(cartId: string): Promise<PaymentMethod[]> {
-  return (await getAdapter()).getPaymentMethods(cartId)
+export async function getPaymentMethods(
+  cartId: string,
+  tenantId?: string,
+): Promise<PaymentMethod[]> {
+  return runScoped(tenantId, async () => (await getAdapter()).getPaymentMethods(cartId))
 }
 
-export async function setShippingAddress(cartId: string, address: CheckoutAddress): Promise<Cart> {
-  return (await getAdapter()).setShippingAddress(cartId, address)
+export async function setShippingAddress(
+  cartId: string,
+  address: CheckoutAddress,
+  tenantId?: string,
+): Promise<Cart> {
+  return runScoped(tenantId, async () =>
+    (await getAdapter()).setShippingAddress(cartId, address),
+  )
 }
 
-export async function setBillingAddress(cartId: string, address: CheckoutAddress): Promise<Cart> {
-  return (await getAdapter()).setBillingAddress(cartId, address)
+export async function setBillingAddress(
+  cartId: string,
+  address: CheckoutAddress,
+  tenantId?: string,
+): Promise<Cart> {
+  return runScoped(tenantId, async () =>
+    (await getAdapter()).setBillingAddress(cartId, address),
+  )
 }
 
-export async function setShippingMethod(cartId: string, methodId: string): Promise<Cart> {
-  return (await getAdapter()).setShippingMethod(cartId, methodId)
+export async function setShippingMethod(
+  cartId: string,
+  methodId: string,
+  tenantId?: string,
+): Promise<Cart> {
+  return runScoped(tenantId, async () =>
+    (await getAdapter()).setShippingMethod(cartId, methodId),
+  )
 }
 
-export async function setPaymentMethod(cartId: string, methodId: string): Promise<Cart> {
-  return (await getAdapter()).setPaymentMethod(cartId, methodId)
+export async function setPaymentMethod(
+  cartId: string,
+  methodId: string,
+  tenantId?: string,
+): Promise<Cart> {
+  return runScoped(tenantId, async () =>
+    (await getAdapter()).setPaymentMethod(cartId, methodId),
+  )
 }
 
 // ---- Orders ----
 
-export async function placeOrder(cartId: string): Promise<Order> {
-  return (await getAdapter()).placeOrder(cartId)
+export async function placeOrder(cartId: string, tenantId?: string): Promise<Order> {
+  return runScoped(tenantId, async () => (await getAdapter()).placeOrder(cartId))
 }
 
-export async function getOrder(orderId: string): Promise<Order> {
-  return (await getAdapter()).getOrder(orderId)
+export async function getOrder(orderId: string, tenantId?: string): Promise<Order> {
+  return runScoped(tenantId, async () => (await getAdapter()).getOrder(orderId))
 }
 
-export async function getCustomerOrders(params?: PaginationParams): Promise<PaginatedResult<Order>> {
-  return (await getAdapter()).getCustomerOrders(params)
+export async function getCustomerOrders(
+  params?: PaginationParams,
+  tenantId?: string,
+): Promise<PaginatedResult<Order>> {
+  return runScoped(tenantId, async () => (await getAdapter()).getCustomerOrders(params))
 }
 
 // ---- Reference data & promotions ----
 
+/** Countries are shared reference data (not tenant-scoped). */
 export async function getCountries(): Promise<Country[]> {
   return (await getAdapter()).getCountries()
 }
 
-export async function getActivePromotions(): Promise<Promotion[]> {
-  return (await getAdapter()).getActivePromotions()
+export async function getActivePromotions(tenantId?: string): Promise<Promotion[]> {
+  return runScoped(tenantId, async () => (await getAdapter()).getActivePromotions())
 }
 
-export async function validateCoupon(code: string): Promise<Coupon> {
-  return (await getAdapter()).validateCoupon(code)
+export async function validateCoupon(code: string, tenantId?: string): Promise<Coupon> {
+  return runScoped(tenantId, async () => (await getAdapter()).validateCoupon(code))
 }
 
 // ---- Reviews (product detail page) ----
@@ -96,12 +130,18 @@ export async function validateCoupon(code: string): Promise<Coupon> {
 export async function getProductReviews(
   productId: string,
   params?: PaginationParams,
+  tenantId?: string,
 ): Promise<PaginatedResult<Review>> {
-  return (await getAdapter()).getProductReviews(productId, params)
+  return runScoped(tenantId, async () =>
+    (await getAdapter()).getProductReviews(productId, params),
+  )
 }
 
-export async function getReviewSummary(productId: string): Promise<ReviewSummary> {
-  return (await getAdapter()).getReviewSummary(productId)
+export async function getReviewSummary(
+  productId: string,
+  tenantId?: string,
+): Promise<ReviewSummary> {
+  return runScoped(tenantId, async () => (await getAdapter()).getReviewSummary(productId))
 }
 
 // ---- Payment session (gateway-agnostic) ----

@@ -6,6 +6,7 @@ import { Button } from "@workspace/ui/components/button"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { OrderTimeline } from "@workspace/ui/components/order-timeline"
 import { formatPrice, localized } from "@workspace/ui/lib/commerce"
+import { resolveTenantId } from "@/lib/tenant"
 
 export const metadata = { title: "Order confirmation" }
 
@@ -20,7 +21,8 @@ export default async function OrderConfirmationPage({
   let order: Order | null = null
   if (orderId) {
     try {
-      order = await getOrder(orderId)
+      const tenantId = await resolveTenantId()
+      order = await getOrder(orderId, tenantId)
     } catch {
       order = null
     }

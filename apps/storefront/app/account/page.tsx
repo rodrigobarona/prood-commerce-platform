@@ -5,6 +5,7 @@ import { getCustomerOrders } from "@workspace/commerce"
 import { OrderCard } from "@workspace/ui/components/order-card"
 import { SignOutButton } from "@/components/auth/sign-out-button"
 import { getCurrentUser } from "@/lib/auth"
+import { resolveTenantId } from "@/lib/tenant"
 
 export const metadata = { title: "My account" }
 
@@ -14,7 +15,8 @@ export default async function AccountPage() {
 
   let orders: Order[] = []
   try {
-    const result = await getCustomerOrders({ perPage: 5 })
+    const tenantId = await resolveTenantId()
+    const result = await getCustomerOrders({ perPage: 5 }, tenantId)
     orders = result.items
   } catch {
     /* DB unavailable */

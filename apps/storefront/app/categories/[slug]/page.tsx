@@ -3,6 +3,7 @@ import type { Category, Product } from "@workspace/commerce/types"
 import { getCategories, getProducts } from "@workspace/commerce"
 import { localized } from "@workspace/ui/lib/commerce"
 import { ConnectedProductGrid } from "@/components/commerce/connected-product-grid"
+import { resolveTenantId } from "@/lib/tenant"
 
 function findBySlug(categories: Category[], slug: string): Category | null {
   for (const category of categories) {
@@ -16,7 +17,8 @@ function findBySlug(categories: Category[], slug: string): Category | null {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   try {
-    const category = findBySlug(await getCategories(), slug)
+    const tenantId = await resolveTenantId()
+    const category = findBySlug(await getCategories(undefined, tenantId), slug)
     if (category) return { title: localized(category.name) }
   } catch {
     /* ignore */
@@ -30,10 +32,11 @@ export default async function CategoryPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
+  const tenantId = await resolveTenantId()
 
   let category: Category | null = null
   try {
-    category = findBySlug(await getCategories(), slug)
+    category = findBySlug(await getCategories(undefined, tenantId), slug)
   } catch {
     /* DB unavailable */
   }
@@ -41,7 +44,10 @@ export default async function CategoryPage({
 
   let products: Product[] = []
   try {
-    const result = await getProducts({ categoryId: category.id, perPage: 24 })
+    const result = await getProducts(
+      { categoryId: category.id, perPage: 24 },
+      tenantId,
+    )
     products = result.products.items
   } catch {
     /* DB unavailable */

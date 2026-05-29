@@ -39,6 +39,21 @@ export type {
  */
 export { withTenant }
 
+/**
+ * Run `fn` scoped to `tenantId` when provided, else run it unscoped.
+ *
+ * Lets storefront data functions accept an optional `tenantId`: pass it to
+ * isolate the query by organization (RLS), or omit it for unscoped/legacy use
+ * (e.g. the hosted checkout app). Safe to call inside a `'use cache'` scope
+ * because `tenantId` is a plain argument, not request-time dynamic data.
+ */
+export async function runScoped<T>(
+  tenantId: string | undefined,
+  fn: () => Promise<T>,
+): Promise<T> {
+  return tenantId ? withTenant(tenantId, fn) : fn()
+}
+
 interface CommerceInstance {
   adapter: CommerceAdapter
   admin: AdminAPI

@@ -4,6 +4,7 @@
   "globalEnv": [
     "NODE_ENV",
     "DATABASE_URL",
+    "DEFAULT_TENANT_ORG_ID",
     "COMMERCE_ADAPTER",
     "COMMERCE_CURRENCY",
     "STORAGE_PROVIDER",

@@ -3,6 +3,7 @@ import type { Product, SearchParams } from "@workspace/commerce/types"
 import { getProducts } from "@workspace/commerce"
 import { Button } from "@workspace/ui/components/button"
 import { ConnectedProductGrid } from "@/components/commerce/connected-product-grid"
+import { resolveTenantId } from "@/lib/tenant"
 
 export const metadata = { title: "Products" }
 
@@ -28,17 +29,21 @@ export default async function ProductsPage({
   const sp = await searchParams
   const page = Number(sp.page) || 1
   const perPage = 12
+  const tenantId = await resolveTenantId()
 
   let products: Product[] = []
   let total = 0
   try {
-    const result = await getProducts({
-      query: sp.q,
-      categoryId: sp.category,
-      page,
-      perPage,
-      sort: parseSort(sp.sort),
-    })
+    const result = await getProducts(
+      {
+        query: sp.q,
+        categoryId: sp.category,
+        page,
+        perPage,
+        sort: parseSort(sp.sort),
+      },
+      tenantId,
+    )
     products = result.products.items
     total = result.products.total
   } catch {

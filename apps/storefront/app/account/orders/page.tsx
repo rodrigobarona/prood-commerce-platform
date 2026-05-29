@@ -3,6 +3,7 @@ import type { Order } from "@workspace/commerce/types"
 import { getCustomerOrders } from "@workspace/commerce"
 import { OrderCard } from "@workspace/ui/components/order-card"
 import { getCurrentUser } from "@/lib/auth"
+import { resolveTenantId } from "@/lib/tenant"
 
 export const metadata = { title: "Orders" }
 
@@ -12,7 +13,8 @@ export default async function OrdersPage() {
 
   let orders: Order[] = []
   try {
-    const result = await getCustomerOrders({ perPage: 50 })
+    const tenantId = await resolveTenantId()
+    const result = await getCustomerOrders({ perPage: 50 }, tenantId)
     orders = result.items
   } catch {
     /* DB unavailable */
