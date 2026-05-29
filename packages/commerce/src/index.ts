@@ -16,5 +16,6 @@ export * from './payments'
 export * from './storage'
 export * from './errors'
 
-// Re-export the unified domain model for convenience.
-export type * from '@commercejs/types'
+// Re-export the unified domain model for convenience (includes the
+// CommerceError class + isCommerceError guard as runtime values).
+export * from '@commercejs/types'
