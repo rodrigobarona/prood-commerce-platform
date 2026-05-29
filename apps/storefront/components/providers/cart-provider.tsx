@@ -58,6 +58,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
+    // Hydrate the cart from the server cookie on mount. Done client-side (not in
+    // the layout, which would read cookies and force every page dynamic) so the
+    // catalog pages stay statically cacheable. setCart runs after an awaited
+    // fetch, not synchronously, so it does not cascade renders.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh()
   }, [refresh])
 
