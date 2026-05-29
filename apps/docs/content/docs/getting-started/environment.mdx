@@ -1,0 +1,164 @@
+---
+title: Environment Variables
+description: Complete reference for every environment variable used across Prood applications.
+---
+
+Prood uses a **single root** `.env.local` file symlinked to every app via `pnpm env:link`. Copy `.env.example` to `.env.local` and fill in values for your environment.
+
+## Database
+
+| Variable | Required | Used by | Description |
+| --- | --- | --- | --- |
+| `DATABASE_URL` | Yes | All apps | Neon Postgres connection string. Shared by commerce data (`@prood/platform`) and Better Auth tables. |
+
+```bash
+DATABASE_URL="postgresql://user:password@host/db?sslmode=require"
+```
+
+## Multi-tenancy
+
+| Variable | Required | Used by | Description |
+| --- | --- | --- | --- |
+| `DEFAULT_TENANT_ORG_ID` | Dev | Storefront, API | Fallback org when host-based tenant resolution fails. Default: `org_demo`. Unset in production → unmatched hosts return 404. |
+| `NEXT_PUBLIC_PLATFORM_DOMAIN` | Prod | Storefront, Dashboard, API | Apex domain for `{slug}.platform.com` subdomain resolution. Example: `example.com`. |
+
+## Commerce engine
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `COMMERCE_ADAPTER` | `platform` | Adapter backend. Built-in: `platform` (Neon + Drizzle). Seams exist for `medusa` and `salla`. |
+| `COMMERCE_CURRENCY` | `EUR` | Default store currency (ISO 4217). |
+
+## Storage
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `STORAGE_PROVIDER` | `vercel-blob` | `vercel-blob` or `s3` |
+| `BLOB_READ_WRITE_TOKEN` | — | Vercel Blob token (when `STORAGE_PROVIDER=vercel-blob`) |
+| `S3_ENDPOINT` | — | S3-compatible endpoint (R2, AWS, MinIO) |
+| `S3_REGION` | `auto` | S3 region |
+| `S3_BUCKET` | — | Bucket name |
+| `S3_ACCESS_KEY_ID` | — | Access key |
+| `S3_SECRET_ACCESS_KEY` | — | Secret key |
+| `S3_PUBLIC_URL` | — | Public CDN URL for uploaded assets |
+
+Uploaded files are namespaced per tenant: `org/<orgId>/…` via `uploadForTenant()`.
+
+## Authentication (Better Auth)
+
+| Variable | Required | Used by | Description |
+| --- | --- | --- | --- |
+| `BETTER_AUTH_SECRET` | Yes (prod) | All auth apps | Session signing secret. Generate: `openssl rand -base64 32` |
+| `BETTER_AUTH_URL` | Yes | Storefront, Dashboard, API | Public base URL for auth callbacks. Storefront default: `http://localhost:3000`. Dashboard: `http://localhost:3002`. API: `http://localhost:3005`. |
+| `AUTH_PROVIDER` | `better-auth` | Storefront | Auth seam for future WorkOS / Clerk swap. |
+
+### Seed credentials
+
+| Variable | Description |
+| --- | --- |
+| `ADMIN_EMAIL` | Initial platform admin email (used during `db:migrate` seed) |
+| `ADMIN_PASSWORD` | Initial platform admin password |
+
+## Payments
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `DEFAULT_PAYMENT_PROVIDER` | `stripe` | Default gateway: `stripe`, `easypay`, or `ifthenpay` |
+
+### Stripe
+
+| Variable | Description |
+| --- | --- |
+| `STRIPE_SECRET_KEY` | Server-side Stripe secret key |
+| `STRIPE_WEBHOOK_SECRET` | Webhook signing secret |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Client-side publishable key (checkout app) |
+
+### Easypay (Portugal)
+
+| Variable | Description |
+| --- | --- |
+| `EASYPAY_ACCOUNT_ID` | Easypay account ID |
+| `EASYPAY_API_KEY` | API key |
+| `EASYPAY_BASE_URL` | `https://api.prod.easypay.pt` (prod) or `https://api.test.easypay.pt` (sandbox) |
+
+### Ifthenpay (Portugal)
+
+| Variable | Description |
+| --- | --- |
+| `IFTHENPAY_ANTIPHISHING_KEY` | Anti-phishing verification key |
+| `IFTHENPAY_MB_KEY` | Multibanco key |
+| `IFTHENPAY_MBWAY_KEY` | MB WAY key |
+| `IFTHENPAY_CC_KEY` | Credit card key |
+
+Per-tenant credentials configured in the dashboard **override** these env fallbacks. See [Payment integration](/docs/guides/payment-integration).
+
+## Checkout app
+
+| Variable | Required | Description |
+| --- | --- | --- |
+| `CHECKOUT_URL` | Yes | Public URL of `apps/checkout`. Storefront redirects here after order placement. Default: `http://localhost:3004` |
+| `CHECKOUT_API_SECRET` | Yes | Shared secret between storefront and checkout. Sent as `x-checkout-secret` header. Generate: `openssl rand -base64 32` |
+| `STOREFRONT_URL` | Yes | Public storefront URL for post-payment redirects. Default: `http://localhost:3000` |
+| `COMMERCE_API_URL` | Yes | API base for webhook forwarding. Default: `http://localhost:3005/v1` |
+
+## Upstash Redis
+
+| Variable | Required | Used by | Description |
+| --- | --- | --- | --- |
+| `UPSTASH_REDIS_REST_URL` | Checkout | `apps/checkout` | Redis REST endpoint for session storage |
+| `UPSTASH_REDIS_REST_TOKEN` | Checkout | `apps/checkout` | Redis REST token |
+
+Checkout sessions (`@prood/checkout-host`) are persisted in Redis with a configurable TTL. Without Redis, the checkout app cannot create or load sessions.
+
+## Dashboard (Vercel domains)
+
+Optional for local dev; required for custom domain provisioning in production:
+
+| Variable | Description |
+| --- | --- |
+| `VERCEL_TOKEN` | Vercel API token |
+| `VERCEL_PROJECT_ID` | Storefront Vercel project ID |
+| `VERCEL_TEAM_ID` | Vercel team ID (if applicable) |
+
+## Commerce API
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `COMMERCE_API_URL` | `http://localhost:3005/v1` | Base URL for `@prood/api-client` in storefront and dashboard |
+| `API_PUBLIC_URL` | `http://localhost:3005` | Public API origin for Agent Auth OpenAPI proxy and discovery |
+| `AGENT_PROXY_API_KEY` | — | API key sent on proxied agent requests; metadata must include `organizationId` and scopes |
+| `AGENT_DEVICE_AUTH_PAGE` | `/device/capabilities` | Merchant approval UI path for device authorization |
+| `TRUST_PROXY` | `false` | Set `true` behind a reverse proxy for JWT `aud` validation |
+
+## Integration encryption
+
+| Variable | Description |
+| --- | --- |
+| `INTEGRATION_ENCRYPTION_KEY` | AES-256-GCM key for encrypting provider credentials in `integration_config`. Falls back to `BETTER_AUTH_SECRET`. Set a dedicated key in production. |
+
+## Marketing site
+
+| Variable | Description |
+| --- | --- |
+| `NEXT_PUBLIC_DOCS_URL` | Docs site URL (default `http://localhost:3003`) |
+| `NEXT_PUBLIC_STOREFRONT_URL` | Storefront URL for marketing CTAs |
+
+## Per-app summary
+
+| App | Critical vars |
+| --- | --- |
+| **storefront** | `DATABASE_URL`, `COMMERCE_API_URL`, `BETTER_AUTH_*`, `CHECKOUT_URL`, `CHECKOUT_API_SECRET`, `DEFAULT_TENANT_ORG_ID` |
+| **dashboard** | `DATABASE_URL`, `COMMERCE_API_URL`, `BETTER_AUTH_*`, `INTEGRATION_ENCRYPTION_KEY` |
+| **checkout** | `UPSTASH_REDIS_*`, `CHECKOUT_API_SECRET`, `COMMERCE_API_URL`, payment provider keys |
+| **api** | `DATABASE_URL`, `BETTER_AUTH_*`, `COMMERCE_*`, payment/storage provider keys, `CHECKOUT_API_SECRET` |
+| **docs** | None (static site; OpenAPI synced at build time) |
+
+## Production checklist
+
+1. Generate strong secrets: `BETTER_AUTH_SECRET`, `CHECKOUT_API_SECRET`, `INTEGRATION_ENCRYPTION_KEY`
+2. Set `DEFAULT_TENANT_ORG_ID` only for single-tenant deployments; otherwise rely on host resolution
+3. Configure `NEXT_PUBLIC_PLATFORM_DOMAIN` for subdomain tenants
+4. Provision Upstash Redis for checkout
+5. Set production payment keys (or configure per-tenant in dashboard)
+6. Point webhook URLs to checkout: `/api/webhooks/{stripe\|easypay\|ifthenpay}/{orgId}`
+7. Run `pnpm db:setup` against the production database once

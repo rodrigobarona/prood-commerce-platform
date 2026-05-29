@@ -1,0 +1,162 @@
+---
+title: Installation
+description: Clone the Prood monorepo, install dependencies, migrate the database, and start development servers.
+---
+
+Prood uses a **pnpm + Turborepo** monorepo. All applications live under `apps/` and shared libraries under `packages/`.
+
+## Prerequisites
+
+Install the following before proceeding:
+
+- **Node.js 24+** — required by all apps (`engines.node >= 24`)
+- **pnpm 10** — package manager (`corepack enable` or `npm i -g pnpm`)
+- **Neon Postgres** — provision a database and copy the connection string
+
+Optional services for full functionality:
+
+| Service | Used by | Purpose |
+| --- | --- | --- |
+| Upstash Redis | `apps/checkout` | Checkout session persistence |
+| Vercel Blob or S3 | `@prood/storage-*` | Product image uploads |
+| Stripe / Easypay / Ifthenpay | Payment providers | Live payment flows |
+
+## Step 1 — Clone and install
+
+```bash
+git clone <your-repo-url>
+cd commerce.js-nextjs-clone
+pnpm install
+```
+
+This installs all workspace packages and runs `postinstall` hooks (including `fumadocs-mdx` for the docs app).
+
+## Step 2 — Environment configuration
+
+Copy the example env file and fill in required values:
+
+```bash
+cp .env.example .env.local
+pnpm env:link
+```
+
+At minimum, set:
+
+```bash
+DATABASE_URL="postgresql://user:password@host/db?sslmode=require"
+BETTER_AUTH_SECRET="dev-only-local-secret-change-me-before-production"
+DEFAULT_TENANT_ORG_ID="org_demo"
+```
+
+See [Environment variables](/docs/getting-started/environment) for the complete reference.
+
+## Step 3 — Database setup
+
+Run the combined setup script:
+
+```bash
+pnpm db:setup
+```
+
+This executes:
+
+| Script | What it does |
+| --- | --- |
+| `pnpm db:migrate` | Runs `@prood/platform` migrations, applies RLS policies, seeds demo catalog |
+| `pnpm db:auth` | Pushes Better Auth schema via Drizzle (`pnpm --filter storefront db:push`) |
+
+### Verify the seed
+
+Connect to your database and confirm products exist:
+
+```sql
+SELECT set_config('app.current_org_id', 'org_demo', false);
+SELECT id, name FROM products LIMIT 5;
+```
+
+RLS requires `app.current_org_id` to be set — this is what `@prood/commerce` `withTenant()` does automatically.
+
+## Step 4 — Start development
+
+```bash
+pnpm dev
+```
+
+Turbo runs all apps in parallel. Individual apps can also be started:
+
+```bash
+pnpm --filter storefront dev    # :3000
+pnpm --filter dashboard dev     # :3002
+pnpm --filter checkout dev      # :3004
+pnpm --filter api dev           # :3005
+pnpm --filter docs dev          # :3003
+```
+
+## Monorepo structure
+
+```
+commerce.js-nextjs-clone/
+├── apps/
+│   ├── storefront/       # Customer storefront (Next.js 16)
+│   ├── dashboard/        # Merchant admin dashboard
+│   ├── checkout/         # Hosted payment app
+│   ├── api/              # Commerce REST API + MCP + Agent Auth
+│   ├── docs/             # Fumadocs documentation (this site)
+│   └── web/              # Marketing landing page
+├── packages/
+│   ├── types/            # @prood/types — unified domain model
+│   ├── platform/         # @prood/platform — Neon Postgres engine
+│   ├── commerce/         # @prood/commerce — server data layer
+│   ├── checkout/         # @prood/checkout — state machine
+│   ├── checkout-host/    # @prood/checkout-host — Redis session host
+│   ├── api-client/       # @prood/api-client — typed HTTP client
+│   ├── ui/               # @prood/ui — shared components
+│   ├── payment-stripe/   # Stripe Payment Element provider
+│   ├── payment-easypay/  # Portugal — Multibanco, MB WAY, card
+│   ├── payment-ifthenpay/# Portugal — Multibanco, MB WAY, card
+│   ├── storage-vercel-blob/
+│   ├── storage-s3/
+│   ├── eslint-config/
+│   └── typescript-config/
+├── .env.example          # Template for all env vars
+├── pnpm-workspace.yaml
+├── turbo.json
+└── package.json
+```
+
+## Build and quality scripts
+
+| Command | Description |
+| --- | --- |
+| `pnpm build` | Build all apps and packages via Turbo |
+| `pnpm typecheck` | TypeScript check across the monorepo |
+| `pnpm lint` | ESLint across the monorepo |
+| `pnpm --filter @prood/platform build` | Build the platform package only |
+
+## Adding UI components
+
+Shared shadcn primitives live in `@prood/ui`:
+
+```bash
+pnpm dlx shadcn@latest add button -c packages/ui
+```
+
+Commerce-specific components (product grid, cart drawer, checkout stepper, etc.) are in `packages/ui/src/components/` and imported as `@prood/ui/components/<name>`.
+
+## Troubleshooting
+
+### `DATABASE_URL` not set
+
+Every app that touches auth or commerce requires `DATABASE_URL`. Ensure `.env.local` exists at the repo root and `pnpm env:link` has been run.
+
+### Checkout sessions fail to create
+
+`apps/checkout` requires Upstash Redis. Set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` in `.env.local`. Without Redis, session creation returns 500.
+
+### Storefront shows 404 in production
+
+If no tenant matches the request host and `DEFAULT_TENANT_ORG_ID` is unset, the storefront calls `notFound()`. In development, it falls back to the demo org.
+
+### Auth tables missing
+
+Run `pnpm db:auth` or the full `pnpm db:setup`. Auth tables are separate from the commerce schema and must be pushed via Drizzle.

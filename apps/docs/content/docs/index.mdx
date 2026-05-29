@@ -1,29 +1,77 @@
 ---
 title: Introduction
-description: Prood documentation for building commerce-agnostic storefronts with Next.js.
+description: Prood is a multi-tenant, commerce-agnostic platform built with Next.js 16, Neon Postgres, and pluggable payment providers.
 ---
 
-Welcome to the Prood docs. This monorepo ships a Next.js 16 storefront, standalone checkout, admin dashboard, and shared packages for payments, storage, and catalog data.
+Welcome to the **Prood** documentation. This monorepo ships a complete white-label commerce platform: a customer storefront, merchant dashboard, standalone checkout app, REST API, and shared packages for catalog, payments, and storage.
 
 ## What is Prood?
 
-Prood is a **commerce-agnostic** toolkit: swap adapters, payment providers, and storage backends without rewriting your storefront.
+Prood is a **commerce-agnostic**, **multi-tenant** toolkit. Each merchant runs as a Better Auth **organization**; all commerce data is isolated by Postgres **row-level security (RLS)**. You can swap payment providers, storage backends, and (in the future) commerce adapters without rewriting your apps.
 
 <Cards>
-  <Card title="Storefront" href="http://localhost:3000" description="Customer-facing Next.js app with cart, checkout, and account." />
-  <Card title="Getting started" href="/docs/getting-started" description="Install dependencies and run the monorepo locally." />
-  <Card title="Commerce API" href="/docs/api" description="Interactive OpenAPI reference for the Prood REST API (v1)." />
-  <Card title="Agent Auth" href="/docs/agent-auth" description="AI agent registration, capabilities, and JWT access to the Commerce API." />
-  <Card title="Fumadocs" href="https://fumadocs.dev" description="Documentation framework powering this site." />
+  <Card title="Getting started" href="/docs/getting-started" description="Install dependencies, configure env vars, and run the monorepo locally." />
+  <Card title="Architecture" href="/docs/architecture/overview" description="How apps, packages, and the API fit together." />
+  <Card title="Commerce API" href="/docs/api" description="Interactive OpenAPI reference for the REST API (v1)." />
+  <Card title="Multi-tenancy" href="/docs/architecture/multi-tenant" description="Tenant resolution, RLS, and per-merchant integrations." />
 </Cards>
 
-## Monorepo apps
+## Monorepo applications
 
 | App | Port | Purpose |
 | --- | --- | --- |
-| `web` | 3001 | Marketing site |
-| `storefront` | 3000 | Customer storefront |
-| `dashboard` | 3002 | Admin dashboard |
-| `docs` | 3003 | This documentation site (includes Commerce API reference) |
-| `checkout` | 3004 | Standalone payment app |
-| `api` | 3005 | REST API (`/v1/*`, OpenAPI at `/v1/openapi.json`) |
+| `storefront` | 3000 | Customer-facing storefront — catalog, cart, checkout redirect, account |
+| `web` | 3001 | Marketing landing page |
+| `dashboard` | 3002 | Merchant admin — products, orders, integrations, domains, team |
+| `docs` | 3003 | This documentation site (Fumadocs + OpenAPI) |
+| `checkout` | 3004 | Hosted payment app — Stripe, Easypay, Ifthenpay |
+| `api` | 3005 | Commerce REST API (`/v1/*`), MCP server, Agent Auth |
+
+## Core packages
+
+| Package | Role |
+| --- | --- |
+| `@prood/types` | Unified domain types and provider interfaces |
+| `@prood/platform` | Built-in commerce engine (Neon Postgres + Drizzle + RLS) |
+| `@prood/commerce` | Server-only data layer wrapping the adapter and providers |
+| `@prood/checkout` | Framework-agnostic checkout state machine |
+| `@prood/checkout-host` | Next.js session host (Upstash Redis) |
+| `@prood/api-client` | Typed OpenAPI fetch client |
+| `@prood/ui` | shadcn/Radix + 33+ commerce UI components |
+
+## How data flows
+
+```
+Storefront / Dashboard  ──HTTP──►  apps/api  ──►  @prood/commerce  ──►  @prood/platform (Neon)
+       │                                                                  │
+       └── CHECKOUT_URL ──►  apps/checkout  ──webhooks──►  apps/api
+```
+
+The **storefront** and **dashboard** never talk to the database for commerce data directly. They call the **Commerce API** via `@prood/api-client`. Only `apps/api` (and dashboard integration helpers) invoke `@prood/commerce`, which scopes every query to the active tenant with `withTenant()`.
+
+## Key concepts
+
+### Multi-tenancy
+
+Each merchant store is a Better Auth organization. The storefront resolves the tenant from the request **Host** header (custom domain or `{slug}.{platform}` subdomain). The dashboard uses the session's **active organization**. See [Multi-tenant platform](/docs/architecture/multi-tenant).
+
+### API-centric architecture
+
+Unlike the upstream Nuxt reference (where apps imported `@prood/core` directly), this Next.js stack routes all commerce operations through `apps/api`. Benefits:
+
+- Single auth and tenant resolution layer
+- OpenAPI contract for humans, agents, and MCP tools
+- Storefront stays thin — BFF routes only for cart cookies and client-side search
+
+### Checkout separation
+
+Order placement happens on the storefront (via the API). Payment UI lives in `apps/checkout`, with sessions persisted in **Upstash Redis**. After payment, webhooks reconcile order status through the API.
+
+## Next steps
+
+<Cards>
+  <Card title="Installation" href="/docs/getting-started/installation" description="Clone, install, migrate the database, and start dev servers." />
+  <Card title="Quick start" href="/docs/getting-started/quick-start" description="Browse products, add to cart, and complete a checkout in 5 minutes." />
+  <Card title="Environment variables" href="/docs/getting-started/environment" description="Every env var explained — database, auth, payments, Redis, Vercel." />
+  <Card title="Storefront guide" href="/docs/apps/storefront" description="Pages, cart BFF, tenant resolution, and checkout redirect." />
+</Cards>

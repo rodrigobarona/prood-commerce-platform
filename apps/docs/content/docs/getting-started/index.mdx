@@ -1,0 +1,67 @@
+---
+title: Getting Started
+description: Set up the Prood monorepo and run all applications locally.
+---
+
+This section walks you through installing the monorepo, configuring environment variables, seeding the database, and running every application in development.
+
+## Prerequisites
+
+| Tool | Version |
+| --- | --- |
+| **Node.js** | 24 or later |
+| **pnpm** | 10 |
+| **Neon Postgres** | A database URL (local Docker or Neon cloud) |
+
+Optional for full checkout flows:
+
+- **Upstash Redis** — checkout session storage
+- **Stripe** (or Easypay / Ifthenpay) — payment provider keys
+
+## Quick install
+
+```bash
+git clone <your-repo-url>
+cd commerce.js-nextjs-clone
+pnpm install
+cp .env.example .env.local
+pnpm env:link
+pnpm db:setup
+pnpm dev
+```
+
+After `pnpm dev`, Turbo starts all apps:
+
+| App | URL |
+| --- | --- |
+| Storefront | [http://localhost:3000](http://localhost:3000) |
+| Marketing | [http://localhost:3001](http://localhost:3001) |
+| Dashboard | [http://localhost:3002](http://localhost:3002) |
+| Docs | [http://localhost:3003/docs](http://localhost:3003/docs) |
+| Checkout | [http://localhost:3004](http://localhost:3004) |
+| API | [http://localhost:3005](http://localhost:3005) |
+
+## What `db:setup` does
+
+The root script runs two steps:
+
+1. **`pnpm db:migrate`** — Applies the `@prood/platform` Drizzle schema, enables row-level security (`applyTenantIsolation`), and seeds a demo store tagged with `org_demo`.
+2. **`pnpm db:auth`** — Pushes Better Auth tables (user, session, account, organization, etc.) used by storefront, dashboard, and API.
+
+## Shared environment
+
+All apps read from a **single root** `.env.local`. Run `pnpm env:link` once to symlink `apps/*/.env.local` → root `.env.local`. This avoids drift between apps.
+
+## Documentation map
+
+<Cards>
+  <Card title="Installation" href="/docs/getting-started/installation" description="Detailed install steps, monorepo layout, and build commands." />
+  <Card title="Quick start" href="/docs/getting-started/quick-start" description="End-to-end flow: browse → cart → checkout → payment." />
+  <Card title="Environment variables" href="/docs/getting-started/environment" description="Complete reference for every env var in `.env.example`." />
+</Cards>
+
+## Default demo credentials
+
+After seeding, the platform creates an admin user if `ADMIN_EMAIL` and `ADMIN_PASSWORD` are set in `.env.local`. Use these to sign in to the dashboard at `:3002`.
+
+The seeded catalog is scoped to `DEFAULT_TENANT_ORG_ID` (default `org_demo`). The storefront serves this store when no custom domain is configured.

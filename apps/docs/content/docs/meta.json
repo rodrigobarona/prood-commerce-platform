@@ -1,4 +1,18 @@
 {
   "title": "Documentation",
-  "pages": ["index", "getting-started", "agent-auth", "...(openapi)"]
+  "pages": [
+    "index",
+    "---Getting Started---",
+    "getting-started",
+    "---Architecture---",
+    "architecture",
+    "---Applications---",
+    "apps",
+    "---Packages---",
+    "packages",
+    "---Guides---",
+    "guides",
+    "---API Reference---",
+    "...(openapi)"
+  ]
 }
