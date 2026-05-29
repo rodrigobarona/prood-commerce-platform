@@ -45,6 +45,7 @@ export async function createCheckoutSession(input: CreateSessionInput): Promise<
   const kind = 'cs'
   const sessionId = generateId(kind)
   const checkoutUrl = process.env.CHECKOUT_URL ?? 'http://localhost:3004'
+  const webhookUrl = `${checkoutUrl}/api/webhooks/${providerId}/${input.tenantId ?? '_'}`
 
   const session = new CheckoutSession({
     paymentProvider: provider,
@@ -53,7 +54,7 @@ export async function createCheckoutSession(input: CreateSessionInput): Promise<
     returnUrl: input.returnUrl,
     cancelUrl: input.cancelUrl,
     orderId: input.orderId,
-    webhookUrl: `${checkoutUrl}/api/webhooks/${providerId}`,
+    webhookUrl,
     channel: input.channel ?? 'web',
     fulfillment: input.fulfillment ?? 'none',
     expiresIn: input.expiresIn,
@@ -73,7 +74,7 @@ export async function createCheckoutSession(input: CreateSessionInput): Promise<
     kind,
     returnUrl: input.returnUrl ?? null,
     cancelUrl: input.cancelUrl ?? null,
-    webhookUrl: `${checkoutUrl}/api/webhooks/${providerId}`,
+    webhookUrl,
     tenantId: input.tenantId ?? null,
   }
 
@@ -92,6 +93,7 @@ export async function createPaymentLink(input: CreateSessionInput): Promise<Crea
   const kind = 'pl'
   const sessionId = generateId(kind)
   const checkoutUrl = process.env.CHECKOUT_URL ?? 'http://localhost:3004'
+  const webhookUrl = `${checkoutUrl}/api/webhooks/${providerId}/${input.tenantId ?? '_'}`
 
   const session = new CheckoutSession({
     paymentProvider: provider,
@@ -100,7 +102,7 @@ export async function createPaymentLink(input: CreateSessionInput): Promise<Crea
     returnUrl: input.returnUrl,
     cancelUrl: input.cancelUrl,
     orderId: input.orderId,
-    webhookUrl: `${checkoutUrl}/api/webhooks/${providerId}`,
+    webhookUrl,
     channel: 'link',
     fulfillment: 'none',
     expiresIn: input.expiresIn ?? 30 * 60 * 1000,
@@ -120,7 +122,7 @@ export async function createPaymentLink(input: CreateSessionInput): Promise<Crea
     kind,
     returnUrl: input.returnUrl ?? null,
     cancelUrl: input.cancelUrl ?? null,
-    webhookUrl: `${checkoutUrl}/api/webhooks/${providerId}`,
+    webhookUrl,
     tenantId: input.tenantId ?? null,
   }
 

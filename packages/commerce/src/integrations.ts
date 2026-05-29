@@ -1,5 +1,6 @@
 import 'server-only'
 import { neon } from '@neondatabase/serverless'
+import { decryptConfig } from './crypto'
 
 // The integration_config table is owned by the dashboard (auth schema) and is
 // not RLS-protected, so a plain read is correct here. A placeholder keeps
@@ -33,7 +34,7 @@ export async function getTenantIntegration(
     `) as { enabled: boolean; config: Record<string, string> | null }[]
     const row = rows[0]
     if (!row) return null
-    return { enabled: row.enabled, config: row.config ?? {} }
+    return { enabled: row.enabled, config: decryptConfig(row.config ?? {}) }
   } catch {
     return null
   }

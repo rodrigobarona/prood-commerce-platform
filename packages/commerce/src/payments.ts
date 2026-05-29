@@ -3,6 +3,7 @@ import type { PaymentProvider, PaymentWebhookEvent } from '@commercejs/types'
 import { StripePaymentProvider } from '@commercejs/payment-stripe'
 import { EasypayPaymentProvider } from '@commercejs/payment-easypay'
 import { IfthenpayPaymentProvider } from '@commercejs/payment-ifthenpay'
+import { getTenantPaymentConfig } from './integrations'
 
 const cache = new Map<string, PaymentProvider>()
 
@@ -97,13 +98,23 @@ export function listConfiguredPaymentProviders(): Array<{ id: string; name: stri
   return providers
 }
 
-/** Verify a payment provider webhook and return the normalized event. */
+/**
+ * Verify a payment provider webhook and return the normalized event.
+ *
+ * Pass `tenantId` to verify against the merchant's own webhook secret (loaded
+ * from their stored credentials); falls back to the platform env secret.
+ */
 export async function verifyPaymentWebhook(
   payload: string | Uint8Array,
   signature: string,
   providerId?: string,
+  tenantId?: string,
 ): Promise<PaymentWebhookEvent> {
-  const provider = getPaymentProvider(providerId)
+  const resolvedId = providerId ?? process.env.DEFAULT_PAYMENT_PROVIDER ?? 'stripe'
+  const config = tenantId
+    ? await getTenantPaymentConfig(tenantId, resolvedId)
+    : undefined
+  const provider = getPaymentProvider(resolvedId, config)
   if (!provider.verifyWebhook) {
     throw new Error(`Provider '${provider.id}' does not support webhook verification`)
   }

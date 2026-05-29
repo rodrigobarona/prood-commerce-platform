@@ -1,5 +1,6 @@
 import "server-only"
 import { and, eq } from "drizzle-orm"
+import { decryptConfig, encryptConfig } from "@workspace/commerce"
 import { authDb } from "@/lib/auth/db"
 import { integrationConfig } from "@/lib/auth/schema"
 
@@ -20,7 +21,11 @@ export async function listIntegrations(
   return new Map(
     rows.map((row) => [
       row.provider,
-      { provider: row.provider, enabled: row.enabled, config: row.config },
+      {
+        provider: row.provider,
+        enabled: row.enabled,
+        config: decryptConfig(row.config),
+      },
     ])
   )
 }
@@ -40,7 +45,11 @@ export async function getIntegration(
       )
     )
   return row
-    ? { provider: row.provider, enabled: row.enabled, config: row.config }
+    ? {
+        provider: row.provider,
+        enabled: row.enabled,
+        config: decryptConfig(row.config),
+      }
     : null
 }
 
@@ -51,18 +60,19 @@ export async function upsertIntegration(
   config: Record<string, string>,
   enabled: boolean
 ): Promise<void> {
+  const encrypted = encryptConfig(config)
   await authDb
     .insert(integrationConfig)
     .values({
       id: crypto.randomUUID(),
       organizationId: orgId,
       provider,
-      config,
+      config: encrypted,
       enabled,
     })
     .onConflictDoUpdate({
       target: [integrationConfig.organizationId, integrationConfig.provider],
-      set: { config, enabled, updatedAt: new Date() },
+      set: { config: encrypted, enabled, updatedAt: new Date() },
     })
 }
 

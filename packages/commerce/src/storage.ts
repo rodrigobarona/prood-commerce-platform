@@ -1,5 +1,9 @@
 import 'server-only'
-import type { StorageProvider } from '@commercejs/types'
+import type {
+  StorageProvider,
+  StorageUploadResult,
+  UploadInput,
+} from '@commercejs/types'
 import { VercelBlobStorageProvider } from '@commercejs/storage-vercel-blob'
 import { S3StorageProvider } from '@commercejs/storage-s3'
 import { getCommerceConfig } from './env'
@@ -32,8 +36,38 @@ export function getStorage(): StorageProvider {
       publicUrl: process.env.S3_PUBLIC_URL,
     })
   } else {
-    cached = new VercelBlobStorageProvider()
+    // addRandomSuffix makes public blob URLs unguessable (defense-in-depth on
+    // top of per-tenant key namespacing).
+    cached = new VercelBlobStorageProvider({ addRandomSuffix: true })
   }
 
   return cached
+}
+
+/**
+ * Namespace a storage directory under a tenant so uploaded keys never collide
+ * or leak across organizations. Always use this (or {@link uploadForTenant})
+ * for any merchant-uploaded asset.
+ */
+export function tenantStorageDirectory(
+  organizationId: string,
+  subdirectory?: string,
+): string {
+  const base = `org/${organizationId}`
+  if (!subdirectory) return base
+  return `${base}/${subdirectory.replace(/^\/+|\/+$/g, '')}`
+}
+
+/**
+ * Upload a file scoped to a tenant. Keys are prefixed with `org/<orgId>/...`
+ * so one merchant can never overwrite or read another merchant's assets.
+ */
+export async function uploadForTenant(
+  organizationId: string,
+  input: UploadInput,
+): Promise<StorageUploadResult> {
+  return getStorage().upload({
+    ...input,
+    directory: tenantStorageDirectory(organizationId, input.directory),
+  })
 }

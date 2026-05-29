@@ -1,5 +1,6 @@
 import "server-only"
 import { headers } from "next/headers"
+import { notFound } from "next/navigation"
 import { cacheLife, cacheTag } from "next/cache"
 import { lookupTenantByHost } from "./tenant-db"
 
@@ -10,27 +11,37 @@ import { lookupTenantByHost } from "./tenant-db"
  * - custom domains via the `tenant_domain` table,
  * - `{slug}.{NEXT_PUBLIC_PLATFORM_DOMAIN}` subdomains via `organization.slug`.
  *
- * When no mapping exists (e.g. localhost in development) it falls back to
- * DEFAULT_TENANT_ORG_ID, which matches the seeded demo store.
+ * Fallback policy (secure by default):
+ * - If `DEFAULT_TENANT_ORG_ID` is set, it's used for unmatched hosts
+ *   (single-tenant deployments or local dev).
+ * - Otherwise an unmatched host serves the demo store in development, but
+ *   returns 404 in production rather than leaking a default store.
  */
-const DEFAULT_TENANT_ORG_ID = process.env.DEFAULT_TENANT_ORG_ID ?? "org_demo"
+const EXPLICIT_DEFAULT = process.env.DEFAULT_TENANT_ORG_ID
+const DEV_DEFAULT = "org_demo"
 const PLATFORM_DOMAIN = process.env.NEXT_PUBLIC_PLATFORM_DOMAIN
 
 /**
- * Cached host → org resolution. `host` is a plain argument (the cache key), so
- * this is safe in a `'use cache'` scope; the request host is read by the caller.
+ * Cached host → org lookup. `host` is a plain argument (the cache key), so this
+ * is safe in a `'use cache'` scope; the request host is read by the caller.
+ * Returns null when the host maps to no organization.
  */
-async function tenantIdForHost(host: string): Promise<string> {
+async function lookupTenantIdForHost(host: string): Promise<string | null> {
   "use cache"
   cacheTag(`tenant-host-${host}`)
   cacheLife({ stale: 300, revalidate: 300, expire: 3600 })
-  const orgId = await lookupTenantByHost(host, PLATFORM_DOMAIN)
-  return orgId ?? DEFAULT_TENANT_ORG_ID
+  return lookupTenantByHost(host, PLATFORM_DOMAIN)
 }
 
 /** Resolve the active tenant (organization id) for the current request. */
 export async function resolveTenantId(): Promise<string> {
   const host = (await headers()).get("host")?.split(":")[0]?.toLowerCase()
-  if (!host) return DEFAULT_TENANT_ORG_ID
-  return tenantIdForHost(host)
+  const orgId = host ? await lookupTenantIdForHost(host) : null
+  if (orgId) return orgId
+
+  if (EXPLICIT_DEFAULT) return EXPLICIT_DEFAULT
+  if (process.env.NODE_ENV !== "production") return DEV_DEFAULT
+
+  // Unknown host in production: don't serve a default store.
+  notFound()
 }

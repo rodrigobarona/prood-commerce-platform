@@ -40,8 +40,11 @@ Shared:
 
 - `DATABASE_URL` — Neon Postgres (all apps share it).
 - `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` — Better Auth.
-- `DEFAULT_TENANT_ORG_ID` — fallback tenant for the storefront (default `org_demo`).
+- `DEFAULT_TENANT_ORG_ID` — explicit fallback tenant (single-tenant/dev). When
+  unset, unmatched hosts 404 in production.
 - `NEXT_PUBLIC_PLATFORM_DOMAIN` — apex used for `{slug}.platform` subdomains.
+- `INTEGRATION_ENCRYPTION_KEY` — key for encrypting stored provider credentials
+  at rest (falls back to `BETTER_AUTH_SECRET`; set a dedicated key in production).
 
 Dashboard (custom domains via Vercel — optional in dev):
 
@@ -125,25 +128,26 @@ Every package was reviewed for cross-tenant leakage. Posture by package:
 | `types`, `ui`, `eslint-config`, `typescript-config` | No | Safe |
 | `core` | Legacy engine | Not in the Next runtime path (not imported by apps) |
 
-### Secure-by-design gaps to close
+### Secure-by-design measures (implemented)
 
-1. **Secrets at rest.** `integration_config.config` stores provider credentials
-   as plaintext JSONB. They are never sent to the client, but should be
-   encrypted at rest (app-level encryption or a secrets manager) before
-   production.
-2. **Storage key namespacing.** `getStorage()` is a process-wide, env-credential
-   singleton and upload keys are caller-controlled (`directory/filename`). It is
-   not wired into any app yet. When you add product-image uploads, namespace
-   keys per tenant (e.g. `org/<orgId>/products/...`) and prefer
-   `addRandomSuffix`/unguessable paths — otherwise tenants can collide or
-   enumerate each other's public blobs.
-3. **Per-tenant webhooks.** Provider webhooks verify against a single
-   platform-level secret. Route them per tenant (e.g.
-   `/api/webhooks/:provider/:org`) so each verifies with the merchant's secret.
-4. **Unknown-host fallback.** `resolveTenantId()` falls back to
-   `DEFAULT_TENANT_ORG_ID` for unmatched hosts (convenient in dev). In
-   production, return 404/`notFound()` for unrecognized hosts instead of
-   serving the demo store.
+1. **Secrets at rest.** `integration_config.config` values are encrypted with
+   AES-256-GCM (`packages/commerce/src/crypto.ts`, `encryptConfig`/
+   `decryptConfig`) using `INTEGRATION_ENCRYPTION_KEY` (falls back to
+   `BETTER_AUTH_SECRET`). The dashboard encrypts on write and decrypts on read;
+   the commerce layer decrypts when building providers. Values without the
+   `enc:v1:` prefix are treated as plaintext (dev / migration).
+2. **Storage key namespacing.** `uploadForTenant(orgId, input)` and
+   `tenantStorageDirectory(orgId, …)` prefix every key with `org/<orgId>/…` so
+   merchants can't collide with or read each other's assets; Vercel Blob uploads
+   use `addRandomSuffix` for unguessable URLs. Always upload via these helpers.
+3. **Per-tenant webhooks.** Provider webhooks are routed per tenant at
+   `/api/webhooks/[provider]/[org]`; `verifyPaymentWebhook(payload, sig,
+   provider, org)` verifies against the merchant's stored secret (env fallback
+   when org is `_`). The checkout host registers the org-scoped webhook URL on
+   each session.
+4. **Unknown-host fallback.** `resolveTenantId()` serves a store only for a
+   resolved host or an explicit `DEFAULT_TENANT_ORG_ID`; an unmatched host
+   returns `notFound()` in production (demo store only in development).
 
 ## Maintenance follow-ups
 
