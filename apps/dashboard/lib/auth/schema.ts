@@ -5,7 +5,14 @@
 // tables (organization/member/invitation). Each organization models one tenant
 // store; `session.activeOrganizationId` tracks which store the merchant is
 // currently administering.
-import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core"
+import {
+  boolean,
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+} from "drizzle-orm/pg-core"
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -108,3 +115,29 @@ export const tenantDomain = pgTable("tenant_domain", {
   isPrimary: boolean("is_primary").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 })
+
+// ---- Integration configs (provider credentials per organization) ----
+
+export const integrationConfig = pgTable(
+  "integration_config",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    provider: text("provider").notNull(),
+    config: jsonb("config")
+      .$type<Record<string, string>>()
+      .notNull()
+      .default({}),
+    enabled: boolean("enabled").notNull().default(false),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("integration_config_org_provider_idx").on(
+      table.organizationId,
+      table.provider
+    ),
+  ]
+)
