@@ -1,0 +1,37 @@
+---
+title: Agent Auth
+description: Register AI agents, approve capabilities, and call the Commerce API via the Agent Auth Protocol.
+---
+
+The Commerce API (`apps/api`) implements [Better Auth Agent Auth](https://www.better-auth.com/docs/plugins/agent-auth) on top of the same OpenAPI contract documented at `/docs/api`.
+
+## Discovery
+
+Agents load the provider configuration from:
+
+```
+GET https://<api-host>/.well-known/agent-configuration
+```
+
+Better Auth routes (registration, capability execute, device approval, etc.) are mounted at `/api/auth/*` on the API app (port **3005** in local dev).
+
+## Capabilities from OpenAPI
+
+Every REST operation with an `operationId` in the OpenAPI spec becomes an agent capability (for example `listProducts`, `adminCreateProduct`). Read-only methods can be auto-granted to new hosts; mutating methods require user approval (device authorization or CIBA).
+
+## Calling the REST API directly
+
+When an agent calls `/v1/*` with an `Authorization: Bearer` agent JWT, the API resolves the tenant from the delegated user’s organization membership (or `organizationId` in agent metadata) and maps grants to `storefront` / `admin` scopes.
+
+## OpenAPI proxy execution
+
+When capabilities run through the default execute endpoint, the plugin proxies HTTP to the public API base URL. Set:
+
+| Variable | Purpose |
+| --- | --- |
+| `API_PUBLIC_URL` | Public API origin used in OpenAPI + proxy (defaults to `BETTER_AUTH_URL`) |
+| `AGENT_PROXY_API_KEY` | `x-api-key` sent on proxied requests; metadata must include `organizationId` and scopes |
+| `AGENT_DEVICE_AUTH_PAGE` | Path for the merchant approval UI (default `/device/capabilities`) |
+| `TRUST_PROXY` | Set `true` behind a reverse proxy for JWT `aud` validation |
+
+Run `pnpm --filter api db:push` after upgrading to create Agent Auth tables (`agentHost`, `agent`, `agentCapabilityGrant`, `approvalRequest`).

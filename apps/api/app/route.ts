@@ -15,6 +15,8 @@ export async function GET() {
       currency: config.currency,
       openapi: "/v1/openapi.json",
       docs: "/docs/api",
+      agentConfiguration: "/.well-known/agent-configuration",
+      auth: "/api/auth",
     })
   } catch (err) {
     return errorResponse(err)

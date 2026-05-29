@@ -1,8 +1,11 @@
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
+import { nextCookies } from "better-auth/next-js"
 import { organization } from "better-auth/plugins"
 import { apiKey } from "@better-auth/api-key"
+import { agentAuth } from "@better-auth/agent-auth"
 import { authDb } from "./db"
+import { getAgentAuthOpenAPIOptions } from "./agent-config"
 import * as schema from "./schema"
 
 /**
@@ -20,7 +23,18 @@ function createAuth() {
     emailAndPassword: { enabled: true },
     baseURL: process.env.BETTER_AUTH_URL,
     secret: process.env.BETTER_AUTH_SECRET,
-    plugins: [organization(), apiKey()],
+    plugins: [
+      organization(),
+      apiKey(),
+      agentAuth({
+        modes: ["delegated", "autonomous"],
+        deviceAuthorizationPage:
+          process.env.AGENT_DEVICE_AUTH_PAGE ?? "/device/capabilities",
+        trustProxy: process.env.TRUST_PROXY === "true",
+        ...getAgentAuthOpenAPIOptions(),
+      }),
+      nextCookies(),
+    ],
   })
 }
 
