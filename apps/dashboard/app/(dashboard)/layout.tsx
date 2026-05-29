@@ -1,0 +1,49 @@
+import { redirect } from "next/navigation"
+import {
+  SidebarInset,
+  SidebarProvider,
+} from "@workspace/ui/components/sidebar"
+import { DashboardSidebar } from "@/components/layout/dashboard-sidebar"
+import { DashboardHeader } from "@/components/layout/dashboard-header"
+import type { OrgSummary } from "@/components/layout/org-switcher"
+import { getSession, listOrganizations } from "@/lib/auth"
+
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  const session = await getSession()
+  if (!session) redirect("/login")
+
+  let orgs: OrgSummary[] = []
+  try {
+    const result = await listOrganizations()
+    orgs = result.map((org) => ({
+      id: org.id,
+      name: org.name,
+      slug: org.slug,
+      logo: org.logo,
+    }))
+  } catch {
+    /* DB unavailable — render with no stores */
+  }
+
+  return (
+    <SidebarProvider>
+      <DashboardSidebar
+        orgs={orgs}
+        activeOrgId={session.session.activeOrganizationId ?? null}
+        user={{
+          name: session.user.name,
+          email: session.user.email,
+          image: session.user.image,
+        }}
+      />
+      <SidebarInset>
+        <DashboardHeader />
+        <div className="flex-1 p-4 md:p-6">{children}</div>
+      </SidebarInset>
+    </SidebarProvider>
+  )
+}
