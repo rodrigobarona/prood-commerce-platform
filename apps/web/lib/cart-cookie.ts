@@ -1,4 +1,3 @@
-import "server-only"
 import { cookies } from "next/headers"
 
 const COOKIE = "commerce_cart_id"

@@ -6,7 +6,6 @@ import { OrderCard } from "@workspace/ui/components/order-card"
 import { SignOutButton } from "@/components/auth/sign-out-button"
 import { getCurrentUser } from "@/lib/auth"
 
-export const dynamic = "force-dynamic"
 export const metadata = { title: "My account" }
 
 export default async function AccountPage() {

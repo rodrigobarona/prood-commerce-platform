@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { cacheLife } from "next/cache"
 
 const SHOP = [
   { href: "/products", label: "All products" },
@@ -11,7 +12,15 @@ const SUPPORT = [
   { href: "/login", label: "Sign in" },
 ]
 
-export function Footer() {
+async function CopyrightYear() {
+  "use cache"
+  cacheLife("max")
+  return new Date().getFullYear()
+}
+
+export async function Footer() {
+  const year = await CopyrightYear()
+
   return (
     <footer className="mt-16 border-t">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 md:grid-cols-4">
@@ -45,7 +54,7 @@ export function Footer() {
         </div>
       </div>
       <div className="text-muted-foreground border-t py-6 text-center text-xs">
-        © {new Date().getFullYear()} Commerce. All rights reserved.
+        © {year} Commerce. All rights reserved.
       </div>
     </footer>
   )

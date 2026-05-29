@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
-import { addToCart, createCart } from "@workspace/commerce"
+import { addToCart, createCart, revalidateProducts } from "@workspace/commerce"
 import { errorResponse } from "@/lib/api"
 import { getCartId, setCartId } from "@/lib/cart-cookie"
 
@@ -23,12 +23,14 @@ export async function POST(request: Request) {
 
     try {
       const cart = await addToCart(id, input)
+      revalidateProducts()
       return NextResponse.json({ cart })
     } catch {
       // Cart expired/deleted — create a fresh one and retry once.
       const fresh = await createCart()
       await setCartId(fresh.id)
       const cart = await addToCart(fresh.id, input)
+      revalidateProducts()
       return NextResponse.json({ cart })
     }
   } catch (err) {

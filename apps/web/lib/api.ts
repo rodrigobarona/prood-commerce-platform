@@ -1,4 +1,3 @@
-import "server-only"
 import { NextResponse } from "next/server"
 import { toErrorResponse } from "@workspace/commerce"
 

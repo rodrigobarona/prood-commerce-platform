@@ -6,6 +6,7 @@ import {
   getShippingMethods,
   placeOrder,
   priceToMajorAmount,
+  revalidateProducts,
   setBillingAddress,
   setShippingAddress,
   setShippingMethod,
@@ -43,6 +44,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
     if (methods[0]) await setShippingMethod(cartId, methods[0].id)
 
     const order = await placeOrder(cartId)
+    revalidateProducts()
     const providerId = input.providerId ?? process.env.DEFAULT_PAYMENT_PROVIDER ?? "stripe"
 
     const baseUrl = process.env.BETTER_AUTH_URL ?? ""

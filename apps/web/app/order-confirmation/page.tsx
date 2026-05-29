@@ -7,7 +7,6 @@ import { EmptyState } from "@workspace/ui/components/empty-state"
 import { OrderTimeline } from "@workspace/ui/components/order-timeline"
 import { formatPrice, localized } from "@workspace/ui/lib/commerce"
 
-export const dynamic = "force-dynamic"
 export const metadata = { title: "Order confirmation" }
 
 export default async function OrderConfirmationPage({

@@ -54,8 +54,10 @@ Requires Node >= 24 and pnpm 10.
 2. Set the env vars from `.env.example` in the Vercel project.
 3. Run `pnpm db:setup` once (locally against the prod DB, or as a deploy step).
 4. Configure payment webhooks to `/api/webhooks/{stripe,easypay,ifthenpay}`.
-5. Deploy (`turbo build`). Catalog pages use ISR (`revalidate`); cart/checkout/
-   account are dynamic.
+5. Deploy (`turbo build`). Catalog data uses Cache Components (`cacheComponents: true`)
+   with `'use cache'` + `cacheTag`/`cacheLife` on `@workspace/commerce` catalog
+   queries (SWR: home/store 3600s, products/categories 600s). Cart/checkout/
+   account stay dynamic via cookies/session.
 
 ## Adding UI components
 

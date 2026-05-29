@@ -1,5 +1,4 @@
-import "server-only"
-import { getAdapter, type PaymentWebhookEvent } from "@workspace/commerce"
+import { getAdapter, revalidateProducts, type PaymentWebhookEvent } from "@workspace/commerce"
 
 /** Best-effort extraction of an order id from a provider webhook payload. */
 function resolveOrderId(event: PaymentWebhookEvent): string | null {
@@ -27,6 +26,7 @@ export async function reconcilePayment(event: PaymentWebhookEvent): Promise<void
     const adapter = await getAdapter()
     if (event.type === "payment.captured") {
       await adapter.updateOrderStatus(orderId, { status: "processing" })
+      revalidateProducts()
     } else if (event.type === "payment.failed" || event.type === "payment.cancelled") {
       await adapter.updateOrderStatus(orderId, { status: "cancelled" })
     }

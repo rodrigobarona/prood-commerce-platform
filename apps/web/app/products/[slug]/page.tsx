@@ -16,8 +16,6 @@ import { ReviewStars } from "@workspace/ui/components/review-stars"
 import { localized } from "@workspace/ui/lib/commerce"
 import { AddToCart } from "@/components/commerce/add-to-cart"
 
-export const revalidate = 600
-
 async function loadProduct(slug: string): Promise<Product | null> {
   try {
     return await getProduct({ slug })

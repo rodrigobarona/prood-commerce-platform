@@ -20,7 +20,7 @@ export async function Header() {
   }
   try {
     const store = await getStoreInfo()
-    storeName = localized(store.name) || storeName
+    if (store) storeName = localized(store.name) || storeName
   } catch {
     // ignore — fall back to default name
   }

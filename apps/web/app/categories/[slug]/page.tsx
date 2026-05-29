@@ -4,8 +4,6 @@ import { getCategories, getProducts } from "@workspace/commerce"
 import { localized } from "@workspace/ui/lib/commerce"
 import { ConnectedProductGrid } from "@/components/commerce/connected-product-grid"
 
-export const revalidate = 600
-
 function findBySlug(categories: Category[], slug: string): Category | null {
   for (const category of categories) {
     if (category.slug === slug) return category

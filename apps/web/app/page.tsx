@@ -6,8 +6,6 @@ import { HeroBanner } from "@workspace/ui/components/hero-banner"
 import { localized } from "@workspace/ui/lib/commerce"
 import { ConnectedProductGrid } from "@/components/commerce/connected-product-grid"
 
-export const revalidate = 3600
-
 export default async function HomePage() {
   let products: Product[] = []
   let categories: Category[] = []
@@ -27,8 +25,10 @@ export default async function HomePage() {
   }
   try {
     const store = await getStoreInfo()
-    storeName = localized(store.name) || storeName
-    tagline = store.description ? localized(store.description) : undefined
+    if (store) {
+      storeName = localized(store.name) || storeName
+      tagline = store.description ? localized(store.description) : undefined
+    }
   } catch {
     /* DB unavailable */
   }

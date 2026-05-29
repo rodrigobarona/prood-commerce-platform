@@ -4,7 +4,6 @@ import { getCustomerOrders } from "@workspace/commerce"
 import { OrderCard } from "@workspace/ui/components/order-card"
 import { getCurrentUser } from "@/lib/auth"
 
-export const dynamic = "force-dynamic"
 export const metadata = { title: "Orders" }
 
 export default async function OrdersPage() {
