@@ -537,14 +537,23 @@ export async function applyTenantIsolation(db: {
     )
   }
 
-  // store_info holds one row per tenant; its id ('default') repeats across
-  // tenants, so the primary key must include organization_id.
+  // Tables whose natural key repeats across tenants need organization_id in the
+  // primary key: store_info ('default' per tenant) and integrations (one row
+  // per provider per tenant).
   await db.execute(
     sql.raw(`ALTER TABLE store_info DROP CONSTRAINT IF EXISTS store_info_pkey`),
   )
   await db.execute(
+    sql.raw(`ALTER TABLE store_info ADD PRIMARY KEY (id, organization_id)`),
+  )
+  await db.execute(
     sql.raw(
-      `ALTER TABLE store_info ADD PRIMARY KEY (id, organization_id)`,
+      `ALTER TABLE integrations DROP CONSTRAINT IF EXISTS integrations_pkey`,
+    ),
+  )
+  await db.execute(
+    sql.raw(
+      `ALTER TABLE integrations ADD PRIMARY KEY (provider, organization_id)`,
     ),
   )
 }

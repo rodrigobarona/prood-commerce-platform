@@ -13,6 +13,7 @@
   "dependencies": {
     "@commercejs/checkout": "workspace:*",
     "@commercejs/core": "workspace:*",
+    "@neondatabase/serverless": "^1.1.0",
     "@commercejs/payment-easypay": "workspace:*",
     "@commercejs/payment-ifthenpay": "workspace:*",
     "@commercejs/payment-stripe": "workspace:*",

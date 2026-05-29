@@ -2,7 +2,7 @@ import 'server-only'
 import { CheckoutSession } from '@commercejs/checkout'
 import type { CheckoutSnapshot } from '@commercejs/checkout'
 import type { PaymentProvider } from '@commercejs/types'
-import { getPaymentProvider } from '@workspace/commerce'
+import { getPaymentProvider, getTenantPaymentConfig } from '@workspace/commerce'
 import { loadSession, saveSession, type SessionMeta, type StoredSession } from './session-store'
 
 /**
@@ -66,7 +66,10 @@ export async function loadAndHydrate(sessionId: string): Promise<LoadedSession |
   const stored = await loadSession(sessionId)
   if (!stored) return null
 
-  const provider = getPaymentProvider(stored.meta.providerId)
+  const tenantConfig = stored.meta.tenantId
+    ? await getTenantPaymentConfig(stored.meta.tenantId, stored.meta.providerId)
+    : undefined
+  const provider = getPaymentProvider(stored.meta.providerId, tenantConfig)
   const session = hydrateSession(stored.snapshot, stored.meta, provider)
 
   return {

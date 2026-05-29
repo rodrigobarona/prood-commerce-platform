@@ -45,7 +45,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
     revalidateProducts(tenantId)
 
     const providerId = input.providerId ?? process.env.DEFAULT_PAYMENT_PROVIDER ?? "stripe"
-    const checkoutUrl = process.env.CHECKOUT_URL ?? "http://localhost:3100"
+    const checkoutUrl = process.env.CHECKOUT_URL ?? "http://localhost:3004"
     const storefrontUrl = process.env.BETTER_AUTH_URL ?? "http://localhost:3000"
 
     const sessionRes = await fetch(`${checkoutUrl}/api/sessions`, {
@@ -62,6 +62,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
         currency: order.totals.total.currency,
         returnUrl: `${storefrontUrl}/order-confirmation?orderId=${order.id}`,
         providerId,
+        tenantId,
         customerInfo: {
           email: input.email,
           firstName: address.firstName,

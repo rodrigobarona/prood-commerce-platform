@@ -18,6 +18,7 @@ import type {
 } from '@commercejs/types'
 import { getAdapter, runScoped } from './adapter'
 import { getPaymentProvider } from './payments'
+import { getTenantPaymentConfig } from './integrations'
 
 type CheckoutAddress = Omit<Address, 'id' | 'isDefault'>
 
@@ -151,16 +152,25 @@ export async function getReviewSummary(
  * `amount` is in major currency units (see {@link priceToMajorAmount}).
  */
 export async function createPaymentSession(
-  input: CreatePaymentSessionInput & { providerId?: string },
+  input: CreatePaymentSessionInput & { providerId?: string; tenantId?: string },
 ): Promise<PaymentSession> {
-  const { providerId, ...rest } = input
-  return getPaymentProvider(providerId).createSession(rest)
+  const { providerId, tenantId, ...rest } = input
+  const resolvedId = providerId ?? process.env.DEFAULT_PAYMENT_PROVIDER ?? 'stripe'
+  const config = tenantId
+    ? await getTenantPaymentConfig(tenantId, resolvedId)
+    : undefined
+  return getPaymentProvider(resolvedId, config).createSession(rest)
 }
 
 /** Read a payment session's current status from the provider. */
 export async function getPaymentSession(
   sessionId: string,
   providerId?: string,
+  tenantId?: string,
 ): Promise<PaymentSession> {
-  return getPaymentProvider(providerId).getSession(sessionId)
+  const resolvedId = providerId ?? process.env.DEFAULT_PAYMENT_PROVIDER ?? 'stripe'
+  const config = tenantId
+    ? await getTenantPaymentConfig(tenantId, resolvedId)
+    : undefined
+  return getPaymentProvider(resolvedId, config).getSession(sessionId)
 }

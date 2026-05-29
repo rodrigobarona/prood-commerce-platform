@@ -1,6 +1,6 @@
 import 'server-only'
 import { CheckoutSession, type CheckoutChannel, type CheckoutFulfillment } from '@commercejs/checkout'
-import { getPaymentProvider } from '@workspace/commerce'
+import { getPaymentProvider, getTenantPaymentConfig } from '@workspace/commerce'
 import { saveSession, type SessionMeta } from './session-store'
 
 let counter = 0
@@ -25,6 +25,8 @@ export interface CreateSessionInput {
   channel?: CheckoutChannel
   fulfillment?: CheckoutFulfillment
   expiresIn?: number
+  /** Organization (tenant) whose payment credentials should back this session. */
+  tenantId?: string
 }
 
 export interface CreatedSession {
@@ -36,10 +38,13 @@ export interface CreatedSession {
 
 export async function createCheckoutSession(input: CreateSessionInput): Promise<CreatedSession> {
   const providerId = input.providerId ?? process.env.DEFAULT_PAYMENT_PROVIDER ?? 'stripe'
-  const provider = getPaymentProvider(providerId)
+  const tenantConfig = input.tenantId
+    ? await getTenantPaymentConfig(input.tenantId, providerId)
+    : undefined
+  const provider = getPaymentProvider(providerId, tenantConfig)
   const kind = 'cs'
   const sessionId = generateId(kind)
-  const checkoutUrl = process.env.CHECKOUT_URL ?? 'http://localhost:3100'
+  const checkoutUrl = process.env.CHECKOUT_URL ?? 'http://localhost:3004'
 
   const session = new CheckoutSession({
     paymentProvider: provider,
@@ -59,7 +64,7 @@ export async function createCheckoutSession(input: CreateSessionInput): Promise<
   }
 
   const publishableKey = providerId === 'stripe'
-    ? process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+    ? tenantConfig?.publishableKey ?? process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
     : undefined
 
   const meta: SessionMeta = {
@@ -69,6 +74,7 @@ export async function createCheckoutSession(input: CreateSessionInput): Promise<
     returnUrl: input.returnUrl ?? null,
     cancelUrl: input.cancelUrl ?? null,
     webhookUrl: `${checkoutUrl}/api/webhooks/${providerId}`,
+    tenantId: input.tenantId ?? null,
   }
 
   const snapshot = session.toSnapshot()
@@ -79,10 +85,13 @@ export async function createCheckoutSession(input: CreateSessionInput): Promise<
 
 export async function createPaymentLink(input: CreateSessionInput): Promise<CreatedSession & { url: string }> {
   const providerId = input.providerId ?? process.env.DEFAULT_PAYMENT_PROVIDER ?? 'stripe'
-  const provider = getPaymentProvider(providerId)
+  const tenantConfig = input.tenantId
+    ? await getTenantPaymentConfig(input.tenantId, providerId)
+    : undefined
+  const provider = getPaymentProvider(providerId, tenantConfig)
   const kind = 'pl'
   const sessionId = generateId(kind)
-  const checkoutUrl = process.env.CHECKOUT_URL ?? 'http://localhost:3100'
+  const checkoutUrl = process.env.CHECKOUT_URL ?? 'http://localhost:3004'
 
   const session = new CheckoutSession({
     paymentProvider: provider,
@@ -102,7 +111,7 @@ export async function createPaymentLink(input: CreateSessionInput): Promise<Crea
   }
 
   const publishableKey = providerId === 'stripe'
-    ? process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+    ? tenantConfig?.publishableKey ?? process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
     : undefined
 
   const meta: SessionMeta = {
@@ -112,6 +121,7 @@ export async function createPaymentLink(input: CreateSessionInput): Promise<Crea
     returnUrl: input.returnUrl ?? null,
     cancelUrl: input.cancelUrl ?? null,
     webhookUrl: `${checkoutUrl}/api/webhooks/${providerId}`,
+    tenantId: input.tenantId ?? null,
   }
 
   const snapshot = session.toSnapshot()

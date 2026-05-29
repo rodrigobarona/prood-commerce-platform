@@ -6,36 +6,54 @@ import { IfthenpayPaymentProvider } from '@commercejs/payment-ifthenpay'
 
 const cache = new Map<string, PaymentProvider>()
 
-function instantiate(id: string): PaymentProvider {
+/** Per-tenant provider credentials (from integration_config), keyed by field. */
+export type PaymentProviderConfig = Record<string, string | undefined>
+
+/** Read a value from tenant config first, then fall back to an env var. */
+function pick(
+  config: PaymentProviderConfig | undefined,
+  key: string,
+  envKey: string,
+): string | undefined {
+  return config?.[key] || process.env[envKey]
+}
+
+function instantiate(id: string, config?: PaymentProviderConfig): PaymentProvider {
   switch (id) {
     case 'stripe': {
-      const secretKey = process.env.STRIPE_SECRET_KEY
-      if (!secretKey) throw new Error('STRIPE_SECRET_KEY is not set')
+      const secretKey = pick(config, 'secretKey', 'STRIPE_SECRET_KEY')
+      if (!secretKey) throw new Error('Stripe secret key is not configured')
       return new StripePaymentProvider({
         secretKey,
-        webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
+        webhookSecret: pick(config, 'webhookSecret', 'STRIPE_WEBHOOK_SECRET'),
       })
     }
     case 'easypay': {
-      const accountId = process.env.EASYPAY_ACCOUNT_ID
-      const apiKey = process.env.EASYPAY_API_KEY
+      const accountId = pick(config, 'accountId', 'EASYPAY_ACCOUNT_ID')
+      const apiKey = pick(config, 'apiKey', 'EASYPAY_API_KEY')
       if (!accountId || !apiKey) {
-        throw new Error('EASYPAY_ACCOUNT_ID and EASYPAY_API_KEY are required')
+        throw new Error('EasyPay account id and API key are required')
       }
       return new EasypayPaymentProvider({
         accountId,
         apiKey,
-        baseUrl: process.env.EASYPAY_BASE_URL,
+        baseUrl: pick(config, 'baseUrl', 'EASYPAY_BASE_URL'),
       })
     }
     case 'ifthenpay': {
-      const antiPhishingKey = process.env.IFTHENPAY_ANTIPHISHING_KEY
-      if (!antiPhishingKey) throw new Error('IFTHENPAY_ANTIPHISHING_KEY is not set')
+      const antiPhishingKey = pick(
+        config,
+        'antiPhishingKey',
+        'IFTHENPAY_ANTIPHISHING_KEY',
+      )
+      if (!antiPhishingKey) {
+        throw new Error('IfThenPay anti-phishing key is not configured')
+      }
       return new IfthenpayPaymentProvider({
         antiPhishingKey,
-        mbKey: process.env.IFTHENPAY_MB_KEY,
-        mbWayKey: process.env.IFTHENPAY_MBWAY_KEY,
-        ccKey: process.env.IFTHENPAY_CC_KEY,
+        mbKey: pick(config, 'mbKey', 'IFTHENPAY_MB_KEY'),
+        mbWayKey: pick(config, 'mbWayKey', 'IFTHENPAY_MBWAY_KEY'),
+        ccKey: pick(config, 'ccKey', 'IFTHENPAY_CC_KEY'),
       })
     }
     default:
@@ -43,9 +61,21 @@ function instantiate(id: string): PaymentProvider {
   }
 }
 
-/** Get a payment provider by id (defaults to DEFAULT_PAYMENT_PROVIDER or 'stripe'). */
-export function getPaymentProvider(id?: string): PaymentProvider {
+/**
+ * Get a payment provider by id (defaults to DEFAULT_PAYMENT_PROVIDER or 'stripe').
+ *
+ * Pass `config` (a tenant's stored credentials) to build a provider bound to
+ * that merchant's account; values fall back to env vars per field. Tenant-built
+ * providers bypass the shared env cache so they never leak across tenants.
+ */
+export function getPaymentProvider(
+  id?: string,
+  config?: PaymentProviderConfig,
+): PaymentProvider {
   const providerId = id ?? process.env.DEFAULT_PAYMENT_PROVIDER ?? 'stripe'
+  if (config && Object.keys(config).length > 0) {
+    return instantiate(providerId, config)
+  }
   let provider = cache.get(providerId)
   if (!provider) {
     provider = instantiate(providerId)

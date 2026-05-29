@@ -21,6 +21,7 @@ const createSchema = z.object({
   channel: z.enum(["web", "pos", "agent", "link"]).optional(),
   fulfillment: z.enum(["shipping", "local_delivery", "pickup", "none"]).optional(),
   expiresIn: z.number().positive().optional(),
+  tenantId: z.string().optional(),
 })
 
 export async function POST(request: Request) {
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
     const body = createSchema.parse(await request.json())
     const result = await createCheckoutSession(body)
 
-    const checkoutUrl = process.env.CHECKOUT_URL ?? "http://localhost:3100"
+    const checkoutUrl = process.env.CHECKOUT_URL ?? "http://localhost:3004"
     return NextResponse.json({
       ...result,
       checkoutUrl: `${checkoutUrl}/pay/${result.sessionId}`,

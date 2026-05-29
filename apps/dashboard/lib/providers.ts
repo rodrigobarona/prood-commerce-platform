@@ -45,6 +45,7 @@ export const providerRegistry: ProviderMeta[] = [
     fields: [
       { key: "accountId", label: "Account ID", type: "text", required: true },
       { key: "apiKey", label: "API key", type: "password", required: true },
+      { key: "baseUrl", label: "API base URL", type: "text", required: false, placeholder: "https://api.prod.easypay.pt/2.0" },
     ],
   },
   {
@@ -55,9 +56,10 @@ export const providerRegistry: ProviderMeta[] = [
       "Portuguese payments — Multibanco, MB WAY, Payshop, and credit card via IfThenPay.",
     docsUrl: "https://www.ifthenpay.com",
     fields: [
-      { key: "backofficeKey", label: "Backoffice key", type: "password", required: true },
-      { key: "mbwayKey", label: "MB WAY key", type: "text", required: false },
-      { key: "multibancoKey", label: "Multibanco key", type: "text", required: false },
+      { key: "antiPhishingKey", label: "Anti-phishing key", type: "password", required: true },
+      { key: "mbKey", label: "Multibanco key", type: "text", required: false },
+      { key: "mbWayKey", label: "MB WAY key", type: "text", required: false },
+      { key: "ccKey", label: "Credit card key", type: "text", required: false },
     ],
   },
   // ---- Notification ----
