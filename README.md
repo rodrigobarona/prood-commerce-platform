@@ -72,13 +72,13 @@ Commerce components live in `packages/ui/src/components/*` and are imported as
 
 ### Apps (vs upstream `_context/repo-clone/apps`)
 
-| Upstream app | Status in this repo |
-|---|---|
-| **`storefront`** | **Ported** → `apps/storefront` (Next.js 16 / React 19) |
-| `hosted-checkout` | Not ported — checkout lives inside `apps/storefront` (`/checkout`, embedded Stripe + PT gateways) |
-| `dashboard` | Not ported — planned (commercejs.cloud admin) |
-| `docs` | Not ported — planned |
-| `landing-page`, `pitch-deck`, `cloud-*` | Not ported — static marketing sites |
+| Upstream app                            | Status in this repo                                                                               |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **`storefront`**                        | **Ported** → `apps/storefront` (Next.js 16 / React 19)                                            |
+| `hosted-checkout`                       | Not ported — checkout lives inside `apps/storefront` (`/checkout`, embedded Stripe + PT gateways) |
+| `dashboard`                             | Not ported — planned (commercejs.cloud admin)                                                     |
+| `docs`                                  | Not ported — planned                                                                              |
+| `landing-page`, `pitch-deck`, `cloud-*` | Not ported — static marketing sites                                                               |
 
 - CMS integration (Sanity / Payload) for marketing content — the data layer and
   page structure are designed to compose CMS content alongside commerce data.
