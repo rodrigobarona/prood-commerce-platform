@@ -6,8 +6,8 @@
 export { initDrizzle, getDb as getDrizzleDb } from './drizzle/client.js'
 export { getDb, withTenant, currentTenantScope } from './drizzle/client.js'
 export type { DrizzleDatabase } from './drizzle/client.js'
-export { migrateDrizzle } from './drizzle/migrate.js'
-export { seedDrizzle } from './drizzle/seed.js'
+export { migrateDrizzle, applyTenantIsolation } from './drizzle/migrate.js'
+export { seedDrizzle, DEMO_ORG_ID } from './drizzle/seed.js'
 
 // Prisma (dormant — commented out to prevent WASM bundling)
 // export { initPrisma, getDb, getDb as getPrismaDb } from './prisma/client.js'

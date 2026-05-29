@@ -437,7 +437,7 @@ export async function migrateDrizzle(connectionString?: string) {
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`)
 
-  // Integrations — stores provider credentials (e.g. Armada access tokens)
+  // Integrations — stores provider credentials per tenant
   await db.execute(sql`CREATE TABLE IF NOT EXISTS integrations (
     provider TEXT PRIMARY KEY,
     access_token TEXT,
@@ -446,4 +446,105 @@ export async function migrateDrizzle(connectionString?: string) {
     connected_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`)
+
+  // Apply multi-tenant row-level security to all tenant-owned tables.
+  await applyTenantIsolation(db)
+}
+
+/**
+ * Tenant-owned tables. Each gets an `organization_id` column that defaults to
+ * the active tenant (from the `app.current_org_id` session variable set by
+ * withTenant()), plus a row-level-security policy isolating rows by tenant.
+ *
+ * Reference/identity tables are intentionally excluded:
+ * - `countries` is shared reference data.
+ * - `admin_users` predates the org model (superseded by Better Auth members).
+ * - `profiles*` are cross-merchant buyer identity by design.
+ */
+const TENANT_TABLES = [
+  'categories',
+  'products',
+  'product_images',
+  'product_variants',
+  'product_options',
+  'product_option_values',
+  'product_attributes',
+  'product_categories',
+  'product_tags',
+  'customers',
+  'customer_addresses',
+  'carts',
+  'cart_items',
+  'orders',
+  'order_items',
+  'order_history',
+  'store_info',
+  'brands',
+  'wishlists',
+  'wishlist_items',
+  'reviews',
+  'promotions',
+  'coupons',
+  'returns',
+  'return_items',
+  'integrations',
+] as const
+
+/**
+ * Add the `organization_id` tenant column + RLS policy to every tenant table.
+ *
+ * Idempotent. The column defaults to `current_setting('app.current_org_id', true)`
+ * so inserts inside `withTenant()` are auto-tagged. RLS is FORCED so the policy
+ * applies even to the table owner role the app connects as.
+ *
+ * IMPORTANT: once this runs against a shared database, every data path
+ * (storefront + dashboard) must execute inside `withTenant(orgId, ...)` or
+ * queries return zero rows. Wire tenant resolution before enabling on a live DB.
+ */
+export async function applyTenantIsolation(db: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  execute: (query: any) => Promise<any>
+}) {
+  for (const table of TENANT_TABLES) {
+    // 1. Tenant column, defaulting to the active org from the session variable.
+    await db.execute(
+      sql.raw(
+        `ALTER TABLE ${table} ADD COLUMN IF NOT EXISTS organization_id TEXT ` +
+          `DEFAULT current_setting('app.current_org_id', true)`,
+      ),
+    )
+    await db.execute(
+      sql.raw(
+        `CREATE INDEX IF NOT EXISTS ${table}_organization_id_idx ` +
+          `ON ${table} (organization_id)`,
+      ),
+    )
+
+    // 2. Enable + FORCE row-level security (FORCE so the owner role is bound too).
+    await db.execute(sql.raw(`ALTER TABLE ${table} ENABLE ROW LEVEL SECURITY`))
+    await db.execute(sql.raw(`ALTER TABLE ${table} FORCE ROW LEVEL SECURITY`))
+
+    // 3. Isolation policy — a row is visible/writable only for the active tenant.
+    await db.execute(
+      sql.raw(`DROP POLICY IF EXISTS tenant_isolation ON ${table}`),
+    )
+    await db.execute(
+      sql.raw(
+        `CREATE POLICY tenant_isolation ON ${table} ` +
+          `USING (organization_id = current_setting('app.current_org_id', true)) ` +
+          `WITH CHECK (organization_id = current_setting('app.current_org_id', true))`,
+      ),
+    )
+  }
+
+  // store_info holds one row per tenant; its id ('default') repeats across
+  // tenants, so the primary key must include organization_id.
+  await db.execute(
+    sql.raw(`ALTER TABLE store_info DROP CONSTRAINT IF EXISTS store_info_pkey`),
+  )
+  await db.execute(
+    sql.raw(
+      `ALTER TABLE store_info ADD PRIMARY KEY (id, organization_id)`,
+    ),
+  )
 }

@@ -38,7 +38,9 @@ export {
   withTenant,
   currentTenantScope,
   migrateDrizzle,
+  applyTenantIsolation,
   seedDrizzle,
+  DEMO_ORG_ID,
 } from './database/index.js'
 export type { DrizzleDatabase } from './database/drizzle/client.js'
 

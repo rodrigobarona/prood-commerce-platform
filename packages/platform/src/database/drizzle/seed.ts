@@ -2,15 +2,33 @@
 // Seed — populate the database with demo data (Drizzle + Neon)
 // ---------------------------------------------------------------------------
 
-import { getDb } from './client.js'
+import { getDb, withTenant } from './client.js'
 import type { DrizzleDatabase } from './client.js'
 import * as schema from './schema/index.js'
 
 /**
- * Seed the database with demo products, categories, and store info via Drizzle.
+ * Demo tenant id. Seed data is tagged with this organization so it is visible
+ * when `app.current_org_id` is set to DEMO_ORG_ID (e.g. a dashboard org with
+ * this id, or a storefront domain mapped to it).
  */
-export async function seedDrizzle(db?: DrizzleDatabase): Promise<void> {
-  const database = db ?? getDb()
+export const DEMO_ORG_ID = 'org_demo'
+
+/**
+ * Seed the database with demo products, categories, and store info via Drizzle.
+ *
+ * Runs inside `withTenant(DEMO_ORG_ID)` so every insert is auto-tagged with the
+ * tenant `organization_id` (via the column default) and satisfies the RLS
+ * write check. The optional `db` argument is accepted for backward
+ * compatibility but inserts always use the tenant-scoped connection.
+ */
+export async function seedDrizzle(_db?: DrizzleDatabase): Promise<void> {
+  await withTenant(DEMO_ORG_ID, async () => {
+    await seedTenantData()
+  })
+}
+
+async function seedTenantData(): Promise<void> {
+  const database = getDb()
 
   // ---- Store ----
   await database.insert(schema.storeInfo).values({
