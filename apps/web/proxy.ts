@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getSessionCookie } from "better-auth/cookies"
 
-// Optimistic, DB-free session check at the edge. Authorization is still
-// enforced in Server Components/Actions via getSession().
-export function middleware(request: NextRequest) {
+// Optimistic, DB-free session check at the network boundary. Authorization is
+// still enforced in Server Components/Actions via getSession().
+export function proxy(request: NextRequest) {
   const sessionCookie = getSessionCookie(request)
 
   if (!sessionCookie) {

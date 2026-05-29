@@ -1,6 +1,24 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
+  "globalEnv": [
+    "NODE_ENV",
+    "DATABASE_URL",
+    "COMMERCE_ADAPTER",
+    "COMMERCE_CURRENCY",
+    "STORAGE_PROVIDER",
+    "DEFAULT_PAYMENT_PROVIDER",
+    "BETTER_AUTH_URL",
+    "BETTER_AUTH_SECRET",
+    "AUTH_PROVIDER",
+    "BLOB_READ_WRITE_TOKEN",
+    "STRIPE_*",
+    "NEXT_PUBLIC_STRIPE_*",
+    "EASYPAY_*",
+    "IFTHENPAY_*",
+    "S3_*",
+    "NEXT_PUBLIC_*"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
