@@ -20,7 +20,7 @@ export function AgenciesTeaserSection() {
             />
             <ul className="mt-8 space-y-4">
               {agencyHighlights.map((item) => (
-                <li key={item.title} className="text-[14px] leading-7 text-muted-foreground">
+                <li key={item.title} className="marketing-copy">
                   <span className="font-medium text-foreground">{item.title}.</span> {item.description}
                 </li>
               ))}

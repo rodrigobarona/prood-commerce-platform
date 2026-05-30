@@ -69,8 +69,8 @@ export default function PricingPage() {
           <dl className="mt-12 space-y-8">
             {pricingFaqs.map((faq) => (
               <div key={faq.question} className="surface-card rounded-lg p-6 md:p-8">
-                <dt className="text-[16px] font-semibold tracking-[-0.02em]">{faq.question}</dt>
-                <dd className="mt-3 text-[14px] leading-7 text-muted-foreground">{faq.answer}</dd>
+                <dt className="marketing-heading-md">{faq.question}</dt>
+                <dd className="marketing-copy mt-3">{faq.answer}</dd>
               </div>
             ))}
           </dl>

@@ -25,8 +25,8 @@ export function ValueStripSection() {
                 <Icon className="size-4" weight="duotone" aria-hidden />
               </div>
               <div className="min-w-0 md:mt-4">
-                <h3 className="text-[15px] font-semibold tracking-[-0.02em]">{item.title}</h3>
-                <p className="mt-2 text-[14px] leading-7 text-muted-foreground">{item.description}</p>
+                <h3 className="marketing-heading-sm">{item.title}</h3>
+                <p className="marketing-copy mt-2">{item.description}</p>
               </div>
             </div>
           )

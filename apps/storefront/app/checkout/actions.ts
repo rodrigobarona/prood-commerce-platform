@@ -2,8 +2,10 @@
 
 import type { Address, Order } from "@prood/types"
 import { priceToMajorAmount } from "@prood/types"
+import { headers } from "next/headers"
 import { clearCartId, getCartId } from "@/lib/cart-cookie"
 import { getCommerceApi } from "@/lib/commerce-api"
+import { resolveTenantId } from "@/lib/tenant"
 
 type CheckoutAddress = Omit<Address, "id" | "isDefault">
 
@@ -79,8 +81,13 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
 
     const providerId = input.providerId ?? process.env.DEFAULT_PAYMENT_PROVIDER ?? "stripe"
     const checkoutUrl = process.env.CHECKOUT_URL ?? "http://localhost:3004"
-    const storefrontUrl = process.env.BETTER_AUTH_URL ?? "http://localhost:3000"
-    const tenantId = process.env.DEFAULT_TENANT_ORG_ID
+    const headerList = await headers()
+    const host = headerList.get("x-forwarded-host") ?? headerList.get("host")
+    const proto = headerList.get("x-forwarded-proto") ?? "http"
+    const storefrontOrigin = host
+      ? `${proto}://${host.split(":")[0]}`
+      : (process.env.BETTER_AUTH_URL ?? "http://localhost:3000")
+    const tenantId = await resolveTenantId()
 
     const sessionRes = await fetch(`${checkoutUrl}/api/sessions`, {
       method: "POST",
@@ -94,7 +101,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
         orderId: order.id,
         amount: priceToMajorAmount(order.totals.total),
         currency: order.totals.total.currency,
-        returnUrl: `${storefrontUrl}/order-confirmation?orderId=${order.id}`,
+        returnUrl: `${storefrontOrigin}/order-confirmation?orderId=${order.id}`,
         providerId,
         tenantId,
         customerInfo: {

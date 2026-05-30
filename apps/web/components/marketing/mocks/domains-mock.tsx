@@ -2,11 +2,12 @@ import { CheckIcon, GlobeIcon } from "@phosphor-icons/react/dist/ssr"
 
 import { MockChrome } from "@/components/marketing/mocks/mock-chrome"
 import { mockCustomDomain, mockSubdomain } from "@/lib/marketing-mocks"
+import { formatDashboardPath } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
 export function DomainsMock({ className }: { className?: string }) {
   return (
-    <MockChrome title="Domains" url="dashboard.prood.app/domains" className={className}>
+    <MockChrome title="Domains" url={formatDashboardPath("domains")} className={className}>
       <p className="sr-only">Example domain settings with subdomain and verified custom domain</p>
       <ul className="divide-y divide-border/50" aria-hidden>
         <li className="flex items-center justify-between gap-4 bg-muted/15 px-4 py-3.5">

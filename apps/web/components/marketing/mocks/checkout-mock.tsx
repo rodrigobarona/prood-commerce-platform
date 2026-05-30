@@ -1,10 +1,11 @@
 import { CreditCardIcon, LockIcon } from "@phosphor-icons/react/dist/ssr"
 
 import { MockChrome } from "@/components/marketing/mocks/mock-chrome"
+import { mockSubdomain } from "@/lib/marketing-mocks"
 
 export function CheckoutMock({ className }: { className?: string }) {
   return (
-    <MockChrome title="Checkout" url="checkout.prood.app" className={className}>
+    <MockChrome title="Checkout" url={`${mockSubdomain}/checkout`} className={className}>
       <p className="sr-only">Example checkout with Stripe payment</p>
       <div className="space-y-4 p-5" aria-hidden>
         <div className="flex items-center justify-between border-b border-border/50 pb-4">

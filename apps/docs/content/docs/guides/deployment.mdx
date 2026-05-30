@@ -5,17 +5,31 @@ description: Deploy Prood applications to Vercel with Neon Postgres, Upstash Red
 
 Prood deploys as **separate Vercel projects** sharing a single Neon Postgres database. Each app has its own environment variables and build configuration.
 
+## Production URL map (Prood)
+
+| URL | App |
+| --- | --- |
+| `prood.com` | Marketing (`apps/web`) |
+| `dashboard.prood.com` | Merchant admin |
+| `api.prood.com` | Commerce API |
+| `pay.prood.com` | Hosted checkout |
+| `docs.prood.com` | Documentation |
+| `{slug}.prood.app` | Storefront (wildcard on storefront project) |
+| `shop.client.com` | Store custom domain (per merchant) |
+
+Set `NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app` for storefront subdomain resolution only. Platform services use `*.prood.com` via each app's `BETTER_AUTH_URL` and public URL env vars.
+
 ## Deployment architecture
 
 ```mermaid
 flowchart TB
   subgraph vercel [Vercel projects]
-    SF[storefront<br/>*.merchant.com]
-    DB[dashboard<br/>admin.example.com]
-    CHK[checkout<br/>pay.example.com]
-    API[api<br/>api.example.com]
-    DOCS[docs<br/>docs.example.com]
-    WEB[web<br/>example.com]
+    SF[storefront<br/>*.prood.app]
+    DB[dashboard<br/>dashboard.prood.com]
+    CHK[checkout<br/>pay.prood.com]
+    API[api<br/>api.prood.com]
+    DOCS[docs<br/>docs.prood.com]
+    WEB[web<br/>prood.com]
   end
 
   subgraph shared [Shared services]
@@ -66,8 +80,8 @@ The API must be deployed first — other apps depend on it.
 ```bash
 DATABASE_URL=postgresql://...
 BETTER_AUTH_SECRET=<openssl rand -base64 32>
-BETTER_AUTH_URL=https://api.example.com
-API_PUBLIC_URL=https://api.example.com
+BETTER_AUTH_URL=https://api.prood.com
+API_PUBLIC_URL=https://api.prood.com
 COMMERCE_ADAPTER=platform
 COMMERCE_CURRENCY=EUR
 DEFAULT_PAYMENT_PROVIDER=stripe
@@ -77,7 +91,7 @@ STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 CHECKOUT_API_SECRET=<shared secret>
 INTEGRATION_ENCRYPTION_KEY=<openssl rand -base64 32>
-NEXT_PUBLIC_PLATFORM_DOMAIN=example.com
+NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app
 ```
 
 ## Step 3 — Deploy the storefront
@@ -91,13 +105,13 @@ NEXT_PUBLIC_PLATFORM_DOMAIN=example.com
 
 ```bash
 DATABASE_URL=postgresql://...
-COMMERCE_API_URL=https://api.example.com/v1
+COMMERCE_API_URL=https://api.prood.com/v1
 BETTER_AUTH_SECRET=<same as API>
 BETTER_AUTH_URL=https://storefront.example.com
-CHECKOUT_URL=https://pay.example.com
+CHECKOUT_URL=https://pay.prood.com
 CHECKOUT_API_SECRET=<same as API>
 DEFAULT_TENANT_ORG_ID=          # leave empty for multi-tenant
-NEXT_PUBLIC_PLATFORM_DOMAIN=example.com
+NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app
 ```
 
 Custom domains are added per-merchant via the dashboard Domains page.
@@ -115,15 +129,15 @@ Custom domains are added per-merchant via the dashboard Domains page.
 UPSTASH_REDIS_REST_URL=https://...
 UPSTASH_REDIS_REST_TOKEN=...
 CHECKOUT_API_SECRET=<same as API>
-CHECKOUT_URL=https://pay.example.com
-COMMERCE_API_URL=https://api.example.com/v1
+CHECKOUT_URL=https://pay.prood.com
+COMMERCE_API_URL=https://api.prood.com/v1
 STOREFRONT_URL=https://storefront.example.com
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
 STRIPE_SECRET_KEY=sk_live_...
 # Payment provider keys as fallbacks
 ```
 
-Configure payment webhooks to: `https://pay.example.com/api/webhooks/{provider}/{orgId}`
+Configure payment webhooks to: `https://pay.prood.com/api/webhooks/{provider}/{orgId}`
 
 ## Step 5 — Deploy the dashboard
 
@@ -136,14 +150,14 @@ Configure payment webhooks to: `https://pay.example.com/api/webhooks/{provider}/
 
 ```bash
 DATABASE_URL=postgresql://...
-COMMERCE_API_URL=https://api.example.com/v1
+COMMERCE_API_URL=https://api.prood.com/v1
 BETTER_AUTH_SECRET=<same as API>
-BETTER_AUTH_URL=https://admin.example.com
+BETTER_AUTH_URL=https://dashboard.prood.com
 INTEGRATION_ENCRYPTION_KEY=<same as API>
 VERCEL_TOKEN=<for domain provisioning>
 VERCEL_PROJECT_ID=<storefront project ID>
 VERCEL_TEAM_ID=<team ID>
-NEXT_PUBLIC_PLATFORM_DOMAIN=example.com
+NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app
 ```
 
 ## Step 6 — Deploy docs and web
@@ -155,11 +169,14 @@ NEXT_PUBLIC_PLATFORM_DOMAIN=example.com
 
 ```bash
 # Docs
-NEXT_PUBLIC_DOCS_URL=https://docs.example.com
+NEXT_PUBLIC_DOCS_URL=https://docs.prood.com
 
 # Web
-NEXT_PUBLIC_DOCS_URL=https://docs.example.com
-NEXT_PUBLIC_STOREFRONT_URL=https://storefront.example.com
+NEXT_PUBLIC_WEB_URL=https://prood.com
+NEXT_PUBLIC_DOCS_URL=https://docs.prood.com
+NEXT_PUBLIC_DASHBOARD_URL=https://dashboard.prood.com
+NEXT_PUBLIC_API_URL=https://api.prood.com
+NEXT_PUBLIC_STOREFRONT_URL=https://demo-store.prood.app
 ```
 
 ## Shared secrets

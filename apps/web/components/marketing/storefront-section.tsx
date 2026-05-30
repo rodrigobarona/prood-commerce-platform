@@ -4,18 +4,18 @@ import { GlobeIcon, LinkSimpleIcon } from "@phosphor-icons/react/dist/ssr"
 import { BentoCell, BentoGrid } from "@/components/marketing/bento-grid"
 import { SectionContainer, SectionHeader, SectionShell } from "@/components/marketing/section"
 import { Button } from "@/components/ui/button"
-import { siteConfig } from "@/lib/site"
+import { formatStoreHost, siteConfig } from "@/lib/site"
 
 export function StorefrontSection() {
-  const subdomain = `your-store.${siteConfig.platformDomainExample}`
+  const subdomain = formatStoreHost("your-store")
 
   return (
     <SectionShell>
       <SectionContainer>
         <SectionHeader
           eyebrow="Your storefront"
-          title="Live on your subdomain the moment you sign up"
-          description="Every store gets yourname.prood.app automatically. Connect shop.yourbrand.com when you are ready for a custom domain."
+          title={`Live on ${siteConfig.storeDomain} the moment you sign up`}
+          description={`Prood runs on ${siteConfig.marketingDomain}. Every store gets a free subdomain on ${siteConfig.storeDomain}—like vercel.com and vercel.app. Manage everything at ${siteConfig.platformHosts.dashboard}. Connect shop.yourbrand.com when you want your own domain.`}
         />
 
         <BentoGrid className="mt-14 grid-cols-1 lg:grid-cols-2">
@@ -23,11 +23,11 @@ export function StorefrontSection() {
             <div className="flex size-10 items-center justify-center border border-border bg-muted">
               <LinkSimpleIcon className="size-5 text-brand" weight="duotone" aria-hidden />
             </div>
-            <h3 className="text-[17px] font-semibold tracking-[-0.02em]">Platform subdomain</h3>
+            <h3 className="marketing-heading">Free store subdomain</h3>
             <p className="font-mono text-[15px] text-brand">{subdomain}</p>
-            <p className="text-[14px] leading-7 text-muted-foreground">
-              Included on Free. Share this URL while you build; customers can browse, cart, and checkout
-              immediately.
+            <p className="marketing-copy">
+              Included on Free on {siteConfig.storeDomain}. Share this URL while you build; customers can
+              browse, cart, and checkout immediately.
             </p>
           </BentoCell>
 
@@ -35,11 +35,11 @@ export function StorefrontSection() {
             <div className="flex size-10 items-center justify-center border border-border bg-muted">
               <GlobeIcon className="size-5 text-brand" weight="duotone" aria-hidden />
             </div>
-            <h3 className="text-[17px] font-semibold tracking-[-0.02em]">Custom domain</h3>
+            <h3 className="marketing-heading">Your own domain</h3>
             <p className="font-mono text-[15px] text-muted-foreground">shop.yourbrand.com</p>
-            <p className="text-[14px] leading-7 text-muted-foreground">
-              One custom domain included on Free. Add DNS from the dashboard; SSL provisioning via Vercel
-              when configured in production.
+            <p className="marketing-copy">
+              One custom domain included on Free. Add DNS from {siteConfig.platformHosts.dashboard}; SSL provisioning
+              via Vercel when configured in production.
             </p>
           </BentoCell>
         </BentoGrid>

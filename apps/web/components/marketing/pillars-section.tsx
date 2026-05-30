@@ -21,8 +21,8 @@ export function PillarsSection() {
               <span className="geo-step-index mb-5" aria-hidden>
                 {String(index + 1).padStart(2, "0")}
               </span>
-              <h3 className="text-[17px] font-semibold tracking-[-0.02em]">{pillar.title}</h3>
-              <p className="mt-3 text-[14px] leading-7 text-muted-foreground">{pillar.description}</p>
+              <h3 className="marketing-heading">{pillar.title}</h3>
+              <p className="marketing-copy mt-3">{pillar.description}</p>
             </article>
           ))}
         </div>

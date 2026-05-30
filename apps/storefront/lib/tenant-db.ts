@@ -7,6 +7,12 @@ const sql = neon(
     "postgresql://placeholder:placeholder@localhost:5432/placeholder"
 )
 
+const RESERVED_STORE_SLUGS = new Set(["www", "api", "dashboard", "pay", "docs"])
+
+function isAllowedStoreSlug(slug: string): boolean {
+  return slug.length > 0 && !RESERVED_STORE_SLUGS.has(slug)
+}
+
 /**
  * Resolve a request host to an organization (tenant) id.
  *
@@ -30,7 +36,7 @@ export async function lookupTenantByHost(
 
     if (platformDomain && host.endsWith(`.${platformDomain}`)) {
       const slug = host.slice(0, host.length - platformDomain.length - 1)
-      if (slug && slug !== "www") {
+      if (isAllowedStoreSlug(slug)) {
         const orgRows = (await sql`
           SELECT id FROM organization WHERE slug = ${slug} LIMIT 1
         `) as { id: string }[]

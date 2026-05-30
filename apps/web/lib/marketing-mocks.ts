@@ -1,7 +1,7 @@
 import { siteConfig } from "@/lib/site"
 
 export const mockStoreSlug = "acme-store"
-export const mockSubdomain = `${mockStoreSlug}.${siteConfig.platformDomainExample}`
+export const mockSubdomain = `${mockStoreSlug}.${siteConfig.storeDomain}`
 export const mockCustomDomain = "shop.acme.com"
 
 export const mockProducts = [

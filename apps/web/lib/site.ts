@@ -2,8 +2,17 @@ export const siteConfig = {
   name: "Prood",
   tagline: "Sell online without the setup tax",
   description:
-    "Launch a real store on your domain, connect payments with your own keys, and run orders from one dashboard. No Prood cut on your sales.",
-  platformDomainExample: "prood.app",
+    "Launch a real store on prood.app, connect payments with your own keys, and run orders from dashboard.prood.com. No Prood cut on your sales.",
+  marketingDomain: "prood.com",
+  /** Apex for tenant storefront subdomains only — not platform services. */
+  storeDomain: "prood.app",
+  /** Shared platform services on prood.com (Vercel.com / Vercel.app split). */
+  platformHosts: {
+    dashboard: "dashboard.prood.com",
+    api: "api.prood.com",
+    checkout: "pay.prood.com",
+    docs: "docs.prood.com",
+  },
   url: process.env.NEXT_PUBLIC_WEB_URL ?? "http://localhost:3001",
   docsUrl: process.env.NEXT_PUBLIC_DOCS_URL ?? "http://localhost:3003",
   storefrontUrl: process.env.NEXT_PUBLIC_STOREFRONT_URL ?? "http://localhost:3000",
@@ -14,7 +23,7 @@ export const siteConfig = {
 } as const
 
 export const siteAnnouncement = {
-  message: "Your brand URL—included on Free.",
+  message: "Free store on prood.app—included on Free.",
   href: "/pricing",
   linkLabel: "See plans",
 } as const
@@ -24,8 +33,8 @@ export const heroCopy = {
   title: "Your store, live today.",
   titleAccent: "Upgrade when you need more.",
   subline:
-    "Your brand, your URL—on Free. Connect Stripe, Easypay, or Ifthenpay with your keys—you keep what you earn, minus your processor.",
-  trustLine: "Free to start · Your brand URL included · Subscriptions rolling out soon",
+    `Every store gets a free subdomain on ${siteConfig.storeDomain}—your brand URL on day one. Connect Stripe, Easypay, or Ifthenpay with your keys; you keep what you earn, minus your processor.`,
+  trustLine: `Free to start · yourname.${siteConfig.storeDomain} included · Admin at ${siteConfig.platformHosts.dashboard}`,
 } as const
 
 export const valueStripItems = [
@@ -42,12 +51,12 @@ export const valueStripItems = [
   {
     title: "Look professional from day one",
     description:
-      "Subdomain goes live instantly. Connect your brand URL on Free—no paid plan required to look professional.",
+      `Your store goes live on yourname.${siteConfig.storeDomain} instantly. Connect shop.yourbrand.com on Free when you want a fully owned domain.`,
   },
 ] as const
 
 export const marketingStats = [
-  { label: "Your brand URL", value: "Included on Free" },
+  { label: "Store subdomain", value: `yourname.${siteConfig.storeDomain}` },
   { label: "Prood fee on sales", value: "0%" },
   { label: "Typical time to first order", value: "Under an hour" },
 ] as const
@@ -87,7 +96,7 @@ export const howItWorksSteps = [
   {
     step: "01",
     title: "Create your store",
-    description: "Email, store name, done. Your organization and subdomain are ready in minutes.",
+    description: `Email, store name, done. Your store on ${siteConfig.storeDomain} and admin at ${siteConfig.platformHosts.dashboard} are ready in minutes.`,
   },
   {
     step: "02",
@@ -97,7 +106,7 @@ export const howItWorksSteps = [
   {
     step: "03",
     title: "Sell on your URL",
-    description: "Share your subdomain or connect your domain on Free. Orders land in your dashboard as they come in.",
+    description: `Share yourname.${siteConfig.storeDomain} or connect your own domain on Free. Orders land in ${siteConfig.platformHosts.dashboard} as they come in.`,
   },
 ] as const
 
@@ -116,7 +125,7 @@ export const dashboardFeatures = [
   },
   {
     title: "Domains & team",
-    description: "Subdomain on day one, custom domain on Free, team and agents on paid plans.",
+    description: `Storefront on yourname.${siteConfig.storeDomain} from day one, custom domain on Free, team and agents on paid plans.`,
   },
 ] as const
 
@@ -142,7 +151,7 @@ export const agencyHighlights = [
   },
   {
     title: "Their domain, their checkout",
-    description: "Staging on a subdomain, production on shop.client.com with SSL handled for you.",
+    description: `Stage on yourname.${siteConfig.storeDomain}, production on shop.client.com—with SSL handled for you.`,
   },
   {
     title: "Invite without sharing passwords",
@@ -172,7 +181,7 @@ export const merchantGainItems = [
   {
     title: "Live store in one sitting",
     timeCost: "~30–60 min",
-    description: "Subdomain, catalog, and checkout ready for a real test order today.",
+    description: `Subdomain on ${siteConfig.storeDomain}, catalog, and checkout ready for a real test order today.`,
   },
   {
     title: "Clear economics",
@@ -197,3 +206,13 @@ export const techStack = [
 
 export const pricingDisclaimer =
   "Processing fees are paid to your provider (Stripe, Easypay, etc.). Prood does not charge a fee on your sales at launch. Plan limits below reflect upcoming subscriptions—we’ll announce before billing goes live."
+
+export function formatStoreHost(slug: string) {
+  return `${slug}.${siteConfig.storeDomain}`
+}
+
+export function formatDashboardPath(path = "") {
+  const normalized = path.replace(/^\//, "")
+  const host = siteConfig.platformHosts.dashboard
+  return normalized ? `${host}/${normalized}` : host
+}

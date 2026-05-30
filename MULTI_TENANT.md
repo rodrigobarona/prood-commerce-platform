@@ -18,6 +18,22 @@ Better Auth org (tenant)
 - **Platform** (`packages/platform`) — owns the commerce schema, the
   `withTenant()` tenant scope, and `applyTenantIsolation()` (RLS).
 
+## Domain architecture
+
+Prood uses a **Vercel-style split** between the company domain and tenant store URLs:
+
+| URL | App | Purpose |
+| --- | --- | --- |
+| `prood.com` | `apps/web` | Marketing |
+| `dashboard.prood.com` | `apps/dashboard` | Merchant admin |
+| `api.prood.com` | `apps/api` | Commerce API |
+| `pay.prood.com` | `apps/checkout` | Hosted checkout |
+| `docs.prood.com` | `apps/docs` | Documentation |
+| `{slug}.prood.app` | `apps/storefront` | Free store subdomain (automatic) |
+| `shop.client.com` | `apps/storefront` | Optional store custom domain |
+
+`NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app` is **only** the apex for merchant storefront subdomains — not for dashboard or API hosts.
+
 ## How tenant resolution works
 
 | Surface | Source of tenant | Mechanism |
@@ -67,7 +83,7 @@ pnpm db:migrate           # runs migrateDrizzle -> applyTenantIsolation + seed
 pnpm --filter dashboard db:push
 
 # 4. Run
-pnpm dev                  # storefront :3000, checkout :3100, dashboard :3002
+pnpm dev                  # storefront :3000, checkout :3004, dashboard :3002
 ```
 
 `applyTenantIsolation()` (in `packages/platform/.../drizzle/migrate.ts`) adds an

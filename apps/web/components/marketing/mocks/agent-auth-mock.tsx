@@ -1,10 +1,11 @@
 import { RobotIcon } from "@phosphor-icons/react/dist/ssr"
 
 import { MockChrome } from "@/components/marketing/mocks/mock-chrome"
+import { formatDashboardPath } from "@/lib/site"
 
 export function AgentAuthMock({ className }: { className?: string }) {
   return (
-    <MockChrome title="Agent Auth" url="dashboard.prood.app/settings/api-keys" className={className}>
+    <MockChrome title="Agent Auth" url={formatDashboardPath("settings/api-keys")} className={className}>
       <p className="sr-only">Example Agent Auth capability approval</p>
       <div className="space-y-3 p-4" aria-hidden>
         <div className="rounded-md border border-border/80 bg-muted/20 p-4">

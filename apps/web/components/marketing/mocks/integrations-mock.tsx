@@ -1,10 +1,11 @@
 import { MockChrome } from "@/components/marketing/mocks/mock-chrome"
 import { mockIntegrations } from "@/lib/marketing-mocks"
+import { formatDashboardPath } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
 export function IntegrationsMock({ className }: { className?: string }) {
   return (
-    <MockChrome title="Integrations" url="dashboard.prood.app/integrations" className={className}>
+    <MockChrome title="Integrations" url={formatDashboardPath("integrations")} className={className}>
       <p className="sr-only">Example payment integrations per store</p>
       <ul className="divide-y divide-border/50 p-1" aria-hidden>
         {mockIntegrations.map((item, index) => (

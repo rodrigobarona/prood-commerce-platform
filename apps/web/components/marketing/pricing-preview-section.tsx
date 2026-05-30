@@ -17,7 +17,7 @@ export function PricingPreviewSection() {
           description="Your domain and checkout are included on Free. Upgrade for volume, team seats, and Agent Auth—not to open the doors."
         />
 
-        <p className="mx-auto mt-6 max-w-2xl text-center text-[13px] leading-6 text-muted-foreground">
+        <p className="marketing-copy-sm mx-auto mt-6 max-w-2xl text-center">
           {pricingDisclaimer}
         </p>
 

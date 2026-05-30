@@ -5,6 +5,19 @@ description: How Prood isolates merchant data with Better Auth organizations, ho
 
 Prood runs as a **white-label, multi-tenant commerce platform**: one deployment serves many merchant stores. Each store is a Better Auth **organization**, and all commerce data is isolated per organization by **Postgres row-level security (RLS)**.
 
+## Domain architecture
+
+| URL | App | Tenant resolution |
+| --- | --- | --- |
+| `prood.com` | Marketing | N/A |
+| `dashboard.prood.com` | Merchant admin | Session `activeOrganizationId` |
+| `api.prood.com` | Commerce API | Session / API key / forwarded store `Host` |
+| `pay.prood.com` | Hosted checkout | `tenantId` on checkout session |
+| `{slug}.prood.app` | Storefront | Host → org slug or custom domain |
+| `shop.client.com` | Storefront | Verified `tenant_domain` row |
+
+`NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app` applies **only** to merchant storefront subdomains (`{slug}.prood.app`), not to platform services on `prood.com`.
+
 ## Tenant model
 
 ```mermaid
@@ -129,7 +142,7 @@ Merchants cannot collide with or read each other's assets. Vercel Blob uploads u
 | Variable | Purpose |
 | --- | --- |
 | `DEFAULT_TENANT_ORG_ID` | Explicit fallback tenant (single-tenant / dev) |
-| `NEXT_PUBLIC_PLATFORM_DOMAIN` | Apex for `{slug}.platform` subdomains |
+| `NEXT_PUBLIC_PLATFORM_DOMAIN` | Apex for `{slug}.prood.app` **storefront** subdomains only — not platform hosts on `prood.com` |
 | `INTEGRATION_ENCRYPTION_KEY` | Encrypt stored provider credentials |
 | `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID` | Custom domain provisioning (optional in dev) |
 
@@ -140,6 +153,34 @@ When adding a new tenant-owned table:
 1. Add it to `TENANT_TABLES` in `packages/platform/src/database/drizzle/migrate.ts`
 2. If the natural key repeats across tenants, include `organization_id` in the primary key (see `store_info` and `integrations`)
 3. Re-run migrations and verify RLS policies apply
+
+## Custom domains (two products)
+
+Merchants can have **two different kinds** of custom domain:
+
+| Type | Default | Custom (paid tiers vary) | Routes to | Purpose |
+| --- | --- | --- | --- | --- |
+| **Store domain** | `{slug}.prood.app` | e.g. `shop.my-brand.com` | Storefront | Customer-facing catalog and cart |
+| **Admin domain (white-label)** | `dashboard.prood.com` | e.g. `cms.my-brand.com` | Dashboard | Team-facing admin (DatoCMS-style) |
+
+### Store custom domain (partially implemented)
+
+- Configured in Dashboard → **Domains**
+- Stored in `tenant_domain`, verified via DNS
+- Attached to the **storefront** Vercel project (`VERCEL_PROJECT_ID`)
+- Free plan includes one verified store custom domain (`maxCustomDomains` in billing)
+
+### Admin white-label domain (Phase 3 — not implemented)
+
+Similar to DatoCMS `dashboard.datocms.com` vs `cms.your-brand.com`:
+
+- Default admin URL for all merchants: **`dashboard.prood.com`**
+- Scale / Agency (planned): optional **`cms.my-brand.com`** with DNS verification
+- Routes to `apps/dashboard`, not the storefront
+- Requires a separate Vercel project attachment, dashboard host → org lookup, and Better Auth trusted origins per custom admin host
+- Planned billing gate: `customAdminDomain` entitlement on Scale and Agency only
+
+Store and admin custom domains are **independent** — a merchant might use `shop.acme.com` for customers and `cms.acme.com` for their team.
 
 ## Related pages
 

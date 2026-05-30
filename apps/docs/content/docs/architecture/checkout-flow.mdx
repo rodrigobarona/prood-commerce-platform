@@ -253,6 +253,41 @@ const snapshot = session.toSnapshot()
 
 `@prood/checkout-host` persists snapshots in Redis and rehydrates them on each request.
 
+## Checkout URL strategy
+
+Prood separates **where customers browse** from **where they pay**:
+
+| Surface | Domain | Example |
+| --- | --- | --- |
+| Storefront | `{slug}.prood.app` or custom domain | `https://demo-store.prood.app` |
+| Hosted checkout (Phase 1 — current) | `pay.prood.com` | `https://pay.prood.com/pay/cs_...` |
+| Store-hosted checkout (Phase 2 — planned) | Same as storefront host | `https://demo-store.prood.app/pay/cs_...` |
+
+### Phase 1 — shared checkout on prood.com
+
+After the storefront places an order, it creates a session via `POST {CHECKOUT_URL}/api/sessions` and redirects the customer to:
+
+```
+https://pay.prood.com/pay/{sessionId}
+```
+
+- `CHECKOUT_URL=https://pay.prood.com` in production
+- `tenantId` is resolved from the storefront host (not `DEFAULT_TENANT_ORG_ID`)
+- `returnUrl` points back to the store host (e.g. `https://demo-store.prood.app/order-confirmation?orderId=...`)
+- Webhooks: `https://pay.prood.com/api/webhooks/{provider}/{orgId}`
+
+This is the simplest multi-tenant setup: one checkout deployment, tenant context on the session.
+
+### Phase 2 — Shopify-like checkout on the store host (planned)
+
+For stronger brand trust, payment URLs can move to the merchant's storefront host:
+
+```
+https://demo-store.prood.app/pay/{sessionId}
+```
+
+Implementation options: reverse-proxy `/pay/*` to the checkout app, or mount pay routes on the storefront. Requires passing `checkoutBaseUrl` from the storefront when creating the session instead of a global `CHECKOUT_URL` prefix.
+
 ## Related pages
 
 <Cards>

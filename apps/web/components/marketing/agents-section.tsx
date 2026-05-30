@@ -19,7 +19,7 @@ export function AgentsSection({ compact = false }: { compact?: boolean }) {
             description="On Grow and above, agents use the same API as your team. Sensitive changes wait for your sign-off."
             visual={<AgentAuthMock />}
           >
-            <ul className="space-y-3 text-[14px] leading-7 text-muted-foreground">
+            <ul className="space-y-3 marketing-copy">
               {agentExamples.map((ex) => (
                 <li key={ex.title}>
                   <span className="font-medium text-foreground">{ex.title}.</span> {ex.description}

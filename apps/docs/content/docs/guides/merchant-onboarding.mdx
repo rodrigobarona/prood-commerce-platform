@@ -20,7 +20,7 @@ Estimated time: 30–60 minutes (excluding DNS propagation).
 
 ## Step 1 — Register
 
-1. Navigate to the dashboard: `https://admin.prood.app/register` (or your `NEXT_PUBLIC_DASHBOARD_URL` in dev)
+1. Navigate to the dashboard: `https://dashboard.prood.com/register` (or your `NEXT_PUBLIC_DASHBOARD_URL` in dev)
 2. Enter email, password, and store name
 3. Better Auth creates:
    - A `user` record
@@ -51,7 +51,7 @@ Verify products appear in the API:
 
 ```bash
 curl -H "Host: acme-store.prood.app" \
-  https://api.prood.app/v1/products
+  https://api.prood.com/v1/products
 ```
 
 ## Step 4 — Configure payments
@@ -82,7 +82,7 @@ curl -H "Host: acme-store.prood.app" \
 Configure the payment provider to send webhooks to:
 
 ```
-https://pay.prood.app/api/webhooks/{provider}/{orgId}
+https://pay.prood.com/api/webhooks/{provider}/{orgId}
 ```
 
 See [Webhook setup](/docs/guides/webhook-setup) for provider-specific instructions.

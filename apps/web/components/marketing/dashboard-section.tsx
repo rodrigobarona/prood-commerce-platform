@@ -21,8 +21,8 @@ export function DashboardSection() {
               <p className="font-mono text-[10px] tracking-[0.12em] text-muted-foreground uppercase">
                 {String(index + 1).padStart(2, "0")}
               </p>
-              <h3 className="mt-3 text-[16px] font-semibold tracking-[-0.02em]">{feature.title}</h3>
-              <p className="mt-2 text-[14px] leading-7 text-muted-foreground">{feature.description}</p>
+              <h3 className="marketing-heading-md mt-3">{feature.title}</h3>
+              <p className="marketing-copy mt-2">{feature.description}</p>
             </BentoCell>
           ))}
         </BentoGrid>

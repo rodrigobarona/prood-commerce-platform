@@ -31,7 +31,7 @@ export function PricingTierCard({ tier }: { tier: MarketingTier }) {
           {tier.badge}
         </span>
       ) : null}
-      <h3 className="text-[18px] font-semibold tracking-[-0.02em]">{tier.name}</h3>
+      <h3 className="text-[18px] font-semibold tracking-[-0.02em] text-balance">{tier.name}</h3>
       <p className="mt-2 flex flex-wrap items-baseline gap-1">
         <span className="font-display text-[32px] font-medium tracking-[-0.04em]">{tier.price}</span>
         <span className="text-[13px] text-muted-foreground">{tier.period}</span>
@@ -39,7 +39,7 @@ export function PricingTierCard({ tier }: { tier: MarketingTier }) {
       {tier.annualNote ? (
         <p className="mt-1 font-mono text-[11px] text-brand">{tier.annualNote}</p>
       ) : null}
-      <p className="mt-3 text-[14px] leading-7 text-muted-foreground">{tier.description}</p>
+      <p className="marketing-copy mt-3">{tier.description}</p>
       <ul className="mt-6 flex-1 space-y-2.5">
         {tier.highlights.map((item) => (
           <li key={item} className="flex gap-2 text-[13px]">
@@ -81,10 +81,10 @@ export function PricingFreeBand({ tier }: { tier: MarketingTier }) {
           <p className="font-mono text-[11px] font-medium tracking-wide text-brand uppercase">
             Free forever
           </p>
-          <h3 className="mt-2 text-[22px] font-semibold tracking-[-0.03em]">
+          <h3 className="mt-2 text-[22px] font-semibold tracking-[-0.03em] text-balance">
             {tier.name} — {tier.price} {tier.period}
           </h3>
-          <p className="mt-2 text-[14px] leading-7 text-muted-foreground">{tier.description}</p>
+          <p className="marketing-copy mt-2">{tier.description}</p>
           <ul className="mt-4 grid gap-2 sm:grid-cols-2">
             {tier.highlights.map((item) => (
               <li key={item} className="flex gap-2 text-[13px]">

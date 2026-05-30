@@ -1,6 +1,7 @@
 import { StorefrontIcon } from "@phosphor-icons/react/dist/ssr"
 
 import { MockChrome } from "@/components/marketing/mocks/mock-chrome"
+import { formatDashboardPath, formatStoreHost } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
 const stores = [
@@ -11,7 +12,7 @@ const stores = [
 
 export function MultiStoreMock({ className }: { className?: string }) {
   return (
-    <MockChrome title="Stores" url="dashboard.prood.app" className={className}>
+    <MockChrome title="Stores" url={formatDashboardPath()} className={className}>
       <p className="sr-only">Example agency view with multiple client stores</p>
       <ul className="divide-y divide-border/50" aria-hidden>
         {stores.map((store, i) => (
@@ -29,7 +30,7 @@ export function MultiStoreMock({ className }: { className?: string }) {
               <div className="min-w-0">
                 <p className="text-[13px] font-semibold tracking-[-0.02em]">{store.name}</p>
                 <p className="truncate font-mono text-[11px] text-muted-foreground">
-                  {store.slug}.prood.app
+                  {formatStoreHost(store.slug)}
                 </p>
               </div>
             </div>

@@ -4,7 +4,15 @@ import { MockChrome } from "@/components/marketing/mocks/mock-chrome"
 import { mockProducts, mockSubdomain } from "@/lib/marketing-mocks"
 import { cn } from "@/lib/utils"
 
-export function StorefrontCatalogMock({ className }: { className?: string }) {
+export function StorefrontCatalogMock({
+  className,
+  compact = false,
+}: {
+  className?: string
+  compact?: boolean
+}) {
+  const products = compact ? mockProducts.slice(0, 3) : mockProducts
+
   return (
     <MockChrome url={mockSubdomain} className={className}>
       <p className="sr-only">Example storefront with product grid and cart</p>
@@ -17,8 +25,14 @@ export function StorefrontCatalogMock({ className }: { className?: string }) {
           </span>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4" aria-hidden>
-        {mockProducts.map((product, index) => (
+      <div
+        className={cn(
+          "grid p-4",
+          compact ? "grid-cols-3 gap-3.5" : "grid-cols-2 gap-3 sm:grid-cols-4"
+        )}
+        aria-hidden
+      >
+        {products.map((product, index) => (
           <div
             key={product.name}
             className={cn(

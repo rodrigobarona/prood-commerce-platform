@@ -20,7 +20,7 @@ DATABASE_URL="postgresql://user:password@host/db?sslmode=require"
 | Variable | Required | Used by | Description |
 | --- | --- | --- | --- |
 | `DEFAULT_TENANT_ORG_ID` | Dev | Storefront, API | Fallback org when host-based tenant resolution fails. Default: `org_demo`. Unset in production → unmatched hosts return 404. |
-| `NEXT_PUBLIC_PLATFORM_DOMAIN` | Prod | Storefront, Dashboard, API | Apex domain for `{slug}.platform.com` subdomain resolution. Example: `example.com`. |
+| `NEXT_PUBLIC_PLATFORM_DOMAIN` | Prod | Storefront, Dashboard, API | Apex for merchant storefront subdomains only (`{slug}.prood.app`). Platform services run on `prood.com`. Example: `prood.app`. |
 
 ## Commerce engine
 

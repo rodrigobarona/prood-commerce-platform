@@ -64,8 +64,8 @@ export default function AiPage() {
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {capabilities.map((cap) => (
               <MarketingCard key={cap.title} hover>
-                <h3 className="text-[16px] font-semibold">{cap.title}</h3>
-                <p className="mt-2 text-[14px] leading-7 text-muted-foreground">{cap.description}</p>
+                <h3 className="marketing-heading-md">{cap.title}</h3>
+                <p className="marketing-copy mt-2">{cap.description}</p>
               </MarketingCard>
             ))}
           </div>
@@ -82,8 +82,8 @@ export default function AiPage() {
           <ul className="mt-10 space-y-6">
             {agentExamples.map((ex) => (
               <li key={ex.title} className="marketing-panel p-6">
-                <h3 className="text-[16px] font-semibold">{ex.title}</h3>
-                <p className="mt-2 text-[14px] leading-7 text-muted-foreground">{ex.description}</p>
+                <h3 className="marketing-heading-md">{ex.title}</h3>
+                <p className="marketing-copy mt-2">{ex.description}</p>
               </li>
             ))}
           </ul>

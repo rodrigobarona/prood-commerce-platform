@@ -177,6 +177,26 @@
     @apply text-[17px] leading-7 text-muted-foreground text-pretty;
   }
 
+  .marketing-heading {
+    @apply text-[17px] font-semibold tracking-[-0.02em] text-balance;
+  }
+
+  .marketing-heading-sm {
+    @apply text-[15px] font-semibold tracking-[-0.02em] text-balance;
+  }
+
+  .marketing-heading-md {
+    @apply text-[16px] font-semibold tracking-[-0.02em] text-balance;
+  }
+
+  .marketing-copy {
+    @apply text-[14px] leading-7 text-muted-foreground text-pretty;
+  }
+
+  .marketing-copy-sm {
+    @apply text-[13px] leading-6 text-muted-foreground text-pretty;
+  }
+
   .surface-card {
     border: 1px solid oklch(from var(--border) l c h / 90%);
     border-radius: var(--radius-lg);

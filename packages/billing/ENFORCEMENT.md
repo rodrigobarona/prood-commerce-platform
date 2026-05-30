@@ -20,6 +20,7 @@ This document describes where limits will be enforced when platform billing laun
 | `agentAuthEnabled` | Block capability grants / agent JWT issuance | `apps/api` Agent Auth plugin configuration |
 | `apiWriteEnabled` | Restrict API key scopes to read-only on Free | `apps/api/lib/resolve-caller.ts` + API key creation |
 | `removeBranding` | Storefront/dashboard theme flag | Storefront layout when Prood branding is added |
+| `customAdminDomain` (planned) | Block admin white-label domain setup on Free/Grow | Dashboard domains UI — Scale / Agency only; see [Multi-tenant platform](/docs/architecture/multi-tenant) |
 
 ## Reading plan from database
 

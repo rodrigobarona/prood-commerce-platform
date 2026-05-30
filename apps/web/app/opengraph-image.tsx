@@ -53,7 +53,7 @@ export default function Image() {
             maxWidth: 820,
           }}
         >
-          Custom domain on Free · BYO Stripe · No Prood fee on sales at launch
+          {`yourname.${siteConfig.storeDomain} on Free · Admin at ${siteConfig.platformHosts.dashboard} · 0% Prood fee on sales`}
         </div>
       </div>
     ),

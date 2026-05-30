@@ -28,7 +28,7 @@ const agencyWorkflow = [
   },
   {
     title: "Ship on their domain",
-    description: "Stage on a subdomain. Point shop.client.com when they sign off.",
+    description: `Stage on yourname.${siteConfig.storeDomain}. Point shop.client.com when they sign off.`,
   },
   {
     title: "Run the portfolio",
@@ -70,8 +70,8 @@ export default function AgenciesPage() {
           <div className="grid gap-6 md:grid-cols-3">
             {agencyHighlights.map((item) => (
               <MarketingCard key={item.title} hover>
-                <h3 className="text-[17px] font-semibold tracking-[-0.02em]">{item.title}</h3>
-                <p className="mt-3 text-[14px] leading-7 text-muted-foreground">{item.description}</p>
+                <h3 className="marketing-heading">{item.title}</h3>
+                <p className="marketing-copy mt-3">{item.description}</p>
               </MarketingCard>
             ))}
           </div>
@@ -89,8 +89,8 @@ export default function AgenciesPage() {
             {agencyWorkflow.map((step, index) => (
               <li key={step.title} className="marketing-panel p-6">
                 <span className="font-mono text-[11px] text-brand">Step {index + 1}</span>
-                <h3 className="mt-3 text-[16px] font-semibold">{step.title}</h3>
-                <p className="mt-2 text-[14px] leading-7 text-muted-foreground">{step.description}</p>
+                <h3 className="marketing-heading-md mt-3">{step.title}</h3>
+                <p className="marketing-copy mt-2">{step.description}</p>
               </li>
             ))}
           </ol>

@@ -9,8 +9,10 @@ The dashboard **Domains** page lets merchants connect custom domains to their st
 
 | Type | Example | Setup |
 | --- | --- | --- |
-| **Platform subdomain** | `merchant.example.com` | Automatic — based on organization slug + `NEXT_PUBLIC_PLATFORM_DOMAIN` |
-| **Custom domain** | `shop.merchant.com` | Manual — add in dashboard, verify DNS, provision on Vercel |
+| **Platform subdomain** | `acme-store.prood.app` | Automatic — org slug + `NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app` |
+| **Store custom domain** | `shop.merchant.com` | Manual — add in dashboard, verify DNS, provision on storefront Vercel project |
+
+Platform admin always lives at **`dashboard.prood.com`** (not on `prood.app`). A future **admin white-label domain** (e.g. `cms.my-brand.com` on Scale+) is documented in [Multi-tenant platform](/docs/architecture/multi-tenant) — not implemented yet.
 
 ## Subdomain (automatic)
 
@@ -18,7 +20,7 @@ When a merchant registers, their organization gets a slug (e.g. `acme-store`). T
 
 ```mermaid
 flowchart LR
-  REG[Register org slug acme-store] --> URL["acme-store.example.com"]
+  REG[Register org slug acme-store] --> URL["acme-store.prood.app"]
   URL --> TENANT[storefront/lib/tenant.ts]
   TENANT --> ORG[Resolve org_acme-store]
   ORG --> API["GET /v1/products (scoped)"]
@@ -78,7 +80,7 @@ Required env vars (optional in local dev):
 | Variable | Purpose |
 | --- | --- |
 | `VERCEL_TOKEN` | Vercel API bearer token |
-| `VERCEL_PROJECT_ID` | Storefront Vercel project ID |
+| `VERCEL_PROJECT_ID` | **Storefront** Vercel project ID (store custom domains attach here) |
 | `VERCEL_TEAM_ID` | Vercel team ID (if applicable) |
 
 ## Storage schema

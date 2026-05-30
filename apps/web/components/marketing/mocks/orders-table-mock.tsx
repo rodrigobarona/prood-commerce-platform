@@ -1,5 +1,6 @@
 import { MockChrome } from "@/components/marketing/mocks/mock-chrome"
 import { mockOrders } from "@/lib/marketing-mocks"
+import { formatDashboardPath } from "@/lib/site"
 import { cn } from "@/lib/utils"
 
 const statusStyles = {
@@ -10,7 +11,7 @@ const statusStyles = {
 
 export function OrdersTableMock({ className }: { className?: string }) {
   return (
-    <MockChrome title="Orders" url="dashboard.prood.app/orders" className={className}>
+    <MockChrome title="Orders" url={formatDashboardPath("orders")} className={className}>
       <p className="sr-only">Example orders table with status and totals</p>
       <div className="flex min-h-[280px]" aria-hidden>
         <aside className="hidden w-[4.5rem] shrink-0 border-r border-border/60 bg-muted/25 py-4 sm:block">

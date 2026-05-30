@@ -44,8 +44,8 @@ export default function IntegrationsPage() {
       <SectionShell variant="muted">
         <SectionContainer>
           <MarketingCard>
-            <h3 className="text-[16px] font-semibold">Why we ask for your keys</h3>
-            <p className="mt-3 text-[14px] leading-7 text-muted-foreground">
+            <h3 className="marketing-heading-md">Why we ask for your keys</h3>
+            <p className="marketing-copy mt-3">
               Platforms often punish you for using Stripe or PayPal directly. Prood connects your
               existing merchant accounts per store—so agencies and brands keep the relationships they
               already have.
