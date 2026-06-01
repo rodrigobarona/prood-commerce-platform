@@ -1,8 +1,6 @@
 import type { Metadata } from "next"
 import { Geist_Mono, Inter } from "next/font/google"
-import Script from "next/script"
 import { Suspense } from "react"
-import { resolveServerPublicAuthBaseUrl } from "@prood/auth/client"
 
 import "@prood/ui/globals.css"
 import { cn } from "@prood/ui/lib/utils"
@@ -24,8 +22,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const authBaseUrl = resolveServerPublicAuthBaseUrl()
-
   return (
     <html
       lang="en"
@@ -41,11 +37,6 @@ export default function RootLayout({
         className="min-h-svh bg-background"
         suppressHydrationWarning
       >
-        {authBaseUrl ? (
-          <Script id="prood-auth-base-url" strategy="beforeInteractive">
-            {`window.__PROOD_AUTH_BASE_URL__=${JSON.stringify(authBaseUrl)}`}
-          </Script>
-        ) : null}
         <Suspense fallback={null}>
           <AppProviders>{children}</AppProviders>
         </Suspense>

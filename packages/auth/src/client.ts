@@ -1,51 +1,28 @@
 import { createAuthClient } from "better-auth/react"
 import type { BetterAuthClientPlugin } from "better-auth/client"
-import {
-  resolvePublicAuthBaseUrl,
-  type ResolvePublicAuthBaseUrlOptions,
-} from "./public-auth-url"
 
-export interface CreateAppAuthClientOptions extends ResolvePublicAuthBaseUrlOptions {
-  baseURL?: string
+export interface CreateAppAuthClientOptions {
   plugins?: BetterAuthClientPlugin[]
 }
 
-type AuthClient = ReturnType<typeof createAuthClient>
+export type AppAuthClient = ReturnType<typeof createAuthClient>
 
-let cachedClient: AuthClient | undefined
-
-/**
- * Browser auth client pointed at the central API origin (`NEXT_PUBLIC_AUTH_URL`).
- * Safe to import in Client Components.
- */
-export function getAppAuthClient(
+/** Browser auth client for apps that call the central API (`NEXT_PUBLIC_AUTH_URL`). */
+export function createAppAuthClient(
   options: CreateAppAuthClientOptions = {}
-): AuthClient {
-  if (cachedClient) return cachedClient
+): AppAuthClient {
+  const baseURL = process.env.NEXT_PUBLIC_AUTH_URL?.trim()
+  if (!baseURL) {
+    throw new Error(
+      "NEXT_PUBLIC_AUTH_URL is required (e.g. http://localhost:3005 in dev)."
+    )
+  }
 
-  const baseURL =
-    options.baseURL?.trim() ??
-    resolvePublicAuthBaseUrl({
-      resolveDevBrowserUrl: options.resolveDevBrowserUrl,
-    })
-
-  cachedClient = createAuthClient({
+  return createAuthClient({
     baseURL,
     plugins: options.plugins ?? [],
     fetchOptions: {
       credentials: "include",
     },
   })
-
-  return cachedClient
 }
-
-/** @deprecated Prefer `getAppAuthClient()` — kept for one-off construction. */
-export function createAppAuthClient(options: CreateAppAuthClientOptions = {}) {
-  return getAppAuthClient(options)
-}
-
-export {
-  resolvePublicAuthBaseUrl,
-  resolveServerPublicAuthBaseUrl,
-} from "./public-auth-url"
