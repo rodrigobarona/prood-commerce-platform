@@ -27,12 +27,16 @@ let redis: Redis | null = null
 
 function getRedis(): Redis {
   if (!redis) {
-    const url = process.env.UPSTASH_REDIS_REST_URL
-    const token = process.env.UPSTASH_REDIS_REST_TOKEN
+    const url =
+      process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL
+    const token =
+      process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN
     if (!url || !token) {
-      throw new Error('UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are required')
+      throw new Error(
+        "Redis REST credentials are required. Set UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN (Upstash) or KV_REST_API_URL + KV_REST_API_TOKEN (Vercel Marketplace Redis/KV).",
+      )
     }
-    redis = new Redis({ url, token })
+    redis = Redis.fromEnv()
   }
   return redis
 }
