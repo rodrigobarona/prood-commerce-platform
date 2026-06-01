@@ -17,7 +17,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@prood/ui/components/sidebar"
-import { organization } from "@/lib/auth/client"
+import { authClient } from "@/lib/auth/client"
 
 export interface OrgSummary {
   id: string
@@ -42,7 +42,7 @@ export function OrgSwitcher({
   async function handleSelect(orgId: string) {
     if (orgId === active?.id) return
     setSwitching(true)
-    await organization.setActive({ organizationId: orgId })
+    await authClient.organization.setActive({ organizationId: orgId })
     setSwitching(false)
     router.refresh()
   }

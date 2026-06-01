@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@prood/ui/components/select"
 import { assertTeamSeatAvailableAction } from "@/app/(dashboard)/team/actions"
-import { organization } from "@/lib/auth/client"
+import { authClient } from "@/lib/auth/client"
 
 export function InviteMemberForm() {
   const router = useRouter()
@@ -30,7 +30,7 @@ export function InviteMemberForm() {
         toast.error(limit.error)
         return
       }
-      const { error } = await organization.inviteMember({
+      const { error } = await authClient.organization.inviteMember({
         email,
         role: role as "member" | "admin" | "owner",
       })

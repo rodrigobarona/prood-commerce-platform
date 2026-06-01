@@ -4,7 +4,7 @@ import { useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Button } from "@prood/ui/components/button"
-import { organization } from "@/lib/auth/client"
+import { authClient } from "@/lib/auth/client"
 
 export function RemoveMemberButton({
   memberId,
@@ -18,7 +18,7 @@ export function RemoveMemberButton({
 
   function handleRemove() {
     startTransition(async () => {
-      const { error } = await organization.removeMember({
+      const { error } = await authClient.organization.removeMember({
         memberIdOrEmail: memberId,
       })
       if (error) {
@@ -52,7 +52,7 @@ export function CancelInvitationButton({
 
   function handleCancel() {
     startTransition(async () => {
-      const { error } = await organization.cancelInvitation({ invitationId })
+      const { error } = await authClient.organization.cancelInvitation({ invitationId })
       if (error) {
         toast.error(error.message ?? "Could not cancel invitation")
         return

@@ -13,7 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@prood/ui/components/card"
-import { signIn } from "@/lib/auth/client"
+import { authClient } from "@/lib/auth/client"
 
 export function LoginForm() {
   const router = useRouter()
@@ -29,7 +29,7 @@ export function LoginForm() {
     event.preventDefault()
     setLoading(true)
     setError(null)
-    const { error: signInError } = await signIn.email({ email, password })
+    const { error: signInError } = await authClient.signIn.email({ email, password })
     setLoading(false)
     if (signInError) {
       setError(signInError.message ?? "Sign in failed")

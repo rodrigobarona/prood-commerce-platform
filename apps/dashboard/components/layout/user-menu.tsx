@@ -23,7 +23,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@prood/ui/components/sidebar"
-import { signOut } from "@/lib/auth/client"
+import { authClient } from "@/lib/auth/client"
 
 export interface UserSummary {
   name: string
@@ -49,7 +49,7 @@ export function UserMenu({ user }: { user: UserSummary }) {
   const { resolvedTheme, setTheme } = useTheme()
 
   async function handleSignOut() {
-    const { error } = await signOut()
+    const { error } = await authClient.signOut()
     if (error) {
       toast.error(error.message ?? "Could not sign out")
       return

@@ -13,7 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@prood/ui/components/card"
-import { signUp, organization } from "@/lib/auth/client"
+import { authClient } from "@/lib/auth/client"
 
 function slugify(value: string): string {
   return value
@@ -39,7 +39,7 @@ export function RegisterForm() {
     setLoading(true)
     setError(null)
 
-    const { error: signUpError } = await signUp.email({ name, email, password })
+    const { error: signUpError } = await authClient.signUp.email({ name, email, password })
     if (signUpError) {
       setLoading(false)
       setError(signUpError.message ?? "Sign up failed")
@@ -48,7 +48,7 @@ export function RegisterForm() {
 
     // Create the merchant's first store (organization) and make it active.
     const slug = `${slugify(storeName) || "store"}-${Math.random().toString(36).slice(2, 7)}`
-    const { data: org, error: orgError } = await organization.create({
+    const { data: org, error: orgError } = await authClient.organization.create({
       name: storeName,
       slug,
     })
@@ -58,7 +58,7 @@ export function RegisterForm() {
       return
     }
 
-    await organization.setActive({ organizationId: org.id })
+    await authClient.organization.setActive({ organizationId: org.id })
 
     setLoading(false)
     router.push("/")
