@@ -30,6 +30,7 @@
     "@types/react": "catalog:",
     "next": "catalog:",
     "react": "catalog:",
+    "react-dom": "catalog:",
     "typescript": "catalog:"
   }
 }
