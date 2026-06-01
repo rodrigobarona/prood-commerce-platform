@@ -1,5 +1,18 @@
+import { createAuthClient } from "better-auth/react"
 import { organizationClient } from "better-auth/client/plugins"
 import { getAppAuthClient } from "@prood/auth/client"
+
+function makeDashboardAuthClient(baseURL: string) {
+  return createAuthClient({
+    baseURL,
+    plugins: [organizationClient()],
+    fetchOptions: {
+      credentials: "include",
+    },
+  })
+}
+
+type DashboardAuthClient = ReturnType<typeof makeDashboardAuthClient>
 
 function resolveDevBrowserAuthUrl(): string | undefined {
   if (typeof window === "undefined" || process.env.NODE_ENV !== "development") {
@@ -14,37 +27,33 @@ function resolveDevBrowserAuthUrl(): string | undefined {
   return `${protocol}//${hostname}:3005`
 }
 
-function client() {
+function client(): DashboardAuthClient {
   return getAppAuthClient({
     plugins: [organizationClient()],
     resolveDevBrowserUrl: resolveDevBrowserAuthUrl,
+  }) as DashboardAuthClient
+}
+
+function lazyClientProperty<K extends keyof DashboardAuthClient>(
+  key: K
+): DashboardAuthClient[K] {
+  return new Proxy(function () {} as DashboardAuthClient[K], {
+    get(_target, prop) {
+      const value = client()[key]
+      const member = (value as Record<string | symbol, unknown>)[prop]
+      return typeof member === "function"
+        ? member.bind(value)
+        : member
+    },
+    apply(_target, _thisArg, args) {
+      const value = client()[key]
+      return (value as (...args: unknown[]) => unknown)(...args)
+    },
   })
 }
 
-export function signIn(...args: Parameters<ReturnType<typeof client>["signIn"]>) {
-  return client().signIn(...args)
-}
-
-export function signUp(...args: Parameters<ReturnType<typeof client>["signUp"]>) {
-  return client().signUp(...args)
-}
-
-export function signOut(...args: Parameters<ReturnType<typeof client>["signOut"]>) {
-  return client().signOut(...args)
-}
-
-export function useSession(
-  ...args: Parameters<ReturnType<typeof client>["useSession"]>
-) {
-  return client().useSession(...args)
-}
-
-export const organization = new Proxy({} as ReturnType<typeof client>["organization"], {
-  get(_target, prop) {
-    const org = client().organization
-    const value = org[prop as keyof typeof org]
-    return typeof value === "function"
-      ? (value as (...a: never[]) => unknown).bind(org)
-      : value
-  },
-})
+export const signIn = lazyClientProperty("signIn")
+export const signUp = lazyClientProperty("signUp")
+export const signOut = lazyClientProperty("signOut")
+export const useSession = lazyClientProperty("useSession")
+export const organization = lazyClientProperty("organization")
