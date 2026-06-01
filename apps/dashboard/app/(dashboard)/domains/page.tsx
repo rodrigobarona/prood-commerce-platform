@@ -1,5 +1,7 @@
 import Link from "next/link"
+import { Globe, Storefront } from "@phosphor-icons/react/dist/ssr"
 import { Badge } from "@prood/ui/components/badge"
+import { DashboardEmpty } from "@/components/dashboard-empty"
 import {
   Card,
   CardContent,
@@ -88,13 +90,18 @@ export default async function DomainsPage() {
               {subdomain}
             </a>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              No store is linked to this account yet. Create one from{" "}
-              <Link href="/register" className="text-foreground underline">
-                registration
-              </Link>{" "}
-              or ask an owner to invite you.
-            </p>
+            <DashboardEmpty
+              className="border-0 py-6"
+              icon={Storefront}
+              title="No store linked"
+              description={
+                <>
+                  No store is linked to this account yet. Create one from{" "}
+                  <Link href="/register">registration</Link> or ask an owner to
+                  invite you.
+                </>
+              }
+            />
           )}
         </CardContent>
       </Card>
@@ -139,9 +146,12 @@ export default async function DomainsPage() {
               </TableBody>
             </Table>
           ) : (
-            <p className="text-sm text-muted-foreground">
-              No custom domains yet.
-            </p>
+            <DashboardEmpty
+              className="border-0 py-8"
+              icon={Globe}
+              title="No custom domains yet"
+              description="Add a domain you own above and verify it via DNS."
+            />
           )}
         </CardContent>
       </Card>

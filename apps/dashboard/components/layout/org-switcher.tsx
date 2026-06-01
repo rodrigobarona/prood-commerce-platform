@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { CaretUpDown, Check, Plus, Storefront } from "@phosphor-icons/react"
+import { CaretUpDown, Check, Gear, Storefront } from "@phosphor-icons/react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -95,7 +95,7 @@ export function OrgSwitcher({
             ))}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => router.push("/settings")}>
-              <Plus className="size-4" />
+              <Gear className="size-4" />
               <span>Store settings</span>
             </DropdownMenuItem>
           </DropdownMenuContent>

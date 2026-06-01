@@ -1,11 +1,7 @@
 import Link from "next/link"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@prood/ui/components/card"
+import { Key } from "@phosphor-icons/react/dist/ssr"
+import { DashboardFormPage } from "@/components/layout/dashboard-page"
+import { DashboardEmpty } from "@/components/dashboard-empty"
 
 export const metadata = { title: "API keys" }
 
@@ -13,7 +9,7 @@ export default function ApiKeysPage() {
   const apiBase = process.env.COMMERCE_API_URL ?? "http://localhost:3005/v1"
 
   return (
-    <div className="flex max-w-2xl flex-col gap-6">
+    <DashboardFormPage>
       <div>
         <h2 className="font-heading text-xl font-medium">API keys</h2>
         <p className="text-sm text-muted-foreground">
@@ -21,21 +17,24 @@ export default function ApiKeysPage() {
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Organization-scoped keys</CardTitle>
-          <CardDescription>
+      <DashboardEmpty
+        icon={Key}
+        title="API key management"
+        description="Create and manage organization-scoped keys for machine and agent access."
+        contentClassName="max-w-2xl items-stretch text-left"
+      >
+        <div className="flex w-full flex-col gap-3 text-left text-sm">
+          <p>
             Keys are verified by the API app and must include JSON metadata:
             <code className="mx-1 rounded bg-muted px-1 py-0.5 text-xs">
               {`{ "organizationId": "<your-org-id>", "scopes": ["storefront", "admin"] }`}
             </code>
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3 text-sm">
+          </p>
           <p>
             Send the secret as{" "}
             <code className="rounded bg-muted px-1 py-0.5">x-api-key</code> on
-            requests to <code className="rounded bg-muted px-1 py-0.5">{apiBase}</code>.
+            requests to{" "}
+            <code className="rounded bg-muted px-1 py-0.5">{apiBase}</code>.
           </p>
           <p>
             Interactive reference:{" "}
@@ -49,11 +48,11 @@ export default function ApiKeysPage() {
             .
           </p>
           <p className="text-muted-foreground">
-            In-dashboard key creation UI is planned; use Better Auth&apos;s API key
-            plugin against the shared database until then.
+            In-dashboard key creation is coming soon. Use Better Auth&apos;s API
+            key plugin against the shared database until then.
           </p>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </DashboardEmpty>
+    </DashboardFormPage>
   )
 }

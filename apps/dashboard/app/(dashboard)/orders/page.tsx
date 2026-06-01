@@ -1,5 +1,7 @@
 import Link from "next/link"
+import { ShoppingBag } from "@phosphor-icons/react/dist/ssr"
 import type { Order } from "@prood/commerce"
+import { DashboardEmpty } from "@/components/dashboard-empty"
 import { Badge } from "@prood/ui/components/badge"
 import { Button } from "@prood/ui/components/button"
 import { Card, CardContent } from "@prood/ui/components/card"
@@ -70,7 +72,12 @@ export default async function OrdersPage() {
               </TableBody>
             </Table>
           ) : (
-            <p className="px-5 text-sm text-muted-foreground">No orders yet.</p>
+            <DashboardEmpty
+              className="border-0 py-10"
+              icon={ShoppingBag}
+              title="No orders yet"
+              description="When customers place orders, they'll show up here."
+            />
           )}
         </CardContent>
       </Card>

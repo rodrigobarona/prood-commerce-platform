@@ -1,4 +1,5 @@
 import type { StoreSettings } from "@prood/commerce"
+import { DashboardFormPage } from "@/components/layout/dashboard-page"
 import {
   SettingsForm,
   type SettingsFormValues,
@@ -6,7 +7,7 @@ import {
 import { emptyLocalizedField } from "@/lib/localized-field"
 import { getStoreSettings } from "@/lib/admin-api"
 
-export const metadata = { title: "Settings" }
+export const metadata = { title: "Store settings" }
 
 const EMPTY: SettingsFormValues = {
   name: emptyLocalizedField(),
@@ -42,14 +43,14 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <DashboardFormPage>
       <div>
-        <h2 className="font-heading text-xl font-medium">Settings</h2>
+        <h2 className="font-heading text-xl font-medium">Store settings</h2>
         <p className="text-sm text-muted-foreground">
           Configure your store details and preferences.
         </p>
       </div>
       <SettingsForm initial={initial} />
-    </div>
+    </DashboardFormPage>
   )
 }

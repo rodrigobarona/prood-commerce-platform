@@ -1,4 +1,6 @@
+import { UsersThree } from "@phosphor-icons/react/dist/ssr"
 import { Badge } from "@prood/ui/components/badge"
+import { DashboardEmpty } from "@/components/dashboard-empty"
 import {
   Card,
   CardContent,
@@ -101,7 +103,12 @@ export default async function TeamPage() {
               </TableBody>
             </Table>
           ) : (
-            <p className="px-5 text-sm text-muted-foreground">No members yet.</p>
+            <DashboardEmpty
+              className="border-0 py-10"
+              icon={UsersThree}
+              title="No members yet"
+              description="Invite teammates using the form above."
+            />
           )}
         </CardContent>
       </Card>

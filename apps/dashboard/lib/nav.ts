@@ -9,6 +9,7 @@ import {
   Receipt,
   ShoppingBag,
   Storefront,
+  User,
   Users,
   UsersThree,
 } from "@phosphor-icons/react/dist/ssr"
@@ -47,7 +48,8 @@ export const navGroups: NavGroup[] = [
   {
     label: "Account",
     items: [
-      { title: "Settings", href: "/settings", icon: Gear },
+      { title: "Profile", href: "/account", icon: User },
+      { title: "Store settings", href: "/settings", icon: Gear },
       { title: "Billing", href: "/billing", icon: Receipt },
     ],
   },

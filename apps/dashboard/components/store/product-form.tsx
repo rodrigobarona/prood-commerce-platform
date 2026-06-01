@@ -120,7 +120,7 @@ export function ProductForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex max-w-2xl flex-col gap-6">
+    <form onSubmit={handleSubmit} className="flex w-full flex-col gap-6">
       <Card>
         <CardHeader>
           <CardTitle>Details</CardTitle>

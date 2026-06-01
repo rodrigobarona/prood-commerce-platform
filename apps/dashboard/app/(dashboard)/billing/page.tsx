@@ -1,7 +1,8 @@
 import Link from "next/link"
+import { Receipt } from "@phosphor-icons/react/dist/ssr"
 
 import { getPlanLimitsSummary, getActiveOrganizationPlan } from "@/lib/billing"
-import { PlaceholderPage } from "@/components/placeholder-page"
+import { DashboardEmpty } from "@/components/dashboard-empty"
 
 const webUrl = process.env.NEXT_PUBLIC_WEB_URL ?? "http://localhost:3001"
 
@@ -13,11 +14,13 @@ export default async function BillingPage() {
   const limits = getPlanLimitsSummary(plan?.planId ?? "free")
 
   return (
-    <PlaceholderPage
+    <DashboardEmpty
+      icon={Receipt}
       title="Billing"
       description="Manage your platform subscription and payment method."
+      contentClassName="max-w-lg items-stretch"
     >
-      <div className="mt-6 space-y-4">
+      <div className="space-y-4">
         <div className="rounded-lg border border-border bg-muted/30 px-4 py-4 text-sm text-muted-foreground">
           <p>
             You are on the <strong className="text-foreground">{planName}</strong> plan
@@ -44,6 +47,6 @@ export default async function BillingPage() {
           </Link>
         </p>
       </div>
-    </PlaceholderPage>
+    </DashboardEmpty>
   )
 }

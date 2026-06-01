@@ -87,7 +87,7 @@ export function UserMenu({ user }: { user: UserSummary }) {
               {user.email}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => router.push("/settings")}>
+            <DropdownMenuItem onClick={() => router.push("/account")}>
               <User className="size-4" />
               <span>Profile</span>
             </DropdownMenuItem>

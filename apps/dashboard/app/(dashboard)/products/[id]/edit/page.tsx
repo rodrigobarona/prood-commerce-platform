@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import type { Product } from "@prood/commerce"
 import { localized } from "@prood/ui/lib/commerce"
+import { DashboardFormPage } from "@/components/layout/dashboard-page"
 import { ProductForm } from "@/components/store/product-form"
 import { DeleteProductButton } from "@/components/store/delete-product-button"
 import { getProduct } from "@/lib/admin-api"
@@ -22,7 +23,7 @@ export default async function EditProductPage({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <DashboardFormPage>
       <div className="flex items-center justify-between">
         <div>
           <h2 className="font-heading text-xl font-medium">
@@ -49,6 +50,6 @@ export default async function EditProductPage({
           requiresShipping: product.requiresShipping,
         }}
       />
-    </div>
+    </DashboardFormPage>
   )
 }

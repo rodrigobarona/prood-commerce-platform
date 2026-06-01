@@ -1,14 +1,12 @@
 import Link from "next/link"
-import { Plus } from "@phosphor-icons/react/dist/ssr"
+import { Package, Plus } from "@phosphor-icons/react/dist/ssr"
 import type { Product } from "@prood/commerce"
+import { DashboardEmpty } from "@/components/dashboard-empty"
 import { Button } from "@prood/ui/components/button"
 import { Badge } from "@prood/ui/components/badge"
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@prood/ui/components/card"
 import {
   Table,
@@ -92,20 +90,18 @@ export default async function ProductsPage() {
               </TableBody>
             </Table>
           ) : (
-            <div className="px-5">
-              <Card className="border-dashed shadow-none ring-0">
-                <CardHeader>
-                  <CardTitle className="text-base">
-                    {failed ? "Catalog unavailable" : "No products yet"}
-                  </CardTitle>
-                  <CardDescription>
-                    {failed
-                      ? "Could not load products. Check the database connection."
-                      : "Create your first product to start selling."}
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </div>
+            <DashboardEmpty
+              className="mx-5 border-0 py-10"
+              icon={Package}
+              title={failed ? "Catalog unavailable" : "No products yet"}
+              description={
+                failed
+                  ? "Could not load products. Check the database connection."
+                  : "Create your first product to start selling."
+              }
+              actionLabel={failed ? undefined : "New product"}
+              actionHref={failed ? undefined : "/products/new"}
+            />
           )}
         </CardContent>
       </Card>

@@ -1,3 +1,4 @@
+import { ShoppingBag } from "@phosphor-icons/react/dist/ssr"
 import {
   Card,
   CardContent,
@@ -5,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@prood/ui/components/card"
+import { DashboardEmpty } from "@/components/dashboard-empty"
 import { Badge } from "@prood/ui/components/badge"
 import type { DashboardStats } from "@prood/commerce"
 import { getDashboardStats, getStoreSettings } from "@/lib/admin-api"
@@ -98,7 +100,12 @@ export default async function OverviewPage() {
               </div>
             ))
           ) : (
-            <p className="text-sm text-muted-foreground">No orders yet.</p>
+            <DashboardEmpty
+              className="border-0 py-8"
+              icon={ShoppingBag}
+              title="No orders yet"
+              description="Recent orders will appear here once you start selling."
+            />
           )}
         </CardContent>
       </Card>

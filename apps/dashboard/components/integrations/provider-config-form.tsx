@@ -69,7 +69,7 @@ export function ProviderConfigForm({
   }
 
   return (
-    <form onSubmit={handleSave} className="flex max-w-2xl flex-col gap-6">
+    <form onSubmit={handleSave} className="flex w-full flex-col gap-6">
       <Card>
         <CardHeader>
           <CardTitle>Credentials</CardTitle>

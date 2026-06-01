@@ -2,6 +2,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { connection } from "next/server"
 import { ArrowLeft } from "@phosphor-icons/react/dist/ssr"
+import { DashboardFormPage } from "@/components/layout/dashboard-page"
 import { ProviderConfigForm } from "@/components/integrations/provider-config-form"
 import { getActiveOrganizationId } from "@/lib/auth"
 import { getIntegration } from "@/lib/integrations"
@@ -44,7 +45,7 @@ export default async function IntegrationConfigPage({
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <DashboardFormPage>
       <div className="flex flex-col gap-2">
         <Link
           href="/integrations"
@@ -76,6 +77,6 @@ export default async function IntegrationConfigPage({
         initialEnabled={state?.enabled ?? false}
         connected={Boolean(state)}
       />
-    </div>
+    </DashboardFormPage>
   )
 }

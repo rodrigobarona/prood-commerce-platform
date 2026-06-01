@@ -1,5 +1,7 @@
 import Link from "next/link"
+import { Users } from "@phosphor-icons/react/dist/ssr"
 import type { Customer } from "@prood/commerce"
+import { DashboardEmpty } from "@/components/dashboard-empty"
 import { Button } from "@prood/ui/components/button"
 import { Card, CardContent } from "@prood/ui/components/card"
 import {
@@ -71,9 +73,12 @@ export default async function CustomersPage() {
               </TableBody>
             </Table>
           ) : (
-            <p className="px-5 text-sm text-muted-foreground">
-              No customers yet.
-            </p>
+            <DashboardEmpty
+              className="border-0 py-10"
+              icon={Users}
+              title="No customers yet"
+              description="Customers appear here after their first purchase."
+            />
           )}
         </CardContent>
       </Card>
