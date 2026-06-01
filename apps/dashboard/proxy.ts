@@ -24,9 +24,10 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  if (sessionCookie && publicRoute) {
-    return NextResponse.redirect(new URL("/", request.url))
-  }
+  // Do not redirect away from /login based on cookie presence alone.
+  // getSessionCookie only checks that a token exists; the dashboard layout
+  // validates the session against the database. A stale or invalid cookie
+  // otherwise bounces /login -> / -> /login indefinitely on Vercel.
 
   return NextResponse.next()
 }
