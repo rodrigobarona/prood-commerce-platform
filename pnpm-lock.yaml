@@ -239,6 +239,9 @@ importers:
       '@neondatabase/serverless':
         specifier: 'catalog:'
         version: 1.1.0
+      '@prood/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@prood/billing':
         specifier: workspace:*
         version: link:../../packages/billing
@@ -373,6 +376,9 @@ importers:
       '@prood/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@prood/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@prood/billing':
         specifier: workspace:*
         version: link:../../packages/billing
@@ -676,6 +682,46 @@ importers:
         specifier: 'catalog:'
         version: 5.9.3
 
+  packages/auth:
+    dependencies:
+      '@better-auth/api-key':
+        specifier: 'catalog:'
+        version: 1.6.11(@better-auth/core@1.6.11(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(better-auth@1.6.11(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.1)(@neondatabase/serverless@1.1.0)(@upstash/redis@1.38.0)(kysely@0.28.17)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3)))(mysql2@3.15.3)(next@16.2.6(react-dom@19.2.6(react@19.2.4))(react@19.2.4))(prisma@7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(vitest@4.1.7(@types/node@24.12.4)(msw@2.14.6(@types/node@24.12.4)(typescript@5.9.3))(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3))))
+      '@neondatabase/serverless':
+        specifier: 'catalog:'
+        version: 1.1.0
+      better-auth:
+        specifier: 'catalog:'
+        version: 1.6.11(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.1)(@neondatabase/serverless@1.1.0)(@upstash/redis@1.38.0)(kysely@0.28.17)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3)))(mysql2@3.15.3)(next@16.2.6(react-dom@19.2.6(react@19.2.4))(react@19.2.4))(prisma@7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(vitest@4.1.7(@types/node@24.12.4)(msw@2.14.6(@types/node@24.12.4)(typescript@5.9.3))(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)))
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@electric-sql/pglite@0.4.1)(@neondatabase/serverless@1.1.0)(@upstash/redis@1.38.0)(kysely@0.28.17)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3))
+      next:
+        specifier: 'catalog:'
+        version: 16.2.6(react-dom@19.2.6(react@19.2.4))(react@19.2.4)
+    devDependencies:
+      '@prood/eslint-config':
+        specifier: workspace:^
+        version: link:../eslint-config
+      '@prood/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.12.4
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.15
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.4(jiti@2.7.0)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.4
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
   packages/billing:
     devDependencies:
       '@prood/typescript-config':
@@ -877,7 +923,7 @@ importers:
         version: 5.0.3
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.45.2(@electric-sql/pglite@0.4.1)(@neondatabase/serverless@1.1.0)(@upstash/redis@1.38.0)(kysely@0.28.17)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.8.0(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3))
+        version: 0.45.2(@electric-sql/pglite@0.4.1)(@neondatabase/serverless@1.1.0)(@upstash/redis@1.38.0)(kysely@0.28.17)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3))
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -7326,6 +7372,13 @@ snapshots:
       better-auth: 1.6.11(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.1)(@neondatabase/serverless@1.1.0)(@upstash/redis@1.38.0)(kysely@0.28.17)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.8.0(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3)))(mysql2@3.15.3)(next@16.2.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(prisma@7.8.0(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(vitest@4.1.7(@types/node@24.12.4)(msw@2.14.6(@types/node@24.12.4)(typescript@5.9.3))(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)))
       zod: 4.4.3
 
+  '@better-auth/api-key@1.6.11(@better-auth/core@1.6.11(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(better-auth@1.6.11(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.1)(@neondatabase/serverless@1.1.0)(@upstash/redis@1.38.0)(kysely@0.28.17)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3)))(mysql2@3.15.3)(next@16.2.6(react-dom@19.2.6(react@19.2.4))(react@19.2.4))(prisma@7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(vitest@4.1.7(@types/node@24.12.4)(msw@2.14.6(@types/node@24.12.4)(typescript@5.9.3))(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3))))':
+    dependencies:
+      '@better-auth/core': 1.6.11(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0)
+      '@better-auth/utils': 0.4.0
+      better-auth: 1.6.11(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.1)(@neondatabase/serverless@1.1.0)(@upstash/redis@1.38.0)(kysely@0.28.17)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3)))(mysql2@3.15.3)(next@16.2.6(react-dom@19.2.6(react@19.2.4))(react@19.2.4))(prisma@7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(vitest@4.1.7(@types/node@24.12.4)(msw@2.14.6(@types/node@24.12.4)(typescript@5.9.3))(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3)))
+      zod: 4.4.3
+
   '@better-auth/core@1.6.11(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0)':
     dependencies:
       '@better-auth/utils': 0.4.0
@@ -7344,6 +7397,13 @@ snapshots:
       '@better-auth/utils': 0.4.0
     optionalDependencies:
       drizzle-orm: 0.45.2(@electric-sql/pglite@0.4.1)(@neondatabase/serverless@1.1.0)(@upstash/redis@1.38.0)(kysely@0.28.17)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.8.0(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3))
+
+  '@better-auth/drizzle-adapter@1.6.11(@better-auth/core@1.6.11(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.1)(@neondatabase/serverless@1.1.0)(@upstash/redis@1.38.0)(kysely@0.28.17)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3)))':
+    dependencies:
+      '@better-auth/core': 1.6.11(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0)
+      '@better-auth/utils': 0.4.0
+    optionalDependencies:
+      drizzle-orm: 0.45.2(@electric-sql/pglite@0.4.1)(@neondatabase/serverless@1.1.0)(@upstash/redis@1.38.0)(kysely@0.28.17)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3))
 
   '@better-auth/kysely-adapter@1.6.11(@better-auth/core@1.6.11(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(kysely@0.28.17)':
     dependencies:
@@ -7368,6 +7428,13 @@ snapshots:
       '@better-auth/utils': 0.4.0
     optionalDependencies:
       prisma: 7.8.0(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
+
+  '@better-auth/prisma-adapter@1.6.11(@better-auth/core@1.6.11(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(prisma@7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3))':
+    dependencies:
+      '@better-auth/core': 1.6.11(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0)
+      '@better-auth/utils': 0.4.0
+    optionalDependencies:
+      prisma: 7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
 
   '@better-auth/telemetry@1.6.11(@better-auth/core@1.6.11(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)':
     dependencies:
@@ -8455,6 +8522,17 @@ snapshots:
       - '@types/react-dom'
     optional: true
 
+  '@prisma/studio-core@0.27.3(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@radix-ui/react-toggle': 1.1.10(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)
+      '@types/react': 19.2.15
+      chart.js: 4.5.1
+      react: 19.2.4
+      react-dom: 19.2.6(react@19.2.4)
+    transitivePeerDependencies:
+      - '@types/react-dom'
+    optional: true
+
   '@radix-ui/number@1.1.1': {}
 
   '@radix-ui/primitive@1.1.3': {}
@@ -8892,6 +8970,15 @@ snapshots:
       '@types/react': 19.2.15
       '@types/react-dom': 19.2.3(@types/react@19.2.15)
 
+  '@radix-ui/react-primitive@2.1.3(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@radix-ui/react-slot': 1.2.3(@types/react@19.2.15)(react@19.2.4)
+      react: 19.2.4
+      react-dom: 19.2.6(react@19.2.4)
+    optionalDependencies:
+      '@types/react': 19.2.15
+    optional: true
+
   '@radix-ui/react-progress@1.1.7(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@radix-ui/react-context': 1.1.2(@types/react@19.2.15)(react@19.2.4)
@@ -9101,6 +9188,17 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.15
       '@types/react-dom': 19.2.3(@types/react@19.2.15)
+
+  '@radix-ui/react-toggle@1.1.10(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@radix-ui/primitive': 1.1.3
+      '@radix-ui/react-primitive': 2.1.3(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)
+      '@radix-ui/react-use-controllable-state': 1.2.2(@types/react@19.2.15)(react@19.2.4)
+      react: 19.2.4
+      react-dom: 19.2.6(react@19.2.4)
+    optionalDependencies:
+      '@types/react': 19.2.15
+    optional: true
 
   '@radix-ui/react-toolbar@1.1.11(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
@@ -9936,6 +10034,38 @@ snapshots:
       - '@cloudflare/workers-types'
       - '@opentelemetry/api'
 
+  better-auth@1.6.11(drizzle-kit@0.31.10)(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.1)(@neondatabase/serverless@1.1.0)(@upstash/redis@1.38.0)(kysely@0.28.17)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3)))(mysql2@3.15.3)(next@16.2.6(react-dom@19.2.6(react@19.2.4))(react@19.2.4))(prisma@7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3))(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(vitest@4.1.7(@types/node@24.12.4)(msw@2.14.6(@types/node@24.12.4)(typescript@5.9.3))(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3))):
+    dependencies:
+      '@better-auth/core': 1.6.11(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0)
+      '@better-auth/drizzle-adapter': 1.6.11(@better-auth/core@1.6.11(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(drizzle-orm@0.45.2(@electric-sql/pglite@0.4.1)(@neondatabase/serverless@1.1.0)(@upstash/redis@1.38.0)(kysely@0.28.17)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3)))
+      '@better-auth/kysely-adapter': 1.6.11(@better-auth/core@1.6.11(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(kysely@0.28.17)
+      '@better-auth/memory-adapter': 1.6.11(@better-auth/core@1.6.11(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.4.0)
+      '@better-auth/mongo-adapter': 1.6.11(@better-auth/core@1.6.11(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.4.0)
+      '@better-auth/prisma-adapter': 1.6.11(@better-auth/core@1.6.11(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(prisma@7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3))
+      '@better-auth/telemetry': 1.6.11(@better-auth/core@1.6.11(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)(better-call@1.3.5(zod@4.4.3))(jose@6.2.3)(kysely@0.28.17)(nanostores@1.3.0))(@better-auth/utils@0.4.0)(@better-fetch/fetch@1.1.21)
+      '@better-auth/utils': 0.4.0
+      '@better-fetch/fetch': 1.1.21
+      '@noble/ciphers': 2.2.0
+      '@noble/hashes': 2.2.0
+      better-call: 1.3.5(zod@4.4.3)
+      defu: 6.1.7
+      jose: 6.2.3
+      kysely: 0.28.17
+      nanostores: 1.3.0
+      zod: 4.4.3
+    optionalDependencies:
+      drizzle-kit: 0.31.10
+      drizzle-orm: 0.45.2(@electric-sql/pglite@0.4.1)(@neondatabase/serverless@1.1.0)(@upstash/redis@1.38.0)(kysely@0.28.17)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3))
+      mysql2: 3.15.3
+      next: 16.2.6(react-dom@19.2.6(react@19.2.4))(react@19.2.4)
+      prisma: 7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
+      react: 19.2.4
+      react-dom: 19.2.6(react@19.2.4)
+      vitest: 4.1.7(@types/node@24.12.4)(msw@2.14.6(@types/node@24.12.4)(typescript@5.9.3))(vite@8.0.14(@types/node@24.12.4)(esbuild@0.28.0)(jiti@2.7.0)(tsx@4.22.3))
+    transitivePeerDependencies:
+      - '@cloudflare/workers-types'
+      - '@opentelemetry/api'
+
   better-call@1.3.2(zod@4.4.3):
     dependencies:
       '@better-auth/utils': 0.3.1
@@ -10278,6 +10408,16 @@ snapshots:
       mysql2: 3.15.3
       postgres: 3.4.7
       prisma: 7.8.0(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
+
+  drizzle-orm@0.45.2(@electric-sql/pglite@0.4.1)(@neondatabase/serverless@1.1.0)(@upstash/redis@1.38.0)(kysely@0.28.17)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3)):
+    optionalDependencies:
+      '@electric-sql/pglite': 0.4.1
+      '@neondatabase/serverless': 1.1.0
+      '@upstash/redis': 1.38.0
+      kysely: 0.28.17
+      mysql2: 3.15.3
+      postgres: 3.4.7
+      prisma: 7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3)
 
   dunder-proto@1.0.1:
     dependencies:
@@ -12262,6 +12402,30 @@ snapshots:
       - '@babel/core'
       - babel-plugin-macros
 
+  next@16.2.6(react-dom@19.2.6(react@19.2.4))(react@19.2.4):
+    dependencies:
+      '@next/env': 16.2.6
+      '@swc/helpers': 0.5.15
+      baseline-browser-mapping: 2.10.32
+      caniuse-lite: 1.0.30001793
+      postcss: 8.4.31
+      react: 19.2.4
+      react-dom: 19.2.6(react@19.2.4)
+      styled-jsx: 5.1.6(@babel/core@7.29.7)(react@19.2.4)
+    optionalDependencies:
+      '@next/swc-darwin-arm64': 16.2.6
+      '@next/swc-darwin-x64': 16.2.6
+      '@next/swc-linux-arm64-gnu': 16.2.6
+      '@next/swc-linux-arm64-musl': 16.2.6
+      '@next/swc-linux-x64-gnu': 16.2.6
+      '@next/swc-linux-x64-musl': 16.2.6
+      '@next/swc-win32-arm64-msvc': 16.2.6
+      '@next/swc-win32-x64-msvc': 16.2.6
+      sharp: 0.34.5
+    transitivePeerDependencies:
+      - '@babel/core'
+      - babel-plugin-macros
+
   next@16.2.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6):
     dependencies:
       '@next/env': 16.2.6
@@ -12566,6 +12730,24 @@ snapshots:
       - react-dom
     optional: true
 
+  prisma@7.8.0(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)(typescript@5.9.3):
+    dependencies:
+      '@prisma/config': 7.8.0
+      '@prisma/dev': 0.24.3(typescript@5.9.3)
+      '@prisma/engines': 7.8.0
+      '@prisma/studio-core': 0.27.3(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.4))(react@19.2.4)
+      mysql2: 3.15.3
+      postgres: 3.4.7
+    optionalDependencies:
+      typescript: 5.9.3
+    transitivePeerDependencies:
+      - '@types/react'
+      - '@types/react-dom'
+      - magicast
+      - react
+      - react-dom
+    optional: true
+
   prompts@2.4.2:
     dependencies:
       kleur: 3.0.3
@@ -12687,6 +12869,11 @@ snapshots:
     optional: true
 
   react-dom@19.2.4(react@19.2.4):
+    dependencies:
+      react: 19.2.4
+      scheduler: 0.27.0
+
+  react-dom@19.2.6(react@19.2.4):
     dependencies:
       react: 19.2.4
       scheduler: 0.27.0

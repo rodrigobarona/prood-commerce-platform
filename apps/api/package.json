@@ -18,6 +18,7 @@
     "@better-auth/api-key": "catalog:",
     "@modelcontextprotocol/sdk": "catalog:",
     "@neondatabase/serverless": "catalog:",
+    "@prood/auth": "workspace:*",
     "@prood/billing": "workspace:*",
     "@prood/commerce": "workspace:*",
     "@prood/platform": "workspace:*",

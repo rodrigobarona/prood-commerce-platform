@@ -1,4 +1,8 @@
 import { headers } from "next/headers"
+import {
+  getActiveOrganizationId as getActiveOrganizationIdFromPackage,
+  getSession as getSessionFromPackage,
+} from "@prood/auth"
 import { getAuth, type Session } from "./server"
 
 /**
@@ -6,10 +10,7 @@ import { getAuth, type Session } from "./server"
  * Better Auth is the only supported provider.
  */
 export async function getSession(): Promise<Session | null> {
-  if (process.env.NEXT_PHASE === "phase-production-build") {
-    return null
-  }
-  return getAuth().api.getSession({ headers: await headers() })
+  return getSessionFromPackage(getAuth)
 }
 
 /** Convenience: the current user or null. */
@@ -20,8 +21,7 @@ export async function getCurrentUser() {
 
 /** The id of the organization (tenant store) the merchant is administering. */
 export async function getActiveOrganizationId(): Promise<string | null> {
-  const session = await getSession()
-  return session?.session.activeOrganizationId ?? null
+  return getActiveOrganizationIdFromPackage(getAuth)
 }
 
 /** All organizations (tenant stores) the current merchant belongs to. */

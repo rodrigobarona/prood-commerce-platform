@@ -59,7 +59,9 @@ Not every storefront request goes directly to the API. Local BFF routes exist wh
 | `/api/commerce/cart/*` | Cart ID stored in HTTP-only cookie; BFF reads cookie and forwards to API |
 | `/api/commerce/search` | Client-side search palette needs a lightweight JSON endpoint |
 | `/api/commerce/countries` | Static-ish data for address forms; avoids exposing API URL to client |
-| `/api/auth/[...all]` | Better Auth handler must run on the storefront origin |
+| `/api/auth/[...all]` (storefront only) | Better Auth handler must run on the storefront origin (`*.prood.app` / custom domains) |
+
+**Dashboard** does not host `/api/auth`. Merchant sign-in targets `apps/api` via `NEXT_PUBLIC_AUTH_URL`; session cookies are shared on `*.prood.com` through `AUTH_COOKIE_DOMAIN`.
 
 Everything else (products, categories, store info, orders) is fetched **server-side** in React Server Components via `@prood/api-client`.
 

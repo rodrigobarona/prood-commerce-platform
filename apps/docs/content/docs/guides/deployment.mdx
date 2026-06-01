@@ -81,6 +81,8 @@ The API must be deployed first — other apps depend on it.
 DATABASE_URL=postgresql://...
 BETTER_AUTH_SECRET=<openssl rand -base64 32>
 BETTER_AUTH_URL=https://api.prood.com
+AUTH_COOKIE_DOMAIN=.prood.com
+NEXT_PUBLIC_DASHBOARD_URL=https://dashboard.prood.com
 API_PUBLIC_URL=https://api.prood.com
 COMMERCE_ADAPTER=platform
 COMMERCE_CURRENCY=EUR
@@ -152,13 +154,15 @@ Configure payment webhooks to: `https://checkout.prood.com/api/webhooks/{provide
 DATABASE_URL=postgresql://...
 COMMERCE_API_URL=https://api.prood.com/v1
 BETTER_AUTH_SECRET=<same as API>
-BETTER_AUTH_URL=https://dashboard.prood.com
+NEXT_PUBLIC_AUTH_URL=https://api.prood.com
 INTEGRATION_ENCRYPTION_KEY=<same as API>
 VERCEL_TOKEN=<for domain provisioning>
 VERCEL_PROJECT_ID=<storefront project ID>
 VERCEL_TEAM_ID=<team ID>
 NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app
 ```
+
+Dashboard auth (sign-in, sign-up, organization ops) is issued by **apps/api** — there is no `/api/auth` route on the dashboard project. Session cookies are shared via `AUTH_COOKIE_DOMAIN=.prood.com` on the API project.
 
 ## Step 6 — Deploy docs and web
 
@@ -185,7 +189,7 @@ These must be **identical** across projects:
 
 | Secret | Apps |
 | --- | --- |
-| `BETTER_AUTH_SECRET` | API, storefront, dashboard |
+| `BETTER_AUTH_SECRET` | API, dashboard (SSR session validation), storefront |
 | `CHECKOUT_API_SECRET` | API, storefront, checkout |
 | `INTEGRATION_ENCRYPTION_KEY` | API, dashboard |
 | `DATABASE_URL` | API, storefront, dashboard |

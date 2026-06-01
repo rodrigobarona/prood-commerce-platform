@@ -1,0 +1,35 @@
+{
+  "name": "@prood/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema.ts",
+    "./db": "./src/db.ts",
+    "./server": "./src/server.ts",
+    "./client": "./src/client.ts",
+    "./origins": "./src/origins.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@better-auth/api-key": "catalog:",
+    "@neondatabase/serverless": "catalog:",
+    "better-auth": "catalog:",
+    "drizzle-orm": "catalog:",
+    "next": "catalog:"
+  },
+  "peerDependencies": {
+    "react": ">=19.0.0"
+  },
+  "devDependencies": {
+    "@prood/typescript-config": "workspace:*",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "next": "catalog:",
+    "react": "catalog:",
+    "typescript": "catalog:"
+  }
+}

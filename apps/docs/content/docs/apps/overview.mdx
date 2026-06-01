@@ -41,13 +41,13 @@ flowchart TB
 
 ## Auth split
 
-Each app has its own Better Auth instance scoped to its origin, but all share the same Neon database:
+Auth issuance is centralized on **apps/api** for the dashboard; the storefront keeps a local handler on each store origin. All apps share the same Neon database:
 
-| App | Users | Auth plugins |
-| --- | --- | --- |
-| **Storefront** | Customers (buyers) | Email/password |
-| **Dashboard** | Merchants (admins) | Email/password + **organization** |
-| **API** | All caller types | organization + **apiKey** + **agentAuth** |
+| App | Users | Auth HTTP handler | Auth plugins |
+| --- | --- | --- | --- |
+| **Storefront** | Customers (buyers) | Local `/api/auth` on storefront origin | Email/password |
+| **Dashboard** | Merchants (admins) | **Remote** — browser calls `apps/api` (`NEXT_PUBLIC_AUTH_URL`) | Email/password + **organization** |
+| **API** | All caller types | `/api/auth` on API origin | organization + **apiKey** + **agentAuth** |
 
 Customer accounts on the storefront are separate from merchant accounts on the dashboard. A person can be both, but they authenticate to different apps.
 

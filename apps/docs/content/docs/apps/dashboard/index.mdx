@@ -76,7 +76,8 @@ Sidebar groups defined in `lib/nav.ts`:
 | --- | --- |
 | `DATABASE_URL` | Auth + integration_config + tenant_domain tables |
 | `COMMERCE_API_URL` | Admin API client base URL |
-| `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` | Merchant auth (default `http://localhost:3002`) |
+| `BETTER_AUTH_SECRET` | Session validation on SSR (same secret as API) |
+| `NEXT_PUBLIC_AUTH_URL` | Browser auth client → `apps/api` (default `http://localhost:3005`) |
 | `INTEGRATION_ENCRYPTION_KEY` | Encrypt provider credentials at rest |
 | `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID` | Custom domain provisioning |
 | `NEXT_PUBLIC_PLATFORM_DOMAIN` | Shown on domains page for subdomain preview |

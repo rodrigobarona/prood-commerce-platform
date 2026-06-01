@@ -48,8 +48,11 @@ Uploaded files are namespaced per tenant: `org/<orgId>/…` via `uploadForTenant
 
 | Variable | Required | Used by | Description |
 | --- | --- | --- | --- |
-| `BETTER_AUTH_SECRET` | Yes (prod) | All auth apps | Session signing secret. Generate: `openssl rand -base64 32` |
-| `BETTER_AUTH_URL` | Yes | Storefront, Dashboard, API | Public base URL **per deployed app** for auth callbacks. Storefront: `http://localhost:3000`. Dashboard: `http://localhost:3002`. API: `http://localhost:3005`. |
+| `BETTER_AUTH_SECRET` | Yes (prod) | API, dashboard (SSR), storefront | Session signing secret. Generate: `openssl rand -base64 32` |
+| `BETTER_AUTH_URL` | Yes | **API** (and storefront) | Public origin of the Better Auth HTTP handler. API: `http://localhost:3005`. Storefront: `http://localhost:3000`. Dashboard does **not** host `/api/auth`. |
+| `NEXT_PUBLIC_AUTH_URL` | Yes | Dashboard (browser) | Origin the dashboard auth client calls for sign-in/sign-up/org ops. Same as API: `http://localhost:3005` |
+| `NEXT_PUBLIC_DASHBOARD_URL` | Prod | API (`trustedOrigins`) | Merchant admin URL, e.g. `https://dashboard.prood.com` |
+| `AUTH_COOKIE_DOMAIN` | Prod | API | Shared cookie domain for dashboard + API on `*.prood.com`, e.g. `.prood.com`. Unset locally. |
 
 ### Seed credentials
 
@@ -145,10 +148,10 @@ Optional for local dev; required for custom domain provisioning in production:
 
 | App | Critical vars |
 | --- | --- |
-| **storefront** | `DATABASE_URL`, `COMMERCE_API_URL`, `BETTER_AUTH_*`, `CHECKOUT_URL`, `CHECKOUT_API_SECRET`, `DEFAULT_TENANT_ORG_ID` |
-| **dashboard** | `DATABASE_URL`, `COMMERCE_API_URL`, `BETTER_AUTH_*`, `INTEGRATION_ENCRYPTION_KEY` |
+| **storefront** | `DATABASE_URL`, `COMMERCE_API_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `CHECKOUT_URL`, `CHECKOUT_API_SECRET`, `DEFAULT_TENANT_ORG_ID` |
+| **dashboard** | `DATABASE_URL`, `COMMERCE_API_URL`, `BETTER_AUTH_SECRET`, `NEXT_PUBLIC_AUTH_URL`, `INTEGRATION_ENCRYPTION_KEY` |
 | **checkout** | `UPSTASH_REDIS_*`, `CHECKOUT_API_SECRET`, `COMMERCE_API_URL`, payment provider keys |
-| **api** | `DATABASE_URL`, `BETTER_AUTH_*`, `COMMERCE_*`, payment/storage provider keys, `CHECKOUT_API_SECRET` |
+| **api** | `DATABASE_URL`, `BETTER_AUTH_*`, `AUTH_COOKIE_DOMAIN`, `COMMERCE_*`, payment/storage provider keys, `CHECKOUT_API_SECRET` |
 | **docs** | None (static site; OpenAPI synced at build time) |
 
 ## Production checklist
