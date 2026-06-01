@@ -3,7 +3,7 @@ import {
   SettingsForm,
   type SettingsFormValues,
 } from "@/components/store/settings-form"
-import { emptyLocalizedField } from "@/components/store/localized-field-input"
+import { emptyLocalizedField } from "@/lib/localized-field"
 import { getStoreSettings } from "@/lib/admin-api"
 
 export const metadata = { title: "Settings" }

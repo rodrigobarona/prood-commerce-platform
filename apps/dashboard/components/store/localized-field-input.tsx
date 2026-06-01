@@ -6,9 +6,7 @@ import { Input } from "@prood/ui/components/input"
 import { Label } from "@prood/ui/components/label"
 import { Textarea } from "@prood/ui/components/textarea"
 
-export function emptyLocalizedField(): LocalizedField {
-  return { en: "", pt: "", es: "" }
-}
+export { emptyLocalizedField } from "@/lib/localized-field"
 
 export function LocalizedFieldInput({
   label,
