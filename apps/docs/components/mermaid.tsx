@@ -7,8 +7,9 @@ type MermaidProps = {
 };
 
 export async function Mermaid({ chart }: MermaidProps) {
+  let svg: string
   try {
-    const svg = renderMermaidSVG(chart.trim(), {
+    svg = renderMermaidSVG(chart.trim(), {
       bg: 'var(--color-fd-background, var(--background, #ffffff))',
       fg: 'var(--color-fd-foreground, var(--foreground, #27272a))',
       accent: 'var(--color-fd-primary, var(--primary, #6366f1))',
@@ -18,8 +19,6 @@ export async function Mermaid({ chart }: MermaidProps) {
       nodeSpacing: 28,
       layerSpacing: 48,
     });
-
-    return <MermaidViewer svg={svg} />;
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
 
@@ -39,4 +38,6 @@ export async function Mermaid({ chart }: MermaidProps) {
       </div>
     );
   }
+
+  return <MermaidViewer svg={svg} />;
 }

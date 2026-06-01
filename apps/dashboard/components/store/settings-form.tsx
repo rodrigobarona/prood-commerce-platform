@@ -15,7 +15,6 @@ import {
 } from "@prood/ui/components/card"
 import { updateStoreSettingsAction } from "@/app/(dashboard)/settings/actions"
 import {
-  emptyLocalizedField,
   LocalizedFieldInput,
 } from "@/components/store/localized-field-input"
 

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
+import { toast } from "sonner"
 import { CaretUpDown, Moon, SignOut, Sun, User } from "@phosphor-icons/react"
 import {
   Avatar,
@@ -48,7 +49,11 @@ export function UserMenu({ user }: { user: UserSummary }) {
   const { resolvedTheme, setTheme } = useTheme()
 
   async function handleSignOut() {
-    await signOut()
+    const { error } = await signOut()
+    if (error) {
+      toast.error(error.message ?? "Could not sign out")
+      return
+    }
     router.push("/login")
     router.refresh()
   }

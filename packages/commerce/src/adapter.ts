@@ -1,7 +1,7 @@
 import 'server-only'
 import {
   createPlatformAdapter,
-  withTenant,
+  withTenant as withTenantPlatform,
   type AdminAPI,
 } from '@prood/platform'
 import type { CommerceAdapter } from '@prood/types'
@@ -33,11 +33,19 @@ export type {
  * multi-tenant request:
  *
  * ```ts
- * const admin = await getAdmin()
- * const products = await withTenant(orgId, () => admin.listProducts())
+ * const products = await withTenant(orgId, async () =>
+ *   (await getAdmin()).listProducts(params),
+ * )
  * ```
  */
-export { withTenant }
+export async function withTenant<T>(
+  organizationId: string,
+  fn: () => Promise<T>,
+): Promise<T> {
+  // Admin routes call withTenant before getAdmin(); ensure initDrizzle runs first.
+  await getCommerce()
+  return withTenantPlatform(organizationId, fn)
+}
 
 /**
  * Run `fn` scoped to `tenantId` when provided, else run it unscoped.
