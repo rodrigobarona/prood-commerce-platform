@@ -627,6 +627,9 @@ importers:
       react-dom:
         specifier: 19.2.6
         version: 19.2.6(react@19.2.6)
+      shadcn:
+        specifier: 'catalog:'
+        version: 4.8.3(@types/node@24.12.4)(typescript@5.9.3)
       tailwind-merge:
         specifier: 'catalog:'
         version: 3.6.0
