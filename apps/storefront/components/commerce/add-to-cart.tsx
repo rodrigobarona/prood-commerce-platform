@@ -6,6 +6,7 @@ import type { Product } from "@prood/types"
 import { Button } from "@prood/ui/components/button"
 import { ProductOptions } from "@prood/ui/components/product-options"
 import { QuantitySelector } from "@prood/ui/components/quantity-selector"
+import { localized } from "@prood/ui/lib/commerce"
 import { useCart } from "@/components/providers/cart-provider"
 
 export function AddToCart({ product }: { product: Product }) {
@@ -19,9 +20,12 @@ export function AddToCart({ product }: { product: Product }) {
     if (product.variants.length === 1) return product.variants[0]?.id
     const selectedValues = Object.values(options)
     if (selectedValues.length === 0) return undefined
-    const match = product.variants.find((variant) =>
-      variant.attributes.every((attr) => selectedValues.includes(attr.value.en)),
-    )
+    const match = product.variants.find((variant) => {
+      if (variant.attributes.length === 0) return false
+      return variant.attributes.every((attr) =>
+        selectedValues.includes(localized(attr.value)),
+      )
+    })
     return match?.id
   }
 
