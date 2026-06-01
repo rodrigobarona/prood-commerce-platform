@@ -2,10 +2,19 @@ packages:
   - "apps/*"
   - "packages/*"
 
+# Only packages listed here may run install scripts (pnpm supply-chain default).
+strictDepBuilds: true
 allowBuilds:
+  esbuild: true
   sharp: true
   unrs-resolver: true
   msw: false
+
+# better-auth ships unused DB adapters (incl. Prisma); we use Drizzle + Neon only.
+autoInstallPeers: false
+ignoredOptionalDependencies:
+  - prisma
+  - "@prisma/client"
 
 # Central dependency versions — reference in package.json as "catalog:" (pnpm catalog protocol).
 # Bump versions here once; run `pnpm install` across the monorepo.
@@ -17,6 +26,7 @@ catalog:
 
   # Language & tooling
   typescript: ^5
+  esbuild: 0.28.0
   tsx: ^4.22.3
   turbo: ^2.9.15
   "@turbo/gen": ^2.9.15
@@ -103,7 +113,8 @@ catalog:
   # Test
   vitest: ^4.0.0
 
-# Pin react/react-dom everywhere (direct + transitive, e.g. better-auth → prisma studio).
+# Single versions across the tree (direct + transitive).
 overrides:
   react: "catalog:"
   react-dom: "catalog:"
+  esbuild: "catalog:"
