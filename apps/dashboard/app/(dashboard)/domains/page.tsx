@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { Badge } from "@prood/ui/components/badge"
 import {
   Card,
@@ -24,9 +25,29 @@ export const metadata = { title: "Domains" }
 
 const PLATFORM_DOMAIN = process.env.NEXT_PUBLIC_PLATFORM_DOMAIN ?? "example.com"
 
+function buildStorefrontUrl(slug: string): string {
+  const host = `${slug}.${PLATFORM_DOMAIN}`
+  const base = process.env.NEXT_PUBLIC_STOREFRONT_URL?.trim()
+
+  let protocol = process.env.NODE_ENV === "development" ? "http" : "https"
+  let port = process.env.NODE_ENV === "development" ? ":3000" : ""
+
+  if (base) {
+    try {
+      const url = new URL(base)
+      protocol = url.protocol.replace(":", "")
+      port =
+        url.port && url.port !== "80" && url.port !== "443" ? `:${url.port}` : ""
+    } catch {
+      /* keep defaults */
+    }
+  }
+
+  return `${protocol}://${host}${port}`
+}
+
 export default async function DomainsPage() {
   const org = await getFullActiveOrganization()
-  const slug = org?.slug ?? "your-store"
 
   let domains: TenantDomainRow[] = []
   if (org) {
@@ -37,7 +58,8 @@ export default async function DomainsPage() {
     }
   }
 
-  const subdomain = `${slug}.${PLATFORM_DOMAIN}`
+  const subdomain = org ? `${org.slug}.${PLATFORM_DOMAIN}` : null
+  const storefrontUrl = org ? buildStorefrontUrl(org.slug) : null
 
   return (
     <div className="flex flex-col gap-6">
@@ -56,9 +78,24 @@ export default async function DomainsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <code className="rounded-lg bg-muted px-2 py-1 text-sm">
-            {subdomain}
-          </code>
+          {subdomain && storefrontUrl ? (
+            <a
+              href={storefrontUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block rounded-lg bg-muted px-2 py-1 font-mono text-sm underline-offset-4 hover:underline"
+            >
+              {subdomain}
+            </a>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No store is linked to this account yet. Create one from{" "}
+              <Link href="/register" className="text-foreground underline">
+                registration
+              </Link>{" "}
+              or ask an owner to invite you.
+            </p>
+          )}
         </CardContent>
       </Card>
 
