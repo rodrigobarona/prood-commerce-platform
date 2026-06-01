@@ -1,39 +1,50 @@
-import { createAuthClient } from "better-auth/react"
 import { organizationClient } from "better-auth/client/plugins"
+import { getAppAuthClient } from "@prood/auth/client"
 
-function resolveAuthBaseUrl(): string {
-  const fromEnv =
-    process.env.NEXT_PUBLIC_AUTH_URL?.trim() ??
-    process.env.NEXT_PUBLIC_API_URL?.trim()
+function resolveDevBrowserAuthUrl(): string | undefined {
+  if (typeof window === "undefined" || process.env.NODE_ENV !== "development") {
+    return undefined
+  }
 
-  if (fromEnv) return fromEnv
-
-  if (process.env.NEXT_PHASE === "phase-production-build") {
+  const { protocol, hostname } = window.location
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
     return "http://localhost:3005"
   }
 
-  // Dev fallback when accessing dashboard via Network URL (env vars still point at localhost).
-  if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
-    const { protocol, hostname } = window.location
-    if (hostname === "localhost" || hostname === "127.0.0.1") {
-      return "http://localhost:3005"
-    }
-    // LAN IP — API dev server listens on the same host, port 3005.
-    return `${protocol}//${hostname}:3005`
-  }
-
-  throw new Error(
-    "NEXT_PUBLIC_AUTH_URL (or NEXT_PUBLIC_API_URL) is required for auth client"
-  )
+  return `${protocol}//${hostname}:3005`
 }
 
-/** Browser auth client — targets the central API origin. */
-export const authClient = createAuthClient({
-  baseURL: resolveAuthBaseUrl(),
-  plugins: [organizationClient()],
-  fetchOptions: {
-    credentials: "include",
+function client() {
+  return getAppAuthClient({
+    plugins: [organizationClient()],
+    resolveDevBrowserUrl: resolveDevBrowserAuthUrl,
+  })
+}
+
+export function signIn(...args: Parameters<ReturnType<typeof client>["signIn"]>) {
+  return client().signIn(...args)
+}
+
+export function signUp(...args: Parameters<ReturnType<typeof client>["signUp"]>) {
+  return client().signUp(...args)
+}
+
+export function signOut(...args: Parameters<ReturnType<typeof client>["signOut"]>) {
+  return client().signOut(...args)
+}
+
+export function useSession(
+  ...args: Parameters<ReturnType<typeof client>["useSession"]>
+) {
+  return client().useSession(...args)
+}
+
+export const organization = new Proxy({} as ReturnType<typeof client>["organization"], {
+  get(_target, prop) {
+    const org = client().organization
+    const value = org[prop as keyof typeof org]
+    return typeof value === "function"
+      ? (value as (...a: never[]) => unknown).bind(org)
+      : value
   },
 })
-
-export const { signIn, signUp, signOut, useSession, organization } = authClient

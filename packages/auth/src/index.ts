@@ -34,6 +34,11 @@ export {
   isLocalDevOrigin,
   isTrustedAuthOrigin,
 } from "./origins"
-export { createAppAuthClient } from "./client"
+export {
+  createAppAuthClient,
+  getAppAuthClient,
+  resolvePublicAuthBaseUrl,
+  resolveServerPublicAuthBaseUrl,
+} from "./client"
 export { authDb } from "./db"
 export * from "./schema"
