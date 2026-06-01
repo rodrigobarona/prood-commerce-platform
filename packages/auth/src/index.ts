@@ -1,18 +1,27 @@
+import { cache } from "react"
+import { connection } from "next/server"
 import { headers } from "next/headers"
 import type { AuthInstance, Session } from "./server"
 
 /**
  * Session accessor for server components, actions, and route handlers.
  * Pass a getter from `createAuthGetter()` in each app.
+ *
+ * Wrapped in `cache()` so layout + page share one DB round-trip per request.
+ * Awaits `connection()` so Cache Components / PPR does not abort Neon HTTP
+ * fetches during prerender (see Next.js `connection()` docs).
  */
-export async function getSession(
-  getAuth: () => AuthInstance
+export const getSession = cache(async function getSession(
+  getAuth: () => AuthInstance,
+  requestHeaders?: Headers
 ): Promise<Session | null> {
   if (process.env.NEXT_PHASE === "phase-production-build") {
     return null
   }
-  return getAuth().api.getSession({ headers: await headers() })
-}
+  await connection()
+  const headerList = requestHeaders ?? (await headers())
+  return getAuth().api.getSession({ headers: headerList })
+})
 
 /** The id of the organization (tenant store) the session is acting on. */
 export async function getActiveOrganizationId(

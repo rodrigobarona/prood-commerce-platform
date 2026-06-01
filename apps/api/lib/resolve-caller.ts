@@ -2,7 +2,7 @@ import type { AgentSession } from "@better-auth/agent-auth"
 import { assertFeature } from "@prood/commerce"
 import { CommerceError } from "@prood/types"
 import { eq } from "drizzle-orm"
-import { getAuth } from "@/lib/auth"
+import { getAuth, getSession, resolveActiveOrganizationId } from "@/lib/auth"
 import { authDb } from "@/lib/auth/db"
 import { member } from "@/lib/auth/schema"
 import { getOrganizationLimits } from "@/lib/org-plan"
@@ -101,9 +101,9 @@ export async function resolveCallerFromHeaders(
     }
   }
 
-  const session = await getAuth().api.getSession({ headers: headerList })
-  const sessionOrgId = session?.session.activeOrganizationId
-  if (sessionOrgId) {
+  const session = await getSession(headerList)
+  const sessionOrgId = await resolveActiveOrganizationId(headerList)
+  if (sessionOrgId && session?.user) {
     return {
       orgId: sessionOrgId,
       scopes: ["admin", "storefront"],

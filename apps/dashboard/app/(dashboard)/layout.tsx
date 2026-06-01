@@ -6,7 +6,11 @@ import {
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar"
 import { DashboardHeader } from "@/components/layout/dashboard-header"
 import type { OrgSummary } from "@/components/layout/org-switcher"
-import { getSession, listOrganizations } from "@/lib/auth"
+import {
+  getActiveOrganizationId,
+  getSession,
+  listOrganizations,
+} from "@/lib/auth"
 
 export default async function DashboardLayout({
   children,
@@ -15,6 +19,8 @@ export default async function DashboardLayout({
 }) {
   const session = await getSession()
   if (!session) redirect("/login")
+
+  const activeOrgId = await getActiveOrganizationId()
 
   let orgs: OrgSummary[] = []
   try {
@@ -33,7 +39,7 @@ export default async function DashboardLayout({
     <SidebarProvider>
       <DashboardSidebar
         orgs={orgs}
-        activeOrgId={session.session.activeOrganizationId ?? null}
+        activeOrgId={activeOrgId}
         user={{
           name: session.user.name,
           email: session.user.email,

@@ -1,3 +1,5 @@
+import { cache } from "react"
+import { connection } from "next/server"
 import { headers } from "next/headers"
 import {
   getActiveOrganizationId as getActiveOrganizationIdFromPackage,
@@ -24,42 +26,45 @@ export async function getCurrentUser() {
  * If the session has no active org but the user belongs to at least one store,
  * the first store is selected automatically (same default as the org switcher UI).
  */
-export async function getActiveOrganizationId(): Promise<string | null> {
-  if (process.env.NEXT_PHASE === "phase-production-build") {
-    return null
+export const getActiveOrganizationId = cache(
+  async function getActiveOrganizationId(): Promise<string | null> {
+    if (process.env.NEXT_PHASE === "phase-production-build") {
+      return null
+    }
+
+    const existing = await getActiveOrganizationIdFromPackage(getAuth)
+    if (existing) return existing
+
+    let orgs: Awaited<ReturnType<typeof listOrganizations>>
+    try {
+      orgs = await listOrganizations()
+    } catch {
+      return null
+    }
+    const first = orgs[0]
+    if (!first) return null
+
+    try {
+      await getAuth().api.setActiveOrganization({
+        headers: await headers(),
+        body: { organizationId: first.id },
+      })
+    } catch {
+      /* DB unavailable — still scope this request to the first store. */
+    }
+
+    return first.id
   }
-
-  const existing = await getActiveOrganizationIdFromPackage(getAuth)
-  if (existing) return existing
-
-  let orgs: Awaited<ReturnType<typeof listOrganizations>>
-  try {
-    orgs = await listOrganizations()
-  } catch {
-    return null
-  }
-  const first = orgs[0]
-  if (!first) return null
-
-  try {
-    await getAuth().api.setActiveOrganization({
-      headers: await headers(),
-      body: { organizationId: first.id },
-    })
-  } catch {
-    /* DB unavailable — still scope this request to the first store. */
-  }
-
-  return first.id
-}
+)
 
 /** All organizations (tenant stores) the current merchant belongs to. */
-export async function listOrganizations() {
+export const listOrganizations = cache(async function listOrganizations() {
   if (process.env.NEXT_PHASE === "phase-production-build") {
     return []
   }
+  await connection()
   return getAuth().api.listOrganizations({ headers: await headers() })
-}
+})
 
 /**
  * The active organization with its members and pending invitations, or null if
