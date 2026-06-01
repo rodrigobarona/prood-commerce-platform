@@ -133,6 +133,7 @@ export async function createPlatformAdapter(config: PlatformConfig = {}): Promis
     addAddress: customers.addAddress,
     updateAddress: customers.updateAddress,
     deleteAddress: customers.deleteAddress,
+    setCurrentCustomer: customers.setCurrentCustomer,
 
     // ---- Orders ----
     createOrder: orders.createOrder,

@@ -5,6 +5,9 @@
 
 import { it, expect, beforeEach } from 'vitest'
 import { createPlatformAdapter } from '../adapter.js'
+import { withTenant } from '../database/drizzle/client.js'
+import { createCustomer } from '../database/drizzle/queries/customers.js'
+import { DEMO_ORG_ID } from '../database/drizzle/seed.js'
 import type { CommerceAdapter, Address } from '@prood/types'
 
 /** Helper: create a full Address with all required fields */
@@ -34,12 +37,18 @@ export interface SuiteOptions {
 }
 
 export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
-  let adapter: any
+  let adapter: CommerceAdapter & { setCurrentCustomer?: (id: string | null) => void }
 
   beforeEach(async () => {
     await opts.setup()
-    adapter = (await createPlatformAdapter()).adapter
+    adapter = (await createPlatformAdapter()).adapter as typeof adapter
   })
+
+  async function seedCustomer(firstName: string, lastName: string): Promise<string> {
+    return withTenant(DEMO_ORG_ID, async () =>
+      createCustomer({ firstName, lastName }),
+    )
+  }
 
   // ---- Catalog ----
 
@@ -284,67 +293,34 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     expect(info.name.en).toBe('My Store')
   })
 
-  // ---- Customers ----
+  // ---- Customers (auth via Better Auth; adapter exposes address book only) ----
 
-  it('should register a new customer', async () => {
-    const customer = await adapter.register({
-      email: 'test@example.com',
-      password: 'Password123!',
-      firstName: 'Test',
-      lastName: 'User',
-    })
-    expect(customer.email).toBe('test@example.com')
-    expect(customer.firstName).toBe('Test')
-    expect(customer.id).toBeTruthy()
-  })
-
-  it('should login an existing customer', async () => {
-    await adapter.register({
-      email: 'login@example.com',
-      password: 'Password123!',
-      firstName: 'Login',
-      lastName: 'User',
-    })
-    const customer = await adapter.login('login@example.com', 'Password123!')
-    expect(customer.email).toBe('login@example.com')
-  })
-
-  it('should reject invalid credentials', async () => {
-    await adapter.register({
-      email: 'wrong@example.com',
-      password: 'Password123!',
-      firstName: 'Wrong',
-      lastName: 'User',
-    })
-    await expect(adapter.login('wrong@example.com', 'WrongPassword!')).rejects.toThrow()
-  })
-
-  it('should reject duplicate registration', async () => {
-    await adapter.register({
-      email: 'dup@example.com',
-      password: 'Password123!',
-      firstName: 'Dup',
-      lastName: 'User',
-    })
-    await expect(
-      adapter.register({
-        email: 'dup@example.com',
+  it('should reject register — handled by Better Auth', async () => {
+    await expect(async () => {
+      await adapter.register({
+        email: 'test@example.com',
         password: 'Password123!',
-        firstName: 'Dup2',
-        lastName: 'User2',
-      }),
-    ).rejects.toThrow()
+        firstName: 'Test',
+        lastName: 'User',
+      })
+    }).rejects.toMatchObject({ code: 'NOT_SUPPORTED' })
   })
 
-  it('should manage addresses', async () => {
-    await adapter.register({
-      email: 'addr@example.com',
-      password: 'Password123!',
-      firstName: 'Addr',
-      lastName: 'User',
-    })
-    // Login so the domain tracks currentCustomerId
-    await adapter.login('addr@example.com', 'Password123!')
+  it('should reject login — handled by Better Auth', async () => {
+    await expect(async () => {
+      await adapter.login('login@example.com', 'Password123!')
+    }).rejects.toMatchObject({ code: 'NOT_SUPPORTED' })
+  })
+
+  it('should reject forgotPassword — handled by Better Auth', async () => {
+    await expect(async () => {
+      await adapter.forgotPassword('test@example.com')
+    }).rejects.toMatchObject({ code: 'NOT_SUPPORTED' })
+  })
+
+  it('should manage addresses when a customer session is set', async () => {
+    const customerId = await seedCustomer('Addr', 'User')
+    adapter.setCurrentCustomer!(customerId)
 
     // Add
     const addr = await adapter.addAddress(fullAddress())
@@ -418,31 +394,24 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
   // ---- Wishlist ----
 
   it('should add and remove wishlist items', async () => {
-    // Register and login
-    await adapter.register({
-      email: 'wish@example.com',
-      password: 'Password123!',
-      firstName: 'Wish',
-      lastName: 'User',
-    })
-    const customer = await adapter.login('wish@example.com', 'Password123!')
+    const customerId = await seedCustomer('Wish', 'User')
 
     // Get wishlist (auto-created, empty)
-    const wl = await adapter.getWishlist(customer.id)
+    const wl = await adapter.getWishlist(customerId)
     expect(wl.items).toHaveLength(0)
     expect(wl.itemCount).toBe(0)
 
     // Add item
-    const updated = await adapter.addToWishlist('prod-1', undefined, customer.id)
+    const updated = await adapter.addToWishlist('prod-1', undefined, customerId)
     expect(updated.items).toHaveLength(1)
     expect(updated.itemCount).toBe(1)
 
     // Dedup — adding same product again should not duplicate
-    const dedup = await adapter.addToWishlist('prod-1', undefined, customer.id)
+    const dedup = await adapter.addToWishlist('prod-1', undefined, customerId)
     expect(dedup.items).toHaveLength(1)
 
     // Remove
-    const removed = await adapter.removeFromWishlist('prod-1', customer.id)
+    const removed = await adapter.removeFromWishlist('prod-1', customerId)
     expect(removed.items).toHaveLength(0)
   })
 

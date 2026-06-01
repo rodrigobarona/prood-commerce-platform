@@ -29,8 +29,28 @@ const statements = raw
   .filter(Boolean)
 
 const sql = neon(url)
+
+/** PostgreSQL codes / messages for idempotent re-runs. */
+function isAlreadyExistsError(err) {
+  const code = err?.code
+  return (
+    code === "42P07" || // duplicate_table
+    code === "42710" || // duplicate_object (constraint, index)
+    code === "42P16" || // invalid_table_definition (column exists)
+    err?.message?.includes("already exists")
+  )
+}
+
 for (const statement of statements) {
   console.log(`→ ${statement.slice(0, 60).replace(/\s+/g, " ")}…`)
-  await sql.query(statement)
+  try {
+    await sql.query(statement)
+  } catch (err) {
+    if (isAlreadyExistsError(err)) {
+      console.log("  skipped (already exists)")
+      continue
+    }
+    throw err
+  }
 }
 console.log(`Applied ${statements.length} statements from ${file}`)

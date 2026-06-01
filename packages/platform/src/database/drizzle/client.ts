@@ -89,8 +89,17 @@ export function currentTenantScope(): boolean {
   return tenantStore.getStore() !== undefined
 }
 
-/** Reset the database singleton (for tests). */
+/** Reset the database singleton without closing the pool (for tests). */
 export function resetDb(): void {
+  _pool = null
+  _db = null
+}
+
+/** Close the pool and reset the singleton (for test teardown). */
+export async function closeDrizzle(): Promise<void> {
+  if (_pool) {
+    await _pool.end()
+  }
   _pool = null
   _db = null
 }

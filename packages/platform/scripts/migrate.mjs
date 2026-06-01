@@ -52,7 +52,8 @@ if (process.argv.includes('--seed')) {
     console.log('✅ Seed complete')
   } catch (err) {
     // 23505 = PostgreSQL unique constraint violation (data already seeded)
-    if (err?.code === '23505') {
+    const code = err?.code ?? err?.cause?.code
+    if (code === '23505') {
       console.log('ℹ️  Seed skipped — data already exists')
     } else {
       console.error('❌ Seed failed:', err?.message || err)

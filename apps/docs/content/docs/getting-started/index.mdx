@@ -43,10 +43,13 @@ After `pnpm dev`, Turbo starts all apps:
 
 ## What `db:setup` does
 
-The root script runs two steps:
+The root script runs three steps:
 
 1. **`pnpm db:migrate`** — Applies the `@prood/platform` Drizzle schema, enables row-level security (`applyTenantIsolation`), and seeds a demo store tagged with `org_demo`.
-2. **`pnpm db:auth`** — Pushes Better Auth tables (user, session, account, organization, etc.) used by storefront, dashboard, and API.
+2. **`pnpm db:auth`** — Creates Better Auth tables (user, session, account, organization, etc.) used by storefront, dashboard, and API.
+3. **`pnpm db:seed-auth`** — Seeds the `org_demo` organization and an admin user from `ADMIN_EMAIL` / `ADMIN_PASSWORD` when those env vars are set.
+
+Set `DEFAULT_TENANT_ORG_ID=org_demo` in `.env.local` (the default in `.env.example`) so the storefront resolves the seeded catalog on localhost.
 
 ## Shared environment
 

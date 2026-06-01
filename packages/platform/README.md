@@ -63,7 +63,13 @@ pnpm db:migrate      # Run migrations
 pnpm db:migrate:seed # Migrate + seed demo org
 ```
 
-From repo root: `pnpm db:setup` (migrate + seed with `ADMIN_EMAIL` / `ADMIN_PASSWORD`).
+From repo root:
+
+```bash
+pnpm db:setup   # migrate + seed commerce, auth tables, demo org + admin user
+```
+
+Requires `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env.local` for the auth seed step. Commerce catalog and auth org both use `org_demo` — set `DEFAULT_TENANT_ORG_ID=org_demo` for local storefront resolution.
 
 ## Package layout
 

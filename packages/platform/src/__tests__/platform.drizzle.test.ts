@@ -9,16 +9,18 @@ vi.mock('../database/index.js', async () => {
   return await import('../database/drizzle/queries/index.js')
 })
 
-import { describe } from 'vitest'
+import { afterAll, beforeAll, describe } from 'vitest'
 import { sql } from 'drizzle-orm'
-import { initDrizzle, resetDb, getDb } from '../database/drizzle/client.js'
+import { initDrizzle, closeDrizzle, getDb } from '../database/drizzle/client.js'
 import { migrateDrizzle } from '../database/drizzle/migrate.js'
 import { seedDrizzle } from '../database/drizzle/seed.js'
 import { platformTestSuite } from './platform.suite.js'
 
 const DATABASE_URL = process.env.DATABASE_URL
 if (!DATABASE_URL) {
-  throw new Error('DATABASE_URL is required — create packages/platform/.env with your Neon connection string')
+  throw new Error(
+    'DATABASE_URL is required — set it in repo-root .env.local or packages/platform/.env',
+  )
 }
 
 /**
@@ -42,18 +44,21 @@ async function cleanDatabase() {
 }
 
 describe('@prood/platform [drizzle]', () => {
+  beforeAll(async () => {
+    initDrizzle(DATABASE_URL)
+    await migrateDrizzle(DATABASE_URL)
+  })
+
+  afterAll(async () => {
+    await closeDrizzle()
+  })
+
   platformTestSuite({
     setup: async () => {
-      resetDb()
-      const db = initDrizzle(DATABASE_URL)
-      await migrateDrizzle(DATABASE_URL)
       await cleanDatabase()
-      await seedDrizzle(db)
+      await seedDrizzle(getDb())
     },
     setupEmpty: async () => {
-      resetDb()
-      initDrizzle(DATABASE_URL)
-      await migrateDrizzle(DATABASE_URL)
       await cleanDatabase()
     },
   })
