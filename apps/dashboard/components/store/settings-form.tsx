@@ -3,10 +3,10 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import type { LocalizedField } from "@prood/types"
 import { Button } from "@prood/ui/components/button"
 import { Input } from "@prood/ui/components/input"
 import { Label } from "@prood/ui/components/label"
-import { Textarea } from "@prood/ui/components/textarea"
 import {
   Card,
   CardContent,
@@ -14,16 +14,29 @@ import {
   CardTitle,
 } from "@prood/ui/components/card"
 import { updateStoreSettingsAction } from "@/app/(dashboard)/settings/actions"
+import {
+  emptyLocalizedField,
+  LocalizedFieldInput,
+} from "@/components/store/localized-field-input"
 
 export interface SettingsFormValues {
-  name: string
-  description: string
+  name: LocalizedField
+  description: LocalizedField
   contactEmail: string
   contactPhone: string
   currency: string
   locale: string
   timezone: string
   address: string
+}
+
+function trimLocalizedField(field: LocalizedField): LocalizedField | undefined {
+  const trimmed: LocalizedField = {}
+  for (const [key, value] of Object.entries(field)) {
+    const next = value.trim()
+    if (next) trimmed[key] = next
+  }
+  return Object.keys(trimmed).length > 0 ? trimmed : undefined
 }
 
 export function SettingsForm({ initial }: { initial: SettingsFormValues }) {
@@ -43,8 +56,8 @@ export function SettingsForm({ initial }: { initial: SettingsFormValues }) {
     startTransition(async () => {
       try {
         await updateStoreSettingsAction({
-          name: values.name || undefined,
-          description: values.description || undefined,
+          name: trimLocalizedField(values.name),
+          description: trimLocalizedField(values.description),
           contactEmail: values.contactEmail || undefined,
           contactPhone: values.contactPhone || undefined,
           currency: values.currency || undefined,
@@ -67,24 +80,18 @@ export function SettingsForm({ initial }: { initial: SettingsFormValues }) {
           <CardTitle>Store details</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="name">Store name</Label>
-            <Input
-              id="name"
-              required
-              value={values.name}
-              onChange={(event) => set("name", event.target.value)}
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              rows={3}
-              value={values.description}
-              onChange={(event) => set("description", event.target.value)}
-            />
-          </div>
+          <LocalizedFieldInput
+            label="Store name"
+            value={values.name}
+            onChange={(name) => set("name", name)}
+            required
+          />
+          <LocalizedFieldInput
+            label="Description"
+            value={values.description}
+            onChange={(description) => set("description", description)}
+            multiline
+          />
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="address">Address</Label>
             <Input

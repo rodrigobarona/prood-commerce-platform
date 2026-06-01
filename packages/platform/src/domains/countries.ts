@@ -4,7 +4,7 @@
 
 import type { Country } from '@prood/types'
 import { findCountries } from '../database/index.js'
-import { localized } from './helpers.js'
+import { normalizeLocalizedField } from './helpers.js'
 
 export function createCountriesDomain() {
   return {
@@ -14,7 +14,7 @@ export function createCountriesDomain() {
         id: row.id,
         code: row.code,
         iso3: row.iso3 ?? null,
-        name: localized(row.name, row.nameAr),
+        name: normalizeLocalizedField(row.name),
         flag: row.flag ?? null,
         callingCode: row.callingCode ?? null,
         currency: row.currency ?? null,

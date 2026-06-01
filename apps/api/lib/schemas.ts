@@ -6,6 +6,15 @@ import { z } from "zod"
 // truth for the contract.
 // ---------------------------------------------------------------------------
 
+/** JSONB localized field — at least English is required on write */
+export const localizedFieldSchema = z
+  .record(z.string(), z.string())
+  .refine((obj) => typeof obj.en === "string" && obj.en.length > 0, {
+    message: "en is required",
+  })
+
+export const optionalLocalizedFieldSchema = z.record(z.string(), z.string()).optional()
+
 // ---- Storefront ----
 
 export const searchProductsQuery = z.object({
@@ -63,8 +72,7 @@ const productImageInput = z.object({
 
 const variantInput = z.object({
   sku: z.string().optional(),
-  name: z.string().optional(),
-  nameAr: z.string().optional(),
+  name: optionalLocalizedFieldSchema,
   price: z.number().optional(),
   compareAtPrice: z.number().optional(),
   inStock: z.boolean().optional(),
@@ -74,20 +82,15 @@ const variantInput = z.object({
 
 const attributeInput = z.object({
   code: z.string(),
-  name: z.string(),
-  nameAr: z.string().optional(),
-  value: z.string(),
-  valueAr: z.string().optional(),
+  name: localizedFieldSchema,
+  value: localizedFieldSchema,
 })
 
 export const createProductBody = z.object({
-  name: z.string().min(1),
-  nameAr: z.string().optional(),
+  name: localizedFieldSchema,
   slug: z.string().optional(),
-  description: z.string().optional(),
-  descriptionAr: z.string().optional(),
-  shortDescription: z.string().optional(),
-  shortDescriptionAr: z.string().optional(),
+  description: optionalLocalizedFieldSchema,
+  shortDescription: optionalLocalizedFieldSchema,
   price: z.number().optional(),
   compareAtPrice: z.number().optional(),
   currency: z.string().optional(),
@@ -111,11 +114,9 @@ export const createProductBody = z.object({
 export const updateProductBody = createProductBody.partial()
 
 export const createCategoryBody = z.object({
-  name: z.string().min(1),
-  nameAr: z.string().optional(),
+  name: localizedFieldSchema,
   slug: z.string().optional(),
-  description: z.string().optional(),
-  descriptionAr: z.string().optional(),
+  description: optionalLocalizedFieldSchema,
   image: z.string().optional(),
   parentId: z.string().optional(),
   sortOrder: z.number().int().optional(),
@@ -131,10 +132,8 @@ export const updateInventoryBody = z.object({
 })
 
 export const updateStoreBody = z.object({
-  name: z.string().optional(),
-  nameAr: z.string().optional(),
-  description: z.string().optional(),
-  descriptionAr: z.string().optional(),
+  name: optionalLocalizedFieldSchema,
+  description: optionalLocalizedFieldSchema,
   logo: z.string().optional(),
   favicon: z.string().optional(),
   currency: z.string().optional(),

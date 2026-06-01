@@ -23,9 +23,11 @@ export async function findPromotionById(id: string) {
   return row ?? null
 }
 
+import type { LocalizedField } from '@prood/types'
+
 export async function insertPromotion(data: {
-  name: string
-  nameAr?: string | null
+  name: LocalizedField
+  description?: LocalizedField | null
   discountType: string
   discountValue: number
   target: string
@@ -37,7 +39,7 @@ export async function insertPromotion(data: {
   await getDb().insert(schema.promotions).values({
     id,
     name: data.name,
-    nameAr: data.nameAr ?? null,
+    description: data.description ?? null,
     discountType: data.discountType,
     discountValue: String(data.discountValue),
     target: data.target,

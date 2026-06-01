@@ -5,17 +5,19 @@ import type {
   LocalizedString,
   Maybe,
   Price,
+  SupportedLocale,
 } from "@prood/types"
+import { DEFAULT_LOCALE } from "@prood/types"
 
-export type Locale = "en" | "ar"
+export type Locale = SupportedLocale | string
 
-/** Resolve a bilingual string with `requested -> en -> ar` fallback. */
+/** Resolve a localized string with `requested -> en -> first available` fallback. */
 export function localized(
   value: Maybe<LocalizedString> | undefined,
-  locale: Locale = "en",
+  locale: Locale = DEFAULT_LOCALE,
 ): string {
   if (!value) return ""
-  return value[locale] || value.en || value.ar || ""
+  return value[locale] || value[DEFAULT_LOCALE] || Object.values(value)[0] || ""
 }
 
 const ZERO_DECIMAL = new Set([
@@ -30,12 +32,13 @@ function toMajor(amount: number, currency: string): number {
 /** Format a Price, preferring the platform-provided `formatted` string. */
 export function formatPrice(
   price: Maybe<Price> | undefined,
-  locale: Locale = "en",
+  locale: Locale = DEFAULT_LOCALE,
 ): string {
   if (!price) return ""
   if (price.formatted) return price.formatted
   try {
-    return new Intl.NumberFormat(locale === "ar" ? "ar" : "en", {
+    const intlLocale = locale === "pt" ? "pt-PT" : locale === "es" ? "es-ES" : "en"
+    return new Intl.NumberFormat(intlLocale, {
       style: "currency",
       currency: price.currency,
     }).format(toMajor(price.amount, price.currency))
@@ -58,7 +61,7 @@ export function hasDiscount(
 /** Format the original (pre-discount) price. */
 export function formatOriginalPrice(
   price: Maybe<DiscountablePrice> | undefined,
-  locale: Locale = "en",
+  locale: Locale = DEFAULT_LOCALE,
 ): string {
   if (!hasDiscount(price) || !price) return ""
   return formatPrice(

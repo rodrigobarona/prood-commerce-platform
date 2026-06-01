@@ -2,14 +2,13 @@
 // Promotions schema
 // ---------------------------------------------------------------------------
 
-import { pgTable, text, integer, boolean, numeric, doublePrecision, timestamp } from 'drizzle-orm/pg-core'
+import { pgTable, text, integer, boolean, numeric, timestamp, jsonb } from 'drizzle-orm/pg-core'
+import type { LocalizedField } from '@prood/types'
 
 export const promotions = pgTable('promotions', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  name: text('name').notNull(),
-  nameAr: text('name_ar'),
-  description: text('description'),
-  descriptionAr: text('description_ar'),
+  name: jsonb('name').$type<LocalizedField>().notNull().default({}),
+  description: jsonb('description').$type<LocalizedField>(),
   discountType: text('discount_type').notNull().default('percentage'),
   discountValue: numeric('discount_value', { precision: 12, scale: 2 }).notNull().default('0'),
   currency: text('currency'),

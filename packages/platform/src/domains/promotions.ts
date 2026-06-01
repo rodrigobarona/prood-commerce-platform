@@ -8,7 +8,7 @@ import {
   findCouponByCode,
   findPromotionById,
 } from '../database/index.js'
-import { localized } from './helpers.js'
+import { normalizeLocalizedField } from './helpers.js'
 
 function mapPromotion(row: any): Promotion {
   const conditions = row.conditionsJson ? JSON.parse(row.conditionsJson) : {
@@ -21,8 +21,8 @@ function mapPromotion(row: any): Promotion {
 
   return {
     id: row.id,
-    name: localized(row.name, row.nameAr),
-    description: row.description ? localized(row.description, row.descriptionAr) : null,
+    name: normalizeLocalizedField(row.name),
+    description: row.description ? normalizeLocalizedField(row.description) : null,
     discountType: row.discountType as any,
     discountValue: row.discountValue,
     currency: row.currency ?? null,

@@ -20,8 +20,32 @@ import {
   findOrderById,
   findOrderItems,
 } from '../database/index.js'
-import { generateOrderNumber, localized, price, priceRequired, img, parseJsonField, toNumber } from './helpers.js'
+import { generateOrderNumber, normalizeLocalizedField, price, priceRequired, img, parseJsonField, toNumber } from './helpers.js'
 import { createCartDomain } from './cart.js'
+
+const STANDARD_SHIPPING = {
+  en: 'Standard Shipping',
+  pt: 'Envio padrão',
+  es: 'Envío estándar',
+}
+
+const EXPRESS_SHIPPING = {
+  en: 'Express Shipping',
+  pt: 'Envio expresso',
+  es: 'Envío express',
+}
+
+const CARD_PAYMENT = {
+  en: 'Credit / Debit Card',
+  pt: 'Cartão de crédito / débito',
+  es: 'Tarjeta de crédito / débito',
+}
+
+const COD_PAYMENT = {
+  en: 'Cash on Delivery',
+  pt: 'Pagamento na entrega',
+  es: 'Pago contra reembolso',
+}
 
 export function createCheckoutDomain(currency: string) {
   const cartDomain = createCartDomain(currency)
@@ -31,7 +55,7 @@ export function createCheckoutDomain(currency: string) {
       return [
         {
           id: 'standard',
-          name: localized('Standard Shipping', 'شحن عادي'),
+          name: STANDARD_SHIPPING,
           provider: 'custom',
           fulfillmentType: 'shipping' as const,
           price: priceRequired(15, currency),
@@ -40,7 +64,7 @@ export function createCheckoutDomain(currency: string) {
         },
         {
           id: 'express',
-          name: localized('Express Shipping', 'شحن سريع'),
+          name: EXPRESS_SHIPPING,
           provider: 'custom',
           fulfillmentType: 'shipping' as const,
           price: priceRequired(35, currency),
@@ -70,7 +94,7 @@ export function createCheckoutDomain(currency: string) {
         {
           id: 'card',
           type: 'card',
-          name: localized('Credit / Debit Card', 'بطاقة ائتمان'),
+          name: CARD_PAYMENT,
           provider: 'platform',
           installments: null,
           icon: null,
@@ -78,7 +102,7 @@ export function createCheckoutDomain(currency: string) {
         {
           id: 'cod',
           type: 'cash_on_delivery',
-          name: localized('Cash on Delivery', 'الدفع عند الاستلام'),
+          name: COD_PAYMENT,
           provider: 'platform',
           installments: null,
           icon: null,
@@ -107,13 +131,11 @@ export function createCheckoutDomain(currency: string) {
 
       const orderStatus = options?.status ?? 'pending'
 
-      // Look up selected shipping/payment methods by ID from cart row
       const cartRow = await findCart(cartId)
       const shippingMethods = await this.getShippingMethods(cartId)
       const paymentMethods = await this.getPaymentMethods(cartId)
       const selectedShipping = shippingMethods.find(m => m.id === cartRow?.shippingMethodId) ?? null
       const selectedPayment = paymentMethods.find(m => m.id === cartRow?.paymentMethodId) ?? null
-
 
       const orderId = crypto.randomUUID()
       const orderNumber = generateOrderNumber()
@@ -147,7 +169,7 @@ export function createCheckoutDomain(currency: string) {
           orderId,
           productId: item.productId,
           variantId: item.variantId ?? null,
-          name: typeof item.name === 'object' ? (item.name as any).en : String(item.name),
+          name: typeof item.name === 'object' ? item.name : { en: String(item.name) },
           quantity: item.quantity,
           price: item.price.amount,
           totalPrice: item.totalPrice.amount,
@@ -163,12 +185,10 @@ export function createCheckoutDomain(currency: string) {
         note: 'Order placed',
       })
 
-      // Only delete cart if not keeping it (COD deletes immediately, card keeps for payment)
       if (!options?.keepCart) {
         await deleteCart(cartId)
       }
 
-      // Build and return the order
       const order = await findOrderById(orderId)
       if (!order) throw new Error(`Order not found after creation: ${orderId}`)
       const items = await findOrderItems(orderId)
@@ -181,7 +201,7 @@ export function createCheckoutDomain(currency: string) {
           id: i.id,
           productId: i.productId,
           variantId: i.variantId ?? null,
-          name: localized(i.name, i.nameAr),
+          name: normalizeLocalizedField(i.name),
           image: i.image ? img(i.image, null) : null,
           quantity: i.quantity,
           price: priceRequired(toNumber(i.price), currency),
@@ -201,10 +221,10 @@ export function createCheckoutDomain(currency: string) {
         shippingAddress: parseJsonField(order.shippingAddress),
         billingAddress: parseJsonField(order.billingAddress),
         shippingMethod: order.shippingMethod
-          ? (() => { const n = parseJsonField(order.shippingMethod); return { id: 'default', name: typeof n === 'object' ? localized(n.en, n.ar) : localized(n, null), provider: 'custom', fulfillmentType: 'shipping' as const, price: priceRequired(0, currency), estimatedDays: { min: 1, max: 7 }, cashOnDelivery: false } })()
+          ? (() => { const n = parseJsonField(order.shippingMethod); return { id: 'default', name: normalizeLocalizedField(n), provider: 'custom', fulfillmentType: 'shipping' as const, price: priceRequired(0, currency), estimatedDays: { min: 1, max: 7 }, cashOnDelivery: false } })()
           : null,
         paymentMethod: order.paymentMethod
-          ? (() => { const n = parseJsonField(order.paymentMethod); return { id: 'default', type: 'card', name: typeof n === 'object' ? localized(n.en, n.ar) : localized(n, null), provider: 'platform', installments: null, icon: null } })()
+          ? (() => { const n = parseJsonField(order.paymentMethod); return { id: 'default', type: 'card', name: normalizeLocalizedField(n), provider: 'platform', installments: null, icon: null } })()
           : null,
         trackingNumber: order.trackingNumber ?? null,
         trackingUrl: order.trackingUrl ?? null,

@@ -17,7 +17,7 @@ import {
   findVariantById,
   findPrimaryImage,
 } from '../database/index.js'
-import { localized, discountablePrice, priceRequired, img, parseJsonField, toNumber } from './helpers.js'
+import { normalizeLocalizedField, discountablePrice, priceRequired, img, parseJsonField, toNumber } from './helpers.js'
 
 export function createCartDomain(currency: string) {
   /** Build a full Cart object from cart row + items + product data */
@@ -47,7 +47,7 @@ export function createCartDomain(currency: string) {
         productId: item.productId,
         productSlug: product?.slug ?? undefined,
         variantId: item.variantId ?? null,
-        name: product ? localized(product.name, product.nameAr) : localized('Unknown', null),
+        name: product ? normalizeLocalizedField(product.name) : { en: 'Unknown' },
         image: primaryImg ? img(primaryImg.url, primaryImg.altText) : null,
         quantity: item.quantity,
         price: discountablePrice(itemPrice, compareAt, currency)!,

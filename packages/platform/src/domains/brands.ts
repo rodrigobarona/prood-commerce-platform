@@ -4,7 +4,7 @@
 
 import type { Brand } from '@prood/types'
 import { findBrands } from '../database/index.js'
-import { localized, img } from './helpers.js'
+import { normalizeLocalizedField, resolveLocalized, img } from './helpers.js'
 
 export function createBrandsDomain() {
   return {
@@ -12,10 +12,10 @@ export function createBrandsDomain() {
       const rows = await findBrands()
       return rows.map((row: any) => ({
         id: row.id,
-        name: localized(row.name, row.nameAr),
+        name: normalizeLocalizedField(row.name),
         slug: row.slug,
-        logo: row.logo ? img(row.logo, row.name) : null,
-        description: row.description ? localized(row.description, row.descriptionAr) : null,
+        logo: row.logo ? img(row.logo, resolveLocalized(normalizeLocalizedField(row.name))) : null,
+        description: row.description ? normalizeLocalizedField(row.description) : null,
         isActive: row.isActive ?? true,
       }))
     },

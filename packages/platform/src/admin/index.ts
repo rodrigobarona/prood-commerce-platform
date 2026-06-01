@@ -20,7 +20,7 @@ import {
   countActiveProducts,
   countOrders,
 } from '../database/index.js'
-import { localized, priceRequired, price, img, parseJsonField } from '../domains/helpers.js'
+import { normalizeLocalizedField, priceRequired, price, img, parseJsonField } from '../domains/helpers.js'
 
 /**
  * Create an AdminAPI — the merchant-facing management interface.
@@ -109,7 +109,7 @@ export function createAdminAPI(currency: string): AdminAPI {
               id: i.id,
               productId: i.productId,
               variantId: i.variantId ?? null,
-              name: localized(i.name, i.nameAr),
+              name: normalizeLocalizedField(i.name),
               image: i.image ? img(i.image, null) : null,
               quantity: i.quantity,
               price: priceRequired(i.price, currency),

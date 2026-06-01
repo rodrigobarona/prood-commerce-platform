@@ -3,13 +3,14 @@ import {
   SettingsForm,
   type SettingsFormValues,
 } from "@/components/store/settings-form"
+import { emptyLocalizedField } from "@/components/store/localized-field-input"
 import { getStoreSettings } from "@/lib/admin-api"
 
 export const metadata = { title: "Settings" }
 
 const EMPTY: SettingsFormValues = {
-  name: "",
-  description: "",
+  name: emptyLocalizedField(),
+  description: emptyLocalizedField(),
   contactEmail: "",
   contactPhone: "",
   currency: "EUR",
@@ -20,8 +21,8 @@ const EMPTY: SettingsFormValues = {
 
 function toFormValues(settings: StoreSettings): SettingsFormValues {
   return {
-    name: settings.name ?? "",
-    description: settings.description ?? "",
+    name: settings.name ?? emptyLocalizedField(),
+    description: settings.description ?? emptyLocalizedField(),
     contactEmail: settings.contactEmail ?? "",
     contactPhone: settings.contactPhone ?? "",
     currency: settings.currency ?? "EUR",

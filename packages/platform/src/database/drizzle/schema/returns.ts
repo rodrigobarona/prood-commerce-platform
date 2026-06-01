@@ -2,7 +2,8 @@
 // Returns schema
 // ---------------------------------------------------------------------------
 
-import { pgTable, text, integer, numeric, timestamp } from 'drizzle-orm/pg-core'
+import { pgTable, text, integer, numeric, timestamp, jsonb } from 'drizzle-orm/pg-core'
+import type { LocalizedField } from '@prood/types'
 import { orders } from './orders.js'
 
 export const returns = pgTable('returns', {
@@ -27,8 +28,7 @@ export const returnItems = pgTable('return_items', {
   orderItemId: text('order_item_id').notNull(),
   productId: text('product_id').notNull(),
   variantId: text('variant_id'),
-  name: text('name').notNull(),
-  nameAr: text('name_ar'),
+  name: jsonb('name').$type<LocalizedField>().notNull().default({}),
   image: text('image'),
   quantity: integer('quantity').notNull(),
   reason: text('reason').notNull().default('other'),

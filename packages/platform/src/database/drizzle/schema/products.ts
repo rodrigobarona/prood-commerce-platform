@@ -2,7 +2,8 @@
 // Products schema — products, variants, images, options, attributes
 // ---------------------------------------------------------------------------
 
-import { pgTable, text, integer, boolean, numeric, doublePrecision, timestamp } from 'drizzle-orm/pg-core'
+import { pgTable, text, integer, boolean, numeric, doublePrecision, timestamp, jsonb } from 'drizzle-orm/pg-core'
+import type { LocalizedField } from '@prood/types'
 import { categories } from './categories.js'
 
 // ---- Products ----
@@ -10,13 +11,10 @@ import { categories } from './categories.js'
 export const products = pgTable('products', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   sku: text('sku'),
-  name: text('name').notNull(),
-  nameAr: text('name_ar'),
+  name: jsonb('name').$type<LocalizedField>().notNull().default({}),
   slug: text('slug').notNull().unique(),
-  description: text('description'),
-  descriptionAr: text('description_ar'),
-  shortDescription: text('short_description'),
-  shortDescriptionAr: text('short_description_ar'),
+  description: jsonb('description').$type<LocalizedField>(),
+  shortDescription: jsonb('short_description').$type<LocalizedField>(),
 
   // Pricing
   price: numeric('price', { precision: 12, scale: 2 }),
@@ -62,8 +60,7 @@ export const productVariants = pgTable('product_variants', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   productId: text('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
   sku: text('sku'),
-  name: text('name'),
-  nameAr: text('name_ar'),
+  name: jsonb('name').$type<LocalizedField>(),
   price: numeric('price', { precision: 12, scale: 2 }),
   compareAtPrice: numeric('compare_at_price', { precision: 12, scale: 2 }),
   inStock: boolean('in_stock').notNull().default(true),
@@ -76,8 +73,7 @@ export const productVariants = pgTable('product_variants', {
 export const productOptions = pgTable('product_options', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   productId: text('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(),
-  nameAr: text('name_ar'),
+  name: jsonb('name').$type<LocalizedField>().notNull().default({}),
   sortOrder: integer('sort_order').notNull().default(0),
 })
 
@@ -86,8 +82,7 @@ export const productOptions = pgTable('product_options', {
 export const productOptionValues = pgTable('product_option_values', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   optionId: text('option_id').notNull().references(() => productOptions.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(),
-  nameAr: text('name_ar'),
+  name: jsonb('name').$type<LocalizedField>().notNull().default({}),
   sortOrder: integer('sort_order').notNull().default(0),
 })
 
@@ -97,10 +92,8 @@ export const productAttributes = pgTable('product_attributes', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   productId: text('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
   code: text('code').notNull(),
-  name: text('name').notNull(),
-  nameAr: text('name_ar'),
-  value: text('value').notNull(),
-  valueAr: text('value_ar'),
+  name: jsonb('name').$type<LocalizedField>().notNull().default({}),
+  value: jsonb('value').$type<LocalizedField>().notNull().default({}),
 })
 
 // ---- Product ↔ Category (many-to-many) ----

@@ -12,7 +12,7 @@ import {
   findWishlistItemByProduct,
   findProductById,
 } from '../database/index.js'
-import { localized, discountablePrice, img } from './helpers.js'
+import { normalizeLocalizedField, discountablePrice, img } from './helpers.js'
 
 async function getOrCreateWishlist(customerId: string) {
   let wl = await findWishlistByCustomer(customerId)
@@ -33,13 +33,13 @@ async function buildWishlist(wishlistId: string): Promise<Wishlist> {
         product: product
           ? {
               id: product.id,
-              name: localized(product.name, product.nameAr),
+              name: normalizeLocalizedField(product.name),
               slug: product.slug,
               price: discountablePrice(product.price, product.compareAtPrice, product.currency),
               gallery: [],
               inStock: product.inStock,
             }
-          : { id: item.productId, name: localized('Unknown', 'غير معروف'), slug: '', price: null, gallery: [], inStock: false },
+          : { id: item.productId, name: { en: 'Unknown', pt: 'Desconhecido', es: 'Desconocido' }, slug: '', price: null, gallery: [], inStock: false },
         variantId: item.variantId ?? null,
         addedAt: item.addedAt,
       }

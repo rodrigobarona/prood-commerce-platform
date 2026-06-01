@@ -8,18 +8,14 @@ export type Maybe<T> = T | null
 /** String identifier type for all entities */
 export type Id = string
 
+/** Flexible locale map stored as JSONB — keys are ISO 639-1 codes */
+export type LocalizedField = Record<string, string>
+
 /**
- * Bilingual / multilingual string.
- * Arabic and English are required, additional languages are optional.
+ * Multilingual string keyed by locale code (e.g. en, pt, es).
+ * Stored as JSONB in the database; additional languages require no schema change.
  */
-export interface LocalizedString {
-  /** Arabic value (required for GCC markets) */
-  ar: string
-  /** English value */
-  en: string
-  /** Additional languages keyed by ISO 639-1 code */
-  [locale: string]: string
-}
+export type LocalizedString = LocalizedField
 
 /** Standard paginated result wrapper */
 export interface PaginatedResult<T> {

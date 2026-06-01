@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import { pgTable, text, integer, boolean, numeric, jsonb, timestamp } from 'drizzle-orm/pg-core'
+import type { LocalizedField } from '@prood/types'
 import { customers } from './customers.js'
 
 export const orders = pgTable('orders', {
@@ -46,8 +47,7 @@ export const orderItems = pgTable('order_items', {
   variantId: text('variant_id'),
 
   // Snapshot at time of purchase
-  name: text('name').notNull(),
-  nameAr: text('name_ar'),
+  name: jsonb('name').$type<LocalizedField>().notNull().default({}),
   image: text('image'),
   quantity: integer('quantity').notNull(),
   price: numeric('price', { precision: 12, scale: 2 }).notNull(),

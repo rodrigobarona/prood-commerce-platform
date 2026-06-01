@@ -21,7 +21,7 @@ import {
   findOrderHistory,
   updateOrder,
 } from '../database/index.js'
-import { generateOrderNumber, localized, price, priceRequired, img, parseJsonField, toNumber } from './helpers.js'
+import { generateOrderNumber, normalizeLocalizedField, price, priceRequired, img, parseJsonField, toNumber } from './helpers.js'
 
 export function createOrdersDomain(currency: string) {
   /** Map DB order row + items to unified Order type */
@@ -36,7 +36,7 @@ export function createOrdersDomain(currency: string) {
         id: i.id,
         productId: i.productId,
         variantId: i.variantId ?? null,
-        name: localized(i.name, i.nameAr),
+        name: normalizeLocalizedField(i.name),
         image: i.image ? img(i.image, null) : null,
         quantity: i.quantity,
         price: priceRequired(toNumber(i.price), currency),
@@ -56,10 +56,10 @@ export function createOrdersDomain(currency: string) {
       shippingAddress: parseJsonField(row.shippingAddress),
       billingAddress: parseJsonField(row.billingAddress),
       shippingMethod: row.shippingMethod
-        ? (() => { const n = parseJsonField(row.shippingMethod); return { id: 'default', name: typeof n === 'object' ? localized(n.en, n.ar) : localized(n, null), provider: 'custom', fulfillmentType: 'shipping' as const, price: priceRequired(0, currency), estimatedDays: { min: 1, max: 7 }, cashOnDelivery: false } })()
+        ? (() => { const n = parseJsonField(row.shippingMethod); return { id: 'default', name: normalizeLocalizedField(n), provider: 'custom', fulfillmentType: 'shipping' as const, price: priceRequired(0, currency), estimatedDays: { min: 1, max: 7 }, cashOnDelivery: false } })()
         : null,
       paymentMethod: row.paymentMethod
-        ? (() => { const n = parseJsonField(row.paymentMethod); return { id: 'default', type: 'card', name: typeof n === 'object' ? localized(n.en, n.ar) : localized(n, null), provider: 'platform', installments: null, icon: null } })()
+        ? (() => { const n = parseJsonField(row.paymentMethod); return { id: 'default', type: 'card', name: normalizeLocalizedField(n), provider: 'platform', installments: null, icon: null } })()
         : null,
       trackingNumber: row.trackingNumber ?? null,
       trackingUrl: row.trackingUrl ?? null,
@@ -102,7 +102,7 @@ export function createOrdersDomain(currency: string) {
           orderId: id,
           productId: item.productId,
           variantId: item.variantId ?? null,
-          name: 'Product',
+          name: { en: 'Product' },
           quantity: item.quantity,
           price: item.unitPrice.amount,
           totalPrice: item.unitPrice.amount * item.quantity,

@@ -15,7 +15,7 @@ import {
   findProductTags,
   findCategoryById,
 } from '../database/index.js'
-import { localized, discountablePrice, img } from '../domains/helpers.js'
+import { normalizeLocalizedField, discountablePrice, img } from '../domains/helpers.js'
 
 /** Minimal product mapping for inventory responses */
 function mapProduct(row: any, related: {
@@ -30,10 +30,10 @@ function mapProduct(row: any, related: {
   return {
     id: row.id,
     sku: row.sku ?? null,
-    name: localized(row.name, row.nameAr),
+    name: normalizeLocalizedField(row.name),
     slug: row.slug,
-    description: localized(row.description, row.descriptionAr),
-    shortDescription: localized(row.shortDescription, row.shortDescriptionAr),
+    description: normalizeLocalizedField(row.description),
+    shortDescription: normalizeLocalizedField(row.shortDescription),
     price: discountablePrice(row.price, row.compareAtPrice, row.currency ?? currency),
     primaryImage: primaryImg ? img(primaryImg.url, primaryImg.altText) : null,
     gallery: (related.images ?? []).map((i: any) => img(i.url, i.altText)),
@@ -41,7 +41,7 @@ function mapProduct(row: any, related: {
     variants: (related.variants ?? []).map((v: any) => ({
       id: v.id,
       sku: v.sku ?? null,
-      name: v.name ? localized(v.name, v.nameAr) : null,
+      name: v.name ? normalizeLocalizedField(v.name) : null,
       price: discountablePrice(v.price, v.compareAtPrice, row.currency ?? currency),
       attributes: [],
       inStock: Boolean(v.inStock),
@@ -50,15 +50,15 @@ function mapProduct(row: any, related: {
     options: [],
     attributes: (related.attributes ?? []).map((a: any) => ({
       code: a.code,
-      name: localized(a.name, a.nameAr),
-      value: localized(a.value, a.valueAr),
+      name: normalizeLocalizedField(a.name),
+      value: normalizeLocalizedField(a.value),
     })),
     quantityLimit: row.quantityLimit ?? null,
     categories: (related.categories ?? []).map((c: any) => ({
       id: c.id,
-      name: localized(c.name, c.nameAr),
+      name: normalizeLocalizedField(c.name),
       slug: c.slug,
-      description: c.description ? localized(c.description, c.descriptionAr) : null,
+      description: c.description ? normalizeLocalizedField(c.description) : null,
       image: c.image ? img(c.image, null) : null,
       parentId: c.parentId ?? null,
       children: [],

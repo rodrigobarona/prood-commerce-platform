@@ -27,18 +27,8 @@ import {
   deleteProductTags,
   setProductCategories,
 } from '../database/index.js'
-import { localized, discountablePrice, img } from '../domains/helpers.js'
+import { normalizeLocalizedField, slugifyLocalized, discountablePrice, img } from '../domains/helpers.js'
 
-/** Generate a URL-safe slug from a product name */
-function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9\u0621-\u064A]+/g, '-')
-    .replace(/^-|-$/g, '')
-    || crypto.randomUUID().slice(0, 8)
-}
-
-/** Map a raw product row + relations to the unified Product type */
 function mapProduct(row: any, related: {
   images?: any[]
   variants?: any[]
@@ -51,10 +41,10 @@ function mapProduct(row: any, related: {
   return {
     id: row.id,
     sku: row.sku ?? null,
-    name: localized(row.name, row.nameAr),
+    name: normalizeLocalizedField(row.name),
     slug: row.slug,
-    description: localized(row.description, row.descriptionAr),
-    shortDescription: localized(row.shortDescription, row.shortDescriptionAr),
+    description: normalizeLocalizedField(row.description),
+    shortDescription: normalizeLocalizedField(row.shortDescription),
     price: discountablePrice(row.price, row.compareAtPrice, row.currency ?? currency),
     primaryImage: primaryImg ? img(primaryImg.url, primaryImg.altText) : null,
     gallery: (related.images ?? []).map((i: any) => img(i.url, i.altText)),
@@ -62,7 +52,7 @@ function mapProduct(row: any, related: {
     variants: (related.variants ?? []).map((v: any) => ({
       id: v.id,
       sku: v.sku ?? null,
-      name: v.name ? localized(v.name, v.nameAr) : null,
+      name: v.name ? normalizeLocalizedField(v.name) : null,
       price: discountablePrice(v.price, v.compareAtPrice, row.currency ?? currency),
       attributes: [],
       inStock: Boolean(v.inStock),
@@ -71,15 +61,15 @@ function mapProduct(row: any, related: {
     options: [],
     attributes: (related.attributes ?? []).map((a: any) => ({
       code: a.code,
-      name: localized(a.name, a.nameAr),
-      value: localized(a.value, a.valueAr),
+      name: normalizeLocalizedField(a.name),
+      value: normalizeLocalizedField(a.value),
     })),
     quantityLimit: row.quantityLimit ?? null,
     categories: (related.categories ?? []).map((c: any) => ({
       id: c.id,
-      name: localized(c.name, c.nameAr),
+      name: normalizeLocalizedField(c.name),
       slug: c.slug,
-      description: c.description ? localized(c.description, c.descriptionAr) : null,
+      description: c.description ? normalizeLocalizedField(c.description) : null,
       image: c.image ? img(c.image, null) : null,
       parentId: c.parentId ?? null,
       children: [],
@@ -107,7 +97,6 @@ function mapProduct(row: any, related: {
   }
 }
 
-/** Fetch full product relations */
 async function fetchProductRelations(productId: string) {
   const [images, variants, attributes, categoryIds, tags] = await Promise.all([
     findProductImages(productId),
@@ -138,20 +127,16 @@ export function createAdminProductsDomain(currency: string) {
     async createProduct(input: CreateProductInput): Promise<Product> {
       const id = crypto.randomUUID()
 
-      // Generate slug — check for uniqueness
-      let slug = input.slug ?? slugify(input.name)
+      let slug = input.slug ?? slugifyLocalized(input.name)
       const existing = await findProductBySlug(slug)
       if (existing) slug = `${slug}-${crypto.randomUUID().slice(0, 6)}`
 
       await insertProduct({
         id,
         name: input.name,
-        nameAr: input.nameAr ?? null,
         slug,
         description: input.description ?? null,
-        descriptionAr: input.descriptionAr ?? null,
         shortDescription: input.shortDescription ?? null,
-        shortDescriptionAr: input.shortDescriptionAr ?? null,
         price: input.price ?? null,
         compareAtPrice: input.compareAtPrice ?? null,
         currency: input.currency ?? currency,
@@ -167,7 +152,6 @@ export function createAdminProductsDomain(currency: string) {
         isDropshipped: input.isDropshipped ?? false,
       })
 
-      // Create relations
       if (input.images?.length) {
         for (let i = 0; i < input.images.length; i++) {
           const image = input.images[i]
@@ -190,7 +174,6 @@ export function createAdminProductsDomain(currency: string) {
             productId: id,
             sku: v.sku ?? null,
             name: v.name ?? null,
-            nameAr: v.nameAr ?? null,
             price: v.price ?? null,
             compareAtPrice: v.compareAtPrice ?? null,
             inStock: v.inStock ?? true,
@@ -207,9 +190,7 @@ export function createAdminProductsDomain(currency: string) {
             productId: id,
             code: attr.code,
             name: attr.name,
-            nameAr: attr.nameAr ?? null,
             value: attr.value,
-            valueAr: attr.valueAr ?? null,
           })
         }
       }
@@ -231,12 +212,9 @@ export function createAdminProductsDomain(currency: string) {
       const updates: Record<string, unknown> = {}
 
       if (input.name != null) updates.name = input.name
-      if (input.nameAr !== undefined) updates.nameAr = input.nameAr
       if (input.slug != null) updates.slug = input.slug
       if (input.description !== undefined) updates.description = input.description
-      if (input.descriptionAr !== undefined) updates.descriptionAr = input.descriptionAr
       if (input.shortDescription !== undefined) updates.shortDescription = input.shortDescription
-      if (input.shortDescriptionAr !== undefined) updates.shortDescriptionAr = input.shortDescriptionAr
       if (input.price !== undefined) updates.price = input.price
       if (input.compareAtPrice !== undefined) updates.compareAtPrice = input.compareAtPrice
       if (input.currency != null) updates.currency = input.currency
@@ -253,7 +231,6 @@ export function createAdminProductsDomain(currency: string) {
 
       await updateProductById(id, updates)
 
-      // Replace relations if provided
       if (input.images) {
         await deleteProductImages(id)
         for (let i = 0; i < input.images.length; i++) {
@@ -278,7 +255,6 @@ export function createAdminProductsDomain(currency: string) {
             productId: id,
             sku: v.sku ?? null,
             name: v.name ?? null,
-            nameAr: v.nameAr ?? null,
             price: v.price ?? null,
             compareAtPrice: v.compareAtPrice ?? null,
             inStock: v.inStock ?? true,
@@ -296,9 +272,7 @@ export function createAdminProductsDomain(currency: string) {
             productId: id,
             code: attr.code,
             name: attr.name,
-            nameAr: attr.nameAr ?? null,
             value: attr.value,
-            valueAr: attr.valueAr ?? null,
           })
         }
       }

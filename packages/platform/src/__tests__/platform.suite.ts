@@ -53,6 +53,8 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     const result = await adapter.getProducts({ page: 1, perPage: 1 })
     const product = await adapter.getProduct({ id: result.products.items[0].id })
     expect(product.name.en).toBeTruthy()
+    expect(product.name.pt).toBeTruthy()
+    expect(product.name.es).toBeTruthy()
   })
 
   it('should get a product by slug', async () => {

@@ -572,6 +572,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/webhooks/payments/{provider}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Payment webhook GET (IfThenPay) */
+        get: operations["paymentWebhookGet"];
+        put?: never;
+        /** Payment webhook (checkout service) */
+        post: operations["paymentWebhook"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2242,13 +2260,16 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    name: string;
-                    nameAr?: string;
+                    name: {
+                        [key: string]: string;
+                    };
                     slug?: string;
-                    description?: string;
-                    descriptionAr?: string;
-                    shortDescription?: string;
-                    shortDescriptionAr?: string;
+                    description?: {
+                        [key: string]: string;
+                    };
+                    shortDescription?: {
+                        [key: string]: string;
+                    };
                     price?: number;
                     compareAtPrice?: number;
                     currency?: string;
@@ -2273,8 +2294,9 @@ export interface operations {
                     }[];
                     variants?: {
                         sku?: string;
-                        name?: string;
-                        nameAr?: string;
+                        name?: {
+                            [key: string]: string;
+                        };
                         price?: number;
                         compareAtPrice?: number;
                         inStock?: boolean;
@@ -2283,10 +2305,12 @@ export interface operations {
                     }[];
                     attributes?: {
                         code: string;
-                        name: string;
-                        nameAr?: string;
-                        value: string;
-                        valueAr?: string;
+                        name: {
+                            [key: string]: string;
+                        };
+                        value: {
+                            [key: string]: string;
+                        };
                     }[];
                     tags?: string[];
                 };
@@ -2512,13 +2536,16 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    name?: string;
-                    nameAr?: string;
+                    name?: {
+                        [key: string]: string;
+                    };
                     slug?: string;
-                    description?: string;
-                    descriptionAr?: string;
-                    shortDescription?: string;
-                    shortDescriptionAr?: string;
+                    description?: {
+                        [key: string]: string;
+                    };
+                    shortDescription?: {
+                        [key: string]: string;
+                    };
                     price?: number;
                     compareAtPrice?: number;
                     currency?: string;
@@ -2543,8 +2570,9 @@ export interface operations {
                     }[];
                     variants?: {
                         sku?: string;
-                        name?: string;
-                        nameAr?: string;
+                        name?: {
+                            [key: string]: string;
+                        };
                         price?: number;
                         compareAtPrice?: number;
                         inStock?: boolean;
@@ -2553,10 +2581,12 @@ export interface operations {
                     }[];
                     attributes?: {
                         code: string;
-                        name: string;
-                        nameAr?: string;
-                        value: string;
-                        valueAr?: string;
+                        name: {
+                            [key: string]: string;
+                        };
+                        value: {
+                            [key: string]: string;
+                        };
                     }[];
                     tags?: string[];
                 };
@@ -2630,11 +2660,13 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    name: string;
-                    nameAr?: string;
+                    name: {
+                        [key: string]: string;
+                    };
                     slug?: string;
-                    description?: string;
-                    descriptionAr?: string;
+                    description?: {
+                        [key: string]: string;
+                    };
                     image?: string;
                     parentId?: string;
                     sortOrder?: number;
@@ -2793,11 +2825,13 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    name?: string;
-                    nameAr?: string;
+                    name?: {
+                        [key: string]: string;
+                    };
                     slug?: string;
-                    description?: string;
-                    descriptionAr?: string;
+                    description?: {
+                        [key: string]: string;
+                    };
                     image?: string;
                     parentId?: string;
                     sortOrder?: number;
@@ -3370,10 +3404,12 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    name?: string;
-                    nameAr?: string;
-                    description?: string;
-                    descriptionAr?: string;
+                    name?: {
+                        [key: string]: string;
+                    };
+                    description?: {
+                        [key: string]: string;
+                    };
                     logo?: string;
                     favicon?: string;
                     currency?: string;
@@ -3531,6 +3567,142 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Validation error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    paymentWebhookGet: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Webhook accepted */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Validation error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    paymentWebhook: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Webhook accepted */
             200: {
                 headers: {
                     [name: string]: unknown;

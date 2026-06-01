@@ -3,10 +3,10 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import type { LocalizedField } from "@prood/types"
 import { Button } from "@prood/ui/components/button"
 import { Input } from "@prood/ui/components/input"
 import { Label } from "@prood/ui/components/label"
-import { Textarea } from "@prood/ui/components/textarea"
 import { Switch } from "@prood/ui/components/switch"
 import {
   Card,
@@ -25,11 +25,15 @@ import {
   createProductAction,
   updateProductAction,
 } from "@/app/(dashboard)/products/actions"
+import {
+  emptyLocalizedField,
+  LocalizedFieldInput,
+} from "@/components/store/localized-field-input"
 
 export interface ProductFormValues {
-  name: string
+  name: LocalizedField
   slug: string
-  description: string
+  description: LocalizedField
   price: string
   compareAtPrice: string
   sku: string
@@ -47,6 +51,15 @@ function toNumberOrUndefined(value: string): number | undefined {
   return Number.isFinite(n) ? n : undefined
 }
 
+function trimLocalizedField(field: LocalizedField): LocalizedField | undefined {
+  const trimmed: LocalizedField = {}
+  for (const [key, value] of Object.entries(field)) {
+    const next = value.trim()
+    if (next) trimmed[key] = next
+  }
+  return Object.keys(trimmed).length > 0 ? trimmed : undefined
+}
+
 export function ProductForm({
   productId,
   initial,
@@ -58,9 +71,9 @@ export function ProductForm({
   const [pending, startTransition] = useTransition()
 
   const [values, setValues] = useState<ProductFormValues>({
-    name: initial?.name ?? "",
+    name: initial?.name ?? emptyLocalizedField(),
     slug: initial?.slug ?? "",
-    description: initial?.description ?? "",
+    description: initial?.description ?? emptyLocalizedField(),
     price: initial?.price ?? "",
     compareAtPrice: initial?.compareAtPrice ?? "",
     sku: initial?.sku ?? "",
@@ -82,7 +95,7 @@ export function ProductForm({
       const payload = {
         name: values.name,
         slug: values.slug || undefined,
-        description: values.description || undefined,
+        description: trimLocalizedField(values.description),
         price: toNumberOrUndefined(values.price),
         compareAtPrice: toNumberOrUndefined(values.compareAtPrice),
         sku: values.sku || undefined,
@@ -113,15 +126,12 @@ export function ProductForm({
           <CardTitle>Details</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              required
-              value={values.name}
-              onChange={(event) => set("name", event.target.value)}
-            />
-          </div>
+          <LocalizedFieldInput
+            label="Name"
+            value={values.name}
+            onChange={(name) => set("name", name)}
+            required
+          />
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="slug">Slug</Label>
             <Input
@@ -131,15 +141,12 @@ export function ProductForm({
               onChange={(event) => set("slug", event.target.value)}
             />
           </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              rows={4}
-              value={values.description}
-              onChange={(event) => set("description", event.target.value)}
-            />
-          </div>
+          <LocalizedFieldInput
+            label="Description"
+            value={values.description}
+            onChange={(description) => set("description", description)}
+            multiline
+          />
         </CardContent>
       </Card>
 

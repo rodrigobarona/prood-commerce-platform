@@ -2,7 +2,7 @@
 // Admin API types — platform-only input/output types for merchant operations
 // ---------------------------------------------------------------------------
 
-import type { PaginationParams, PaginatedResult, Order, Product, Customer, Category } from '@prood/types'
+import type { PaginationParams, PaginatedResult, Order, Product, Customer, Category, LocalizedField } from '@prood/types'
 
 // ---- Admin Users ----
 
@@ -29,13 +29,10 @@ export interface AdminListParams extends PaginationParams {
 // ---- Products ----
 
 export interface CreateProductInput {
-  name: string
-  nameAr?: string
+  name: LocalizedField
   slug?: string
-  description?: string
-  descriptionAr?: string
-  shortDescription?: string
-  shortDescriptionAr?: string
+  description?: LocalizedField
+  shortDescription?: LocalizedField
   price?: number
   compareAtPrice?: number
   currency?: string
@@ -67,8 +64,7 @@ export interface CreateProductImageInput {
 
 export interface CreateVariantInput {
   sku?: string
-  name?: string
-  nameAr?: string
+  name?: LocalizedField
   price?: number
   compareAtPrice?: number
   inStock?: boolean
@@ -78,20 +74,16 @@ export interface CreateVariantInput {
 
 export interface CreateAttributeInput {
   code: string
-  name: string
-  nameAr?: string
-  value: string
-  valueAr?: string
+  name: LocalizedField
+  value: LocalizedField
 }
 
 // ---- Categories ----
 
 export interface CreateCategoryInput {
-  name: string
-  nameAr?: string
+  name: LocalizedField
   slug?: string
-  description?: string
-  descriptionAr?: string
+  description?: LocalizedField
   image?: string
   parentId?: string
   sortOrder?: number
@@ -118,10 +110,8 @@ export interface FulfillOrderInput {
 // ---- Store ----
 
 export interface UpdateStoreInput {
-  name?: string
-  nameAr?: string
-  description?: string
-  descriptionAr?: string
+  name?: LocalizedField
+  description?: LocalizedField
   logo?: string
   favicon?: string
   currency?: string
@@ -134,10 +124,8 @@ export interface UpdateStoreInput {
 }
 
 export interface StoreSettings {
-  name: string
-  nameAr?: string | null
-  description?: string | null
-  descriptionAr?: string | null
+  name: LocalizedField
+  description?: LocalizedField | null
   logo?: string | null
   favicon?: string | null
   currency: string

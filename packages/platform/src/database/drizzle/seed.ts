@@ -33,22 +33,43 @@ async function seedTenantData(): Promise<void> {
   // ---- Store ----
   await database.insert(schema.storeInfo).values({
     id: 'default',
-    name: 'Prood Demo Store',
-    nameAr: 'متجر كوميرس جي إس',
-    description: 'A demo store powered by @prood/platform',
-    descriptionAr: 'متجر تجريبي يعمل بواسطة كوميرس جي إس',
+    name: {
+      en: 'Prood Demo Store',
+      pt: 'Loja Demo Prood',
+      es: 'Tienda Demo Prood',
+    },
+    description: {
+      en: 'A demo store powered by @prood/platform',
+      pt: 'Uma loja demo powered by @prood/platform',
+      es: 'Una tienda demo powered by @prood/platform',
+    },
     currency: 'SAR',
     locale: 'en',
     timezone: 'Asia/Riyadh',
     supportedCurrencies: ['SAR', 'AED', 'USD'],
-    supportedLocales: ['en', 'ar'],
+    supportedLocales: ['en', 'pt', 'es'],
   })
 
   // ---- Categories ----
   const categories = [
-    { id: 'cat-clothing', name: 'Clothing', nameAr: 'ملابس', slug: 'clothing', sortOrder: 1 },
-    { id: 'cat-electronics', name: 'Electronics', nameAr: 'إلكترونيات', slug: 'electronics', sortOrder: 2 },
-    { id: 'cat-accessories', name: 'Accessories', nameAr: 'إكسسوارات', slug: 'accessories', sortOrder: 3 },
+    {
+      id: 'cat-clothing',
+      name: { en: 'Clothing', pt: 'Roupas', es: 'Ropa' },
+      slug: 'clothing',
+      sortOrder: 1,
+    },
+    {
+      id: 'cat-electronics',
+      name: { en: 'Electronics', pt: 'Eletrônicos', es: 'Electrónica' },
+      slug: 'electronics',
+      sortOrder: 2,
+    },
+    {
+      id: 'cat-accessories',
+      name: { en: 'Accessories', pt: 'Acessórios', es: 'Accesorios' },
+      slug: 'accessories',
+      sortOrder: 3,
+    },
   ]
 
   for (const cat of categories) {
@@ -59,11 +80,17 @@ async function seedTenantData(): Promise<void> {
   const products = [
     {
       id: 'prod-1',
-      name: 'Premium Cotton T-Shirt',
-      nameAr: 'تي شيرت قطن فاخر',
+      name: {
+        en: 'Premium Cotton T-Shirt',
+        pt: 'Camiseta de Algodão Premium',
+        es: 'Camiseta de Algodón Premium',
+      },
       slug: 'premium-cotton-t-shirt',
-      description: 'Ultra-soft 100% organic cotton t-shirt with a modern fit.',
-      descriptionAr: 'تي شيرت من القطن العضوي بنسبة 100٪ بقصة عصرية',
+      description: {
+        en: 'Ultra-soft 100% organic cotton t-shirt with a modern fit.',
+        pt: 'Camiseta 100% algodão orgânico ultra macia com corte moderno.',
+        es: 'Camiseta 100% algodón orgánico ultrasuave con corte moderno.',
+      },
       price: '89.00',
       compareAtPrice: '120.00',
       currency: 'SAR',
@@ -78,11 +105,17 @@ async function seedTenantData(): Promise<void> {
     },
     {
       id: 'prod-2',
-      name: 'Wireless Bluetooth Earbuds',
-      nameAr: 'سماعات بلوتوث لاسلكية',
+      name: {
+        en: 'Wireless Bluetooth Earbuds',
+        pt: 'Fones Bluetooth Sem Fio',
+        es: 'Auriculares Bluetooth Inalámbricos',
+      },
       slug: 'wireless-bluetooth-earbuds',
-      description: 'High-fidelity audio with active noise cancellation and 30h battery.',
-      descriptionAr: 'صوت عالي الدقة مع إلغاء الضوضاء النشط وبطارية 30 ساعة',
+      description: {
+        en: 'High-fidelity audio with active noise cancellation and 30h battery.',
+        pt: 'Áudio de alta fidelidade com cancelamento de ruído ativo e 30h de bateria.',
+        es: 'Audio de alta fidelidad con cancelación de ruido activa y 30h de batería.',
+      },
       price: '249.00',
       currency: 'SAR',
       status: 'active',
@@ -96,11 +129,17 @@ async function seedTenantData(): Promise<void> {
     },
     {
       id: 'prod-3',
-      name: 'Leather Crossbody Bag',
-      nameAr: 'حقيبة جلدية كروس بودي',
+      name: {
+        en: 'Leather Crossbody Bag',
+        pt: 'Bolsa Transversal de Couro',
+        es: 'Bolso Bandolera de Cuero',
+      },
       slug: 'leather-crossbody-bag',
-      description: 'Handcrafted genuine leather bag with adjustable strap.',
-      descriptionAr: 'حقيبة جلد طبيعي مصنوعة يدويًا مع حزام قابل للتعديل',
+      description: {
+        en: 'Handcrafted genuine leather bag with adjustable strap.',
+        pt: 'Bolsa artesanal de couro genuíno com alça ajustável.',
+        es: 'Bolso artesanal de cuero genuino con correa ajustable.',
+      },
       price: '350.00',
       compareAtPrice: '450.00',
       currency: 'SAR',
@@ -119,7 +158,6 @@ async function seedTenantData(): Promise<void> {
     const { categoryId, ...productData } = product
     await database.insert(schema.products).values(productData)
 
-    // Link to category
     await database.insert(schema.productCategories).values({
       productId: product.id,
       categoryId,
@@ -139,9 +177,33 @@ async function seedTenantData(): Promise<void> {
 
   // ---- Product Variants (for t-shirt) ----
   const variants = [
-    { productId: 'prod-1', name: 'Small', sku: 'TSHIRT-S', price: '89.00', inStock: true, inventoryQuantity: 50, sortOrder: 1 },
-    { productId: 'prod-1', name: 'Medium', sku: 'TSHIRT-M', price: '89.00', inStock: true, inventoryQuantity: 60, sortOrder: 2 },
-    { productId: 'prod-1', name: 'Large', sku: 'TSHIRT-L', price: '99.00', inStock: true, inventoryQuantity: 40, sortOrder: 3 },
+    {
+      productId: 'prod-1',
+      name: { en: 'Small', pt: 'Pequeno', es: 'Pequeño' },
+      sku: 'TSHIRT-S',
+      price: '89.00',
+      inStock: true,
+      inventoryQuantity: 50,
+      sortOrder: 1,
+    },
+    {
+      productId: 'prod-1',
+      name: { en: 'Medium', pt: 'Médio', es: 'Mediano' },
+      sku: 'TSHIRT-M',
+      price: '89.00',
+      inStock: true,
+      inventoryQuantity: 60,
+      sortOrder: 2,
+    },
+    {
+      productId: 'prod-1',
+      name: { en: 'Large', pt: 'Grande', es: 'Grande' },
+      sku: 'TSHIRT-L',
+      price: '99.00',
+      inStock: true,
+      inventoryQuantity: 40,
+      sortOrder: 3,
+    },
   ]
 
   for (const v of variants) {
@@ -150,9 +212,24 @@ async function seedTenantData(): Promise<void> {
 
   // ---- Brands ----
   const brands = [
-    { id: 'brand-1', name: 'Prood Essentials', nameAr: 'أساسيات كوميرس', slug: 'prood-essentials', isActive: true },
-    { id: 'brand-2', name: 'TechWave', nameAr: 'تك ويف', slug: 'techwave', isActive: true },
-    { id: 'brand-3', name: 'Artisan Leather', nameAr: 'الجلود الحرفية', slug: 'artisan-leather', isActive: true },
+    {
+      id: 'brand-1',
+      name: { en: 'Prood Essentials', pt: 'Essenciais Prood', es: 'Esenciales Prood' },
+      slug: 'prood-essentials',
+      isActive: true,
+    },
+    {
+      id: 'brand-2',
+      name: { en: 'TechWave', pt: 'TechWave', es: 'TechWave' },
+      slug: 'techwave',
+      isActive: true,
+    },
+    {
+      id: 'brand-3',
+      name: { en: 'Artisan Leather', pt: 'Couro Artesanal', es: 'Cuero Artesanal' },
+      slug: 'artisan-leather',
+      isActive: true,
+    },
   ]
 
   for (const brand of brands) {
@@ -161,12 +238,48 @@ async function seedTenantData(): Promise<void> {
 
   // ---- Countries ----
   const countryList = [
-    { id: 'sa', code: 'SA', name: 'Saudi Arabia', nameAr: 'المملكة العربية السعودية', callingCode: '+966', currency: 'SAR' },
-    { id: 'ae', code: 'AE', name: 'United Arab Emirates', nameAr: 'الإمارات العربية المتحدة', callingCode: '+971', currency: 'AED' },
-    { id: 'kw', code: 'KW', name: 'Kuwait', nameAr: 'الكويت', callingCode: '+965', currency: 'KWD' },
-    { id: 'bh', code: 'BH', name: 'Bahrain', nameAr: 'البحرين', callingCode: '+973', currency: 'BHD' },
-    { id: 'om', code: 'OM', name: 'Oman', nameAr: 'عمان', callingCode: '+968', currency: 'OMR' },
-    { id: 'qa', code: 'QA', name: 'Qatar', nameAr: 'قطر', callingCode: '+974', currency: 'QAR' },
+    {
+      id: 'sa',
+      code: 'SA',
+      name: { en: 'Saudi Arabia', pt: 'Arábia Saudita', es: 'Arabia Saudita' },
+      callingCode: '+966',
+      currency: 'SAR',
+    },
+    {
+      id: 'ae',
+      code: 'AE',
+      name: { en: 'United Arab Emirates', pt: 'Emirados Árabes Unidos', es: 'Emiratos Árabes Unidos' },
+      callingCode: '+971',
+      currency: 'AED',
+    },
+    {
+      id: 'kw',
+      code: 'KW',
+      name: { en: 'Kuwait', pt: 'Kuwait', es: 'Kuwait' },
+      callingCode: '+965',
+      currency: 'KWD',
+    },
+    {
+      id: 'bh',
+      code: 'BH',
+      name: { en: 'Bahrain', pt: 'Bahrein', es: 'Baréin' },
+      callingCode: '+973',
+      currency: 'BHD',
+    },
+    {
+      id: 'om',
+      code: 'OM',
+      name: { en: 'Oman', pt: 'Omã', es: 'Omán' },
+      callingCode: '+968',
+      currency: 'OMR',
+    },
+    {
+      id: 'qa',
+      code: 'QA',
+      name: { en: 'Qatar', pt: 'Catar', es: 'Catar' },
+      callingCode: '+974',
+      currency: 'QAR',
+    },
   ]
 
   for (const country of countryList) {

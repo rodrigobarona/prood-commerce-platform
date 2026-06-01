@@ -379,6 +379,9 @@ importers:
       '@prood/commerce':
         specifier: workspace:*
         version: link:../../packages/commerce
+      '@prood/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       '@prood/ui':
         specifier: workspace:*
         version: link:../../packages/ui

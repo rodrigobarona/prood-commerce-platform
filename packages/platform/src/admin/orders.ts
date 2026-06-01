@@ -12,7 +12,7 @@ import {
   updateOrder,
   createOrderHistory,
 } from '../database/index.js'
-import { localized, priceRequired, price, img, parseJsonField } from '../domains/helpers.js'
+import { normalizeLocalizedField, priceRequired, price, img, parseJsonField } from '../domains/helpers.js'
 
 function mapOrder(row: any, items: any[], currency: string): Order {
   return {
@@ -23,7 +23,7 @@ function mapOrder(row: any, items: any[], currency: string): Order {
       id: i.id,
       productId: i.productId,
       variantId: i.variantId ?? null,
-      name: localized(i.name, i.nameAr),
+      name: normalizeLocalizedField(i.name),
       image: i.image ? img(i.image, null) : null,
       quantity: i.quantity,
       price: priceRequired(i.price, currency),
@@ -46,7 +46,7 @@ function mapOrder(row: any, items: any[], currency: string): Order {
       const n = parseJsonField(row.shippingMethod)
       return {
         id: 'default',
-        name: typeof n === 'object' ? localized(n.en, n.ar) : localized(n, null),
+        name: normalizeLocalizedField(n),
         provider: 'custom',
         fulfillmentType: 'shipping' as const,
         price: priceRequired(0, currency),
@@ -59,7 +59,7 @@ function mapOrder(row: any, items: any[], currency: string): Order {
       return {
         id: 'default',
         type: 'card',
-        name: typeof n === 'object' ? localized(n.en, n.ar) : localized(n, null),
+        name: normalizeLocalizedField(n),
         provider: 'platform',
         installments: null,
         icon: null,

@@ -2,11 +2,45 @@
 // Shared helpers for domain implementations
 // ---------------------------------------------------------------------------
 
-import type { LocalizedString, Maybe, Price, DiscountablePrice, Image } from '@prood/types'
+import type { LocalizedField, Maybe, Price, DiscountablePrice, Image } from '@prood/types'
+import { DEFAULT_LOCALE } from '@prood/types'
+export function resolveLocalized(
+  field: LocalizedField | null | undefined,
+  locale: string = DEFAULT_LOCALE,
+  fallback = DEFAULT_LOCALE,
+): string {
+  if (!field) return ''
+  return field[locale] ?? field[fallback] ?? Object.values(field)[0] ?? ''
+}
 
-/** Create a bilingual LocalizedString from en/ar columns */
-export function localized(en: string | null, ar: string | null): LocalizedString {
-  return { en: en ?? '', ar: ar ?? '' }
+/** Safely normalize a JSONB value into a LocalizedField */
+export function normalizeLocalizedField(value: unknown): LocalizedField {
+  if (value == null) return {}
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value)
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return parsed as LocalizedField
+      }
+    } catch {
+      return { [DEFAULT_LOCALE]: value }
+    }
+    return { [DEFAULT_LOCALE]: value }
+  }
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    return value as LocalizedField
+  }
+  return {}
+}
+
+/** Generate a URL-safe slug from a localized name (uses default locale) */
+export function slugifyLocalized(name: LocalizedField): string {
+  const base = name[DEFAULT_LOCALE] || Object.values(name)[0] || ''
+  return base
+    .toLowerCase()
+    .replace(/[^a-z0-9\u0621-\u064A]+/g, '-')
+    .replace(/^-|-$/g, '')
+    || crypto.randomUUID().slice(0, 8)
 }
 
 /**

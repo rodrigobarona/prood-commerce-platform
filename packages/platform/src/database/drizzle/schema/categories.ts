@@ -2,15 +2,14 @@
 // Categories schema — hierarchical category tree
 // ---------------------------------------------------------------------------
 
-import { pgTable, text, integer, timestamp } from 'drizzle-orm/pg-core'
+import { pgTable, text, integer, timestamp, jsonb } from 'drizzle-orm/pg-core'
+import type { LocalizedField } from '@prood/types'
 
 export const categories = pgTable('categories', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  name: text('name').notNull(),
-  nameAr: text('name_ar'),
+  name: jsonb('name').$type<LocalizedField>().notNull().default({}),
   slug: text('slug').notNull().unique(),
-  description: text('description'),
-  descriptionAr: text('description_ar'),
+  description: jsonb('description').$type<LocalizedField>(),
   image: text('image'),
   parentId: text('parent_id').references((): any => categories.id, { onDelete: 'set null' }),
   sortOrder: integer('sort_order').notNull().default(0),

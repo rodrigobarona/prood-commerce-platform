@@ -35,9 +35,9 @@ export default async function EditProductPage({
       <ProductForm
         productId={product.id}
         initial={{
-          name: localized(product.name),
+          name: product.name,
           slug: product.slug,
-          description: localized(product.description),
+          description: product.description ?? { en: "", pt: "", es: "" },
           price: product.price?.amount != null ? String(product.price.amount) : "",
           compareAtPrice:
             product.price?.originalAmount != null

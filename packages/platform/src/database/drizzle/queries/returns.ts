@@ -38,13 +38,14 @@ export async function insertReturn(data: {
   return id
 }
 
+import type { LocalizedField } from '@prood/types'
+
 export async function insertReturnItem(data: {
   returnId: string
   orderItemId: string
   productId: string
   variantId?: string | null
-  name: string
-  nameAr?: string | null
+  name: LocalizedField
   image?: string | null
   quantity: number
   reason: string
@@ -58,7 +59,6 @@ export async function insertReturnItem(data: {
     productId: data.productId,
     variantId: data.variantId ?? null,
     name: data.name,
-    nameAr: data.nameAr ?? null,
     image: data.image ?? null,
     quantity: data.quantity,
     reason: data.reason,

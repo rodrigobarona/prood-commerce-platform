@@ -33,11 +33,9 @@ export async function migrateDrizzle(connectionString?: string) {
 
   await db.execute(sql`CREATE TABLE IF NOT EXISTS categories (
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL,
-    name_ar TEXT,
+    name JSONB NOT NULL DEFAULT '{}',
     slug TEXT NOT NULL UNIQUE,
-    description TEXT,
-    description_ar TEXT,
+    description JSONB,
     image TEXT,
     parent_id TEXT REFERENCES categories(id) ON DELETE SET NULL,
     sort_order INTEGER NOT NULL DEFAULT 0,
@@ -48,13 +46,10 @@ export async function migrateDrizzle(connectionString?: string) {
   await db.execute(sql`CREATE TABLE IF NOT EXISTS products (
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
     sku TEXT,
-    name TEXT NOT NULL,
-    name_ar TEXT,
+    name JSONB NOT NULL DEFAULT '{}',
     slug TEXT NOT NULL UNIQUE,
-    description TEXT,
-    description_ar TEXT,
-    short_description TEXT,
-    short_description_ar TEXT,
+    description JSONB,
+    short_description JSONB,
     price NUMERIC(12, 2),
     compare_at_price NUMERIC(12, 2),
     currency TEXT NOT NULL DEFAULT 'SAR',
@@ -84,8 +79,7 @@ export async function migrateDrizzle(connectionString?: string) {
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
     product_id TEXT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     sku TEXT,
-    name TEXT,
-    name_ar TEXT,
+    name JSONB,
     price NUMERIC(12, 2),
     compare_at_price NUMERIC(12, 2),
     in_stock BOOLEAN NOT NULL DEFAULT true,
@@ -96,16 +90,14 @@ export async function migrateDrizzle(connectionString?: string) {
   await db.execute(sql`CREATE TABLE IF NOT EXISTS product_options (
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
     product_id TEXT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
-    name_ar TEXT,
+    name JSONB NOT NULL DEFAULT '{}',
     sort_order INTEGER NOT NULL DEFAULT 0
   )`)
 
   await db.execute(sql`CREATE TABLE IF NOT EXISTS product_option_values (
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
     option_id TEXT NOT NULL REFERENCES product_options(id) ON DELETE CASCADE,
-    name TEXT NOT NULL,
-    name_ar TEXT,
+    name JSONB NOT NULL DEFAULT '{}',
     sort_order INTEGER NOT NULL DEFAULT 0
   )`)
 
@@ -113,10 +105,8 @@ export async function migrateDrizzle(connectionString?: string) {
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
     product_id TEXT NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     code TEXT NOT NULL,
-    name TEXT NOT NULL,
-    name_ar TEXT,
-    value TEXT NOT NULL,
-    value_ar TEXT
+    name JSONB NOT NULL DEFAULT '{}',
+    value JSONB NOT NULL DEFAULT '{}'
   )`)
 
   await db.execute(sql`CREATE TABLE IF NOT EXISTS product_categories (
@@ -209,8 +199,7 @@ export async function migrateDrizzle(connectionString?: string) {
     order_id TEXT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
     product_id TEXT NOT NULL,
     variant_id TEXT,
-    name TEXT NOT NULL,
-    name_ar TEXT,
+    name JSONB NOT NULL DEFAULT '{}',
     image TEXT,
     quantity INTEGER NOT NULL,
     price NUMERIC(12, 2) NOT NULL,
@@ -230,16 +219,14 @@ export async function migrateDrizzle(connectionString?: string) {
 
   await db.execute(sql`CREATE TABLE IF NOT EXISTS store_info (
     id TEXT PRIMARY KEY DEFAULT 'default',
-    name TEXT NOT NULL DEFAULT 'My Store',
-    name_ar TEXT,
-    description TEXT,
-    description_ar TEXT,
+    name JSONB NOT NULL DEFAULT '{}',
+    description JSONB,
     logo TEXT,
     favicon TEXT,
     currency TEXT NOT NULL DEFAULT 'SAR',
     locale TEXT NOT NULL DEFAULT 'en',
     supported_currencies JSONB DEFAULT '["SAR"]',
-    supported_locales JSONB DEFAULT '["en","ar"]',
+    supported_locales JSONB DEFAULT '["en","pt","es"]',
     timezone TEXT NOT NULL DEFAULT 'Asia/Riyadh',
     contact_email TEXT,
     contact_phone TEXT,
@@ -251,12 +238,10 @@ export async function migrateDrizzle(connectionString?: string) {
 
   await db.execute(sql`CREATE TABLE IF NOT EXISTS brands (
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL,
-    name_ar TEXT,
+    name JSONB NOT NULL DEFAULT '{}',
     slug TEXT NOT NULL UNIQUE,
     logo TEXT,
-    description TEXT,
-    description_ar TEXT,
+    description JSONB,
     is_active BOOLEAN NOT NULL DEFAULT true,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -265,8 +250,7 @@ export async function migrateDrizzle(connectionString?: string) {
   await db.execute(sql`CREATE TABLE IF NOT EXISTS countries (
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
     code TEXT NOT NULL UNIQUE,
-    name TEXT NOT NULL,
-    name_ar TEXT,
+    name JSONB NOT NULL DEFAULT '{}',
     calling_code TEXT,
     currency TEXT,
     capital TEXT,
@@ -301,10 +285,8 @@ export async function migrateDrizzle(connectionString?: string) {
 
   await db.execute(sql`CREATE TABLE IF NOT EXISTS promotions (
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL,
-    name_ar TEXT,
-    description TEXT,
-    description_ar TEXT,
+    name JSONB NOT NULL DEFAULT '{}',
+    description JSONB,
     discount_type TEXT NOT NULL DEFAULT 'percentage',
     discount_value NUMERIC(12, 2) NOT NULL DEFAULT 0,
     currency TEXT,
@@ -352,8 +334,7 @@ export async function migrateDrizzle(connectionString?: string) {
     order_item_id TEXT NOT NULL,
     product_id TEXT NOT NULL,
     variant_id TEXT,
-    name TEXT NOT NULL,
-    name_ar TEXT,
+    name JSONB NOT NULL DEFAULT '{}',
     image TEXT,
     quantity INTEGER NOT NULL,
     reason TEXT NOT NULL DEFAULT 'other',

@@ -8,6 +8,7 @@ import {
   createStoreInfo as dbCreateStoreInfo,
   updateStoreInfo,
 } from '../database/index.js'
+import { normalizeLocalizedField } from '../domains/helpers.js'
 
 function mapStoreSettings(row: any): StoreSettings {
   let supportedCurrencies: string[] = ['SAR']
@@ -39,10 +40,8 @@ function mapStoreSettings(row: any): StoreSettings {
   } catch {}
 
   return {
-    name: row.name,
-    nameAr: row.nameAr ?? null,
-    description: row.description ?? null,
-    descriptionAr: row.descriptionAr ?? null,
+    name: normalizeLocalizedField(row.name),
+    description: row.description ? normalizeLocalizedField(row.description) : null,
     logo: row.logo ?? null,
     favicon: row.favicon ?? null,
     currency: row.currency,
@@ -65,7 +64,7 @@ export function createAdminStoreDomain() {
       if (!row) {
         await dbCreateStoreInfo({
           id: 'default',
-          name: 'My Store',
+          name: { en: 'My Store' },
           currency: 'SAR',
           locale: 'en',
           timezone: 'Asia/Riyadh',
@@ -81,9 +80,7 @@ export function createAdminStoreDomain() {
       const updates: Record<string, unknown> = {}
 
       if (input.name != null) updates.name = input.name
-      if (input.nameAr !== undefined) updates.nameAr = input.nameAr
       if (input.description !== undefined) updates.description = input.description
-      if (input.descriptionAr !== undefined) updates.descriptionAr = input.descriptionAr
       if (input.logo !== undefined) updates.logo = input.logo
       if (input.favicon !== undefined) updates.favicon = input.favicon
       if (input.currency != null) updates.currency = input.currency

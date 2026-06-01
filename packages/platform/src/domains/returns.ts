@@ -11,7 +11,7 @@ import {
   insertReturnItem,
   updateReturnStatus,
 } from '../database/index.js'
-import { localized } from './helpers.js'
+import { normalizeLocalizedField } from './helpers.js'
 
 async function buildReturn(row: any): Promise<ReturnRequest> {
   const items = await findReturnItemsByReturn(row.id)
@@ -25,7 +25,7 @@ async function buildReturn(row: any): Promise<ReturnRequest> {
       orderItemId: item.orderItemId,
       productId: item.productId,
       variantId: item.variantId ?? null,
-      name: localized(item.name, item.nameAr),
+      name: normalizeLocalizedField(item.name),
       image: item.image ? { url: item.image, alt: '' } : null,
       quantity: item.quantity,
       reason: item.reason as any,
@@ -62,7 +62,7 @@ export function createReturnsDomain() {
           returnId,
           orderItemId: item.orderItemId,
           productId: item.orderItemId, // simplified mapping
-          name: 'Return Item',
+          name: { en: 'Return Item' },
           quantity: item.quantity,
           reason: item.reason,
           reasonNote: item.reasonNote ?? null,

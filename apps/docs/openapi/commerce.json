@@ -4172,26 +4172,34 @@
                 "type": "object",
                 "properties": {
                   "name": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "nameAr": {
-                    "type": "string"
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
                   },
                   "slug": {
                     "type": "string"
                   },
                   "description": {
-                    "type": "string"
-                  },
-                  "descriptionAr": {
-                    "type": "string"
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
                   },
                   "shortDescription": {
-                    "type": "string"
-                  },
-                  "shortDescriptionAr": {
-                    "type": "string"
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
                   },
                   "price": {
                     "type": "number"
@@ -4283,10 +4291,13 @@
                           "type": "string"
                         },
                         "name": {
-                          "type": "string"
-                        },
-                        "nameAr": {
-                          "type": "string"
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "string"
+                          }
                         },
                         "price": {
                           "type": "number"
@@ -4320,16 +4331,22 @@
                           "type": "string"
                         },
                         "name": {
-                          "type": "string"
-                        },
-                        "nameAr": {
-                          "type": "string"
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "string"
+                          }
                         },
                         "value": {
-                          "type": "string"
-                        },
-                        "valueAr": {
-                          "type": "string"
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "string"
+                          }
                         }
                       },
                       "required": [
@@ -4684,26 +4701,34 @@
                 "type": "object",
                 "properties": {
                   "name": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "nameAr": {
-                    "type": "string"
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
                   },
                   "slug": {
                     "type": "string"
                   },
                   "description": {
-                    "type": "string"
-                  },
-                  "descriptionAr": {
-                    "type": "string"
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
                   },
                   "shortDescription": {
-                    "type": "string"
-                  },
-                  "shortDescriptionAr": {
-                    "type": "string"
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
                   },
                   "price": {
                     "type": "number"
@@ -4795,10 +4820,13 @@
                           "type": "string"
                         },
                         "name": {
-                          "type": "string"
-                        },
-                        "nameAr": {
-                          "type": "string"
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "string"
+                          }
                         },
                         "price": {
                           "type": "number"
@@ -4832,16 +4860,22 @@
                           "type": "string"
                         },
                         "name": {
-                          "type": "string"
-                        },
-                        "nameAr": {
-                          "type": "string"
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "string"
+                          }
                         },
                         "value": {
-                          "type": "string"
-                        },
-                        "valueAr": {
-                          "type": "string"
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {
+                            "type": "string"
+                          }
                         }
                       },
                       "required": [
@@ -5189,20 +5223,25 @@
                 "type": "object",
                 "properties": {
                   "name": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "nameAr": {
-                    "type": "string"
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
                   },
                   "slug": {
                     "type": "string"
                   },
                   "description": {
-                    "type": "string"
-                  },
-                  "descriptionAr": {
-                    "type": "string"
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
                   },
                   "image": {
                     "type": "string"
@@ -5394,20 +5433,25 @@
                 "type": "object",
                 "properties": {
                   "name": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "nameAr": {
-                    "type": "string"
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
                   },
                   "slug": {
                     "type": "string"
                   },
                   "description": {
-                    "type": "string"
-                  },
-                  "descriptionAr": {
-                    "type": "string"
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
                   },
                   "image": {
                     "type": "string"
@@ -6983,16 +7027,22 @@
                 "type": "object",
                 "properties": {
                   "name": {
-                    "type": "string"
-                  },
-                  "nameAr": {
-                    "type": "string"
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
                   },
                   "description": {
-                    "type": "string"
-                  },
-                  "descriptionAr": {
-                    "type": "string"
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
                   },
                   "logo": {
                     "type": "string"

@@ -20,6 +20,7 @@
     "@prood/api-client": "workspace:*",
     "@prood/billing": "workspace:*",
     "@prood/commerce": "workspace:*",
+    "@prood/types": "workspace:*",
     "@prood/ui": "workspace:*",
     "better-auth": "catalog:",
     "drizzle-orm": "catalog:",
