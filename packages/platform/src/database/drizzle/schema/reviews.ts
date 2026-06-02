@@ -7,6 +7,7 @@ import { products } from './products.js'
 
 export const reviews = pgTable('reviews', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id'),
   productId: text('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
   authorName: text('author_name').notNull(),
   rating: integer('rating').notNull(),

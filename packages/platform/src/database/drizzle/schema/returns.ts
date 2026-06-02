@@ -8,6 +8,7 @@ import { orders } from './orders.js'
 
 export const returns = pgTable('returns', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id'),
   orderId: text('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
   orderNumber: text('order_number').notNull(),
   status: text('status').notNull().default('requested'),
@@ -24,6 +25,7 @@ export const returns = pgTable('returns', {
 
 export const returnItems = pgTable('return_items', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id'),
   returnId: text('return_id').notNull().references(() => returns.id, { onDelete: 'cascade' }),
   orderItemId: text('order_item_id').notNull(),
   productId: text('product_id').notNull(),

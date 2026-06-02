@@ -8,6 +8,7 @@ import { customers } from './customers.js'
 
 export const carts = pgTable('carts', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id'),
   customerId: text('customer_id').references(() => customers.id, { onDelete: 'set null' }),
   couponCode: text('coupon_code'),
 
@@ -25,6 +26,7 @@ export const carts = pgTable('carts', {
 
 export const cartItems = pgTable('cart_items', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id'),
   cartId: text('cart_id').notNull().references(() => carts.id, { onDelete: 'cascade' }),
   productId: text('product_id').notNull().references(() => products.id),
   variantId: text('variant_id').references(() => productVariants.id),

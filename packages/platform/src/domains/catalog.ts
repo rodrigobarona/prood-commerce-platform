@@ -92,6 +92,7 @@ export function createCatalogDomain(currency: string) {
       priceTiers: null,
       customerGroupPricing: null,
       isDropshipped: Boolean(row.isDropshipped),
+      status: row.status ?? 'draft',
     }
   }
 

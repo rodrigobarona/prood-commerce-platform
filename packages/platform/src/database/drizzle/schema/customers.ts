@@ -9,6 +9,7 @@ import { boolean, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 
 export const customers = pgTable('customers', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id'),
   authUserId: text('auth_user_id'),
   firstName: text('first_name'),
   lastName: text('last_name'),
@@ -20,6 +21,7 @@ export const customers = pgTable('customers', {
 
 export const customerAddresses = pgTable('customer_addresses', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id'),
   customerId: text('customer_id').notNull().references(() => customers.id, { onDelete: 'cascade' }),
   firstName: text('first_name').notNull(),
   lastName: text('last_name').notNull(),

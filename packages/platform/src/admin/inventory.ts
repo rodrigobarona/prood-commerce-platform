@@ -83,6 +83,7 @@ function mapProduct(row: any, related: {
     priceTiers: null,
     customerGroupPricing: null,
     isDropshipped: Boolean(row.isDropshipped),
+    status: row.status ?? 'draft',
   }
 }
 

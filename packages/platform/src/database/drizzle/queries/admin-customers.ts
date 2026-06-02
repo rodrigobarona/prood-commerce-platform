@@ -2,9 +2,10 @@
 // Drizzle: Admin customer queries
 // ---------------------------------------------------------------------------
 
-import { eq, sql } from 'drizzle-orm'
+import { eq, and, sql } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
+import { tenantCondition, currentOrgId } from './tenant-filter.js'
 
 export type AdminCustomerRow = typeof schema.customers.$inferSelect & {
   userEmail: string | null
@@ -17,6 +18,9 @@ export async function adminFindAllCustomers(opts: {
 }) {
   const db = getDb()
   const search = opts.search?.trim()
+  const orgId = currentOrgId()
+
+  const orgClause = orgId ? sql`AND c.organization_id = ${orgId}` : sql``
   const searchClause = search
     ? sql`AND (
         c.first_name ILIKE ${`%${search}%`}
@@ -29,7 +33,7 @@ export async function adminFindAllCustomers(opts: {
     SELECT c.*, u.email AS user_email
     FROM customers c
     LEFT JOIN "user" u ON c.auth_user_id = u.id
-    WHERE true ${searchClause}
+    WHERE true ${orgClause} ${searchClause}
     ORDER BY c.created_at DESC
     LIMIT ${opts.limit} OFFSET ${opts.offset}
   `)
@@ -38,7 +42,7 @@ export async function adminFindAllCustomers(opts: {
     SELECT count(*)::int AS count
     FROM customers c
     LEFT JOIN "user" u ON c.auth_user_id = u.id
-    WHERE true ${searchClause}
+    WHERE true ${orgClause} ${searchClause}
   `)
 
   const mapped = (rows.rows as Record<string, unknown>[]).map(mapAdminCustomerRow)
@@ -62,11 +66,13 @@ function mapAdminCustomerRow(row: Record<string, unknown>): AdminCustomerRow {
 
 export async function adminFindCustomerById(id: string): Promise<AdminCustomerRow | null> {
   const db = getDb()
+  const orgId = currentOrgId()
+  const orgClause = orgId ? sql`AND c.organization_id = ${orgId}` : sql``
   const result = await db.execute(sql`
     SELECT c.*, u.email AS user_email
     FROM customers c
     LEFT JOIN "user" u ON c.auth_user_id = u.id
-    WHERE c.id = ${id}
+    WHERE c.id = ${id} ${orgClause}
     LIMIT 1
   `)
   const row = result.rows[0] as Record<string, unknown> | undefined
@@ -74,11 +80,15 @@ export async function adminFindCustomerById(id: string): Promise<AdminCustomerRo
 }
 
 export async function adminDeleteCustomer(id: string) {
-  await getDb().delete(schema.customers).where(eq(schema.customers.id, id))
+  const orgFilter = tenantCondition(schema.customers)
+  const where = orgFilter ? and(eq(schema.customers.id, id), orgFilter) : eq(schema.customers.id, id)
+  await getDb().delete(schema.customers).where(where)
 }
 
 export async function countCustomers() {
   const db = getDb()
+  const orgFilter = tenantCondition(schema.customers)
   const [result] = await db.select({ count: sql<number>`count(*)` }).from(schema.customers)
+    .where(orgFilter)
   return result?.count ?? 0
 }

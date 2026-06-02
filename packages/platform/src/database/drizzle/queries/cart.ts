@@ -5,9 +5,11 @@
 import { eq, and, sql } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
+import { tenantCondition, currentOrgId } from './tenant-filter.js'
 
 export async function createCart(id: string, now?: string | Date) {
-  const values: any = { id }
+  const orgId = currentOrgId()
+  const values: any = { id, organizationId: orgId ?? null }
   if (now) {
     const ts = now instanceof Date ? now : new Date(now)
     values.createdAt = ts
@@ -17,23 +19,30 @@ export async function createCart(id: string, now?: string | Date) {
 }
 
 export async function findCart(cartId: string) {
-  const [row] = await getDb().select().from(schema.carts).where(eq(schema.carts.id, cartId))
+  const orgFilter = tenantCondition(schema.carts)
+  const where = orgFilter ? and(eq(schema.carts.id, cartId), orgFilter) : eq(schema.carts.id, cartId)
+  const [row] = await getDb().select().from(schema.carts).where(where)
   return row ?? null
 }
 
 export async function findCartItems(cartId: string) {
-  return getDb().select().from(schema.cartItems).where(eq(schema.cartItems.cartId, cartId))
+  const orgFilter = tenantCondition(schema.cartItems)
+  const where = orgFilter ? and(eq(schema.cartItems.cartId, cartId), orgFilter) : eq(schema.cartItems.cartId, cartId)
+  return getDb().select().from(schema.cartItems).where(where)
 }
 
 export async function findExistingCartItem(cartId: string, productId: string, variantId?: string | null) {
+  const conditions: any[] = [
+    eq(schema.cartItems.cartId, cartId),
+    eq(schema.cartItems.productId, productId),
+    variantId
+      ? eq(schema.cartItems.variantId, variantId)
+      : sql`${schema.cartItems.variantId} IS NULL`,
+  ]
+  const orgFilter = tenantCondition(schema.cartItems)
+  if (orgFilter) conditions.push(orgFilter)
   const [existing] = await getDb().select().from(schema.cartItems)
-    .where(and(
-      eq(schema.cartItems.cartId, cartId),
-      eq(schema.cartItems.productId, productId),
-      variantId
-        ? eq(schema.cartItems.variantId, variantId)
-        : sql`${schema.cartItems.variantId} IS NULL`
-    ))
+    .where(and(...conditions))
   return existing ?? null
 }
 
@@ -44,11 +53,13 @@ export async function insertCartItem(item: {
   quantity: number
   createdAt?: string | Date
 }) {
+  const orgId = currentOrgId()
   const values: any = {
     cartId: item.cartId,
     productId: item.productId,
     variantId: item.variantId ?? null,
     quantity: item.quantity,
+    organizationId: orgId ?? null,
   }
   if (item.createdAt) {
     values.createdAt = item.createdAt instanceof Date ? item.createdAt : new Date(item.createdAt)
@@ -57,32 +68,44 @@ export async function insertCartItem(item: {
 }
 
 export async function updateCartItemQuantity(itemId: string, quantity: number) {
-  await getDb().update(schema.cartItems).set({ quantity }).where(eq(schema.cartItems.id, itemId))
+  const orgFilter = tenantCondition(schema.cartItems)
+  const where = orgFilter ? and(eq(schema.cartItems.id, itemId), orgFilter) : eq(schema.cartItems.id, itemId)
+  await getDb().update(schema.cartItems).set({ quantity }).where(where)
 }
 
 export async function deleteCartItem(itemId: string) {
-  await getDb().delete(schema.cartItems).where(eq(schema.cartItems.id, itemId))
+  const orgFilter = tenantCondition(schema.cartItems)
+  const where = orgFilter ? and(eq(schema.cartItems.id, itemId), orgFilter) : eq(schema.cartItems.id, itemId)
+  await getDb().delete(schema.cartItems).where(where)
 }
 
 export async function updateCart(cartId: string, data: Record<string, any>) {
-  await getDb().update(schema.carts).set(data).where(eq(schema.carts.id, cartId))
+  const orgFilter = tenantCondition(schema.carts)
+  const where = orgFilter ? and(eq(schema.carts.id, cartId), orgFilter) : eq(schema.carts.id, cartId)
+  await getDb().update(schema.carts).set(data).where(where)
 }
 
 export async function deleteCart(cartId: string) {
-  await getDb().delete(schema.carts).where(eq(schema.carts.id, cartId))
+  const orgFilter = tenantCondition(schema.carts)
+  const where = orgFilter ? and(eq(schema.carts.id, cartId), orgFilter) : eq(schema.carts.id, cartId)
+  await getDb().delete(schema.carts).where(where)
 }
 
-// Cart also needs product lookups for price resolution
 export { findProductById } from './catalog.js'
 
 export async function findVariantById(variantId: string) {
-  const [row] = await getDb().select().from(schema.productVariants).where(eq(schema.productVariants.id, variantId))
+  const orgFilter = tenantCondition(schema.productVariants)
+  const where = orgFilter ? and(eq(schema.productVariants.id, variantId), orgFilter) : eq(schema.productVariants.id, variantId)
+  const [row] = await getDb().select().from(schema.productVariants).where(where)
   return row ?? null
 }
 
 export async function findPrimaryImage(productId: string) {
+  const orgFilter = tenantCondition(schema.productImages)
+  const conditions: any[] = [eq(schema.productImages.productId, productId), eq(schema.productImages.isPrimary, true)]
+  if (orgFilter) conditions.push(orgFilter)
   const [row] = await getDb().select().from(schema.productImages)
-    .where(and(eq(schema.productImages.productId, productId), eq(schema.productImages.isPrimary, true)))
+    .where(and(...conditions))
     .limit(1)
   return row ?? null
 }

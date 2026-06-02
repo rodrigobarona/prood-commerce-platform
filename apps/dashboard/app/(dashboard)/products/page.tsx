@@ -58,6 +58,7 @@ export default async function ProductsPage() {
                 <TableRow>
                   <TableHead className="pl-5">Name</TableHead>
                   <TableHead>Type</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Stock</TableHead>
                   <TableHead className="pr-5 text-right">Actions</TableHead>
@@ -71,6 +72,13 @@ export default async function ProductsPage() {
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {product.productType}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={product.status === "active" ? "default" : "outline"}
+                      >
+                        {product.status ?? "draft"}
+                      </Badge>
                     </TableCell>
                     <TableCell>{formatPrice(product.price)}</TableCell>
                     <TableCell>

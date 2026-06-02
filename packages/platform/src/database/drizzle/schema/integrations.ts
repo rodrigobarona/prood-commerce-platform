@@ -7,6 +7,7 @@ import { pgTable, text, jsonb, timestamp } from 'drizzle-orm/pg-core'
 export const integrations = pgTable('integrations', {
   // Provider key: 'armada', 'parcel', 'tap', etc.
   provider: text('provider').primaryKey(),
+  organizationId: text('organization_id'),
 
   // Access token or primary credential
   accessToken: text('access_token'),

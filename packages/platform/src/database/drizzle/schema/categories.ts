@@ -7,6 +7,7 @@ import type { LocalizedField } from '@prood/types'
 
 export const categories = pgTable('categories', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id'),
   name: jsonb('name').$type<LocalizedField>().notNull().default({}),
   slug: text('slug').notNull().unique(),
   description: jsonb('description').$type<LocalizedField>(),

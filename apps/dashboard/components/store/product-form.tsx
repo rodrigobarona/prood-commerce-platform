@@ -38,11 +38,13 @@ export interface ProductFormValues {
   compareAtPrice: string
   sku: string
   productType: string
+  status: string
   inStock: boolean
   requiresShipping: boolean
 }
 
 const PRODUCT_TYPES = ["physical", "digital", "service", "event"]
+const PRODUCT_STATUSES = ["draft", "active", "archived"]
 
 function toNumberOrUndefined(value: string): number | undefined {
   const trimmed = value.trim()
@@ -78,6 +80,7 @@ export function ProductForm({
     compareAtPrice: initial?.compareAtPrice ?? "",
     sku: initial?.sku ?? "",
     productType: initial?.productType ?? "physical",
+    status: initial?.status ?? "active",
     inStock: initial?.inStock ?? true,
     requiresShipping: initial?.requiresShipping ?? true,
   })
@@ -100,6 +103,7 @@ export function ProductForm({
         compareAtPrice: toNumberOrUndefined(values.compareAtPrice),
         sku: values.sku || undefined,
         productType: values.productType,
+        status: values.status as "draft" | "active" | "archived",
         inStock: values.inStock,
         requiresShipping: values.requiresShipping,
       }
@@ -181,7 +185,7 @@ export function ProductForm({
               />
             </div>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-3">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="sku">SKU</Label>
               <Input
@@ -203,6 +207,24 @@ export function ProductForm({
                   {PRODUCT_TYPES.map((type) => (
                     <SelectItem key={type} value={type}>
                       {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="status">Status</Label>
+              <Select
+                value={values.status}
+                onValueChange={(value) => set("status", value)}
+              >
+                <SelectTrigger id="status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PRODUCT_STATUSES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
                     </SelectItem>
                   ))}
                 </SelectContent>

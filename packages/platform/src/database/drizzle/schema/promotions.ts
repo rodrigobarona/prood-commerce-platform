@@ -7,6 +7,7 @@ import type { LocalizedField } from '@prood/types'
 
 export const promotions = pgTable('promotions', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id'),
   name: jsonb('name').$type<LocalizedField>().notNull().default({}),
   description: jsonb('description').$type<LocalizedField>(),
   discountType: text('discount_type').notNull().default('percentage'),
@@ -27,6 +28,7 @@ export const promotions = pgTable('promotions', {
 
 export const coupons = pgTable('coupons', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id'),
   code: text('code').notNull().unique(),
   promotionId: text('promotion_id').notNull().references(() => promotions.id, { onDelete: 'cascade' }),
   isValid: boolean('is_valid').notNull().default(true),

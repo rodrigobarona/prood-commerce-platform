@@ -2,23 +2,28 @@
 // Drizzle: Reviews queries
 // ---------------------------------------------------------------------------
 
-import { eq, avg, count, asc, desc } from 'drizzle-orm'
+import { eq, and, avg, count, desc } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
+import { tenantCondition, currentOrgId } from './tenant-filter.js'
 
 export async function findReviewsByProduct(productId: string) {
+  const orgFilter = tenantCondition(schema.reviews)
+  const where = orgFilter ? and(eq(schema.reviews.productId, productId), orgFilter) : eq(schema.reviews.productId, productId)
   return getDb().select().from(schema.reviews)
-    .where(eq(schema.reviews.productId, productId))
+    .where(where)
     .orderBy(desc(schema.reviews.createdAt))
 }
 
 export async function getReviewSummaryByProduct(productId: string) {
+  const orgFilter = tenantCondition(schema.reviews)
+  const where = orgFilter ? and(eq(schema.reviews.productId, productId), orgFilter) : eq(schema.reviews.productId, productId)
   const rows = await getDb().select({
     avgRating: avg(schema.reviews.rating),
     totalCount: count(),
   })
     .from(schema.reviews)
-    .where(eq(schema.reviews.productId, productId))
+    .where(where)
 
   const row = rows[0]
   return {
@@ -28,12 +33,14 @@ export async function getReviewSummaryByProduct(productId: string) {
 }
 
 export async function getReviewDistribution(productId: string): Promise<[number, number, number, number, number]> {
+  const orgFilter = tenantCondition(schema.reviews)
+  const where = orgFilter ? and(eq(schema.reviews.productId, productId), orgFilter) : eq(schema.reviews.productId, productId)
   const rows = await getDb().select({
     rating: schema.reviews.rating,
     count: count(),
   })
     .from(schema.reviews)
-    .where(eq(schema.reviews.productId, productId))
+    .where(where)
     .groupBy(schema.reviews.rating)
 
   const dist: [number, number, number, number, number] = [0, 0, 0, 0, 0]
@@ -54,8 +61,10 @@ export async function insertReview(data: {
   verified?: boolean
 }) {
   const id = crypto.randomUUID()
+  const orgId = currentOrgId() ?? null
   await getDb().insert(schema.reviews).values({
     id,
+    organizationId: orgId,
     productId: data.productId,
     authorName: data.authorName,
     rating: data.rating,
@@ -63,6 +72,6 @@ export async function insertReview(data: {
     body: data.body ?? null,
     verified: data.verified ?? false,
     status: 'published',
-  })
+  } as any)
   return id
 }

@@ -10,6 +10,7 @@ import { categories } from './categories.js'
 
 export const products = pgTable('products', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id'),
   sku: text('sku'),
   name: jsonb('name').$type<LocalizedField>().notNull().default({}),
   slug: text('slug').notNull().unique(),
@@ -47,6 +48,7 @@ export const products = pgTable('products', {
 
 export const productImages = pgTable('product_images', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id'),
   productId: text('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
   url: text('url').notNull(),
   altText: text('alt_text'),
@@ -58,6 +60,7 @@ export const productImages = pgTable('product_images', {
 
 export const productVariants = pgTable('product_variants', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id'),
   productId: text('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
   sku: text('sku'),
   name: jsonb('name').$type<LocalizedField>(),
@@ -72,6 +75,7 @@ export const productVariants = pgTable('product_variants', {
 
 export const productOptions = pgTable('product_options', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id'),
   productId: text('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
   name: jsonb('name').$type<LocalizedField>().notNull().default({}),
   sortOrder: integer('sort_order').notNull().default(0),
@@ -81,6 +85,7 @@ export const productOptions = pgTable('product_options', {
 
 export const productOptionValues = pgTable('product_option_values', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id'),
   optionId: text('option_id').notNull().references(() => productOptions.id, { onDelete: 'cascade' }),
   name: jsonb('name').$type<LocalizedField>().notNull().default({}),
   sortOrder: integer('sort_order').notNull().default(0),
@@ -90,6 +95,7 @@ export const productOptionValues = pgTable('product_option_values', {
 
 export const productAttributes = pgTable('product_attributes', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id'),
   productId: text('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
   code: text('code').notNull(),
   name: jsonb('name').$type<LocalizedField>().notNull().default({}),
@@ -99,6 +105,7 @@ export const productAttributes = pgTable('product_attributes', {
 // ---- Product ↔ Category (many-to-many) ----
 
 export const productCategories = pgTable('product_categories', {
+  organizationId: text('organization_id'),
   productId: text('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
   categoryId: text('category_id').notNull().references(() => categories.id, { onDelete: 'cascade' }),
 })
@@ -107,6 +114,7 @@ export const productCategories = pgTable('product_categories', {
 
 export const productTags = pgTable('product_tags', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id'),
   productId: text('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
   tag: text('tag').notNull(),
 })

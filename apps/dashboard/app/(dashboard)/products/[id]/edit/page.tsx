@@ -46,6 +46,7 @@ export default async function EditProductPage({
               : "",
           sku: product.sku ?? "",
           productType: product.productType,
+          status: product.status ?? "draft",
           inStock: product.inStock,
           requiresShipping: product.requiresShipping,
         }}

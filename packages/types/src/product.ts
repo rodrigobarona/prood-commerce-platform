@@ -190,4 +190,7 @@ export interface Product {
 
   /** Whether this product is fulfilled by a third-party / dropshipper */
   isDropshipped: boolean
+
+  /** Visibility status: 'draft' | 'active' | 'archived'. Only 'active' products appear on the storefront. */
+  status: Maybe<string>
 }

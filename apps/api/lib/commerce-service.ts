@@ -236,18 +236,34 @@ export const admin = {
     withTenant(orgId, async () => (await getAdmin()).listProducts(toAdminListParams(q))),
   getProduct: (orgId: string, id: string) =>
     withTenant(orgId, async () => (await getAdmin()).getProduct(id)),
-  createProduct: (orgId: string, input: CreateProductInput) =>
-    withTenant(orgId, async () => (await getAdmin()).createProduct(input)),
-  updateProduct: (orgId: string, id: string, input: UpdateProductInput) =>
-    withTenant(orgId, async () => (await getAdmin()).updateProduct(id, input)),
-  deleteProduct: (orgId: string, id: string) =>
-    withTenant(orgId, async () => (await getAdmin()).deleteProduct(id)),
-  createCategory: (orgId: string, input: CreateCategoryInput) =>
-    withTenant(orgId, async () => (await getAdmin()).createCategory(input)),
-  updateCategory: (orgId: string, id: string, input: UpdateCategoryInput) =>
-    withTenant(orgId, async () => (await getAdmin()).updateCategory(id, input)),
-  deleteCategory: (orgId: string, id: string) =>
-    withTenant(orgId, async () => (await getAdmin()).deleteCategory(id)),
+  createProduct: async (orgId: string, input: CreateProductInput) => {
+    const product = await withTenant(orgId, async () => (await getAdmin()).createProduct(input))
+    revalidateProducts(orgId)
+    return product
+  },
+  updateProduct: async (orgId: string, id: string, input: UpdateProductInput) => {
+    const product = await withTenant(orgId, async () => (await getAdmin()).updateProduct(id, input))
+    revalidateProducts(orgId)
+    return product
+  },
+  deleteProduct: async (orgId: string, id: string) => {
+    await withTenant(orgId, async () => (await getAdmin()).deleteProduct(id))
+    revalidateProducts(orgId)
+  },
+  createCategory: async (orgId: string, input: CreateCategoryInput) => {
+    const category = await withTenant(orgId, async () => (await getAdmin()).createCategory(input))
+    revalidateProducts(orgId)
+    return category
+  },
+  updateCategory: async (orgId: string, id: string, input: UpdateCategoryInput) => {
+    const category = await withTenant(orgId, async () => (await getAdmin()).updateCategory(id, input))
+    revalidateProducts(orgId)
+    return category
+  },
+  deleteCategory: async (orgId: string, id: string) => {
+    await withTenant(orgId, async () => (await getAdmin()).deleteCategory(id))
+    revalidateProducts(orgId)
+  },
   listOrders: (orgId: string, q: AdminListOrdersQuery) =>
     withTenant(orgId, async () =>
       (await getAdmin()).listOrders(toAdminListOrdersParams(q))

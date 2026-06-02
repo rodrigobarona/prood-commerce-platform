@@ -8,6 +8,7 @@ import { customers } from './customers.js'
 
 export const orders = pgTable('orders', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id'),
   orderNumber: text('order_number').notNull().unique(),
   customerId: text('customer_id').references(() => customers.id, { onDelete: 'set null' }),
 
@@ -42,6 +43,7 @@ export const orders = pgTable('orders', {
 
 export const orderItems = pgTable('order_items', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id'),
   orderId: text('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
   productId: text('product_id').notNull(),
   variantId: text('variant_id'),
@@ -60,6 +62,7 @@ export const orderItems = pgTable('order_items', {
 
 export const orderHistory = pgTable('order_history', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id'),
   orderId: text('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
   fromStatus: text('from_status'),
   toStatus: text('to_status').notNull(),
