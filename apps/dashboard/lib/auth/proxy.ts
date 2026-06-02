@@ -12,6 +12,13 @@ const HOP_BY_HOP_HEADERS = new Set([
   "upgrade",
 ])
 
+/** Response headers invalidated when fetch() auto-decompresses the upstream body. */
+const STRIP_RESPONSE_HEADERS = new Set([
+  "set-cookie",
+  "content-encoding",
+  "content-length",
+])
+
 /** Origin of apps/api — auth is issued there; dashboard proxies browser traffic. */
 export function getAuthUpstreamOrigin(): string {
   const authUrl =
@@ -73,7 +80,13 @@ function buildUpstreamHeaders(request: NextRequest): Headers {
   const headers = new Headers()
   for (const [key, value] of request.headers.entries()) {
     const lower = key.toLowerCase()
-    if (lower === "host" || HOP_BY_HOP_HEADERS.has(lower)) continue
+    if (
+      lower === "host" ||
+      lower === "accept-encoding" ||
+      HOP_BY_HOP_HEADERS.has(lower)
+    ) {
+      continue
+    }
     headers.set(key, value)
   }
   return headers
@@ -84,7 +97,7 @@ function buildProxyResponse(upstream: Response): Response {
 
   upstream.headers.forEach((value, key) => {
     const lower = key.toLowerCase()
-    if (lower === "set-cookie" || HOP_BY_HOP_HEADERS.has(lower)) return
+    if (STRIP_RESPONSE_HEADERS.has(lower) || HOP_BY_HOP_HEADERS.has(lower)) return
     headers.append(key, value)
   })
 
