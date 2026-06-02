@@ -3,14 +3,18 @@ import { getSessionCookie } from "better-auth/cookies"
 import { getAuth } from "@/lib/auth/server"
 
 /**
- * Development-only endpoint that diagnoses session validation failures.
- * Checks each step: cookie presence → signature verification → DB lookup.
+ * Temporary endpoint that diagnoses session validation failures.
+ * Protected by a query-param key derived from BETTER_AUTH_SECRET.
  *
- * DELETE THIS FILE before going to production.
+ * Usage: /api/auth/debug-session?key=<first 8 chars of BETTER_AUTH_SECRET>
+ *
+ * DELETE THIS FILE once the auth issue is resolved.
  */
 export async function GET(request: NextRequest) {
-  if (process.env.NODE_ENV === "production") {
-    return NextResponse.json({ error: "Not available in production" }, { status: 404 })
+  const secret = process.env.BETTER_AUTH_SECRET?.trim()
+  const key = request.nextUrl.searchParams.get("key")
+  if (!secret || !key || key !== secret.substring(0, 8)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
   const steps: Record<string, unknown> = {}
