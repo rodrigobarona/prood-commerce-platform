@@ -46,7 +46,12 @@ export function getAuthUpstreamOrigin(): string {
   return "http://localhost:3005"
 }
 
-function shouldKeepCookieDomain(domainValue: string): boolean {
+function shouldKeepCookieDomain(
+  domainValue: string,
+  requestHost?: string
+): boolean {
+  if (requestHost?.endsWith(".vercel.app")) return false
+
   const shared = process.env.AUTH_COOKIE_DOMAIN?.trim()
   if (!shared) return false
 
@@ -59,14 +64,17 @@ function shouldKeepCookieDomain(domainValue: string): boolean {
 }
 
 /** Strip API-only Domain= so session cookies bind to the dashboard host. */
-export function rewriteAuthSetCookie(setCookie: string): string {
+export function rewriteAuthSetCookie(
+  setCookie: string,
+  requestHost?: string
+): string {
   return setCookie
     .split(";")
     .map((part) => part.trim())
     .filter((part) => {
       if (!part.toLowerCase().startsWith("domain=")) return true
       const domain = part.slice("domain=".length).trim()
-      return shouldKeepCookieDomain(domain)
+      return shouldKeepCookieDomain(domain, requestHost)
     })
     .join("; ")
 }
@@ -92,7 +100,10 @@ function buildUpstreamHeaders(request: NextRequest): Headers {
   return headers
 }
 
-function buildProxyResponse(upstream: Response): Response {
+function buildProxyResponse(
+  upstream: Response,
+  requestHost?: string
+): Response {
   const headers = new Headers()
 
   upstream.headers.forEach((value, key) => {
@@ -108,8 +119,17 @@ function buildProxyResponse(upstream: Response): Response {
         ? [upstream.headers.get("set-cookie")!]
         : []
 
+  const cookieNames: string[] = []
   for (const cookie of setCookies) {
-    headers.append("Set-Cookie", rewriteAuthSetCookie(cookie))
+    headers.append("Set-Cookie", rewriteAuthSetCookie(cookie, requestHost))
+    const name = cookie.split("=")[0]
+    if (name) cookieNames.push(name)
+  }
+
+  if (setCookies.length > 0) {
+    console.log(
+      `[auth-proxy] ${upstream.status} — forwarding ${setCookies.length} Set-Cookie(s): [${cookieNames.join(", ")}]`
+    )
   }
 
   return new Response(upstream.body, {
@@ -122,16 +142,19 @@ function buildProxyResponse(upstream: Response): Response {
 /** Forward dashboard /api/auth/* to apps/api and rewrite Set-Cookie for same-origin sessions. */
 export async function proxyAuthRequest(request: NextRequest): Promise<Response> {
   const method = request.method.toUpperCase()
+  const upstreamUrl = buildUpstreamRequestUrl(request)
   const headers = buildUpstreamHeaders(request)
   const body =
     method === "GET" || method === "HEAD" ? undefined : await request.arrayBuffer()
 
-  const upstream = await fetch(buildUpstreamRequestUrl(request), {
+  console.log(`[auth-proxy] ${method} ${upstreamUrl.pathname}`)
+
+  const upstream = await fetch(upstreamUrl, {
     method,
     headers,
     body,
     redirect: "manual",
   })
 
-  return buildProxyResponse(upstream)
+  return buildProxyResponse(upstream, request.headers.get("host") ?? undefined)
 }
