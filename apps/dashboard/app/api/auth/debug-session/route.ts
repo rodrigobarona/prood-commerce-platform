@@ -4,17 +4,17 @@ import { getAuth } from "@/lib/auth/server"
 
 /**
  * Temporary endpoint that diagnoses session validation failures.
- * Protected by a query-param key derived from BETTER_AUTH_SECRET.
+ * Protected by a DEBUG_AUTH_KEY env var set in Vercel.
  *
- * Usage: /api/auth/debug-session?key=<first 8 chars of BETTER_AUTH_SECRET>
+ * Usage: /api/auth/debug-session?key=<value of DEBUG_AUTH_KEY>
  *
  * DELETE THIS FILE once the auth issue is resolved.
  */
 export async function GET(request: NextRequest) {
-  const secret = process.env.BETTER_AUTH_SECRET?.trim()
+  const debugKey = process.env.DEBUG_AUTH_KEY?.trim()
   const key = request.nextUrl.searchParams.get("key")
-  if (!secret || !key || key !== secret.substring(0, 8)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  if (!debugKey || !key || key !== debugKey) {
+    return NextResponse.json({ error: "Set DEBUG_AUTH_KEY env var in Vercel and pass ?key=<value>" }, { status: 403 })
   }
 
   const steps: Record<string, unknown> = {}
