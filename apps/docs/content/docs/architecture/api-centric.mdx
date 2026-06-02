@@ -61,7 +61,7 @@ Not every storefront request goes directly to the API. Local BFF routes exist wh
 | `/api/commerce/countries` | Static-ish data for address forms; avoids exposing API URL to client |
 | `/api/auth/[...all]` (storefront only) | Better Auth handler must run on the storefront origin (`*.prood.app` / custom domains) |
 
-**Dashboard** does not host `/api/auth`. Merchant sign-in targets `apps/api` via `NEXT_PUBLIC_AUTH_URL`; session cookies are shared on `*.prood.com` through `AUTH_COOKIE_DOMAIN`.
+**Dashboard** does not run Better Auth handlers directly. Browser auth calls go to a same-origin BFF at `/api/auth/*`, which proxies to **apps/api** so session cookies work when the dashboard and API are on different hostnames (e.g. separate `*.vercel.app` deploys). With custom domains, `AUTH_COOKIE_DOMAIN=.prood.com` on the API project also shares cookies across `dashboard.prood.com` and `api.prood.com`.
 
 Everything else (products, categories, store info, orders) is fetched **server-side** in React Server Components via `@prood/api-client`.
 

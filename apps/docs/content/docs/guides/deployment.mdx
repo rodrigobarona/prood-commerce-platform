@@ -162,7 +162,7 @@ VERCEL_TEAM_ID=<team ID>
 NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app
 ```
 
-Dashboard auth (sign-in, sign-up, organization ops) is issued by **apps/api** — there is no `/api/auth` route on the dashboard project. Session cookies are shared via `AUTH_COOKIE_DOMAIN=.prood.com` on the API project.
+Dashboard auth (sign-in, sign-up, organization ops) is issued by **apps/api** but proxied through the dashboard at `/api/auth/*` so session cookies stay on the dashboard origin. This is required on separate `*.vercel.app` preview URLs; with custom domains, set `AUTH_COOKIE_DOMAIN=.prood.com` on the API project so cookies are also shared across subdomains.
 
 ## Step 6 — Deploy docs and web
 
