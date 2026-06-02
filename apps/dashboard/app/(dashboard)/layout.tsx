@@ -17,8 +17,16 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const session = await getSession()
-  if (!session) redirect("/login")
+  let session: Awaited<ReturnType<typeof getSession>> = null
+  try {
+    session = await getSession()
+  } catch (err) {
+    console.error("[DashboardLayout] getSession() threw:", err)
+  }
+  if (!session) {
+    console.warn("[DashboardLayout] session is null — redirecting to /login")
+    redirect("/login")
+  }
 
   const activeOrgId = await getActiveOrganizationId()
 
