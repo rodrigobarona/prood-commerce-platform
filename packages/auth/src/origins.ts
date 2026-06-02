@@ -49,12 +49,12 @@ export function isTrustedAuthOrigin(origin: string | null): origin is string {
   return false
 }
 
-/** Better Auth `trustedOrigins` — static list plus request Origin in local dev. */
+/** Better Auth `trustedOrigins` — static env list plus dynamic Origin when trusted. */
 export function resolveBetterAuthTrustedOrigins(
   request?: Request
 ): string[] {
   const origins = resolveTrustedOrigins()
-  if (process.env.NODE_ENV === "production" || !request) return origins
+  if (!request) return origins
 
   const origin = request.headers.get("origin")
   if (origin && isTrustedAuthOrigin(origin) && !origins.includes(origin)) {

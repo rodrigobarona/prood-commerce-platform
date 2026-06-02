@@ -51,8 +51,8 @@ Uploaded files are namespaced per tenant: `org/<orgId>/…` via `uploadForTenant
 | `BETTER_AUTH_SECRET` | Yes (prod) | API, dashboard (SSR), storefront | Session signing secret. Generate: `openssl rand -base64 32` |
 | `BETTER_AUTH_URL` | Yes | **API** (and storefront) | Public origin of the Better Auth HTTP handler. API: `http://localhost:3005`. Storefront: `http://localhost:3000`. Dashboard does **not** host `/api/auth`. |
 | `NEXT_PUBLIC_AUTH_URL` | Yes | Dashboard (browser) | Origin the dashboard auth client calls for sign-in/sign-up/org ops. Same as API: `http://localhost:3005` |
-| `NEXT_PUBLIC_DASHBOARD_URL` | Prod | API (`trustedOrigins`) | Merchant admin URL, e.g. `https://dashboard.prood.com` |
-| `AUTH_COOKIE_DOMAIN` | Prod | API | Shared cookie domain for dashboard + API on `*.prood.com`, e.g. `.prood.com`. Unset locally. |
+| `NEXT_PUBLIC_DASHBOARD_URL` | Prod | API (`trustedOrigins`) | Merchant admin URL, e.g. `https://dashboard.prood.com`. On Vercel preview deploys, set this on the **API** project to your dashboard URL (e.g. `https://dashboard-prood.vercel.app`). |
+| `AUTH_COOKIE_DOMAIN` | Prod | API | Shared cookie domain for dashboard + API on `*.prood.com`, e.g. `.prood.com`. Unset locally and on `*.vercel.app` preview URLs (browsers cannot share cookies across separate `*.vercel.app` hostnames). |
 
 ### Seed credentials
 
