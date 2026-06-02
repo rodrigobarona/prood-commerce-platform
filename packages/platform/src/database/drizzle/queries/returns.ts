@@ -5,27 +5,24 @@
 import { eq, and } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
-import { tenantCondition, currentOrgId } from './tenant-filter.js'
+import { tenantCondition, requireOrgId } from './tenant-filter.js'
 
 import type { LocalizedField } from '@prood/types'
 
 export async function findReturnsByOrder(orderId: string) {
-  const orgFilter = tenantCondition(schema.returns)
-  const where = orgFilter ? and(eq(schema.returns.orderId, orderId), orgFilter) : eq(schema.returns.orderId, orderId)
-  return getDb().select().from(schema.returns).where(where)
+  return getDb().select().from(schema.returns)
+    .where(and(eq(schema.returns.orderId, orderId), tenantCondition(schema.returns)))
 }
 
 export async function findReturnById(returnId: string) {
-  const orgFilter = tenantCondition(schema.returns)
-  const where = orgFilter ? and(eq(schema.returns.id, returnId), orgFilter) : eq(schema.returns.id, returnId)
-  const [row] = await getDb().select().from(schema.returns).where(where)
+  const [row] = await getDb().select().from(schema.returns)
+    .where(and(eq(schema.returns.id, returnId), tenantCondition(schema.returns)))
   return row ?? null
 }
 
 export async function findReturnItemsByReturn(returnId: string) {
-  const orgFilter = tenantCondition(schema.returnItems)
-  const where = orgFilter ? and(eq(schema.returnItems.returnId, returnId), orgFilter) : eq(schema.returnItems.returnId, returnId)
-  return getDb().select().from(schema.returnItems).where(where)
+  return getDb().select().from(schema.returnItems)
+    .where(and(eq(schema.returnItems.returnId, returnId), tenantCondition(schema.returnItems)))
 }
 
 export async function insertReturn(data: {
@@ -34,7 +31,7 @@ export async function insertReturn(data: {
   customerNote?: string | null
 }) {
   const id = crypto.randomUUID()
-  const orgId = currentOrgId() ?? null
+  const orgId = requireOrgId()
   await getDb().insert(schema.returns).values({
     id,
     organizationId: orgId,
@@ -58,7 +55,7 @@ export async function insertReturnItem(data: {
   reasonNote?: string | null
 }) {
   const id = crypto.randomUUID()
-  const orgId = currentOrgId() ?? null
+  const orgId = requireOrgId()
   await getDb().insert(schema.returnItems).values({
     id,
     organizationId: orgId,
@@ -76,9 +73,7 @@ export async function insertReturnItem(data: {
 }
 
 export async function updateReturnStatus(returnId: string, status: string) {
-  const orgFilter = tenantCondition(schema.returns)
-  const where = orgFilter ? and(eq(schema.returns.id, returnId), orgFilter) : eq(schema.returns.id, returnId)
   await getDb().update(schema.returns)
     .set({ status, updatedAt: new Date() })
-    .where(where)
+    .where(and(eq(schema.returns.id, returnId), tenantCondition(schema.returns)))
 }

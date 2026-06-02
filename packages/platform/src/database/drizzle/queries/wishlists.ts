@@ -5,26 +5,24 @@
 import { eq, and } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
-import { tenantCondition, currentOrgId } from './tenant-filter.js'
+import { tenantCondition, requireOrgId } from './tenant-filter.js'
 
 export async function findWishlistByCustomer(customerId: string) {
-  const orgFilter = tenantCondition(schema.wishlists)
-  const where = orgFilter ? and(eq(schema.wishlists.customerId, customerId), orgFilter) : eq(schema.wishlists.customerId, customerId)
-  const [row] = await getDb().select().from(schema.wishlists).where(where)
+  const [row] = await getDb().select().from(schema.wishlists)
+    .where(and(eq(schema.wishlists.customerId, customerId), tenantCondition(schema.wishlists)))
   return row ?? null
 }
 
 export async function createWishlist(customerId: string) {
   const id = crypto.randomUUID()
-  const orgId = currentOrgId() ?? null
+  const orgId = requireOrgId()
   await getDb().insert(schema.wishlists).values({ id, customerId, organizationId: orgId } as any)
   return { id, organizationId: orgId, customerId, createdAt: new Date() }
 }
 
 export async function findWishlistItems(wishlistId: string) {
-  const orgFilter = tenantCondition(schema.wishlistItems)
-  const where = orgFilter ? and(eq(schema.wishlistItems.wishlistId, wishlistId), orgFilter) : eq(schema.wishlistItems.wishlistId, wishlistId)
-  return getDb().select().from(schema.wishlistItems).where(where)
+  return getDb().select().from(schema.wishlistItems)
+    .where(and(eq(schema.wishlistItems.wishlistId, wishlistId), tenantCondition(schema.wishlistItems)))
 }
 
 export async function insertWishlistItem(data: {
@@ -43,22 +41,20 @@ export async function insertWishlistItem(data: {
 }
 
 export async function deleteWishlistItem(wishlistId: string, productId: string) {
-  const conditions: any[] = [
-    eq(schema.wishlistItems.wishlistId, wishlistId),
-    eq(schema.wishlistItems.productId, productId),
-  ]
-  const orgFilter = tenantCondition(schema.wishlistItems)
-  if (orgFilter) conditions.push(orgFilter)
-  await getDb().delete(schema.wishlistItems).where(and(...conditions))
+  await getDb().delete(schema.wishlistItems)
+    .where(and(
+      eq(schema.wishlistItems.wishlistId, wishlistId),
+      eq(schema.wishlistItems.productId, productId),
+      tenantCondition(schema.wishlistItems),
+    ))
 }
 
 export async function findWishlistItemByProduct(wishlistId: string, productId: string) {
-  const conditions: any[] = [
-    eq(schema.wishlistItems.wishlistId, wishlistId),
-    eq(schema.wishlistItems.productId, productId),
-  ]
-  const orgFilter = tenantCondition(schema.wishlistItems)
-  if (orgFilter) conditions.push(orgFilter)
-  const [row] = await getDb().select().from(schema.wishlistItems).where(and(...conditions))
+  const [row] = await getDb().select().from(schema.wishlistItems)
+    .where(and(
+      eq(schema.wishlistItems.wishlistId, wishlistId),
+      eq(schema.wishlistItems.productId, productId),
+      tenantCondition(schema.wishlistItems),
+    ))
   return row ?? null
 }

@@ -5,7 +5,7 @@
 import { eq, and, sql } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
-import { tenantCondition, currentOrgId } from './tenant-filter.js'
+import { tenantCondition, requireOrgId } from './tenant-filter.js'
 
 export type AdminCustomerRow = typeof schema.customers.$inferSelect & {
   userEmail: string | null
@@ -17,10 +17,9 @@ export async function adminFindAllCustomers(opts: {
   search?: string
 }) {
   const db = getDb()
+  const orgId = requireOrgId()
   const search = opts.search?.trim()
-  const orgId = currentOrgId()
 
-  const orgClause = orgId ? sql`AND c.organization_id = ${orgId}` : sql``
   const searchClause = search
     ? sql`AND (
         c.first_name ILIKE ${`%${search}%`}
@@ -33,7 +32,7 @@ export async function adminFindAllCustomers(opts: {
     SELECT c.*, u.email AS user_email
     FROM customers c
     LEFT JOIN "user" u ON c.auth_user_id = u.id
-    WHERE true ${orgClause} ${searchClause}
+    WHERE c.organization_id = ${orgId} ${searchClause}
     ORDER BY c.created_at DESC
     LIMIT ${opts.limit} OFFSET ${opts.offset}
   `)
@@ -42,7 +41,7 @@ export async function adminFindAllCustomers(opts: {
     SELECT count(*)::int AS count
     FROM customers c
     LEFT JOIN "user" u ON c.auth_user_id = u.id
-    WHERE true ${orgClause} ${searchClause}
+    WHERE c.organization_id = ${orgId} ${searchClause}
   `)
 
   const mapped = (rows.rows as Record<string, unknown>[]).map(mapAdminCustomerRow)
@@ -66,13 +65,12 @@ function mapAdminCustomerRow(row: Record<string, unknown>): AdminCustomerRow {
 
 export async function adminFindCustomerById(id: string): Promise<AdminCustomerRow | null> {
   const db = getDb()
-  const orgId = currentOrgId()
-  const orgClause = orgId ? sql`AND c.organization_id = ${orgId}` : sql``
+  const orgId = requireOrgId()
   const result = await db.execute(sql`
     SELECT c.*, u.email AS user_email
     FROM customers c
     LEFT JOIN "user" u ON c.auth_user_id = u.id
-    WHERE c.id = ${id} ${orgClause}
+    WHERE c.id = ${id} AND c.organization_id = ${orgId}
     LIMIT 1
   `)
   const row = result.rows[0] as Record<string, unknown> | undefined
@@ -80,15 +78,12 @@ export async function adminFindCustomerById(id: string): Promise<AdminCustomerRo
 }
 
 export async function adminDeleteCustomer(id: string) {
-  const orgFilter = tenantCondition(schema.customers)
-  const where = orgFilter ? and(eq(schema.customers.id, id), orgFilter) : eq(schema.customers.id, id)
-  await getDb().delete(schema.customers).where(where)
+  await getDb().delete(schema.customers)
+    .where(and(eq(schema.customers.id, id), tenantCondition(schema.customers)))
 }
 
 export async function countCustomers() {
-  const db = getDb()
-  const orgFilter = tenantCondition(schema.customers)
-  const [result] = await db.select({ count: sql<number>`count(*)` }).from(schema.customers)
-    .where(orgFilter)
+  const [result] = await getDb().select({ count: sql<number>`count(*)` }).from(schema.customers)
+    .where(tenantCondition(schema.customers))
   return result?.count ?? 0
 }

@@ -3,31 +3,20 @@
 // ---------------------------------------------------------------------------
 
 import { and, eq } from 'drizzle-orm'
-import { getCurrentOrganizationId, getDb } from '../client.js'
+import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
-
-function storeScope(id: string) {
-  const orgId = getCurrentOrganizationId()
-  if (!orgId) {
-    return eq(schema.storeInfo.id, id)
-  }
-  return and(eq(schema.storeInfo.id, id), eq(schema.storeInfo.organizationId, orgId))
-}
+import { tenantCondition, requireOrgId } from './tenant-filter.js'
 
 export async function findStoreInfo(id: string) {
   const [row] = await getDb()
     .select()
     .from(schema.storeInfo)
-    .where(storeScope(id))
+    .where(and(eq(schema.storeInfo.id, id), tenantCondition(schema.storeInfo)))
   return row ?? null
 }
 
 export async function createStoreInfo(data: Record<string, unknown>) {
-  const orgId = getCurrentOrganizationId()
-  if (!orgId) {
-    throw new Error('createStoreInfo requires an active organization scope')
-  }
-
+  const orgId = requireOrgId()
   await getDb().insert(schema.storeInfo).values({
     ...data,
     organizationId: orgId,

@@ -5,29 +5,24 @@
 import { eq, and } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
-import { tenantCondition, currentOrgId } from './tenant-filter.js'
+import { tenantCondition, requireOrgId } from './tenant-filter.js'
 
 import type { LocalizedField } from '@prood/types'
 
 export async function findActivePromotions() {
-  const conditions: any[] = [eq(schema.promotions.isActive, true)]
-  const orgFilter = tenantCondition(schema.promotions)
-  if (orgFilter) conditions.push(orgFilter)
   return getDb().select().from(schema.promotions)
-    .where(and(...conditions))
+    .where(and(eq(schema.promotions.isActive, true), tenantCondition(schema.promotions)))
 }
 
 export async function findCouponByCode(code: string) {
-  const orgFilter = tenantCondition(schema.coupons)
-  const where = orgFilter ? and(eq(schema.coupons.code, code), orgFilter) : eq(schema.coupons.code, code)
-  const [row] = await getDb().select().from(schema.coupons).where(where)
+  const [row] = await getDb().select().from(schema.coupons)
+    .where(and(eq(schema.coupons.code, code), tenantCondition(schema.coupons)))
   return row ?? null
 }
 
 export async function findPromotionById(id: string) {
-  const orgFilter = tenantCondition(schema.promotions)
-  const where = orgFilter ? and(eq(schema.promotions.id, id), orgFilter) : eq(schema.promotions.id, id)
-  const [row] = await getDb().select().from(schema.promotions).where(where)
+  const [row] = await getDb().select().from(schema.promotions)
+    .where(and(eq(schema.promotions.id, id), tenantCondition(schema.promotions)))
   return row ?? null
 }
 
@@ -42,7 +37,7 @@ export async function insertPromotion(data: {
   isActive?: boolean
 }) {
   const id = crypto.randomUUID()
-  const orgId = currentOrgId() ?? null
+  const orgId = requireOrgId()
   await getDb().insert(schema.promotions).values({
     id,
     organizationId: orgId,

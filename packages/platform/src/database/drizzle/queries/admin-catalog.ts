@@ -5,7 +5,7 @@
 import { eq, sql, and, like, asc, desc, lte } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
-import { tenantCondition, currentOrgId } from './tenant-filter.js'
+import { tenantCondition, requireOrgId } from './tenant-filter.js'
 
 // ---- Products ----
 
@@ -26,7 +26,7 @@ export async function countActiveProducts(): Promise<number> {
 }
 
 export async function adminCreateProduct(data: Record<string, any>) {
-  const orgId = currentOrgId()
+  const orgId = requireOrgId()
   await getDb().insert(schema.products).values({ ...data, organizationId: orgId ?? data.organizationId ?? null } as any)
 }
 
@@ -82,7 +82,7 @@ export async function adminListProducts(opts: {
 // ---- Product relations ----
 
 export async function adminCreateProductImage(data: Record<string, any>) {
-  const orgId = currentOrgId()
+  const orgId = requireOrgId()
   await getDb().insert(schema.productImages).values({ ...data, organizationId: orgId ?? data.organizationId ?? null } as any)
 }
 
@@ -93,7 +93,7 @@ export async function adminDeleteProductImages(productId: string) {
 }
 
 export async function adminCreateProductVariant(data: Record<string, any>) {
-  const orgId = currentOrgId()
+  const orgId = requireOrgId()
   await getDb().insert(schema.productVariants).values({ ...data, organizationId: orgId ?? data.organizationId ?? null } as any)
 }
 
@@ -104,7 +104,7 @@ export async function adminDeleteProductVariants(productId: string) {
 }
 
 export async function adminCreateProductAttribute(data: Record<string, any>) {
-  const orgId = currentOrgId()
+  const orgId = requireOrgId()
   await getDb().insert(schema.productAttributes).values({ ...data, organizationId: orgId ?? data.organizationId ?? null } as any)
 }
 
@@ -115,7 +115,7 @@ export async function adminDeleteProductAttributes(productId: string) {
 }
 
 export async function adminCreateProductTag(data: Record<string, any>) {
-  const orgId = currentOrgId()
+  const orgId = requireOrgId()
   await getDb().insert(schema.productTags).values({ ...data, organizationId: orgId ?? data.organizationId ?? null } as any)
 }
 
@@ -126,7 +126,7 @@ export async function adminDeleteProductTags(productId: string) {
 }
 
 export async function adminCreateProductCategory(data: { productId: string; categoryId: string }) {
-  const orgId = currentOrgId()
+  const orgId = requireOrgId()
   await getDb().insert(schema.productCategories).values({ ...data, organizationId: orgId ?? null } as any)
 }
 
@@ -139,7 +139,7 @@ export async function adminDeleteProductCategories(productId: string) {
 // ---- Categories ----
 
 export async function adminCreateCategory(data: Record<string, any>) {
-  const orgId = currentOrgId()
+  const orgId = requireOrgId()
   await getDb().insert(schema.categories).values({ ...data, organizationId: orgId ?? data.organizationId ?? null } as any)
 }
 
@@ -190,7 +190,7 @@ export async function setProductCategories(productId: string, categoryIds: strin
   const orgFilter = tenantCondition(schema.productCategories)
   const deleteWhere = orgFilter ? and(eq(schema.productCategories.productId, productId), orgFilter) : eq(schema.productCategories.productId, productId)
   await getDb().delete(schema.productCategories).where(deleteWhere)
-  const orgId = currentOrgId()
+  const orgId = requireOrgId()
   for (const categoryId of categoryIds) {
     await getDb().insert(schema.productCategories).values({ productId, categoryId, organizationId: orgId ?? null } as any)
   }

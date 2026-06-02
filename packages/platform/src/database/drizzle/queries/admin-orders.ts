@@ -8,23 +8,18 @@ import * as schema from '../schema/index.js'
 import { tenantCondition } from './tenant-filter.js'
 
 export async function countOrders(): Promise<number> {
-  const orgFilter = tenantCondition(schema.orders)
   const result = await getDb().select({ count: sql<number>`count(*)` }).from(schema.orders)
-    .where(orgFilter)
+    .where(tenantCondition(schema.orders))
   return Number(result[0]?.count ?? 0)
 }
 
-/** Orders created in the current UTC calendar month (plan enforcement). */
 export async function countOrdersThisMonth(): Promise<number> {
   const now = new Date()
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
-  const conditions: any[] = [gte(schema.orders.createdAt, monthStart)]
-  const orgFilter = tenantCondition(schema.orders)
-  if (orgFilter) conditions.push(orgFilter)
   const result = await getDb()
     .select({ count: sql<number>`count(*)` })
     .from(schema.orders)
-    .where(and(...conditions))
+    .where(and(gte(schema.orders.createdAt, monthStart), tenantCondition(schema.orders)))
   return Number(result[0]?.count ?? 0)
 }
 
@@ -38,10 +33,7 @@ export async function adminFindAllOrders(opts: {
   search?: string
 }) {
   const db = getDb()
-  const conditions: any[] = []
-
-  const orgFilter = tenantCondition(schema.orders)
-  if (orgFilter) conditions.push(orgFilter)
+  const conditions: any[] = [tenantCondition(schema.orders)]
 
   if (opts.status) conditions.push(eq(schema.orders.status, opts.status as any))
   if (opts.customerId) conditions.push(eq(schema.orders.customerId, opts.customerId))
@@ -49,15 +41,17 @@ export async function adminFindAllOrders(opts: {
   if (opts.dateTo) conditions.push(lte(schema.orders.createdAt, new Date(opts.dateTo)))
   if (opts.search) conditions.push(like(schema.orders.orderNumber, `%${opts.search}%`))
 
+  const where = and(...conditions)
+
   const [rows, countResult] = await Promise.all([
     db.select().from(schema.orders)
-      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .where(where)
       .orderBy(desc(schema.orders.createdAt))
       .limit(opts.limit)
       .offset(opts.offset),
     db.select({ count: sql<number>`count(*)` })
       .from(schema.orders)
-      .where(conditions.length > 0 ? and(...conditions) : undefined),
+      .where(where),
   ])
 
   return { rows, total: countResult[0]?.count ?? 0 }
@@ -68,24 +62,20 @@ export async function updateOrderTracking(id: string, data: {
   trackingUrl?: string | null
   status?: string
 }) {
-  const orgFilter = tenantCondition(schema.orders)
-  const where = orgFilter ? and(eq(schema.orders.id, id), orgFilter) : eq(schema.orders.id, id)
   await getDb().update(schema.orders).set({
     ...data as any,
     updatedAt: new Date(),
-  }).where(where)
+  }).where(and(eq(schema.orders.id, id), tenantCondition(schema.orders)))
 }
 
 export async function countOrdersByStatus() {
-  const db = getDb()
-  const orgFilter = tenantCondition(schema.orders)
-  const result = await db
+  const result = await getDb()
     .select({
       status: schema.orders.status,
       count: sql<number>`count(*)`,
     })
     .from(schema.orders)
-    .where(orgFilter)
+    .where(tenantCondition(schema.orders))
     .groupBy(schema.orders.status)
 
   const map: Record<string, number> = {}
@@ -96,19 +86,16 @@ export async function countOrdersByStatus() {
 }
 
 export async function sumOrderRevenue() {
-  const db = getDb()
-  const orgFilter = tenantCondition(schema.orders)
-  const [result] = await db
+  const [result] = await getDb()
     .select({ total: sql<number>`COALESCE(SUM(total), 0)` })
     .from(schema.orders)
-    .where(orgFilter)
+    .where(tenantCondition(schema.orders))
   return result?.total ?? 0
 }
 
 export async function findRecentOrders(limit: number) {
-  const orgFilter = tenantCondition(schema.orders)
   return getDb().select().from(schema.orders)
-    .where(orgFilter)
+    .where(tenantCondition(schema.orders))
     .orderBy(desc(schema.orders.createdAt))
     .limit(limit)
 }
