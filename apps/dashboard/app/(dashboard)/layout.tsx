@@ -24,7 +24,9 @@ export default async function DashboardLayout({
     console.error("[DashboardLayout] getSession() threw:", err)
   }
   if (!session) {
-    console.warn("[DashboardLayout] session is null — redirecting to /login")
+    if (process.env.NEXT_PHASE !== "phase-production-build") {
+      console.warn("[DashboardLayout] session is null — redirecting to /login")
+    }
     redirect("/login")
   }
 
