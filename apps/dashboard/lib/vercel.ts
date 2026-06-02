@@ -23,7 +23,9 @@ interface VercelConfig {
 /** Read env at call time — module-level snapshots miss .env.local until restart. */
 function getVercelConfig(): VercelConfig | null {
   const token = process.env.VERCEL_TOKEN?.trim()
-  const projectId = process.env.VERCEL_PROJECT_ID?.trim()
+  const projectId =
+    process.env.STOREFRONT_VERCEL_PROJECT_ID?.trim() ??
+    process.env.VERCEL_PROJECT_ID?.trim()
   const teamId = process.env.VERCEL_TEAM_ID?.trim()
   if (!token || !projectId) return null
   return { token, projectId, teamId: teamId || undefined }
@@ -72,7 +74,7 @@ export interface VercelProvisioningStatus {
   projectIdPrefix: string | null
   linkedDomainCount: number
   sampleDomains: string[]
-  /** Set when VERCEL_PROJECT_ID looks like the dashboard app, not storefront. */
+  /** Set when STOREFRONT_VERCEL_PROJECT_ID looks like the dashboard app, not storefront. */
   misconfiguredHint: string | null
 }
 
@@ -126,7 +128,7 @@ export async function getVercelProvisioningStatus(): Promise<VercelProvisioningS
     linkedDomainCount: names.length,
     sampleDomains: names.slice(0, 4),
     misconfiguredHint: looksLikeDashboard
-      ? "VERCEL_PROJECT_ID looks like the dashboard Vercel project (e.g. dashboard-prood.vercel.app). Custom store domains must attach to the storefront project so traffic hits apps/storefront."
+      ? "STOREFRONT_VERCEL_PROJECT_ID looks like the dashboard Vercel project (e.g. dashboard-prood.vercel.app). It must point to the storefront project so custom store domains attach to apps/storefront."
       : null,
   }
 }

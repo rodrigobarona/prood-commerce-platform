@@ -121,7 +121,7 @@ export default async function DomainsPage() {
               ? vercelStatus?.misconfiguredHint
                 ? "Vercel is connected, but the project ID may be wrong — see the notice below."
                 : "Add a domain you own and verify it via DNS. Domains are provisioned on your storefront Vercel project."
-              : "Vercel isn't configured in this environment — domains are stored in the database only. Set VERCEL_TOKEN and VERCEL_PROJECT_ID (storefront project), then restart the dashboard dev server."}
+              : "Vercel isn't configured in this environment — domains are stored in the database only. Set VERCEL_TOKEN and STOREFRONT_VERCEL_PROJECT_ID (storefront project), then restart the dashboard dev server."}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-5">
