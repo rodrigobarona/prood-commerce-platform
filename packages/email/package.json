@@ -1,0 +1,42 @@
+{
+  "name": "@prood/email",
+  "version": "0.1.0",
+  "description": "React Email templates for Prood commerce notifications",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/src/index.js",
+  "module": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js"
+    },
+    "./emails/*": {
+      "types": "./dist/emails/*.d.ts",
+      "import": "./dist/emails/*.js"
+    }
+  },
+  "files": [
+    "dist",
+    "emails"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "email:dev": "email dev --dir emails --port 3010",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "react-email": "catalog:",
+    "tailwindcss": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "typescript": "catalog:"
+  }
+}

@@ -47,7 +47,9 @@
     "KV_REST_API_TOKEN",
     "KV_REST_API_READ_ONLY_TOKEN",
     "KV_URL",
-    "REDIS_URL"
+    "REDIS_URL",
+    "RESEND_API_KEY",
+    "RESEND_FROM_EMAIL"
   ],
   "tasks": {
     "build": {
@@ -76,6 +78,10 @@
       "dependsOn": ["^build"]
     },
     "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "email:dev": {
       "cache": false,
       "persistent": true
     }

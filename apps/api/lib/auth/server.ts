@@ -12,6 +12,7 @@ import { authDb } from "@prood/auth/db"
 import * as schema from "@prood/auth/schema"
 import { organizationHooks } from "./organization-hooks"
 import { getAgentAuthOpenAPIOptions } from "./agent-config"
+import { getMailer } from "../mailer"
 
 /**
  * Better Auth for the API app — uses shared env/origin helpers from
@@ -25,10 +26,32 @@ function createAuth() {
     process.env.BETTER_AUTH_URL?.trim() ??
     "http://localhost:3005"
   const cookieDomain = process.env.AUTH_COOKIE_DOMAIN?.trim()
+  const dashboardUrl =
+    process.env.NEXT_PUBLIC_DASHBOARD_URL?.trim() ?? "http://localhost:3002"
 
   return betterAuth({
     database: drizzleAdapter(authDb, { provider: "pg", schema }),
-    emailAndPassword: { enabled: true },
+    emailAndPassword: {
+      enabled: true,
+      sendResetPassword: async ({ user, url }) => {
+        void getMailer().send("email", {
+          to: user.email,
+          subject: "Reset your password",
+          template: "password-reset",
+          data: { companyName: "Prood", url },
+        })
+      },
+    },
+    emailVerification: {
+      sendVerificationEmail: async ({ user, url }) => {
+        void getMailer().send("email", {
+          to: user.email,
+          subject: "Confirm your email address",
+          template: "activation",
+          data: { companyName: "Prood", url },
+        })
+      },
+    },
     baseURL,
     secret,
     trustedOrigins: resolveBetterAuthTrustedOrigins,
@@ -43,6 +66,20 @@ function createAuth() {
     plugins: [
       organization({
         organizationHooks,
+        async sendInvitationEmail(data) {
+          const inviteLink = `${dashboardUrl}/invite/${data.id}`
+          void getMailer().send("email", {
+            to: data.email,
+            subject: `Join ${data.organization.name} on Prood`,
+            template: "team-invite",
+            data: {
+              companyName: data.organization.name,
+              inviterName: data.inviter.user.name ?? data.inviter.user.email,
+              inviteUrl: inviteLink,
+              role: data.role,
+            },
+          })
+        },
       }),
       apiKey(),
       agentAuth({

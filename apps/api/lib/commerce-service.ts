@@ -26,7 +26,8 @@ import {
   verifyPaymentWebhook,
   revalidateProducts,
 } from "@prood/commerce"
-import type { PaymentWebhookEvent } from "@prood/types"
+import type { PaymentWebhookEvent, Order } from "@prood/types"
+import { getMailer } from "./mailer"
 import type { PaginationParams } from "@prood/commerce"
 import type { z } from "zod"
 import { checkoutAddressBody } from "./schemas"
@@ -146,6 +147,26 @@ export const checkout = {
   },
 }
 
+async function resolveOrderEmail(orgId: string, orderId: string): Promise<{ email: string; name: string; order: Order } | null> {
+  try {
+    const adminApi = await getAdmin()
+    const order = await withTenant(orgId, () => adminApi.getOrder(orderId))
+    if (!order) return null
+
+    if (order.customerId) {
+      const customer = await withTenant(orgId, () => adminApi.getCustomer(order.customerId!))
+      if (customer?.email) {
+        const name = [customer.firstName, customer.lastName].filter(Boolean).join(" ") || "Customer"
+        return { email: customer.email, name, order }
+      }
+    }
+
+    return null
+  } catch {
+    return null
+  }
+}
+
 function resolveOrderIdFromWebhook(event: PaymentWebhookEvent): string | null {
   const data = event.data as Record<string, unknown>
   const object = (data?.data as { object?: Record<string, unknown> })?.object
@@ -172,6 +193,25 @@ export const webhooks = {
       if (event.type === "payment.captured") {
         await adapter.updateOrderStatus(orderId, { status: "processing" })
         revalidateProducts(orgId)
+
+        if (orgId) {
+          void resolveOrderEmail(orgId, orderId).then((resolved) => {
+            if (!resolved) return
+            const { email, name, order } = resolved
+            void getMailer().send("email", {
+              to: email,
+              subject: `Order #${order.orderNumber} confirmed`,
+              template: "order-confirmation",
+              data: {
+                companyName: "Prood",
+                customerName: name,
+                orderNumber: order.orderNumber,
+                orderTotal: `${order.totals.total.currency} ${order.totals.total.amount}`,
+                orderUrl: `${process.env.NEXT_PUBLIC_STOREFRONT_URL ?? "http://localhost:3000"}/account/orders`,
+              },
+            })
+          })
+        }
       } else if (event.type === "payment.failed" || event.type === "payment.cancelled") {
         await adapter.updateOrderStatus(orderId, { status: "cancelled" })
       }
@@ -214,10 +254,47 @@ export const admin = {
     ),
   getOrder: (orgId: string, id: string) =>
     withTenant(orgId, async () => (await getAdmin()).getOrder(id)),
-  fulfillOrder: (orgId: string, id: string, input: FulfillOrderInput) =>
-    withTenant(orgId, async () => (await getAdmin()).fulfillOrder(id, input)),
-  refundOrder: (orgId: string, id: string, note?: string) =>
-    withTenant(orgId, async () => (await getAdmin()).refundOrder(id, note)),
+  fulfillOrder: async (orgId: string, id: string, input: FulfillOrderInput) => {
+    await withTenant(orgId, async () => (await getAdmin()).fulfillOrder(id, input))
+
+    void resolveOrderEmail(orgId, id).then((resolved) => {
+      if (!resolved) return
+      const { email, name, order } = resolved
+      void getMailer().send("email", {
+        to: email,
+        subject: `Order #${order.orderNumber} has shipped`,
+        template: "order-shipped",
+        data: {
+          companyName: "Prood",
+          customerName: name,
+          orderNumber: order.orderNumber,
+          trackingNumber: order.trackingNumber ?? undefined,
+          trackingUrl: order.trackingUrl ?? undefined,
+          orderUrl: `${process.env.NEXT_PUBLIC_STOREFRONT_URL ?? "http://localhost:3000"}/account/orders`,
+        },
+      })
+    })
+  },
+  refundOrder: async (orgId: string, id: string, note?: string) => {
+    await withTenant(orgId, async () => (await getAdmin()).refundOrder(id, note))
+
+    void resolveOrderEmail(orgId, id).then((resolved) => {
+      if (!resolved) return
+      const { email, name, order } = resolved
+      void getMailer().send("email", {
+        to: email,
+        subject: `Refund for order #${order.orderNumber}`,
+        template: "order-refunded",
+        data: {
+          companyName: "Prood",
+          customerName: name,
+          orderNumber: order.orderNumber,
+          refundAmount: `${order.totals.total.currency} ${order.totals.total.amount}`,
+          orderUrl: `${process.env.NEXT_PUBLIC_STOREFRONT_URL ?? "http://localhost:3000"}/account/orders`,
+        },
+      })
+    })
+  },
   listCustomers: (orgId: string, q: AdminListQuery) =>
     withTenant(orgId, async () => (await getAdmin()).listCustomers(toAdminListParams(q))),
   getCustomer: (orgId: string, id: string) =>

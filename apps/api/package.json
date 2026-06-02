@@ -22,6 +22,7 @@
     "@prood/billing": "workspace:*",
     "@prood/commerce": "workspace:*",
     "@prood/platform": "workspace:*",
+    "@prood/notification-resend": "workspace:*",
     "@prood/types": "workspace:*",
     "better-auth": "catalog:",
     "drizzle-orm": "catalog:",
