@@ -10,16 +10,17 @@ import {
   deleteDomainRow,
   findDomain,
   listDomains,
+  setDomainDnsRecords,
   setDomainVerified,
 } from "@/lib/domains"
 import {
-  addProjectDomain,
+  ensureProjectDomain,
   removeProjectDomain,
   verifyProjectDomain,
   type DomainVerification,
 } from "@/lib/vercel"
 
-export async function addDomainAction(domain: string): Promise<void> {
+export async function addDomainAction(domain: string): Promise<DomainVerification> {
   const orgId = await requireActiveOrg()
   const plan = await getActiveOrganizationPlan()
   const limits = getEntitlements(plan?.planId ?? "free")
@@ -31,9 +32,13 @@ export async function addDomainAction(domain: string): Promise<void> {
   )
 
   const normalized = domain.toLowerCase().trim()
-  await addProjectDomain(normalized)
-  await createDomainRow(orgId, normalized)
+  const result = await ensureProjectDomain(normalized)
+  const id = await createDomainRow(orgId, normalized, result.instructions)
+  if (result.verified) {
+    await setDomainVerified(orgId, id, true)
+  }
   revalidatePath("/domains")
+  return result
 }
 
 export async function verifyDomainAction(
@@ -43,6 +48,7 @@ export async function verifyDomainAction(
   const row = await findDomain(orgId, id)
   if (!row) throw new Error("Domain not found")
   const result = await verifyProjectDomain(row.domain)
+  await setDomainDnsRecords(orgId, id, result.instructions)
   await setDomainVerified(orgId, id, result.verified)
   revalidatePath("/domains")
   return result

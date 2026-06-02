@@ -33,6 +33,7 @@ async function seedTenantData(): Promise<void> {
   // ---- Store ----
   await database.insert(schema.storeInfo).values({
     id: 'default',
+    organizationId: DEMO_ORG_ID,
     name: {
       en: 'Prood Demo Store',
       pt: 'Loja Demo Prood',

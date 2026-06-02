@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { Fragment } from "react"
 import { Globe, Storefront } from "@phosphor-icons/react/dist/ssr"
 import { Badge } from "@prood/ui/components/badge"
 import { DashboardEmpty } from "@/components/dashboard-empty"
@@ -19,9 +20,14 @@ import {
 } from "@prood/ui/components/table"
 import { AddDomainForm } from "@/components/domains/add-domain-form"
 import { DomainActions } from "@/components/domains/domain-actions"
+import { DomainDnsInstructions } from "@/components/domains/domain-dns-instructions"
 import { getFullActiveOrganization } from "@/lib/auth"
 import { listDomains, type TenantDomainRow } from "@/lib/domains"
-import { isVercelConfigured } from "@/lib/vercel"
+import { defaultDnsInstructions } from "@/lib/dns-records"
+import {
+  getVercelProvisioningStatus,
+  isVercelConfigured,
+} from "@/lib/vercel"
 
 export const metadata = { title: "Domains" }
 
@@ -50,6 +56,7 @@ function buildStorefrontUrl(slug: string): string {
 
 export default async function DomainsPage() {
   const org = await getFullActiveOrganization()
+  const vercelStatus = await getVercelProvisioningStatus().catch(() => null)
 
   let domains: TenantDomainRow[] = []
   if (org) {
@@ -111,11 +118,32 @@ export default async function DomainsPage() {
           <CardTitle>Custom domains</CardTitle>
           <CardDescription>
             {isVercelConfigured()
-              ? "Add a domain you own and verify it via DNS."
-              : "Vercel isn't configured in this environment — domains are stored but not provisioned. Set VERCEL_TOKEN and VERCEL_PROJECT_ID."}
+              ? vercelStatus?.misconfiguredHint
+                ? "Vercel is connected, but the project ID may be wrong — see the notice below."
+                : "Add a domain you own and verify it via DNS. Domains are provisioned on your storefront Vercel project."
+              : "Vercel isn't configured in this environment — domains are stored in the database only. Set VERCEL_TOKEN and VERCEL_PROJECT_ID (storefront project), then restart the dashboard dev server."}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-5">
+          {vercelStatus?.configured ? (
+            <div className="rounded-lg border bg-muted/30 px-4 py-3 text-sm">
+              <p>
+                Vercel project{" "}
+                <code className="rounded bg-background px-1.5 py-0.5 text-xs">
+                  {vercelStatus.projectIdPrefix}…
+                </code>{" "}
+                — {vercelStatus.linkedDomainCount} domain
+                {vercelStatus.linkedDomainCount === 1 ? "" : "s"} linked
+                {vercelStatus.sampleDomains.length > 0
+                  ? ` (e.g. ${vercelStatus.sampleDomains.join(", ")})`
+                  : ""}
+                .
+              </p>
+              {vercelStatus.misconfiguredHint ? (
+                <p className="mt-2 text-destructive">{vercelStatus.misconfiguredHint}</p>
+              ) : null}
+            </div>
+          ) : null}
           <AddDomainForm />
 
           {domains.length > 0 ? (
@@ -129,19 +157,35 @@ export default async function DomainsPage() {
               </TableHeader>
               <TableBody>
                 {domains.map((domain) => (
-                  <TableRow key={domain.id}>
-                    <TableCell className="pl-0 font-medium">
-                      {domain.domain}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={domain.verified ? "secondary" : "outline"}>
-                        {domain.verified ? "Verified" : "Pending"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DomainActions id={domain.id} verified={domain.verified} />
-                    </TableCell>
-                  </TableRow>
+                  <Fragment key={domain.id}>
+                    <TableRow>
+                      <TableCell className="pl-0 font-medium">
+                        {domain.domain}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={domain.verified ? "secondary" : "outline"}>
+                          {domain.verified ? "Verified" : "Pending"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DomainActions id={domain.id} verified={domain.verified} />
+                      </TableCell>
+                    </TableRow>
+                    {!domain.verified ? (
+                      <TableRow key={`${domain.id}-dns`}>
+                        <TableCell colSpan={3} className="pl-0 pb-4">
+                          <DomainDnsInstructions
+                            domain={domain.domain}
+                            records={
+                              domain.dnsRecords.length > 0
+                                ? domain.dnsRecords
+                                : defaultDnsInstructions(domain.domain)
+                            }
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+                  </Fragment>
                 ))}
               </TableBody>
             </Table>

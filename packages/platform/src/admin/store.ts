@@ -3,11 +3,8 @@
 // ---------------------------------------------------------------------------
 
 import type { StoreSettings, UpdateStoreInput } from './types.js'
-import {
-  findStoreInfo,
-  createStoreInfo as dbCreateStoreInfo,
-  updateStoreInfo,
-} from '../database/index.js'
+import { ensureDefaultStoreInfo } from '../tenant/store-info.js'
+import { updateStoreInfo } from '../database/index.js'
 import { normalizeLocalizedField } from '../domains/helpers.js'
 
 function mapStoreSettings(row: any): StoreSettings {
@@ -59,20 +56,7 @@ function mapStoreSettings(row: any): StoreSettings {
 export function createAdminStoreDomain() {
   return {
     async getStoreSettings(): Promise<StoreSettings> {
-      let row = await findStoreInfo('default')
-
-      if (!row) {
-        await dbCreateStoreInfo({
-          id: 'default',
-          name: { en: 'My Store' },
-          currency: 'SAR',
-          locale: 'en',
-          timezone: 'Asia/Riyadh',
-        })
-        row = await findStoreInfo('default')
-      }
-
-      if (!row) throw new Error('Failed to initialize store info')
+      const row = await ensureDefaultStoreInfo()
       return mapStoreSettings(row)
     },
 

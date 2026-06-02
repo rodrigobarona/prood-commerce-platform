@@ -28,6 +28,10 @@ export const tenantDomain = pgTable("tenant_domain", {
   domain: text("domain").notNull().unique(),
   verified: boolean("verified").notNull().default(false),
   isPrimary: boolean("is_primary").notNull().default(false),
+  dnsRecords: jsonb("dns_records")
+    .$type<{ type: string; host: string; value: string }[]>()
+    .notNull()
+    .default([]),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 })
 

@@ -18,7 +18,7 @@ export function AddDomainForm() {
     startTransition(async () => {
       try {
         await addDomainAction(domain)
-        toast.success("Domain added")
+        toast.success("Domain added — configure the DNS records below")
         setDomain("")
         router.refresh()
       } catch (err) {

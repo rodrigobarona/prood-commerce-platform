@@ -4,26 +4,13 @@
 
 import type { StoreInfo } from '@prood/types'
 import { DEFAULT_LOCALES, LOCALE_META } from '@prood/types'
-import { findStoreInfo, createStoreInfo as dbCreateStoreInfo } from '../database/index.js'
+import { ensureDefaultStoreInfo } from '../tenant/store-info.js'
 import { normalizeLocalizedField, img } from './helpers.js'
 
 export function createStoreDomain() {
   return {
     async getStoreInfo(): Promise<StoreInfo> {
-      let row = await findStoreInfo('default')
-
-      if (!row) {
-        await dbCreateStoreInfo({
-          id: 'default',
-          name: { en: 'My Store' },
-          currency: 'SAR',
-          locale: 'en',
-          timezone: 'Asia/Riyadh',
-        })
-        row = await findStoreInfo('default')
-      }
-
-      if (!row) throw new Error('Failed to initialize store info')
+      const row = await ensureDefaultStoreInfo()
 
       return {
         name: normalizeLocalizedField(row.name),

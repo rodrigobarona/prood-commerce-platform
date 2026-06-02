@@ -25,7 +25,7 @@ let _db: DrizzleDatabase | null = null
 
 // Per-request tenant context. When set, getDb() returns the transaction handle
 // bound to the tenant connection so RLS policies see `app.current_org_id`.
-const tenantStore = new AsyncLocalStorage<{ db: DrizzleTx }>()
+const tenantStore = new AsyncLocalStorage<{ db: DrizzleTx; organizationId: string }>()
 
 /**
  * Initialize the Drizzle database with a Neon serverless WebSocket Pool.
@@ -80,11 +80,16 @@ export async function withTenant<T>(
     await tx.execute(
       sql`select set_config('app.current_org_id', ${organizationId}, true)`,
     )
-    return tenantStore.run({ db: tx }, fn)
+    return tenantStore.run({ db: tx, organizationId }, fn)
   })
 }
 
-/** The organization id for the current tenant scope, if any. */
+/** Active organization id when running inside `withTenant()`. */
+export function getCurrentOrganizationId(): string | undefined {
+  return tenantStore.getStore()?.organizationId
+}
+
+/** @deprecated Prefer getCurrentOrganizationId() */
 export function currentTenantScope(): boolean {
   return tenantStore.getStore() !== undefined
 }

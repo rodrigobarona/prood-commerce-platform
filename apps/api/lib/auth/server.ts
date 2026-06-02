@@ -10,6 +10,7 @@ import {
 } from "@prood/auth/server"
 import { authDb } from "@prood/auth/db"
 import * as schema from "@prood/auth/schema"
+import { organizationHooks } from "./organization-hooks"
 import { getAgentAuthOpenAPIOptions } from "./agent-config"
 
 /**
@@ -40,7 +41,9 @@ function createAuth() {
         }
       : undefined,
     plugins: [
-      organization(),
+      organization({
+        organizationHooks,
+      }),
       apiKey(),
       agentAuth({
         modes: ["delegated", "autonomous"],

@@ -25,10 +25,10 @@ export function DomainActions({
         const result = await verifyDomainAction(id)
         if (result.verified) {
           toast.success("Domain verified")
-        } else if (result.instructions.length > 0) {
-          toast.info("Add the DNS records shown, then verify again.")
         } else {
-          toast.info("Not verified yet. Check your DNS settings.")
+          toast.info("DNS records updated", {
+            description: "Add or update the records below, then verify again.",
+          })
         }
         router.refresh()
       } catch (err) {

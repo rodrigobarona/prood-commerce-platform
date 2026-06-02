@@ -58,7 +58,14 @@ export function RegisterForm() {
       return
     }
 
-    await authClient.organization.setActive({ organizationId: org.id })
+    const { error: setActiveError } = await authClient.organization.setActive({
+      organizationId: org.id,
+    })
+    if (setActiveError) {
+      setLoading(false)
+      setError(setActiveError.message ?? "Could not activate your store")
+      return
+    }
 
     setLoading(false)
     router.push("/")

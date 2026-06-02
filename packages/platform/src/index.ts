@@ -36,6 +36,7 @@ export {
   getDrizzleDb,
   getDb,
   withTenant,
+  getCurrentOrganizationId,
   currentTenantScope,
   migrateDrizzle,
   applyTenantIsolation,
@@ -49,6 +50,10 @@ export {
   linkAuthUserToCustomer,
 } from './customers/identity.js'
 export { lookupTenantByHost } from './tenant/lookup.js'
+export {
+  ensureDefaultStoreInfo,
+  provisionOrganizationStore,
+} from './tenant/store-info.js'
 export { countProducts, countOrdersThisMonth } from './database/index.js'
 export type { DrizzleDatabase } from './database/drizzle/client.js'
 

@@ -2,12 +2,13 @@
 // Store schema — single-row store configuration
 // ---------------------------------------------------------------------------
 
-import { pgTable, text, jsonb, timestamp } from 'drizzle-orm/pg-core'
+import { pgTable, text, jsonb, timestamp, primaryKey } from 'drizzle-orm/pg-core'
 import type { LocalizedField } from '@prood/types'
 import { DEFAULT_LOCALES } from '@prood/types'
 
 export const storeInfo = pgTable('store_info', {
-  id: text('id').primaryKey().default('default'),
+  id: text('id').notNull().default('default'),
+  organizationId: text('organization_id').notNull(),
   name: jsonb('name').$type<LocalizedField>().notNull().default({}),
   description: jsonb('description').$type<LocalizedField>(),
   logo: text('logo'),
@@ -23,4 +24,6 @@ export const storeInfo = pgTable('store_info', {
   socialLinks: jsonb('social_links').$type<Record<string, string>>(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-})
+}, (table) => [
+  primaryKey({ columns: [table.id, table.organizationId] }),
+])

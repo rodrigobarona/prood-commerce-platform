@@ -289,8 +289,21 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     // Create fresh DB without seed
     await opts.setupEmpty()
     const freshAdapter = (await createPlatformAdapter()).adapter
-    const info = await freshAdapter.getStoreInfo()
+    const info = await withTenant(DEMO_ORG_ID, async () => freshAdapter.getStoreInfo())
     expect(info.name.en).toBe('My Store')
+  })
+
+  it('should provision store info when an organization is created', async () => {
+    const { provisionOrganizationStore } = await import('../tenant/store-info.js')
+    const { findStoreInfo } = await import('../database/drizzle/queries/store.js')
+    const orgId = 'org_provision_test'
+
+    await provisionOrganizationStore(orgId, { name: 'Acme Store' })
+
+    await withTenant(orgId, async () => {
+      const row = await findStoreInfo('default')
+      expect(row?.name).toEqual({ en: 'Acme Store' })
+    })
   })
 
   // ---- Customers (auth via Better Auth; adapter exposes address book only) ----
