@@ -24,7 +24,16 @@ export async function lookupTenantByHost(
     `) as { organization_id: string }[]
     if (domainRows[0]?.organization_id) return domainRows[0].organization_id
 
-    if (platformDomain && host.endsWith(`.${platformDomain}`)) {
+    if (!platformDomain) {
+      console.warn(`[tenant] NEXT_PUBLIC_PLATFORM_DOMAIN not set, cannot resolve subdomain`)
+      return null
+    }
+
+    if (host === platformDomain) {
+      return null
+    }
+
+    if (host.endsWith(`.${platformDomain}`)) {
       const slug = host.slice(0, host.length - platformDomain.length - 1)
       if (isAllowedStoreSlug(slug)) {
         const orgRows = (await sql`
@@ -35,10 +44,8 @@ export async function lookupTenantByHost(
       } else {
         console.warn(`[tenant] slug "${slug}" is reserved`)
       }
-    } else if (platformDomain) {
-      console.warn(`[tenant] host "${host}" does not match *.${platformDomain}`)
     } else {
-      console.warn(`[tenant] NEXT_PUBLIC_PLATFORM_DOMAIN not set, cannot resolve subdomain`)
+      console.warn(`[tenant] host "${host}" does not match *.${platformDomain}`)
     }
   } catch (err) {
     console.error(`[tenant] lookup failed for host "${host}":`, err)

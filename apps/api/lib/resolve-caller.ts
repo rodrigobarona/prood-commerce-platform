@@ -113,13 +113,15 @@ export async function resolveCallerFromHeaders(
     }
   }
 
-  // x-storefront-host is set by the storefront's API client and is reliable;
-  // the standard Host header can be overwritten by CDNs / HTTP clients.
-  const host = (
-    headerList.get("x-storefront-host") ?? headerList.get("host")
-  )?.split(":")[0]?.toLowerCase()
-  if (host) {
-    const hostOrgId = await lookupTenantByHost(host, PLATFORM_DOMAIN)
+  // Only trust x-storefront-host for tenant resolution — the raw Host header
+  // is the API's own hostname (e.g. api-prood.vercel.app) and can never
+  // resolve to a storefront tenant.
+  const storefrontHost = headerList
+    .get("x-storefront-host")
+    ?.split(":")[0]
+    ?.toLowerCase()
+  if (storefrontHost) {
+    const hostOrgId = await lookupTenantByHost(storefrontHost, PLATFORM_DOMAIN)
     if (hostOrgId) {
       return {
         orgId: hostOrgId,
