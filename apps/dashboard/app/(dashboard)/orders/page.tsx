@@ -16,7 +16,6 @@ import {
 } from "@prood/ui/components/table"
 import { formatPrice } from "@prood/ui/lib/commerce"
 import { TablePageSkeleton } from "@/components/skeletons"
-import { requireActiveOrg } from "@/lib/admin"
 import { listOrders } from "@/lib/admin-api"
 
 export const metadata = { title: "Orders" }
@@ -39,14 +38,13 @@ export default function OrdersPage() {
 }
 
 async function OrdersTable() {
-  await requireActiveOrg()
-
   let orders: Order[] = []
   let failed = false
   try {
     const result = await listOrders({ page: 1, perPage: 50 })
     orders = result.items
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && "digest" in error) throw error
     failed = true
   }
 

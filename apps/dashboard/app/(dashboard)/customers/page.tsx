@@ -14,7 +14,6 @@ import {
   TableRow,
 } from "@prood/ui/components/table"
 import { TablePageSkeleton } from "@/components/skeletons"
-import { requireActiveOrg } from "@/lib/admin"
 import { listCustomers } from "@/lib/admin-api"
 
 export const metadata = { title: "Customers" }
@@ -42,14 +41,13 @@ export default function CustomersPage() {
 }
 
 async function CustomersTable() {
-  await requireActiveOrg()
-
   let customers: Customer[] = []
   let failed = false
   try {
     const result = await listCustomers({ page: 1, perPage: 50 })
     customers = result.items
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && "digest" in error) throw error
     failed = true
   }
 
