@@ -116,8 +116,17 @@ function buildProxyResponse(
         ? [upstream.headers.get("set-cookie")!]
         : []
 
+  const cookieNames: string[] = []
   for (const cookie of setCookies) {
     headers.append("Set-Cookie", rewriteAuthSetCookie(cookie, requestHost))
+    const name = cookie.split("=")[0]
+    if (name) cookieNames.push(name)
+  }
+
+  if (setCookies.length > 0) {
+    console.log(
+      `[auth-proxy] ${upstream.status} — forwarding ${setCookies.length} Set-Cookie(s): [${cookieNames.join(", ")}]`
+    )
   }
 
   return new Response(upstream.body, {
@@ -127,12 +136,15 @@ function buildProxyResponse(
   })
 }
 
+/** Forward admin /api/auth/* to apps/api and rewrite Set-Cookie for same-origin sessions. */
 export async function proxyAuthRequest(request: NextRequest): Promise<Response> {
   const method = request.method.toUpperCase()
   const upstreamUrl = buildUpstreamRequestUrl(request)
   const headers = buildUpstreamHeaders(request)
   const body =
     method === "GET" || method === "HEAD" ? undefined : await request.arrayBuffer()
+
+  console.log(`[auth-proxy] ${method} ${upstreamUrl.pathname}`)
 
   const upstream = await fetch(upstreamUrl, {
     method,

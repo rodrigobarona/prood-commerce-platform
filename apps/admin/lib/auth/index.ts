@@ -1,13 +1,9 @@
 import { cache } from "react"
-import { connection } from "next/server"
-import { headers } from "next/headers"
+import { getSession as getSessionFromPackage } from "@prood/auth"
 import { getAuth, type Session } from "./server"
 
 export async function getSession(): Promise<Session | null> {
-  await connection()
-  if (process.env.NEXT_PHASE === "phase-production-build") return null
-  const headerList = await headers()
-  return getAuth().api.getSession({ headers: headerList })
+  return getSessionFromPackage(getAuth)
 }
 
 export async function getCurrentUser() {
