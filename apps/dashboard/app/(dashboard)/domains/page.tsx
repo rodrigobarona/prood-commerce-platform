@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import Link from "next/link"
 import { Fragment } from "react"
 import { Globe, Storefront } from "@phosphor-icons/react/dist/ssr"
@@ -21,6 +22,7 @@ import {
 import { AddDomainForm } from "@/components/domains/add-domain-form"
 import { DomainActions } from "@/components/domains/domain-actions"
 import { DomainDnsInstructions } from "@/components/domains/domain-dns-instructions"
+import { DomainsSkeleton } from "@/components/skeletons"
 import { getFullActiveOrganization } from "@/lib/auth"
 import { listDomains, type TenantDomainRow } from "@/lib/domains"
 import { defaultDnsInstructions } from "@/lib/dns-records"
@@ -54,7 +56,24 @@ function buildStorefrontUrl(slug: string): string {
   return `${protocol}://${host}${port}`
 }
 
-export default async function DomainsPage() {
+export default function DomainsPage() {
+  return (
+    <div className="flex flex-col gap-6">
+      <div>
+        <h2 className="font-heading text-xl font-medium">Domains</h2>
+        <p className="text-sm text-muted-foreground">
+          Connect a custom domain to your store. SSL is issued automatically.
+        </p>
+      </div>
+
+      <Suspense fallback={<DomainsSkeleton />}>
+        <DomainsContent />
+      </Suspense>
+    </div>
+  )
+}
+
+async function DomainsContent() {
   const org = await getFullActiveOrganization()
   const vercelStatus = await getVercelProvisioningStatus().catch(() => null)
 
@@ -71,14 +90,7 @@ export default async function DomainsPage() {
   const storefrontUrl = org ? buildStorefrontUrl(org.slug) : null
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h2 className="font-heading text-xl font-medium">Domains</h2>
-        <p className="text-sm text-muted-foreground">
-          Connect a custom domain to your store. SSL is issued automatically.
-        </p>
-      </div>
-
+    <>
       <Card>
         <CardHeader>
           <CardTitle>Platform subdomain</CardTitle>
@@ -199,6 +211,6 @@ export default async function DomainsPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </>
   )
 }

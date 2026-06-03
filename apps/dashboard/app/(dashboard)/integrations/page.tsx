@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import Link from "next/link"
 import { Badge } from "@prood/ui/components/badge"
 import {
@@ -6,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@prood/ui/components/card"
+import { IntegrationsSkeleton } from "@/components/skeletons"
 import { getActiveOrganizationId } from "@/lib/auth"
 import { listIntegrations, type IntegrationState } from "@/lib/integrations"
 import {
@@ -18,7 +20,24 @@ export const metadata = { title: "Integrations" }
 
 const TYPE_ORDER: ProviderType[] = ["payment", "notification", "analytics"]
 
-export default async function IntegrationsPage() {
+export default function IntegrationsPage() {
+  return (
+    <div className="flex flex-col gap-8">
+      <div>
+        <h2 className="font-heading text-xl font-medium">Integrations</h2>
+        <p className="text-sm text-muted-foreground">
+          Connect payment, notification, and analytics providers.
+        </p>
+      </div>
+
+      <Suspense fallback={<IntegrationsSkeleton />}>
+        <IntegrationsGrid />
+      </Suspense>
+    </div>
+  )
+}
+
+async function IntegrationsGrid() {
   const orgId = await getActiveOrganizationId()
   let configs = new Map<string, IntegrationState>()
   if (orgId) {
@@ -30,14 +49,7 @@ export default async function IntegrationsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <h2 className="font-heading text-xl font-medium">Integrations</h2>
-        <p className="text-sm text-muted-foreground">
-          Connect payment, notification, and analytics providers.
-        </p>
-      </div>
-
+    <>
       {TYPE_ORDER.map((type) => {
         const providers = providerRegistry.filter((p) => p.type === type)
         if (providers.length === 0) return null
@@ -85,6 +97,6 @@ export default async function IntegrationsPage() {
           </section>
         )
       })}
-    </div>
+    </>
   )
 }

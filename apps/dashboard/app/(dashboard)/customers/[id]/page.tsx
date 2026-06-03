@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { notFound } from "next/navigation"
 import type { Customer } from "@prood/commerce"
 import {
@@ -6,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@prood/ui/components/card"
+import { Skeleton } from "@prood/ui/components/skeleton"
 import { getCustomer } from "@/lib/admin-api"
 
 export const metadata = { title: "Customer" }
@@ -14,7 +16,32 @@ function fullName(customer: Customer): string {
   return [customer.firstName, customer.lastName].filter(Boolean).join(" ") || "—"
 }
 
-export default async function CustomerDetailPage({
+export default function CustomerDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex flex-col gap-6">
+          <div>
+            <Skeleton className="h-7 w-36" />
+            <Skeleton className="mt-1 h-4 w-48" />
+          </div>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <Skeleton className="h-40 rounded-xl" />
+            <Skeleton className="h-40 rounded-xl" />
+          </div>
+        </div>
+      }
+    >
+      <CustomerDetail params={params} />
+    </Suspense>
+  )
+}
+
+async function CustomerDetail({
   params,
 }: {
   params: Promise<{ id: string }>

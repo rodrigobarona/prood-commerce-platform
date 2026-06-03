@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import Link from "next/link"
 import { Users } from "@phosphor-icons/react/dist/ssr"
 import type { Customer } from "@prood/commerce"
@@ -12,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@prood/ui/components/table"
+import { TablePageSkeleton } from "@/components/skeletons"
 import { listCustomers } from "@/lib/admin-api"
 
 export const metadata = { title: "Customers" }
@@ -21,15 +23,7 @@ function fullName(customer: Customer): string {
   return name || "—"
 }
 
-export default async function CustomersPage() {
-  let customers: Customer[] = []
-  try {
-    const result = await listCustomers({ page: 1, perPage: 50 })
-    customers = result.items
-  } catch {
-    /* DB unavailable */
-  }
-
+export default function CustomersPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -39,49 +33,65 @@ export default async function CustomersPage() {
         </p>
       </div>
 
-      <Card>
-        <CardContent className="px-0">
-          {customers.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="pl-5">Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead className="pr-5 text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {customers.map((customer) => (
-                  <TableRow key={customer.id}>
-                    <TableCell className="pl-5 font-medium">
-                      {fullName(customer)}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {customer.email}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {customer.phone ?? "—"}
-                    </TableCell>
-                    <TableCell className="pr-5 text-right">
-                      <Button asChild variant="ghost" size="sm">
-                        <Link href={`/customers/${customer.id}`}>View</Link>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <DashboardEmpty
-              className="border-0 py-10"
-              icon={Users}
-              title="No customers yet"
-              description="Customers appear here after their first purchase."
-            />
-          )}
-        </CardContent>
-      </Card>
+      <Suspense fallback={<TablePageSkeleton columns={4} />}>
+        <CustomersTable />
+      </Suspense>
     </div>
+  )
+}
+
+async function CustomersTable() {
+  let customers: Customer[] = []
+  try {
+    const result = await listCustomers({ page: 1, perPage: 50 })
+    customers = result.items
+  } catch {
+    /* API unavailable */
+  }
+
+  return (
+    <Card>
+      <CardContent className="px-0">
+        {customers.length > 0 ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="pl-5">Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead className="pr-5 text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {customers.map((customer) => (
+                <TableRow key={customer.id}>
+                  <TableCell className="pl-5 font-medium">
+                    {fullName(customer)}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {customer.email}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {customer.phone ?? "—"}
+                  </TableCell>
+                  <TableCell className="pr-5 text-right">
+                    <Button asChild variant="ghost" size="sm">
+                      <Link href={`/customers/${customer.id}`}>View</Link>
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <DashboardEmpty
+            className="border-0 py-10"
+            icon={Users}
+            title="No customers yet"
+            description="Customers appear here after their first purchase."
+          />
+        )}
+      </CardContent>
+    </Card>
   )
 }

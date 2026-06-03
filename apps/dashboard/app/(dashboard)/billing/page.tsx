@@ -1,14 +1,24 @@
+import { Suspense } from "react"
 import Link from "next/link"
 import { Receipt } from "@phosphor-icons/react/dist/ssr"
 
 import { getPlanLimitsSummary, getActiveOrganizationPlan } from "@/lib/billing"
 import { DashboardEmpty } from "@/components/dashboard-empty"
+import { BillingSkeleton } from "@/components/skeletons"
 
 const webUrl = process.env.NEXT_PUBLIC_WEB_URL ?? "http://localhost:3001"
 
 export const metadata = { title: "Billing" }
 
-export default async function BillingPage() {
+export default function BillingPage() {
+  return (
+    <Suspense fallback={<BillingSkeleton />}>
+      <BillingContent />
+    </Suspense>
+  )
+}
+
+async function BillingContent() {
   const plan = await getActiveOrganizationPlan()
   const planName = plan?.planName ?? "Free"
   const limits = getPlanLimitsSummary(plan?.planId ?? "free")

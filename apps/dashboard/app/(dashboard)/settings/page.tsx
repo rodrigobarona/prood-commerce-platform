@@ -1,9 +1,11 @@
+import { Suspense } from "react"
 import type { StoreSettings } from "@prood/commerce"
 import { DashboardFormPage } from "@/components/layout/dashboard-page"
 import {
   SettingsForm,
   type SettingsFormValues,
 } from "@/components/store/settings-form"
+import { FormPageSkeleton } from "@/components/skeletons"
 import { emptyLocalizedField } from "@/lib/localized-field"
 import { getStoreSettings } from "@/lib/admin-api"
 
@@ -33,15 +35,7 @@ function toFormValues(settings: StoreSettings): SettingsFormValues {
   }
 }
 
-export default async function SettingsPage() {
-  let initial = EMPTY
-  try {
-    const settings = await getStoreSettings()
-    initial = toFormValues(settings)
-  } catch {
-    /* DB unavailable — render empty form */
-  }
-
+export default function SettingsPage() {
   return (
     <DashboardFormPage>
       <div>
@@ -50,7 +44,21 @@ export default async function SettingsPage() {
           Configure your store details and preferences.
         </p>
       </div>
-      <SettingsForm initial={initial} />
+      <Suspense fallback={<FormPageSkeleton />}>
+        <SettingsFormLoader />
+      </Suspense>
     </DashboardFormPage>
   )
+}
+
+async function SettingsFormLoader() {
+  let initial = EMPTY
+  try {
+    const settings = await getStoreSettings()
+    initial = toFormValues(settings)
+  } catch {
+    /* DB unavailable — render empty form */
+  }
+
+  return <SettingsForm initial={initial} />
 }

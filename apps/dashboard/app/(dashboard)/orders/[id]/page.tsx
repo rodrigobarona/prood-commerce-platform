@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { notFound } from "next/navigation"
 import type { Order } from "@prood/commerce"
 import { Badge } from "@prood/ui/components/badge"
@@ -8,6 +9,7 @@ import {
   CardTitle,
 } from "@prood/ui/components/card"
 import { Separator } from "@prood/ui/components/separator"
+import { Skeleton } from "@prood/ui/components/skeleton"
 import { localized, formatPrice } from "@prood/ui/lib/commerce"
 import { OrderActions } from "@/components/store/order-actions"
 import { getOrder } from "@/lib/admin-api"
@@ -17,7 +19,32 @@ export const metadata = { title: "Order" }
 const FULFILLABLE = new Set(["pending", "processing"])
 const REFUNDABLE = new Set(["pending", "processing", "shipped", "delivered"])
 
-export default async function OrderDetailPage({
+export default function OrderDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}) {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex flex-col gap-6">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-7 w-24" />
+            <Skeleton className="h-5 w-16 rounded-full" />
+          </div>
+          <div className="grid gap-6 lg:grid-cols-3">
+            <Skeleton className="h-80 rounded-xl lg:col-span-2" />
+            <Skeleton className="h-48 rounded-xl" />
+          </div>
+        </div>
+      }
+    >
+      <OrderDetail params={params} />
+    </Suspense>
+  )
+}
+
+async function OrderDetail({
   params,
 }: {
   params: Promise<{ id: string }>

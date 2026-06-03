@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { UsersThree } from "@phosphor-icons/react/dist/ssr"
 import { Badge } from "@prood/ui/components/badge"
 import { DashboardEmpty } from "@/components/dashboard-empty"
@@ -21,21 +22,12 @@ import {
   CancelInvitationButton,
   RemoveMemberButton,
 } from "@/components/team/team-actions"
+import { TablePageSkeleton } from "@/components/skeletons"
 import { getCurrentUser, getFullActiveOrganization } from "@/lib/auth"
 
 export const metadata = { title: "Team" }
 
-export default async function TeamPage() {
-  const [org, currentUser] = await Promise.all([
-    getFullActiveOrganization(),
-    getCurrentUser(),
-  ])
-
-  const members = org?.members ?? []
-  const invitations = (org?.invitations ?? []).filter(
-    (invite) => invite.status === "pending"
-  )
-
+export default function TeamPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -57,6 +49,26 @@ export default async function TeamPage() {
         </CardContent>
       </Card>
 
+      <Suspense fallback={<TablePageSkeleton columns={4} />}>
+        <TeamContent />
+      </Suspense>
+    </div>
+  )
+}
+
+async function TeamContent() {
+  const [org, currentUser] = await Promise.all([
+    getFullActiveOrganization(),
+    getCurrentUser(),
+  ])
+
+  const members = org?.members ?? []
+  const invitations = (org?.invitations ?? []).filter(
+    (invite) => invite.status === "pending"
+  )
+
+  return (
+    <>
       <Card>
         <CardHeader>
           <CardTitle>Members</CardTitle>
@@ -146,6 +158,6 @@ export default async function TeamPage() {
           </CardContent>
         </Card>
       ) : null}
-    </div>
+    </>
   )
 }

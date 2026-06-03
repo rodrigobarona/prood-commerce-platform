@@ -1,9 +1,11 @@
+import { Suspense } from "react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { connection } from "next/server"
 import { ArrowLeft } from "@phosphor-icons/react/dist/ssr"
 import { DashboardFormPage } from "@/components/layout/dashboard-page"
 import { ProviderConfigForm } from "@/components/integrations/provider-config-form"
+import { FormPageSkeleton } from "@/components/skeletons"
 import { getActiveOrganizationId } from "@/lib/auth"
 import { getIntegration } from "@/lib/integrations"
 import { getProvider, providerRegistry } from "@/lib/providers"
@@ -12,7 +14,21 @@ export function generateStaticParams() {
   return providerRegistry.map((p) => ({ provider: p.id }))
 }
 
-export default async function IntegrationConfigPage({
+export default function IntegrationConfigPage({
+  params,
+}: {
+  params: Promise<{ provider: string }>
+}) {
+  return (
+    <DashboardFormPage>
+      <Suspense fallback={<FormPageSkeleton />}>
+        <IntegrationConfigContent params={params} />
+      </Suspense>
+    </DashboardFormPage>
+  )
+}
+
+async function IntegrationConfigContent({
   params,
 }: {
   params: Promise<{ provider: string }>
@@ -32,8 +48,6 @@ export default async function IntegrationConfigPage({
     }
   }
 
-  // Never send stored secrets to the client. Text fields are pre-filled; secret
-  // fields are blank and shown as "saved" via configuredKeys.
   const initialValues: Record<string, string> = {}
   const configuredKeys: string[] = []
   for (const field of meta.fields) {
@@ -45,7 +59,7 @@ export default async function IntegrationConfigPage({
   }
 
   return (
-    <DashboardFormPage>
+    <>
       <div className="flex flex-col gap-2">
         <Link
           href="/integrations"
@@ -77,6 +91,6 @@ export default async function IntegrationConfigPage({
         initialEnabled={state?.enabled ?? false}
         connected={Boolean(state)}
       />
-    </DashboardFormPage>
+    </>
   )
 }

@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import Link from "next/link"
 import { Package, Plus } from "@phosphor-icons/react/dist/ssr"
 import type { Product } from "@prood/commerce"
@@ -17,11 +18,37 @@ import {
   TableRow,
 } from "@prood/ui/components/table"
 import { localized, formatPrice } from "@prood/ui/lib/commerce"
+import { TablePageSkeleton } from "@/components/skeletons"
 import { listProducts } from "@/lib/admin-api"
 
 export const metadata = { title: "Products" }
 
-export default async function ProductsPage() {
+export default function ProductsPage() {
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-heading text-xl font-medium">Products</h2>
+          <p className="text-sm text-muted-foreground">
+            Manage your product catalog.
+          </p>
+        </div>
+        <Button asChild>
+          <Link href="/products/new">
+            <Plus />
+            <span>New product</span>
+          </Link>
+        </Button>
+      </div>
+
+      <Suspense fallback={<TablePageSkeleton columns={6} />}>
+        <ProductsTable />
+      </Suspense>
+    </div>
+  )
+}
+
+async function ProductsTable() {
   let products: Product[] = []
   let total = 0
   let failed = false
@@ -34,22 +61,12 @@ export default async function ProductsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="font-heading text-xl font-medium">Products</h2>
-          <p className="text-sm text-muted-foreground">
-            {total} {total === 1 ? "product" : "products"} in your catalog.
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/products/new">
-            <Plus />
-            <span>New product</span>
-          </Link>
-        </Button>
-      </div>
-
+    <>
+      {!failed && (
+        <p className="-mt-4 text-sm text-muted-foreground">
+          {total} {total === 1 ? "product" : "products"} in your catalog.
+        </p>
+      )}
       <Card>
         <CardContent className="px-0">
           {products.length > 0 ? (
@@ -113,6 +130,6 @@ export default async function ProductsPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </>
   )
 }
