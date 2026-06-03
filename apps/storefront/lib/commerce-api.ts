@@ -1,4 +1,5 @@
 import "server-only"
+import { connection } from "next/server"
 import { headers } from "next/headers"
 import { createCommerceApiClient } from "@prood/api-client"
 
@@ -22,6 +23,7 @@ function isResolvableStorefrontHost(host: string): boolean {
 
 /** Server-side client — forwards Host + cookies for tenant/session resolution on apps/api. */
 export async function getCommerceApi() {
+  await connection()
   const headerList = await headers()
   const rawHost = headerList.get("host")?.split(":")[0]?.toLowerCase()
   const storefrontHost =
