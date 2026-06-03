@@ -31,9 +31,17 @@ export async function lookupTenantByHost(
           SELECT id FROM organization WHERE slug = ${slug} LIMIT 1
         `) as { id: string }[]
         if (orgRows[0]?.id) return orgRows[0].id
+        console.warn(`[tenant] slug "${slug}" not found in organization table`)
+      } else {
+        console.warn(`[tenant] slug "${slug}" is reserved`)
       }
+    } else if (platformDomain) {
+      console.warn(`[tenant] host "${host}" does not match *.${platformDomain}`)
+    } else {
+      console.warn(`[tenant] NEXT_PUBLIC_PLATFORM_DOMAIN not set, cannot resolve subdomain`)
     }
-  } catch {
+  } catch (err) {
+    console.error(`[tenant] lookup failed for host "${host}":`, err)
     return null
   }
   return null

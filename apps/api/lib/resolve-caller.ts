@@ -112,7 +112,11 @@ export async function resolveCallerFromHeaders(
     }
   }
 
-  const host = headerList.get("host")?.split(":")[0]?.toLowerCase()
+  // x-storefront-host is set by the storefront's API client and is reliable;
+  // the standard Host header can be overwritten by CDNs / HTTP clients.
+  const host = (
+    headerList.get("x-storefront-host") ?? headerList.get("host")
+  )?.split(":")[0]?.toLowerCase()
   if (host) {
     const hostOrgId = await lookupTenantByHost(host, PLATFORM_DOMAIN)
     if (hostOrgId) {

@@ -27,6 +27,9 @@ export function createCommerceApiClient(
         request.headers.set("cookie", options.cookie)
       }
       if (options.host) {
+        // x-storefront-host is the reliable channel — HTTP clients and CDNs
+        // may overwrite the Host header with the actual destination hostname.
+        request.headers.set("x-storefront-host", options.host)
         request.headers.set("host", options.host)
       }
       return request
