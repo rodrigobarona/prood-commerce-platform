@@ -1,6 +1,6 @@
 import "server-only"
 import { headers } from "next/headers"
-import { notFound } from "next/navigation"
+import { redirect } from "next/navigation"
 import { cacheLife, cacheTag } from "next/cache"
 import { lookupTenantByHost } from "./tenant-db"
 
@@ -10,10 +10,11 @@ import { lookupTenantByHost } from "./tenant-db"
  * - Custom domains via `tenant_domain` (verified)
  * - `{slug}.{NEXT_PUBLIC_PLATFORM_DOMAIN}` via `organization.slug`
  * - `DEFAULT_TENANT_ORG_ID` when set (local dev / single-tenant)
- * - Otherwise 404
+ * - Otherwise redirect to marketing site
  */
 const EXPLICIT_DEFAULT = process.env.DEFAULT_TENANT_ORG_ID
 const PLATFORM_DOMAIN = process.env.NEXT_PUBLIC_PLATFORM_DOMAIN
+const MARKETING_URL = process.env.NEXT_PUBLIC_WEB_URL ?? "http://localhost:3001"
 
 async function lookupTenantIdForHost(host: string): Promise<string | null> {
   "use cache"
@@ -27,5 +28,5 @@ export async function resolveTenantId(): Promise<string> {
   const orgId = host ? await lookupTenantIdForHost(host) : null
   if (orgId) return orgId
   if (EXPLICIT_DEFAULT) return EXPLICIT_DEFAULT
-  notFound()
+  redirect(MARKETING_URL)
 }
