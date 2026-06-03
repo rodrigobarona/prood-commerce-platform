@@ -1,14 +1,15 @@
 import "server-only"
-import { redirect } from "next/navigation"
 import { getAdmin, withTenant } from "@prood/commerce"
 import { getActiveOrganizationId } from "@/lib/auth"
 
 type Admin = Awaited<ReturnType<typeof getAdmin>>
 
-/** The active organization id, or redirect to pick/create one. */
+/** The active organization id, or throw if none is resolvable. */
 export async function requireActiveOrg(): Promise<string> {
   const orgId = await getActiveOrganizationId()
-  if (!orgId) redirect("/")
+  if (!orgId) {
+    throw new Error("No active organization. Select or create a store.")
+  }
   return orgId
 }
 

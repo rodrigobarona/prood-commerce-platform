@@ -17,6 +17,10 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    return <>{children}</>
+  }
+
   let session: Awaited<ReturnType<typeof getSession>> = null
   try {
     session = await getSession()
@@ -24,9 +28,6 @@ export default async function DashboardLayout({
     console.error("[DashboardLayout] getSession() threw:", err)
   }
   if (!session) {
-    if (process.env.NEXT_PHASE !== "phase-production-build") {
-      console.warn("[DashboardLayout] session is null — redirecting to /login")
-    }
     redirect("/login")
   }
 

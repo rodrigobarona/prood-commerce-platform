@@ -15,10 +15,10 @@ export const getSession = cache(async function getSession(
   getAuth: () => AuthInstance,
   requestHeaders?: Headers
 ): Promise<Session | null> {
-  await connection()
   if (process.env.NEXT_PHASE === "phase-production-build") {
     return null
   }
+  await connection()
   const headerList = requestHeaders ?? (await headers())
   return getAuth().api.getSession({ headers: headerList })
 })

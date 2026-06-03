@@ -38,7 +38,8 @@ export const getActiveOrganizationId = cache(
     let orgs: Awaited<ReturnType<typeof listOrganizations>>
     try {
       orgs = await listOrganizations()
-    } catch {
+    } catch (err) {
+      console.error("[getActiveOrganizationId] listOrganizations failed:", err)
       return null
     }
     const first = orgs[0]
@@ -49,8 +50,8 @@ export const getActiveOrganizationId = cache(
         headers: await headers(),
         body: { organizationId: first.id },
       })
-    } catch {
-      /* DB unavailable — still scope this request to the first store. */
+    } catch (err) {
+      console.error("[getActiveOrganizationId] setActiveOrganization failed:", err)
     }
 
     return first.id
