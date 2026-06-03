@@ -19,6 +19,7 @@ import {
 } from "@prood/ui/components/table"
 import { localized, formatPrice } from "@prood/ui/lib/commerce"
 import { TablePageSkeleton } from "@/components/skeletons"
+import { requireActiveOrg } from "@/lib/admin"
 import { listProducts } from "@/lib/admin-api"
 
 export const metadata = { title: "Products" }
@@ -49,6 +50,8 @@ export default function ProductsPage() {
 }
 
 async function ProductsTable() {
+  await requireActiveOrg()
+
   let products: Product[] = []
   let total = 0
   let failed = false

@@ -2,6 +2,7 @@
 
 import type { Address, Order } from "@prood/types"
 import { priceToMajorAmount } from "@prood/types"
+import { unwrap } from "@prood/api-client"
 import { headers } from "next/headers"
 import { clearCartId, getCartId } from "@/lib/cart-cookie"
 import { getCommerceApi } from "@/lib/commerce-api"
@@ -20,15 +21,6 @@ export interface StartCheckoutInput {
   email: string
   address: Partial<CheckoutAddress>
   providerId?: string
-}
-
-async function unwrap<T>(
-  promise: Promise<{ data?: unknown; error?: unknown }>
-): Promise<T> {
-  const { data, error } = await promise
-  if (error) throw error
-  if (data === undefined) throw new Error("Empty API response")
-  return data as T
 }
 
 export async function startCheckout(input: StartCheckoutInput): Promise<CheckoutResult> {

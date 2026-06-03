@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@prood/ui/components/table"
 import { TablePageSkeleton } from "@/components/skeletons"
+import { requireActiveOrg } from "@/lib/admin"
 import { listCustomers } from "@/lib/admin-api"
 
 export const metadata = { title: "Customers" }
@@ -41,12 +42,15 @@ export default function CustomersPage() {
 }
 
 async function CustomersTable() {
+  await requireActiveOrg()
+
   let customers: Customer[] = []
+  let failed = false
   try {
     const result = await listCustomers({ page: 1, perPage: 50 })
     customers = result.items
   } catch {
-    /* API unavailable */
+    failed = true
   }
 
   return (
@@ -87,8 +91,12 @@ async function CustomersTable() {
           <DashboardEmpty
             className="border-0 py-10"
             icon={Users}
-            title="No customers yet"
-            description="Customers appear here after their first purchase."
+            title={failed ? "Customers unavailable" : "No customers yet"}
+            description={
+              failed
+                ? "Could not load customers. Check the API connection."
+                : "Customers appear here after their first purchase."
+            }
           />
         )}
       </CardContent>

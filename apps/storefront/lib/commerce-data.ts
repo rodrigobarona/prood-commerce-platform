@@ -1,19 +1,11 @@
 import "server-only"
 import type { Cart, Category, Order, Product, StoreInfo } from "@prood/types"
+import { unwrap } from "@prood/api-client"
 
 type ProductListResult = {
   products: { items: Product[]; total: number }
 }
 import { getCommerceApi } from "@/lib/commerce-api"
-
-async function unwrap<T>(
-  promise: Promise<{ data?: unknown; error?: unknown }>
-): Promise<T> {
-  const { data, error } = await promise
-  if (error) throw error
-  if (data === undefined) throw new Error("Empty API response")
-  return data as T
-}
 
 export async function fetchProductList(
   query: Record<string, string | number | undefined> = {}

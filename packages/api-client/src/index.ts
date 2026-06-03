@@ -4,6 +4,16 @@ import type { paths } from "./schema"
 export type { paths }
 export type CommerceApiClient = Client<paths>
 
+/** Unwrap an `openapi-fetch` response, throwing on error or empty data. */
+export async function unwrap<T>(
+  promise: Promise<{ data?: unknown; error?: unknown }>
+): Promise<T> {
+  const { data, error } = await promise
+  if (error) throw error
+  if (data === undefined) throw new Error("Empty API response")
+  return data as T
+}
+
 export interface CreateCommerceApiClientOptions {
   /** Base URL including `/v1`, e.g. `https://api.example.com/v1` */
   baseUrl: string

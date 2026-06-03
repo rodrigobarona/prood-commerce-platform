@@ -16,6 +16,7 @@ import {
 } from "@prood/ui/components/table"
 import { formatPrice } from "@prood/ui/lib/commerce"
 import { TablePageSkeleton } from "@/components/skeletons"
+import { requireActiveOrg } from "@/lib/admin"
 import { listOrders } from "@/lib/admin-api"
 
 export const metadata = { title: "Orders" }
@@ -38,12 +39,15 @@ export default function OrdersPage() {
 }
 
 async function OrdersTable() {
+  await requireActiveOrg()
+
   let orders: Order[] = []
+  let failed = false
   try {
     const result = await listOrders({ page: 1, perPage: 50 })
     orders = result.items
   } catch {
-    /* API unavailable */
+    failed = true
   }
 
   return (
@@ -86,8 +90,12 @@ async function OrdersTable() {
           <DashboardEmpty
             className="border-0 py-10"
             icon={ShoppingBag}
-            title="No orders yet"
-            description="When customers place orders, they'll show up here."
+            title={failed ? "Orders unavailable" : "No orders yet"}
+            description={
+              failed
+                ? "Could not load orders. Check the API connection."
+                : "When customers place orders, they'll show up here."
+            }
           />
         )}
       </CardContent>

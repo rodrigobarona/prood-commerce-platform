@@ -7,6 +7,7 @@ import {
 } from "@/components/store/settings-form"
 import { FormPageSkeleton } from "@/components/skeletons"
 import { emptyLocalizedField } from "@/lib/localized-field"
+import { requireActiveOrg } from "@/lib/admin"
 import { getStoreSettings } from "@/lib/admin-api"
 
 export const metadata = { title: "Store settings" }
@@ -52,12 +53,14 @@ export default function SettingsPage() {
 }
 
 async function SettingsFormLoader() {
+  await requireActiveOrg()
+
   let initial = EMPTY
   try {
     const settings = await getStoreSettings()
     initial = toFormValues(settings)
   } catch {
-    /* DB unavailable — render empty form */
+    /* API unavailable — render empty form */
   }
 
   return <SettingsForm initial={initial} />

@@ -14,6 +14,7 @@ import {
   RecentOrdersSkeleton,
 } from "@/components/skeletons"
 import type { DashboardStats } from "@prood/commerce"
+import { requireActiveOrg } from "@/lib/admin"
 import { getDashboardStats, getStoreSettings } from "@/lib/admin-api"
 
 export const metadata = { title: "Overview" }
@@ -51,6 +52,8 @@ export default function OverviewPage() {
 }
 
 async function StatsCards() {
+  await requireActiveOrg()
+
   let stats: DashboardStats | null = null
   let currency = "EUR"
   try {
@@ -61,7 +64,7 @@ async function StatsCards() {
     stats = dashboard
     currency = settings.currency
   } catch {
-    /* API unavailable */
+    /* API unavailable — show "—" for all values */
   }
 
   const cards = [
@@ -92,6 +95,8 @@ async function StatsCards() {
 }
 
 async function RecentOrders() {
+  await requireActiveOrg()
+
   let stats: DashboardStats | null = null
   let currency = "EUR"
   try {
@@ -102,7 +107,7 @@ async function RecentOrders() {
     stats = dashboard
     currency = settings.currency
   } catch {
-    /* API unavailable */
+    /* API unavailable — show empty state */
   }
 
   return (
