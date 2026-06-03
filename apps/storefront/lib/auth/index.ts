@@ -12,8 +12,8 @@ import { getAuth, type Session } from "./server"
  * during prerender.
  */
 export const getSession = cache(async function getSession(): Promise<Session | null> {
-  await connection()
   if (process.env.NEXT_PHASE === "phase-production-build") return null
+  await connection()
   return getAuth().api.getSession({ headers: await headers() })
 })
 

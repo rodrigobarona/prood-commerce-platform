@@ -12,6 +12,10 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
+  if (process.env.NEXT_PHASE === "phase-production-build") {
+    return <>{children}</>
+  }
+
   let session: Awaited<ReturnType<typeof requireAdmin>> = null
   try {
     session = await requireAdmin()
@@ -20,9 +24,6 @@ export default async function AdminLayout({
   }
 
   if (!session) {
-    if (process.env.NEXT_PHASE !== "phase-production-build") {
-      console.warn("[AdminLayout] session is null — redirecting to /login")
-    }
     redirect("/login")
   }
 

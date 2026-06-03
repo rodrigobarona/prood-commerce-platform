@@ -4,8 +4,8 @@ import { cookies } from "next/headers"
 import { validateSessionToken, type Session } from "./server"
 
 export const getSession = cache(async function getSession(): Promise<Session | null> {
-  await connection()
   if (process.env.NEXT_PHASE === "phase-production-build") return null
+  await connection()
 
   const cookieStore = await cookies()
   const sessionCookie = cookieStore.get("better-auth.session_token")
