@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import type { Order } from "@prood/types"
@@ -8,7 +9,26 @@ import { fetchCustomerOrders } from "@/lib/commerce-data"
 
 export const metadata = { title: "My account" }
 
-export default async function AccountPage() {
+function AccountSkeleton() {
+  return (
+    <div className="flex flex-col gap-8 animate-pulse">
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <div className="h-7 w-40 rounded bg-muted" />
+          <div className="h-4 w-56 rounded bg-muted" />
+        </div>
+        <div className="h-9 w-24 rounded bg-muted" />
+      </div>
+      <div className="space-y-3">
+        <div className="h-5 w-32 rounded bg-muted" />
+        <div className="h-24 rounded-lg bg-muted" />
+        <div className="h-24 rounded-lg bg-muted" />
+      </div>
+    </div>
+  )
+}
+
+async function AccountContent() {
   const user = await getCurrentUser()
   if (!user) redirect("/login?redirect=/account")
 
@@ -21,7 +41,7 @@ export default async function AccountPage() {
   }
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-8 px-4 py-8">
+    <>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">My account</h1>
@@ -43,6 +63,16 @@ export default async function AccountPage() {
           <p className="text-muted-foreground text-sm">No orders yet.</p>
         )}
       </section>
+    </>
+  )
+}
+
+export default function AccountPage() {
+  return (
+    <div className="mx-auto flex max-w-3xl flex-col gap-8 px-4 py-8">
+      <Suspense fallback={<AccountSkeleton />}>
+        <AccountContent />
+      </Suspense>
     </div>
   )
 }

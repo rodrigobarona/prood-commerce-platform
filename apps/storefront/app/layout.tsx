@@ -20,12 +20,16 @@ export const metadata: Metadata = {
   description: "A commerce-agnostic storefront built with Next.js.",
 }
 
-export default async function RootLayout({
+async function TenantGuard({ children }: { children: React.ReactNode }) {
+  await resolveTenantId()
+  return <>{children}</>
+}
+
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  await resolveTenantId()
   return (
     <html
       lang="en"
@@ -34,13 +38,15 @@ export default async function RootLayout({
     >
       <body className="flex min-h-svh flex-col">
         <Suspense fallback={null}>
-          <AppProviders>
-            <Suspense fallback={null}>
-              <Header />
-            </Suspense>
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </AppProviders>
+          <TenantGuard>
+            <AppProviders>
+              <Suspense fallback={null}>
+                <Header />
+              </Suspense>
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </AppProviders>
+          </TenantGuard>
         </Suspense>
       </body>
     </html>
