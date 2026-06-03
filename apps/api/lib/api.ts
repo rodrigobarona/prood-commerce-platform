@@ -4,7 +4,9 @@ import { toErrorResponse } from "@prood/types"
 /** Build a JSON error response from any thrown error (Commerce/Zod/unknown). */
 export function errorResponse(err: unknown): NextResponse {
   const { status, body } = toErrorResponse(err)
-  if (status >= 500) {
+  const isPrerenderError =
+    err instanceof Error && "digest" in err && typeof (err as { digest: unknown }).digest === "string"
+  if (status >= 500 && !isPrerenderError) {
     console.error("[api]", err)
   }
   if (
