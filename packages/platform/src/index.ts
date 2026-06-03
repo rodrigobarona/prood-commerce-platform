@@ -48,6 +48,7 @@ export {
   ensureGuestCustomer,
   resolveCustomerIdForAuthUser,
   linkAuthUserToCustomer,
+  autoLinkGuestCustomers,
 } from './customers/identity.js'
 export { lookupTenantByHost } from './tenant/lookup.js'
 export {

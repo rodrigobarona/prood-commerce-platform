@@ -2,7 +2,7 @@
 // Drizzle: Customer queries
 // ---------------------------------------------------------------------------
 
-import { eq, and, isNotNull } from 'drizzle-orm'
+import { eq, and, isNull, isNotNull } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
 import { tenantCondition, requireOrgId } from './tenant-filter.js'
@@ -24,6 +24,7 @@ export async function findCustomerById(id: string) {
 export async function createCustomer(data: {
   id?: string
   authUserId?: string | null
+  email?: string | null
   firstName?: string | null
   lastName?: string | null
   phone?: string | null
@@ -34,6 +35,7 @@ export async function createCustomer(data: {
     id,
     organizationId: orgId,
     authUserId: data.authUserId ?? null,
+    email: data.email ?? null,
     firstName: data.firstName ?? null,
     lastName: data.lastName ?? null,
     phone: data.phone ?? null,
@@ -106,4 +108,36 @@ export async function countCustomersWithAuthUser() {
     .from(schema.customers)
     .where(and(isNotNull(schema.customers.authUserId), tenantCondition(schema.customers)))
   return rows.length
+}
+
+/**
+ * Find all unlinked guest customer rows matching an email (cross-tenant).
+ * Used by the registration auto-link hook — intentionally bypasses tenant scope.
+ */
+export async function findGuestCustomersByEmail(email: string) {
+  return getDb()
+    .select({ id: schema.customers.id, organizationId: schema.customers.organizationId })
+    .from(schema.customers)
+    .where(
+      and(
+        eq(schema.customers.email, email),
+        isNull(schema.customers.authUserId),
+      ),
+    )
+}
+
+/**
+ * Link a guest customer to an auth user (cross-tenant).
+ * Bypasses tenant scope — used only by the registration auto-link hook.
+ */
+export async function linkGuestCustomerToAuthUser(customerId: string, authUserId: string) {
+  await getDb()
+    .update(schema.customers)
+    .set({ authUserId, updatedAt: new Date() } as typeof schema.customers.$inferInsert)
+    .where(
+      and(
+        eq(schema.customers.id, customerId),
+        isNull(schema.customers.authUserId),
+      ),
+    )
 }

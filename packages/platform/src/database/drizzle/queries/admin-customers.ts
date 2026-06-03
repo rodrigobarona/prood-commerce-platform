@@ -24,12 +24,12 @@ export async function adminFindAllCustomers(opts: {
     ? sql`AND (
         c.first_name ILIKE ${`%${search}%`}
         OR c.last_name ILIKE ${`%${search}%`}
-        OR u.email ILIKE ${`%${search}%`}
+        OR COALESCE(u.email, c.email) ILIKE ${`%${search}%`}
       )`
     : sql``
 
   const rows = await db.execute(sql`
-    SELECT c.*, u.email AS user_email
+    SELECT c.*, COALESCE(u.email, c.email) AS user_email
     FROM customers c
     LEFT JOIN "user" u ON c.auth_user_id = u.id
     WHERE c.organization_id = ${orgId} ${searchClause}
@@ -67,7 +67,7 @@ export async function adminFindCustomerById(id: string): Promise<AdminCustomerRo
   const db = getDb()
   const orgId = requireOrgId()
   const result = await db.execute(sql`
-    SELECT c.*, u.email AS user_email
+    SELECT c.*, COALESCE(u.email, c.email) AS user_email
     FROM customers c
     LEFT JOIN "user" u ON c.auth_user_id = u.id
     WHERE c.id = ${id} AND c.organization_id = ${orgId}

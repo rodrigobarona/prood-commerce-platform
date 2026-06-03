@@ -10,6 +10,7 @@ import {
 } from "@prood/auth/server"
 import { authDb } from "@prood/auth/db"
 import * as schema from "@prood/auth/schema"
+import { autoLinkGuestCustomers } from "@prood/platform"
 import { organizationHooks } from "./organization-hooks"
 import { getAgentAuthOpenAPIOptions } from "./agent-config"
 import { getMailer } from "../mailer"
@@ -31,6 +32,24 @@ function createAuth() {
 
   return betterAuth({
     database: drizzleAdapter(authDb, { provider: "pg", schema }),
+    databaseHooks: {
+      user: {
+        create: {
+          after: async (user) => {
+            if (user.email) {
+              try {
+                const linked = await autoLinkGuestCustomers(user.id, user.email)
+                if (linked > 0) {
+                  console.log(`[auth] Auto-linked ${linked} guest customer(s) for ${user.email}`)
+                }
+              } catch (err) {
+                console.error("[auth] Guest auto-link failed:", err)
+              }
+            }
+          },
+        },
+      },
+    },
     emailAndPassword: {
       enabled: true,
       sendResetPassword: async ({ user, url }) => {

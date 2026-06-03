@@ -124,6 +124,7 @@ export async function migrateDrizzle(connectionString?: string) {
   await db.execute(sql`CREATE TABLE IF NOT EXISTS customers (
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
     auth_user_id TEXT,
+    email TEXT,
     first_name TEXT,
     last_name TEXT,
     phone TEXT,
@@ -131,6 +132,10 @@ export async function migrateDrizzle(connectionString?: string) {
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`)
+
+  await db.execute(sql.raw(
+    `ALTER TABLE customers ADD COLUMN IF NOT EXISTS email TEXT`
+  ))
 
   await db.execute(sql`CREATE TABLE IF NOT EXISTS customer_addresses (
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),

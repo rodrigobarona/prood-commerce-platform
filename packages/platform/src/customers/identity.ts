@@ -6,7 +6,9 @@ import {
   createCustomer,
   findCustomerByAuthUserId,
   findCustomerById,
+  findGuestCustomersByEmail,
   linkCustomerAuthUser,
+  linkGuestCustomerToAuthUser,
 } from '../database/drizzle/queries/customers.js'
 
 /** Resolve or create a tenant-scoped commerce customer for a logged-in buyer. */
@@ -25,9 +27,19 @@ export async function ensureCustomerForAuthUser(
   })
 }
 
-/** Create an anonymous guest customer (UUID only — no PII on row). */
-export async function ensureGuestCustomer(): Promise<string> {
-  return createCustomer({})
+/** Create a guest customer with optional buyer info from checkout. */
+export async function ensureGuestCustomer(profile?: {
+  email?: string | null
+  firstName?: string | null
+  lastName?: string | null
+  phone?: string | null
+}): Promise<string> {
+  return createCustomer({
+    email: profile?.email ?? null,
+    firstName: profile?.firstName ?? null,
+    lastName: profile?.lastName ?? null,
+    phone: profile?.phone ?? null,
+  })
 }
 
 /** Look up commerce customer id for a Better Auth user within the active tenant. */
@@ -48,4 +60,22 @@ export async function linkAuthUserToCustomer(customerId: string, authUserId: str
     throw new Error('Account is already linked to another customer profile')
   }
   await linkCustomerAuthUser(customerId, authUserId)
+}
+
+/**
+ * Auto-link all guest customer rows that match a newly-registered user's email.
+ * Runs cross-tenant (no withTenant needed) — a buyer may have guest orders in
+ * multiple stores, and all should be linked when they create an account.
+ */
+export async function autoLinkGuestCustomers(
+  authUserId: string,
+  email: string,
+): Promise<number> {
+  const guests = await findGuestCustomersByEmail(email)
+  let linked = 0
+  for (const guest of guests) {
+    await linkGuestCustomerToAuthUser(guest.id, authUserId)
+    linked++
+  }
+  return linked
 }

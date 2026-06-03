@@ -32,9 +32,12 @@ export async function ensureCustomer(
   return withTenant(tenantId, () => ensureCustomerForAuthUser(authUserId, profile))
 }
 
-/** Create a guest customer UUID for anonymous checkout. */
-export async function createGuestCustomer(tenantId: string): Promise<string> {
-  return withTenant(tenantId, () => ensureGuestCustomer())
+/** Create a guest customer with optional buyer profile from checkout. */
+export async function createGuestCustomer(
+  tenantId: string,
+  profile?: { email?: string | null; firstName?: string | null; lastName?: string | null; phone?: string | null },
+): Promise<string> {
+  return withTenant(tenantId, () => ensureGuestCustomer(profile))
 }
 
 /** Link Better Auth user to an existing guest customer row. */

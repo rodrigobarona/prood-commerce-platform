@@ -41,6 +41,8 @@ export {
   createCustomer,
   updateCustomer,
   linkCustomerAuthUser,
+  findGuestCustomersByEmail,
+  linkGuestCustomerToAuthUser,
   findAddresses,
   findAddressById,
   createAddress,
