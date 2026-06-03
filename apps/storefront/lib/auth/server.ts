@@ -19,7 +19,7 @@ function resolveBetterAuthEnv(defaultBaseUrl: string) {
     }
   }
 
-  return { baseURL, secret }
+  return { baseURL: baseURL ?? defaultBaseUrl, secret }
 }
 
 /**

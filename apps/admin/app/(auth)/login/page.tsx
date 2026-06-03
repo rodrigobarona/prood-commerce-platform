@@ -9,10 +9,7 @@ export const metadata = { title: "Sign in" }
 export default async function LoginPage() {
   const session = await getSession()
   if (session) {
-    const role = (session.user as Record<string, unknown>).role as
-      | string
-      | undefined
-    if (role === "admin") redirect("/")
+    if (session.user.role === "admin") redirect("/")
     return (
       <Suspense>
         <UnauthorizedCard />
