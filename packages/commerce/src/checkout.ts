@@ -18,6 +18,7 @@ import type {
 import { getAdapter, runScoped } from './adapter'
 import { getPaymentProvider } from './payments'
 import { getTenantPaymentConfig } from './integrations'
+import { findOrderOrgId } from '@prood/platform'
 
 type CheckoutAddress = Omit<Address, 'id' | 'isDefault'>
 
@@ -165,3 +166,9 @@ export async function getPaymentSession(
     : undefined
   return getPaymentProvider(resolvedId, config).getSession(sessionId)
 }
+
+/**
+ * Look up the organization that owns an order (cross-tenant, unscoped).
+ * Used by the webhook handler to resolve tenant when ?org is missing.
+ */
+export { findOrderOrgId as resolveOrderOrgId }

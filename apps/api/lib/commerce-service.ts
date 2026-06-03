@@ -25,6 +25,7 @@ import {
   getAdapter,
   verifyPaymentWebhook,
   revalidateProducts,
+  resolveOrderOrgId,
 } from "@prood/commerce"
 import type { PaymentWebhookEvent, Order } from "@prood/types"
 import { getMailer } from "./mailer"
@@ -188,40 +189,40 @@ export const webhooks = {
     const orderId = resolveOrderIdFromWebhook(event)
     if (!orderId) return
 
+    const resolvedOrg = orgId ?? (await resolveOrderOrgId(orderId)) ?? undefined
+    if (!resolvedOrg) {
+      console.error(`[webhook] Cannot resolve org for order ${orderId} — skipping`)
+      return
+    }
+
     const apply = async () => {
       const adapter = await getAdapter()
       if (event.type === "payment.captured") {
         await adapter.updateOrderStatus(orderId, { status: "processing" })
-        revalidateProducts(orgId)
+        revalidateProducts(resolvedOrg)
 
-        if (orgId) {
-          void resolveOrderEmail(orgId, orderId).then((resolved) => {
-            if (!resolved) return
-            const { email, name, order } = resolved
-            void getMailer().send("email", {
-              to: email,
-              subject: `Order #${order.orderNumber} confirmed`,
-              template: "order-confirmation",
-              data: {
-                companyName: "Prood",
-                customerName: name,
-                orderNumber: order.orderNumber,
-                orderTotal: `${order.totals.total.currency} ${order.totals.total.amount}`,
-                orderUrl: `${process.env.NEXT_PUBLIC_STOREFRONT_URL ?? "http://localhost:3000"}/account/orders`,
-              },
-            })
+        void resolveOrderEmail(resolvedOrg, orderId).then((resolved) => {
+          if (!resolved) return
+          const { email, name, order } = resolved
+          void getMailer().send("email", {
+            to: email,
+            subject: `Order #${order.orderNumber} confirmed`,
+            template: "order-confirmation",
+            data: {
+              companyName: "Prood",
+              customerName: name,
+              orderNumber: order.orderNumber,
+              orderTotal: `${order.totals.total.currency} ${order.totals.total.amount}`,
+              orderUrl: `${process.env.NEXT_PUBLIC_STOREFRONT_URL ?? "http://localhost:3000"}/account/orders`,
+            },
           })
-        }
+        })
       } else if (event.type === "payment.failed" || event.type === "payment.cancelled") {
         await adapter.updateOrderStatus(orderId, { status: "cancelled" })
       }
     }
 
-    if (orgId) {
-      await withTenant(orgId, apply)
-    } else {
-      await apply()
-    }
+    await withTenant(resolvedOrg, apply)
   },
 }
 

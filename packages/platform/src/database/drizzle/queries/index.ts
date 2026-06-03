@@ -56,6 +56,7 @@ export {
   createOrderItem,
   createOrderHistory,
   findOrderById,
+  findOrderOrgId,
   findOrders,
   countOrdersForCustomer,
   findOrderItems,

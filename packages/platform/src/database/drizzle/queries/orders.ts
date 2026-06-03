@@ -28,6 +28,18 @@ export async function findOrderById(orderId: string) {
   return row ?? null
 }
 
+/**
+ * Look up the organization that owns an order (cross-tenant, unscoped).
+ * Used by the webhook handler to resolve tenant when ?org is missing.
+ */
+export async function findOrderOrgId(orderId: string): Promise<string | null> {
+  const [row] = await getDb()
+    .select({ organizationId: schema.orders.organizationId })
+    .from(schema.orders)
+    .where(eq(schema.orders.id, orderId))
+  return row?.organizationId ?? null
+}
+
 export async function findOrders(opts: { limit: number; offset: number; customerId?: string }) {
   const conditions: any[] = [tenantCondition(schema.orders)]
   if (opts.customerId) conditions.push(eq(schema.orders.customerId, opts.customerId))
