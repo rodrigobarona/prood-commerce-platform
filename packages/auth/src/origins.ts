@@ -20,10 +20,12 @@ export function resolveTrustedOrigins(): string[] {
     process.env.NEXT_PUBLIC_DASHBOARD_URL,
     process.env.NEXT_PUBLIC_WEB_URL,
     process.env.NEXT_PUBLIC_AUTH_URL,
+    process.env.NEXT_PUBLIC_ADMIN_URL,
     process.env.BETTER_AUTH_URL,
     "http://localhost:3002",
     "http://localhost:3000",
     "http://localhost:3005",
+    "http://localhost:3006",
   ]
 
   const vercelUrl = process.env.VERCEL_URL?.trim()

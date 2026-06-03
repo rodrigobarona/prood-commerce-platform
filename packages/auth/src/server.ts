@@ -2,7 +2,7 @@ import { betterAuth } from "better-auth"
 import type { BetterAuthPlugin } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { nextCookies } from "better-auth/next-js"
-import { organization } from "better-auth/plugins"
+import { admin, organization } from "better-auth/plugins"
 import { apiKey } from "@better-auth/api-key"
 import { authDb } from "./db"
 import * as schema from "./schema"
@@ -62,6 +62,9 @@ export function createAuth(options: CreateAuthOptions = {}) {
     plugins: [
       organization(),
       apiKey(),
+      admin({
+        defaultRole: "user",
+      }),
       ...(options.extraPlugins ?? []),
       nextCookies(),
     ],

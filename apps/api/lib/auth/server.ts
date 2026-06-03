@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { nextCookies } from "better-auth/next-js"
-import { organization } from "better-auth/plugins"
+import { admin, organization } from "better-auth/plugins"
 import { apiKey } from "@better-auth/api-key"
 import { agentAuth } from "@better-auth/agent-auth"
 import {
@@ -101,6 +101,13 @@ function createAuth() {
         },
       }),
       apiKey(),
+      admin({
+        defaultRole: "user",
+        adminUserIds: (process.env.ADMIN_USER_IDS ?? "")
+          .split(",")
+          .map((id) => id.trim())
+          .filter(Boolean),
+      }),
       agentAuth({
         modes: ["delegated", "autonomous"],
         deviceAuthorizationPage:

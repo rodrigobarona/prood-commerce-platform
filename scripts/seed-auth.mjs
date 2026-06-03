@@ -57,9 +57,9 @@ async function upsertOrganization() {
 
 async function upsertUser() {
   await sql`
-    INSERT INTO "user" ("id", "name", "email", "email_verified")
-    VALUES (${DEMO_USER_ID}, 'Demo Admin', ${email}, true)
-    ON CONFLICT ("email") DO NOTHING
+    INSERT INTO "user" ("id", "name", "email", "email_verified", "role")
+    VALUES (${DEMO_USER_ID}, 'Demo Admin', ${email}, true, 'admin')
+    ON CONFLICT ("email") DO UPDATE SET "role" = 'admin'
   `
 }
 

@@ -49,7 +49,9 @@
     "KV_URL",
     "REDIS_URL",
     "RESEND_API_KEY",
-    "RESEND_FROM_EMAIL"
+    "RESEND_FROM_EMAIL",
+    "ADMIN_USER_IDS",
+    "NEXT_PUBLIC_ADMIN_URL"
   ],
   "tasks": {
     "build": {
