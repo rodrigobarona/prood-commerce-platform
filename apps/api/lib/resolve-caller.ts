@@ -16,6 +16,7 @@ interface ApiKeyMetadata {
 
 const API_KEY_HEADER = "x-api-key"
 const PLATFORM_DOMAIN = process.env.NEXT_PUBLIC_PLATFORM_DOMAIN
+const DEFAULT_TENANT_ORG_ID = process.env.DEFAULT_TENANT_ORG_ID
 
 function scopesFromAgentSession(session: AgentSession): ApiScope[] {
   const active = session.agent.capabilityGrants
@@ -134,6 +135,14 @@ export async function resolveCallerFromHeaders(
       "Session is not bound to a store organization",
       "FORBIDDEN",
     )
+  }
+
+  if (DEFAULT_TENANT_ORG_ID) {
+    return {
+      orgId: DEFAULT_TENANT_ORG_ID,
+      scopes: ["storefront"],
+      via: "host",
+    }
   }
 
   return null
