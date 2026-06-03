@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@better-auth/api-key": "catalog:",
     "@neondatabase/serverless": "catalog:",
     "@phosphor-icons/react": "catalog:",
     "@prood/auth": "workspace:*",

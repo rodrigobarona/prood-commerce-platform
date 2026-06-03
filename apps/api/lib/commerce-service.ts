@@ -143,7 +143,11 @@ export const checkout = {
     setShippingMethod(cartId, methodId, orgId),
   placeOrder: async (orgId: string, cartId: string, customerId?: string) => {
     const order = await placeOrder(cartId, orgId, customerId)
-    revalidateProducts(orgId)
+    try {
+      revalidateProducts(orgId)
+    } catch {
+      // Cache invalidation is best-effort; never block the order response
+    }
     return order
   },
 }
@@ -199,7 +203,7 @@ export const webhooks = {
       const adapter = await getAdapter()
       if (event.type === "payment.captured") {
         await adapter.updateOrderStatus(orderId, { status: "processing" })
-        revalidateProducts(resolvedOrg)
+        try { revalidateProducts(resolvedOrg) } catch { /* best-effort */ }
 
         void resolveOrderEmail(resolvedOrg, orderId).then((resolved) => {
           if (!resolved) return
@@ -239,31 +243,31 @@ export const admin = {
     withTenant(orgId, async () => (await getAdmin()).getProduct(id)),
   createProduct: async (orgId: string, input: CreateProductInput) => {
     const product = await withTenant(orgId, async () => (await getAdmin()).createProduct(input))
-    revalidateProducts(orgId)
+    try { revalidateProducts(orgId) } catch { /* best-effort */ }
     return product
   },
   updateProduct: async (orgId: string, id: string, input: UpdateProductInput) => {
     const product = await withTenant(orgId, async () => (await getAdmin()).updateProduct(id, input))
-    revalidateProducts(orgId)
+    try { revalidateProducts(orgId) } catch { /* best-effort */ }
     return product
   },
   deleteProduct: async (orgId: string, id: string) => {
     await withTenant(orgId, async () => (await getAdmin()).deleteProduct(id))
-    revalidateProducts(orgId)
+    try { revalidateProducts(orgId) } catch { /* best-effort */ }
   },
   createCategory: async (orgId: string, input: CreateCategoryInput) => {
     const category = await withTenant(orgId, async () => (await getAdmin()).createCategory(input))
-    revalidateProducts(orgId)
+    try { revalidateProducts(orgId) } catch { /* best-effort */ }
     return category
   },
   updateCategory: async (orgId: string, id: string, input: UpdateCategoryInput) => {
     const category = await withTenant(orgId, async () => (await getAdmin()).updateCategory(id, input))
-    revalidateProducts(orgId)
+    try { revalidateProducts(orgId) } catch { /* best-effort */ }
     return category
   },
   deleteCategory: async (orgId: string, id: string) => {
     await withTenant(orgId, async () => (await getAdmin()).deleteCategory(id))
-    revalidateProducts(orgId)
+    try { revalidateProducts(orgId) } catch { /* best-effort */ }
   },
   listOrders: (orgId: string, q: AdminListOrdersQuery) =>
     withTenant(orgId, async () =>

@@ -3,10 +3,10 @@ import { toErrorResponse } from "@prood/types"
 
 /** Build a JSON error response from any thrown error (Commerce/Zod/unknown). */
 export function errorResponse(err: unknown): NextResponse {
-  if (process.env.NODE_ENV === "development") {
+  const { status, body } = toErrorResponse(err)
+  if (status >= 500) {
     console.error("[api]", err)
   }
-  const { status, body } = toErrorResponse(err)
   if (
     process.env.NODE_ENV === "development" &&
     status === 500 &&
