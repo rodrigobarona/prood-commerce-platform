@@ -7,6 +7,7 @@ import { cn } from "@prood/ui/lib/utils"
 import { AppProviders } from "@/components/providers/app-providers"
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
+import { resolveTenantId } from "@/lib/tenant"
 
 const fontSans = Inter({ subsets: ["latin"], variable: "--font-sans" })
 const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
@@ -19,11 +20,12 @@ export const metadata: Metadata = {
   description: "A commerce-agnostic storefront built with Next.js.",
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  await resolveTenantId()
   return (
     <html
       lang="en"

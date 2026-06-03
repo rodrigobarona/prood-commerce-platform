@@ -139,7 +139,13 @@ export async function resolveCallerFromHeaders(
     )
   }
 
-  if (DEFAULT_TENANT_ORG_ID) {
+  // Only fall back to the default org for non-platform hosts (local dev,
+  // Vercel previews). Platform subdomains with unknown slugs must fail so
+  // the storefront can redirect to the marketing site.
+  const isPlatformSubdomain =
+    PLATFORM_DOMAIN &&
+    storefrontHost?.endsWith(`.${PLATFORM_DOMAIN}`)
+  if (DEFAULT_TENANT_ORG_ID && !isPlatformSubdomain) {
     return {
       orgId: DEFAULT_TENANT_ORG_ID,
       scopes: ["storefront"],
