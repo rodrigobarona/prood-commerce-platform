@@ -1,5 +1,4 @@
 import { Suspense } from "react"
-import { redirect } from "next/navigation"
 import { DashboardFormPage } from "@/components/layout/dashboard-page"
 import { ChangePasswordForm } from "@/components/account/change-password-form"
 import { ProfileForm } from "@/components/account/profile-form"
@@ -26,7 +25,13 @@ export default function AccountPage() {
 
 async function AccountContent() {
   const user = await getCurrentUser()
-  if (!user) redirect("/login")
+  if (!user) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Unable to load profile. Please reload the page.
+      </p>
+    )
+  }
 
   return (
     <>
