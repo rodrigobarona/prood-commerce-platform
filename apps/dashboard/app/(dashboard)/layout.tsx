@@ -20,30 +20,22 @@ export default async function DashboardLayout({
 }) {
   await connection()
 
-  let session: Awaited<ReturnType<typeof getSession>> = null
-  try {
-    session = await getSession()
-  } catch (err) {
-    console.error("[DashboardLayout] getSession() threw:", err)
-  }
+  const session = await getSession()
   if (!session) {
     redirect("/login")
   }
 
-  const activeOrgId = await getActiveOrganizationId()
+  const [activeOrgId, orgResults] = await Promise.all([
+    getActiveOrganizationId(),
+    listOrganizations().catch(() => [] as Awaited<ReturnType<typeof listOrganizations>>),
+  ])
 
-  let orgs: OrgSummary[] = []
-  try {
-    const result = await listOrganizations()
-    orgs = result.map((org) => ({
-      id: org.id,
-      name: org.name,
-      slug: org.slug,
-      logo: org.logo,
-    }))
-  } catch {
-    /* DB unavailable — render with no stores */
-  }
+  const orgs: OrgSummary[] = orgResults.map((org) => ({
+    id: org.id,
+    name: org.name,
+    slug: org.slug,
+    logo: org.logo,
+  }))
 
   return (
     <SidebarProvider>

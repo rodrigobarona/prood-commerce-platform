@@ -57,10 +57,16 @@ export default function TeamPage() {
 }
 
 async function TeamContent() {
-  const [org, currentUser] = await Promise.all([
-    getFullActiveOrganization(),
-    getCurrentUser(),
-  ])
+  let org: Awaited<ReturnType<typeof getFullActiveOrganization>> = null
+  let currentUser: Awaited<ReturnType<typeof getCurrentUser>> = null
+  try {
+    ;[org, currentUser] = await Promise.all([
+      getFullActiveOrganization(),
+      getCurrentUser(),
+    ])
+  } catch (error) {
+    if (error instanceof Error && "digest" in error) throw error
+  }
 
   const members = org?.members ?? []
   const invitations = (org?.invitations ?? []).filter(

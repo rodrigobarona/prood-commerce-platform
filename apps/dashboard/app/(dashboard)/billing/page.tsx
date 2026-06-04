@@ -12,14 +12,27 @@ export const metadata = { title: "Billing" }
 
 export default function BillingPage() {
   return (
-    <Suspense fallback={<BillingSkeleton />}>
-      <BillingContent />
-    </Suspense>
+    <div className="flex flex-col gap-6">
+      <div>
+        <h2 className="font-heading text-xl font-medium">Billing</h2>
+        <p className="text-sm text-muted-foreground">
+          Manage your platform subscription and payment method.
+        </p>
+      </div>
+      <Suspense fallback={<BillingSkeleton />}>
+        <BillingContent />
+      </Suspense>
+    </div>
   )
 }
 
 async function BillingContent() {
-  const plan = await getActiveOrganizationPlan()
+  let plan: Awaited<ReturnType<typeof getActiveOrganizationPlan>> = null
+  try {
+    plan = await getActiveOrganizationPlan()
+  } catch (error) {
+    if (error instanceof Error && "digest" in error) throw error
+  }
   const planName = plan?.planName ?? "Free"
   const limits = getPlanLimitsSummary(plan?.planId ?? "free")
 
