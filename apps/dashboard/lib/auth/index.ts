@@ -12,6 +12,7 @@ import { getAuth, type Session } from "./server"
  * Better Auth is the only supported provider.
  */
 export async function getSession(): Promise<Session | null> {
+  await connection()
   return getSessionFromPackage(getAuth)
 }
 
@@ -28,6 +29,8 @@ export async function getCurrentUser() {
  */
 export const getActiveOrganizationId = cache(
   async function getActiveOrganizationId(): Promise<string | null> {
+    await connection()
+
     if (process.env.NEXT_PHASE === "phase-production-build") {
       return null
     }
