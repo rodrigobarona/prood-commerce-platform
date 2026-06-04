@@ -36,6 +36,7 @@ export function AdminLoginForm() {
       return
     }
     router.push(redirect)
+    router.refresh()
   }
 
   return (

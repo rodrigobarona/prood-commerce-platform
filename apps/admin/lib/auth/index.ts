@@ -8,7 +8,9 @@ export const getSession = cache(async function getSession(): Promise<Session | n
   await connection()
 
   const cookieStore = await cookies()
-  const sessionCookie = cookieStore.get("better-auth.session_token")
+  const sessionCookie =
+    cookieStore.get("__Secure-better-auth.session_token") ??
+    cookieStore.get("better-auth.session_token")
   if (!sessionCookie) return null
 
   const rawValue = decodeURIComponent(sessionCookie.value)
