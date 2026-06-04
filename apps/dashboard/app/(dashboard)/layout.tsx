@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation"
+import { connection } from "next/server"
 import {
   SidebarInset,
   SidebarProvider,
@@ -17,9 +18,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  if (process.env.NEXT_PHASE === "phase-production-build") {
-    return <>{children}</>
-  }
+  await connection()
 
   let session: Awaited<ReturnType<typeof getSession>> = null
   try {
