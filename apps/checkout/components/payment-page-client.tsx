@@ -8,7 +8,7 @@ import { ReferencePayment } from "./reference-payment"
 
 function formatAmount(amount: number, currency: string): string {
   try {
-    return new Intl.NumberFormat("en", { style: "currency", currency }).format(amount)
+    return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(amount)
   } catch {
     return `${amount} ${currency}`
   }

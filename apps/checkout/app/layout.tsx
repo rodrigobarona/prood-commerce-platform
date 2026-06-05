@@ -29,7 +29,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn("antialiased", fontSans.variable, fontMono.variable, "font-sans")}
     >
-      <body className="flex min-h-svh flex-col bg-muted/30">
+      <body className="flex min-h-svh flex-col">
         <CheckoutContextProvider>
           <CheckoutShell>{children}</CheckoutShell>
         </CheckoutContextProvider>

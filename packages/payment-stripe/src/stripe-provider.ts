@@ -192,10 +192,15 @@ export class StripePaymentProvider implements PaymentProvider {
       metadata[k] = typeof v === 'string' ? v : JSON.stringify(v)
     }
 
+    if (!input.returnUrl) {
+      throw new Error('returnUrl is required for Stripe Checkout Sessions with ui_mode: elements')
+    }
+
     const session = await this.stripe.checkout.sessions.create(
       {
         ui_mode: 'elements',
         mode: 'payment',
+        return_url: input.returnUrl,
         line_items: [{
           price_data: {
             currency: input.currency.toLowerCase(),
