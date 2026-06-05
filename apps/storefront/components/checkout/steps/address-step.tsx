@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { iso31661 } from "iso-3166"
@@ -19,7 +19,13 @@ import {
   FieldError,
   FieldLabel,
 } from "@prood/ui/components/field"
+import {
+  AddressAutocomplete,
+  type ParsedAddress,
+} from "../address-autocomplete"
 import { addressSchema, type AddressValues } from "../schemas"
+
+const GEOAPIFY_KEY = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY ?? ""
 
 const countries = iso31661.map((c) => ({
   value: c.alpha2,
@@ -56,6 +62,25 @@ export function AddressStep({
       ...defaultValues,
     },
   })
+
+  const selectedCountry = form.watch("country")
+
+  const handleAutocompleteSelect = useCallback(
+    (parsed: ParsedAddress) => {
+      form.setValue("street", parsed.street, { shouldValidate: true })
+      if (parsed.street2) {
+        form.setValue("street2", parsed.street2, { shouldValidate: true })
+        setShowStreet2(true)
+      }
+      form.setValue("city", parsed.city, { shouldValidate: true })
+      form.setValue("state", parsed.state, { shouldValidate: true })
+      form.setValue("postalCode", parsed.postalCode, { shouldValidate: true })
+      if (parsed.country) {
+        form.setValue("country", parsed.country, { shouldValidate: true })
+      }
+    },
+    [form],
+  )
 
   function handleSubmit(values: AddressValues) {
     onSubmit({ ...values, useSameForBilling })
@@ -137,6 +162,19 @@ export function AddressStep({
           </Field>
         )}
       />
+
+      {GEOAPIFY_KEY ? (
+        <Field>
+          <FieldLabel htmlFor="address-search">Search address</FieldLabel>
+          <AddressAutocomplete
+            id="address-search"
+            apiKey={GEOAPIFY_KEY}
+            countryFilter={selectedCountry || undefined}
+            onSelect={handleAutocompleteSelect}
+            placeholder="Start typing to find your address…"
+          />
+        </Field>
+      ) : null}
 
       <Controller
         name="street"
