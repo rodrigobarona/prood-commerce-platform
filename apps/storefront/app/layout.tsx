@@ -28,7 +28,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn("antialiased", fontSans.variable, fontMono.variable, "font-sans")}
     >
-      <body className="flex min-h-svh flex-col">
+      <body suppressHydrationWarning className="flex min-h-svh flex-col">
         <Suspense fallback={null}>
           <AppProviders>{children}</AppProviders>
         </Suspense>
