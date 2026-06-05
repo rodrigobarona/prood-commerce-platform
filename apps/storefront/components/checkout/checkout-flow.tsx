@@ -168,11 +168,20 @@ export function CheckoutFlow() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <h1 className="mb-8 text-2xl font-bold tracking-tight">Checkout</h1>
-      <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
+    <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
+      <h1 className="mb-6 text-xl font-bold tracking-tight sm:mb-8 sm:text-2xl">Checkout</h1>
+
+      <div className="grid gap-6 lg:grid-cols-[1fr_380px] lg:gap-8">
+        {/* Order summary — top on mobile, right sidebar on desktop */}
+        <div className="lg:col-start-2 lg:row-start-1 lg:sticky lg:top-20 lg:self-start">
+          <div className="rounded-2xl border p-4 sm:p-5">
+            <h2 className="mb-4 hidden text-lg font-semibold lg:block">Order summary</h2>
+            <CheckoutSidebar cart={cart} />
+          </div>
+        </div>
+
         {/* Left: Steps */}
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 lg:col-start-1 lg:row-start-1">
           <ExpressCheckout />
           {STEPS.map((step, i) => {
             const completed = i < activeStep
@@ -190,7 +199,7 @@ export function CheckoutFlow() {
                 />
 
                 {active ? (
-                  <div className="pl-10">
+                  <div className="pl-8 sm:pl-10">
                     {i === 0 && (
                       <ContactStep
                         defaultValues={data.contact}
@@ -231,14 +240,6 @@ export function CheckoutFlow() {
               </div>
             )
           })}
-        </div>
-
-        {/* Right: Order Summary */}
-        <div className="lg:sticky lg:top-20 lg:self-start">
-          <div className="rounded-2xl border p-5">
-            <h2 className="mb-4 text-lg font-semibold">Order summary</h2>
-            <CheckoutSidebar cart={cart} />
-          </div>
         </div>
       </div>
     </div>

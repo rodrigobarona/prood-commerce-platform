@@ -45,6 +45,7 @@ export function ContactStep({ defaultValues, onSubmit }: ContactStepProps) {
               {...field}
               id={field.name}
               type="email"
+              inputMode="email"
               autoComplete="email"
               aria-invalid={fieldState.invalid}
               placeholder="you@example.com"

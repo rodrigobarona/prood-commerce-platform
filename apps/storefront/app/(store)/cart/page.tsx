@@ -97,106 +97,119 @@ export default function CartPage() {
     )
   }
 
+  const formattedTotal = cart.totals.total.formatted || ""
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">
-          Your cart{" "}
-          <span className="text-muted-foreground font-normal">
-            ({cart.itemCount} {cart.itemCount === 1 ? "item" : "items"})
-          </span>
-        </h1>
-        <Link
-          href="/products"
-          className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeftIcon className="size-4" />
-          Continue shopping
-        </Link>
-      </div>
+    <>
+      <div className="mx-auto max-w-7xl px-4 py-8 pb-24 lg:pb-8">
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+            Your cart{" "}
+            <span className="text-muted-foreground font-normal">
+              ({cart.itemCount} {cart.itemCount === 1 ? "item" : "items"})
+            </span>
+          </h1>
+          <Link
+            href="/products"
+            className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeftIcon className="size-4" />
+            <span className="hidden sm:inline">Continue shopping</span>
+          </Link>
+        </div>
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
-        {/* Cart items */}
-        <div className="flex flex-col gap-6">
-          {cart.items.map((item) => (
-            <div key={item.id} className="flex flex-col gap-2">
-              <CartItemRow
-                item={item}
-                loading={loading}
-                onUpdateQuantity={updateItem}
-                onRemove={removeItem}
-              />
-              <div className="pl-24">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground h-auto px-0 text-xs hover:text-foreground"
-                  onClick={() => handleSaveForLater(item.id)}
-                >
-                  <HeartIcon className="mr-1 size-3.5" />
-                  Save for later
-                </Button>
+        <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
+          {/* Cart items */}
+          <div className="flex flex-col gap-6">
+            {cart.items.map((item) => (
+              <div key={item.id} className="flex flex-col gap-2">
+                <CartItemRow
+                  item={item}
+                  loading={loading}
+                  onUpdateQuantity={updateItem}
+                  onRemove={removeItem}
+                />
+                <div className="pl-24">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground h-auto px-0 text-xs hover:text-foreground"
+                    onClick={() => handleSaveForLater(item.id)}
+                  >
+                    <HeartIcon className="mr-1 size-3.5" />
+                    Save for later
+                  </Button>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
 
-          {savedItems.length > 0 ? (
-            <>
-              <Separator />
-              <SaveForLaterSection
-                items={savedItems}
-                onMoveToCart={handleMoveToCart}
-                onRemove={removeSaved}
-              />
-            </>
-          ) : null}
-        </div>
-
-        {/* Sidebar: Summary + Coupon + Trust */}
-        <div className="flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start">
-          <FreeShippingBar
-            subtotal={cart.totals.subtotal.amount}
-            threshold={5000}
-            currency={cart.totals.subtotal.currency}
-          />
-
-          <CartSummary cart={cart} />
-
-          <div className="rounded-2xl border p-5">
-            <h3 className="mb-3 text-sm font-medium">Discount code</h3>
-            <CouponInput
-              appliedCode={cart.couponCode}
-              loading={couponLoading}
-              error={couponError}
-              onApply={handleApplyCoupon}
-              onRemove={handleRemoveCoupon}
-            />
+            {savedItems.length > 0 ? (
+              <>
+                <Separator />
+                <SaveForLaterSection
+                  items={savedItems}
+                  onMoveToCart={handleMoveToCart}
+                  onRemove={removeSaved}
+                />
+              </>
+            ) : null}
           </div>
 
-          <Separator />
+          {/* Sidebar: Summary + Coupon + Trust */}
+          <div className="flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start">
+            <FreeShippingBar
+              subtotal={cart.totals.subtotal.amount}
+              threshold={5000}
+              currency={cart.totals.subtotal.currency}
+            />
 
-          {/* Trust signals */}
-          <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 px-2">
-            <TrustBadge
-              icon={<LockIcon className="size-3.5" />}
-              label="Secure checkout"
-            />
-            <TrustBadge
-              icon={<ShieldCheckIcon className="size-3.5" />}
-              label="Data protection"
-            />
-            <TrustBadge
-              icon={<ArrowCounterClockwiseIcon className="size-3.5" />}
-              label="Easy returns"
-            />
-            <TrustBadge
-              icon={<CreditCardIcon className="size-3.5" />}
-              label="Safe payment"
-            />
+            <CartSummary cart={cart} />
+
+            <div className="rounded-2xl border p-5">
+              <h3 className="mb-3 text-sm font-medium">Discount code</h3>
+              <CouponInput
+                appliedCode={cart.couponCode}
+                loading={couponLoading}
+                error={couponError}
+                onApply={handleApplyCoupon}
+                onRemove={handleRemoveCoupon}
+              />
+            </div>
+
+            <Separator />
+
+            {/* Trust signals */}
+            <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 px-2">
+              <TrustBadge
+                icon={<LockIcon className="size-3.5" />}
+                label="Secure checkout"
+              />
+              <TrustBadge
+                icon={<ShieldCheckIcon className="size-3.5" />}
+                label="Data protection"
+              />
+              <TrustBadge
+                icon={<ArrowCounterClockwiseIcon className="size-3.5" />}
+                label="Easy returns"
+              />
+              <TrustBadge
+                icon={<CreditCardIcon className="size-3.5" />}
+                label="Safe payment"
+              />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Sticky mobile checkout CTA */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-4 backdrop-blur-sm lg:hidden">
+        <Button asChild className="w-full" size="lg">
+          <Link href="/checkout">
+            Checkout · {formattedTotal}
+          </Link>
+        </Button>
+      </div>
+    </>
   )
 }
