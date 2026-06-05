@@ -1,20 +1,96 @@
 "use client"
 
-import { useState } from "react"
-import { AddressForm, type AddressInput } from "@prood/ui/components/address-form"
-import { Button } from "@prood/ui/components/button"
+import { useCallback, useState } from "react"
+import { CheckIcon } from "@phosphor-icons/react"
 import { EmptyState } from "@prood/ui/components/empty-state"
-import { Input } from "@prood/ui/components/input"
-import { Label } from "@prood/ui/components/label"
-import { startCheckout } from "@/app/checkout/actions"
+import { cn } from "@prood/ui/lib/utils"
 import { useCart } from "@/components/providers/cart-provider"
+import { startCheckout } from "@/app/(checkout)/checkout/actions"
+import { CheckoutSidebar } from "./checkout-sidebar"
+import { ContactStep } from "./steps/contact-step"
+import { AddressStep } from "./steps/address-step"
+import { ShippingStep } from "./steps/shipping-step"
+import { ReviewStep } from "./steps/review-step"
+import type { AddressValues, ContactValues, ShippingMethodValues } from "./schemas"
+
+const STEPS = [
+  { id: "contact", title: "Contact" },
+  { id: "address", title: "Shipping address" },
+  { id: "shipping", title: "Shipping method" },
+  { id: "review", title: "Review" },
+] as const
+
+type StepId = (typeof STEPS)[number]["id"]
+
+interface CheckoutData {
+  contact?: ContactValues
+  address?: AddressValues & { useSameForBilling?: boolean }
+  shippingMethod?: ShippingMethodValues
+  shippingMethodName?: string
+}
+
+function StepHeader({
+  index,
+  title,
+  active,
+  completed,
+  summary,
+  onEdit,
+}: {
+  index: number
+  title: string
+  active: boolean
+  completed: boolean
+  summary?: React.ReactNode
+  onEdit?: () => void
+}) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        "flex w-full items-start gap-3 text-left",
+        !active && !completed && "opacity-50",
+        (completed || active) && "cursor-pointer",
+      )}
+      onClick={completed && onEdit ? onEdit : undefined}
+      disabled={!completed}
+    >
+      <span
+        className={cn(
+          "flex size-7 shrink-0 items-center justify-center rounded-full border text-xs font-medium",
+          completed && "border-primary bg-primary text-primary-foreground",
+          active && "border-primary text-primary",
+          !completed && !active && "border-border text-muted-foreground",
+        )}
+      >
+        {completed ? <CheckIcon weight="bold" className="size-3.5" /> : index + 1}
+      </span>
+      <div className="flex flex-1 flex-col gap-0.5">
+        <span
+          className={cn(
+            "text-sm font-medium",
+            active || completed ? "text-foreground" : "text-muted-foreground",
+          )}
+        >
+          {title}
+        </span>
+        {completed && summary ? (
+          <span className="text-xs text-muted-foreground">{summary}</span>
+        ) : null}
+      </div>
+      {completed && onEdit ? (
+        <span className="shrink-0 text-xs text-primary">Edit</span>
+      ) : null}
+    </button>
+  )
+}
 
 export function CheckoutFlow() {
   const { cart } = useCart()
-  const [email, setEmail] = useState("")
-  const [address, setAddress] = useState<AddressInput>({})
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [activeStep, setActiveStep] = useState(0)
+  const [data, setData] = useState<CheckoutData>({})
+
+  const goTo = useCallback((step: number) => setActiveStep(step), [])
 
   if (!cart || cart.items.length === 0) {
     return (
@@ -27,40 +103,142 @@ export function CheckoutFlow() {
     )
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setSubmitting(true)
-    setError(null)
-    const res = await startCheckout({ email, address })
+  function handleContactSubmit(values: ContactValues) {
+    setData((prev) => ({ ...prev, contact: values }))
+    goTo(1)
+  }
+
+  function handleAddressSubmit(
+    values: AddressValues & { useSameForBilling: boolean },
+  ) {
+    setData((prev) => ({
+      ...prev,
+      address: values,
+    }))
+    goTo(2)
+  }
+
+  function handleShippingSubmit(values: ShippingMethodValues) {
+    setData((prev) => ({
+      ...prev,
+      shippingMethod: values,
+    }))
+    goTo(3)
+  }
+
+  async function handleFinalSubmit() {
+    if (!data.contact || !data.address) return
+
+    const res = await startCheckout({
+      email: data.contact.email,
+      address: {
+        firstName: data.address.firstName,
+        lastName: data.address.lastName,
+        phone: data.address.phone || data.contact.phone || undefined,
+        street: data.address.street,
+        street2: data.address.street2 || undefined,
+        city: data.address.city,
+        state: data.address.state || undefined,
+        postalCode: data.address.postalCode || undefined,
+        country: data.address.country,
+      },
+    })
+
     if (!res.ok) {
-      setError(res.error ?? "Checkout failed")
-      setSubmitting(false)
-      return
+      throw new Error(res.error ?? "Checkout failed")
     }
     if (res.checkoutUrl) {
       window.location.href = res.checkoutUrl
-      return
     }
-    setSubmitting(false)
+  }
+
+  function stepSummary(stepIndex: number): React.ReactNode {
+    switch (stepIndex) {
+      case 0:
+        return data.contact?.email
+      case 1:
+        if (!data.address) return null
+        return `${data.address.firstName} ${data.address.lastName}, ${data.address.city}`
+      case 2:
+        return data.shippingMethodName ?? "Selected"
+      default:
+        return null
+    }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="checkout-email">Email</Label>
-        <Input
-          id="checkout-email"
-          type="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+    <div className="mx-auto max-w-6xl px-4 py-8">
+      <h1 className="mb-8 text-2xl font-bold tracking-tight">Checkout</h1>
+      <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
+        {/* Left: Steps */}
+        <div className="flex flex-col gap-6">
+          {STEPS.map((step, i) => {
+            const completed = i < activeStep
+            const active = i === activeStep
+
+            return (
+              <div key={step.id} className="flex flex-col gap-4">
+                <StepHeader
+                  index={i}
+                  title={step.title}
+                  active={active}
+                  completed={completed}
+                  summary={completed ? stepSummary(i) : undefined}
+                  onEdit={completed ? () => goTo(i) : undefined}
+                />
+
+                {active ? (
+                  <div className="pl-10">
+                    {i === 0 && (
+                      <ContactStep
+                        defaultValues={data.contact}
+                        onSubmit={handleContactSubmit}
+                      />
+                    )}
+                    {i === 1 && (
+                      <AddressStep
+                        defaultValues={data.address}
+                        onSubmit={handleAddressSubmit}
+                        onBack={() => goTo(0)}
+                      />
+                    )}
+                    {i === 2 && (
+                      <ShippingStep
+                        cartId={cart.id}
+                        defaultValues={data.shippingMethod}
+                        onSubmit={handleShippingSubmit}
+                        onBack={() => goTo(1)}
+                      />
+                    )}
+                    {i === 3 && data.contact && data.address && (
+                      <ReviewStep
+                        contact={data.contact}
+                        address={data.address}
+                        shippingMethodName={data.shippingMethodName}
+                        onSubmit={handleFinalSubmit}
+                        onBack={() => goTo(2)}
+                        onEditStep={goTo}
+                      />
+                    )}
+                  </div>
+                ) : null}
+
+                {i < STEPS.length - 1 ? (
+                  <div className="ml-3.5 border-l pl-6" />
+                ) : null}
+              </div>
+            )
+          })}
+        </div>
+
+        {/* Right: Order Summary */}
+        <div className="lg:sticky lg:top-20 lg:self-start">
+          <div className="rounded-2xl border p-5">
+            <h2 className="mb-4 text-lg font-semibold">Order summary</h2>
+            <CheckoutSidebar cart={cart} />
+          </div>
+        </div>
       </div>
-      <AddressForm value={address} onChange={setAddress} />
-      {error ? <p className="text-destructive text-sm">{error}</p> : null}
-      <Button type="submit" disabled={submitting}>
-        {submitting ? "Processing..." : "Continue to payment"}
-      </Button>
-    </form>
+    </div>
   )
 }

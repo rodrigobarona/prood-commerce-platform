@@ -603,6 +603,9 @@ importers:
 
   apps/storefront:
     dependencies:
+      '@hookform/resolvers':
+        specifier: ^5.4.0
+        version: 5.4.0(react-hook-form@7.77.0(react@19.2.6))
       '@neondatabase/serverless':
         specifier: 'catalog:'
         version: 1.1.0
@@ -627,18 +630,27 @@ importers:
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.2(@neondatabase/serverless@1.1.0)(@upstash/redis@1.38.0)(kysely@0.28.17)
+      iso-3166:
+        specifier: ^4.4.0
+        version: 4.4.0
       next:
         specifier: 'catalog:'
         version: 16.2.6(@babel/core@7.29.7)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       next-themes:
         specifier: 'catalog:'
         version: 0.4.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      postcode-validator:
+        specifier: ^3.10.15
+        version: 3.10.15
       react:
         specifier: 19.2.6
         version: 19.2.6
       react-dom:
         specifier: 19.2.6
         version: 19.2.6(react@19.2.6)
+      react-hook-form:
+        specifier: ^7.77.0
+        version: 7.77.0(react@19.2.6)
       sonner:
         specifier: 'catalog:'
         version: 2.0.7(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -1112,6 +1124,12 @@ importers:
 
   packages/ui:
     dependencies:
+      '@geoapify/geocoder-autocomplete':
+        specifier: ^3.0.1
+        version: 3.0.1
+      '@geoapify/react-geocoder-autocomplete':
+        specifier: ^3.0.0
+        version: 3.0.0(@geoapify/geocoder-autocomplete@3.0.1)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@phosphor-icons/react':
         specifier: 'catalog:'
         version: 2.1.10(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -1127,9 +1145,15 @@ importers:
       cmdk:
         specifier: 'catalog:'
         version: 1.1.1(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      iso-3166:
+        specifier: ^4.4.0
+        version: 4.4.0
       next-themes:
         specifier: 'catalog:'
         version: 0.4.6(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      postcode-validator:
+        specifier: ^3.10.15
+        version: 3.10.15
       radix-ui:
         specifier: 'catalog:'
         version: 1.4.3(@types/react-dom@19.2.3(@types/react@19.2.15))(@types/react@19.2.15)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -1697,6 +1721,17 @@ packages:
       '@types/react':
         optional: true
 
+  '@geoapify/geocoder-autocomplete@3.0.1':
+    resolution: {integrity: sha512-zCvnDtRZKASUwJ9jNcYn1+g17IlouQQINLov/SkPC5/2e7N8CYkcMqj/SKK1ARvUkvqbFC0rMvvkJa7P6Rme7A==}
+
+  '@geoapify/react-geocoder-autocomplete@3.0.0':
+    resolution: {integrity: sha512-vp7+Gup57PZEYfT/PWPAkvsmo/udDtuCidYyW1rjKV4KC1GltOgvBr6oV/MRitKuFlTN5brKeY1CCPberFDXtg==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      '@geoapify/geocoder-autocomplete': ^3.0.1
+      react: 19.2.6
+      react-dom: 19.2.6
+
   '@hexagon/base64@1.1.28':
     resolution: {integrity: sha512-lhqDEAvWixy3bZ+UOYbPwUbBkwBq5C1LAJ/xPC8Oi+lL54oyakv/npbA0aU2hgCsx/1NUd4IBvV03+aUBWxerw==}
 
@@ -1705,6 +1740,11 @@ packages:
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: ^4
+
+  '@hookform/resolvers@5.4.0':
+    resolution: {integrity: sha512-EIsqr/t/qbinPIhGjMdtvutIN1Kk4uwbROE9/UQ93CAVGR7GkA7Y92+fX80OzXi/OB67jVFYwKGO1WzkxmkFZw==}
+    peerDependencies:
+      react-hook-form: ^7.55.0
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -3160,6 +3200,9 @@ packages:
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
+
+  '@standard-schema/utils@0.3.0':
+    resolution: {integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==}
 
   '@stripe/react-stripe-js@6.4.0':
     resolution: {integrity: sha512-5cAf7GAqf8VHPoPLVnJQ2MHtDWLdiEPs5GW/loU7iDEue3xf620v11skrk5HICUraDOhODPYpttgFC5N579NxA==}
@@ -5090,6 +5133,9 @@ packages:
     resolution: {integrity: sha512-6B3tLtFqtQS4ekarvLVMZ+X+VlvQekbe4taUkf/rhVO3d/h0M2rfARm/pXLcPEsjjMsFgrFgSrhQIxcSVrBz8w==}
     engines: {node: '>=18'}
 
+  iso-3166@4.4.0:
+    resolution: {integrity: sha512-I6ylkNQgxVh7cYADMUJpqBUdremGvyGZkDRSk9Cdic/ITBUemsllQnUeRpz7yDKyfgAXI9oPa5A9dia+7IXLqw==}
+
   iterator.prototype@1.1.5:
     resolution: {integrity: sha512-H0dkQoCa3b2VEeKQBOxFph+JAbcrQdE7KC0UkqwpLmv2EC4P41QXP+rqo9wYodACiG5/WM5s9oDApTU8utwj9g==}
     engines: {node: '>= 0.4'}
@@ -5840,6 +5886,10 @@ packages:
   postal-mime@2.7.4:
     resolution: {integrity: sha512-0WdnFQYUrPGGTFu1uOqD2s7omwua8xaeYGdO6rb88oD5yJ/4pPHDA4sdWqfD8wQVfCny563n/HQS7zTFft+f/g==}
 
+  postcode-validator@3.10.15:
+    resolution: {integrity: sha512-TTWlgG5YD9OQvPxcfBcwgjOgCI7rTxHX3LpxAZ1dKE+DjfNpRwrYrlhKWesofaKrO1MUTszQPmop4aptC1R6aw==}
+    engines: {node: '>=20.8.1'}
+
   postcss-selector-parser@7.1.1:
     resolution: {integrity: sha512-orRsuYpJVw8LdAwqqLykBj9ecS5/cRHlI5+nvTo8LcCKmzDmqVORXtOIYEEQuL9D4BxtA1lm5isAqzQZCoQ6Eg==}
     engines: {node: '>=4'}
@@ -5993,6 +6043,12 @@ packages:
     peerDependencies:
       react: 19.2.6
       react-dom: 19.2.6
+
+  react-hook-form@7.77.0:
+    resolution: {integrity: sha512-Sslh9YDYc0GDlWT/lxasnIduNo4v3yyvqRGvmGKUre5AFjDs/HV9/OafHGD8d+sB2yoL4UIL9L8X9i0WlZZebg==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      react: 19.2.6
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -7398,11 +7454,24 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.15
 
+  '@geoapify/geocoder-autocomplete@3.0.1': {}
+
+  '@geoapify/react-geocoder-autocomplete@3.0.0(@geoapify/geocoder-autocomplete@3.0.1)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
+    dependencies:
+      '@geoapify/geocoder-autocomplete': 3.0.1
+      react: 19.2.6
+      react-dom: 19.2.6(react@19.2.6)
+
   '@hexagon/base64@1.1.28': {}
 
   '@hono/node-server@1.19.14(hono@4.12.23)':
     dependencies:
       hono: 4.12.23
+
+  '@hookform/resolvers@5.4.0(react-hook-form@7.77.0(react@19.2.6))':
+    dependencies:
+      '@standard-schema/utils': 0.3.0
+      react-hook-form: 7.77.0(react@19.2.6)
 
   '@humanfs/core@0.19.2':
     dependencies:
@@ -8932,6 +9001,8 @@ snapshots:
   '@stablelib/base64@1.0.1': {}
 
   '@standard-schema/spec@1.1.0': {}
+
+  '@standard-schema/utils@0.3.0': {}
 
   '@stripe/react-stripe-js@6.4.0(@stripe/stripe-js@9.7.0)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)':
     dependencies:
@@ -10997,6 +11068,8 @@ snapshots:
 
   isexe@3.1.5: {}
 
+  iso-3166@4.4.0: {}
+
   iterator.prototype@1.1.5:
     dependencies:
       define-data-property: 1.1.4
@@ -11993,6 +12066,8 @@ snapshots:
 
   postal-mime@2.7.4: {}
 
+  postcode-validator@3.10.15: {}
+
   postcss-selector-parser@7.1.1:
     dependencies:
       cssesc: 3.0.0
@@ -12165,6 +12240,10 @@ snapshots:
       - bufferutil
       - supports-color
       - utf-8-validate
+
+  react-hook-form@7.77.0(react@19.2.6):
+    dependencies:
+      react: 19.2.6
 
   react-is@16.13.1: {}
 

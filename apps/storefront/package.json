@@ -14,6 +14,7 @@
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.4.0",
     "@neondatabase/serverless": "catalog:",
     "@phosphor-icons/react": "catalog:",
     "@prood/api-client": "workspace:*",
@@ -22,20 +23,23 @@
     "@prood/ui": "workspace:*",
     "better-auth": "catalog:",
     "drizzle-orm": "catalog:",
+    "iso-3166": "^4.4.0",
     "next": "catalog:",
     "next-themes": "catalog:",
+    "postcode-validator": "^3.10.15",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "react-hook-form": "^7.77.0",
     "sonner": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@prood/eslint-config": "workspace:^",
+    "@prood/typescript-config": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "@prood/eslint-config": "workspace:^",
-    "@prood/typescript-config": "workspace:*",
     "drizzle-kit": "catalog:",
     "eslint": "catalog:",
     "typescript": "catalog:"
