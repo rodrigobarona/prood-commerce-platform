@@ -7,6 +7,7 @@ import { cn } from "@prood/ui/lib/utils"
 import { useCart } from "@/components/providers/cart-provider"
 import { startCheckout } from "@/app/(checkout)/checkout/actions"
 import { CheckoutSidebar } from "./checkout-sidebar"
+import { ExpressCheckout } from "./express-checkout"
 import { ContactStep } from "./steps/contact-step"
 import { AddressStep } from "./steps/address-step"
 import { ShippingStep } from "./steps/shipping-step"
@@ -172,6 +173,7 @@ export function CheckoutFlow() {
       <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
         {/* Left: Steps */}
         <div className="flex flex-col gap-6">
+          <ExpressCheckout />
           {STEPS.map((step, i) => {
             const completed = i < activeStep
             const active = i === activeStep

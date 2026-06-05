@@ -18,9 +18,10 @@ export interface CheckoutResult {
 }
 
 export interface StartCheckoutInput {
-  email: string
-  address: Partial<CheckoutAddress>
+  email?: string
+  address?: Partial<CheckoutAddress>
   providerId?: string
+  expressPayment?: "apple" | "google"
 }
 
 export async function startCheckout(input: StartCheckoutInput): Promise<CheckoutResult> {
@@ -29,31 +30,33 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
     if (!cartId) return { ok: false, error: "No active cart" }
 
     const api = await getCommerceApi()
-    const address = input.address as CheckoutAddress
 
-    const addressBody = {
-      ...address,
-      phone: address.phone ?? undefined,
-      street2: address.street2 ?? undefined,
-      state: address.state ?? undefined,
-      postalCode: address.postalCode ?? undefined,
-      district: address.district ?? undefined,
-      nationalAddress: address.nationalAddress ?? undefined,
-      additionalNumber: address.additionalNumber ?? undefined,
+    if (input.address) {
+      const address = input.address as CheckoutAddress
+      const addressBody = {
+        ...address,
+        phone: address.phone ?? undefined,
+        street2: address.street2 ?? undefined,
+        state: address.state ?? undefined,
+        postalCode: address.postalCode ?? undefined,
+        district: address.district ?? undefined,
+        nationalAddress: address.nationalAddress ?? undefined,
+        additionalNumber: address.additionalNumber ?? undefined,
+      }
+
+      await unwrap(
+        api.PUT("/carts/{id}/shipping-address", {
+          params: { path: { id: cartId } },
+          body: addressBody,
+        })
+      )
+      await unwrap(
+        api.PUT("/carts/{id}/billing-address", {
+          params: { path: { id: cartId } },
+          body: addressBody,
+        })
+      )
     }
-
-    await unwrap(
-      api.PUT("/carts/{id}/shipping-address", {
-        params: { path: { id: cartId } },
-        body: addressBody,
-      })
-    )
-    await unwrap(
-      api.PUT("/carts/{id}/billing-address", {
-        params: { path: { id: cartId } },
-        body: addressBody,
-      })
-    )
 
     const methods = await unwrap<{ id: string }[]>(
       api.GET("/carts/{id}/shipping-methods", { params: { path: { id: cartId } } })
@@ -70,7 +73,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
     const order = await unwrap<Order>(
       api.POST("/carts/{id}/place-order", {
         params: { path: { id: cartId } },
-        body: { email: input.email } as any,
+        body: { email: input.email ?? "" } as any,
       })
     )
 
@@ -101,6 +104,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
         providerId,
         tenantId,
         fulfillment: "none",
+        ...(input.expressPayment ? { walletType: input.expressPayment } : {}),
       }),
     })
 
