@@ -24,7 +24,7 @@ export default async function ConfirmPage({
     >
       <ConfirmClient
         sessionId={id}
-        chargeId={query.payment_intent ?? query.charge_id ?? null}
+        stripeSessionId={query.session_id ?? null}
       />
     </Suspense>
   )

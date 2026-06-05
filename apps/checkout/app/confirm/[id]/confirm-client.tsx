@@ -4,10 +4,10 @@ import { useEffect, useState } from "react"
 
 export function ConfirmClient({
   sessionId,
-  chargeId,
+  stripeSessionId,
 }: {
   sessionId: string
-  chargeId: string | null
+  stripeSessionId: string | null
 }) {
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading")
   const [returnUrl, setReturnUrl] = useState<string | null>(null)
@@ -17,7 +17,7 @@ export function ConfirmClient({
     fetch(`/api/sessions/${sessionId}/confirm`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chargeId }),
+      body: JSON.stringify({ providerSessionId: stripeSessionId }),
     })
       .then((r) => r.json())
       .then((data: { state?: string; returnUrl?: string; orderId?: string; error?: string }) => {
@@ -37,7 +37,7 @@ export function ConfirmClient({
         setErrorMsg("Confirmation failed")
         setStatus("error")
       })
-  }, [sessionId, chargeId])
+  }, [sessionId, stripeSessionId])
 
   useEffect(() => {
     if (status === "success" && returnUrl) {

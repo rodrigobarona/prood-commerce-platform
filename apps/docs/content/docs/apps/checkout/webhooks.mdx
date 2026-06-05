@@ -71,8 +71,13 @@ export async function verifyPaymentWebhook(
 
 1. In Stripe Dashboard → Webhooks → Add endpoint
 2. URL: `https://checkout.example.com/api/webhooks/stripe/{orgId}`
-3. Events: `payment_intent.succeeded`, `payment_intent.payment_failed`, `charge.refunded`
+3. Events (11 total):
+   - `checkout.session.completed`, `checkout.session.expired`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`
+   - `payment_intent.succeeded`, `payment_intent.payment_failed`, `payment_intent.canceled`, `payment_intent.processing`, `payment_intent.amount_capturable_updated`
+   - `charge.refunded`, `refund.created`
 4. Copy signing secret → dashboard Integrations → Stripe → webhook secret
+
+Or run `./scripts/stripe-webhook-setup.sh` to configure via CLI.
 
 ### Easypay
 
@@ -92,8 +97,9 @@ Webhooks complement the sync-on-return flow:
 
 | Scenario | Primary | Fallback |
 | --- | --- | --- |
-| Stripe 3DS success | `confirmPayment()` on return | Webhook `payment_intent.succeeded` |
-| Customer closes browser during 3DS | — | Webhook updates order |
+| Stripe card payment | `checkout.confirm()` on return | Webhook `checkout.session.completed` |
+| Customer closes browser during 3DS | — | Webhook `checkout.session.completed` updates order |
+| Stripe async payment (bank transfer) | — | Webhook `checkout.session.async_payment_succeeded` |
 | Multibanco async payment | — | Webhook when customer pays at ATM |
 | MB WAY push notification | — | Webhook on phone confirmation |
 

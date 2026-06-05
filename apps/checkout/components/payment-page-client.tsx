@@ -2,19 +2,16 @@
 
 import { useEffect, useState } from "react"
 import { Skeleton } from "@prood/ui/components/skeleton"
+import { StripePayment } from "./stripe-payment"
+import { ReferencePayment } from "./reference-payment"
 
 function formatAmount(amount: number, currency: string): string {
   try {
-    return new Intl.NumberFormat("en", {
-      style: "currency",
-      currency,
-    }).format(amount)
+    return new Intl.NumberFormat("en", { style: "currency", currency }).format(amount)
   } catch {
     return `${amount} ${currency}`
   }
 }
-import { StripePayment } from "./stripe-payment"
-import { ReferencePayment } from "./reference-payment"
 
 interface SessionData {
   sessionId: string
@@ -83,7 +80,11 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: "customer@checkout.local" }),
       })
-      const result = (await res.json()) as SessionData & { clientSecret?: string; redirectUrl?: string; error?: string }
+      const result = (await res.json()) as SessionData & {
+        clientSecret?: string
+        redirectUrl?: string
+        error?: string
+      }
       if (result.error) {
         setError(result.error)
         setPaying(false)
@@ -124,10 +125,9 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
 
   const formatted = formatAmount(data.amount, data.currency)
 
-  const baseUrl = typeof window !== "undefined" ? window.location.origin : ""
-  const confirmUrl = `${baseUrl}/confirm/${sessionId}`
-
+  // Stripe embedded Payment Element — returnUrl is set client-side via checkout.confirm()
   if (payResult?.paymentSession?.providerData?.clientSecret && data.publishableKey) {
+    const confirmUrl = `${window.location.origin}/confirm/${sessionId}`
     return (
       <div className="flex flex-col gap-6">
         <div className="text-center">
@@ -145,7 +145,9 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
     )
   }
 
+  // Reference-based payment (e.g. bank transfer)
   if (payResult?.paymentSession?.providerData?.reference) {
+    const confirmUrl = `${window.location.origin}/confirm/${sessionId}`
     return (
       <div className="flex flex-col gap-6">
         <div className="text-center">

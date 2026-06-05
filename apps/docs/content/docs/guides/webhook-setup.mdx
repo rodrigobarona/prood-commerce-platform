@@ -44,11 +44,37 @@ Replace `{orgId}` with the merchant's organization ID (e.g. `org_demo`).
 
 ### 2. Select events
 
+**Checkout Session events** (primary — required for Checkout Sessions API):
+
+| Event | Purpose |
+| --- | --- |
+| `checkout.session.completed` | Payment captured (primary success signal) |
+| `checkout.session.expired` | Session timed out before payment |
+| `checkout.session.async_payment_succeeded` | Delayed payment confirmed (bank transfers, Boleto, etc.) |
+| `checkout.session.async_payment_failed` | Delayed payment failed |
+
+**PaymentIntent events** (Stripe fires these alongside Checkout Session events):
+
 | Event | Purpose |
 | --- | --- |
 | `payment_intent.succeeded` | Payment captured |
 | `payment_intent.payment_failed` | Payment declined |
+| `payment_intent.canceled` | Payment canceled |
+| `payment_intent.processing` | Payment processing |
+| `payment_intent.amount_capturable_updated` | Funds available for manual capture |
+
+**Charge / Refund events:**
+
+| Event | Purpose |
+| --- | --- |
 | `charge.refunded` | Refund processed |
+| `refund.created` | Refund initiated |
+
+You can configure all events at once using the provided setup script:
+
+```bash
+./scripts/stripe-webhook-setup.sh
+```
 
 ### 3. Copy signing secret
 
@@ -66,6 +92,7 @@ Use Stripe CLI for local webhook testing:
 
 ```bash
 stripe listen --forward-to localhost:3004/api/webhooks/stripe/org_demo
+stripe trigger checkout.session.completed
 stripe trigger payment_intent.succeeded
 ```
 

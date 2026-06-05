@@ -1,32 +1,38 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { loadStripe } from "@stripe/stripe-js"
 import {
-  Elements,
+  CheckoutElementsProvider,
   PaymentElement,
-  useElements,
-  useStripe,
-} from "@stripe/react-stripe-js"
+  useCheckoutElements,
+} from "@stripe/react-stripe-js/checkout"
 import { Button } from "@prood/ui/components/button"
 
 function PaymentForm({ returnUrl }: { returnUrl: string }) {
-  const stripe = useStripe()
-  const elements = useElements()
+  const checkoutState = useCheckoutElements()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  if (checkoutState.type === "loading") {
+    return <div className="text-muted-foreground py-4 text-center text-sm">Loading payment form...</div>
+  }
+
+  if (checkoutState.type === "error") {
+    return <p className="text-destructive text-sm">{checkoutState.error.message}</p>
+  }
+
+  const { checkout } = checkoutState
+  const formattedTotal = checkout.total.total.amount
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!stripe || !elements) return
     setLoading(true)
     setError(null)
-    const { error: stripeError } = await stripe.confirmPayment({
-      elements,
-      confirmParams: { return_url: returnUrl },
-    })
-    if (stripeError) {
-      setError(stripeError.message ?? "Payment failed")
+
+    const result = await checkout.confirm({ returnUrl })
+    if (result.type === "error") {
+      setError(result.error.message ?? "Payment failed")
       setLoading(false)
     }
   }
@@ -35,8 +41,8 @@ function PaymentForm({ returnUrl }: { returnUrl: string }) {
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <PaymentElement />
       {error ? <p className="text-destructive text-sm">{error}</p> : null}
-      <Button type="submit" disabled={!stripe || loading} className="w-full">
-        {loading ? "Processing..." : "Pay now"}
+      <Button type="submit" disabled={!checkout.canConfirm || loading} className="w-full">
+        {loading ? "Processing..." : `Pay ${formattedTotal}`}
       </Button>
     </form>
   )
@@ -51,11 +57,11 @@ export function StripePayment({
   publishableKey: string
   returnUrl: string
 }) {
-  const stripePromise = loadStripe(publishableKey)
+  const stripePromise = useMemo(() => loadStripe(publishableKey), [publishableKey])
 
   return (
-    <Elements stripe={stripePromise} options={{ clientSecret }}>
+    <CheckoutElementsProvider stripe={stripePromise} options={{ clientSecret }}>
       <PaymentForm returnUrl={returnUrl} />
-    </Elements>
+    </CheckoutElementsProvider>
   )
 }

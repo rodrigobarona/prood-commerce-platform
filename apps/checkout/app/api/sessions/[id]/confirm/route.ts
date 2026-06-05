@@ -14,9 +14,11 @@ export async function POST(
     }
 
     const { session, meta } = loaded
-    const body = (await request.json().catch(() => ({}))) as { chargeId?: string }
+    const body = (await request.json().catch(() => ({}))) as {
+      providerSessionId?: string
+    }
 
-    const confirmed = await session.confirmPayment(body.chargeId)
+    const confirmed = await session.confirmPayment(body.providerSessionId)
     const snapshot = await persistSession(id, session, meta)
 
     return NextResponse.json({
