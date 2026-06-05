@@ -31,6 +31,19 @@ function createAuth() {
   const { baseURL, secret } = resolveBetterAuthEnv("http://localhost:3000")
   return betterAuth({
     database: drizzleAdapter(authDb, { provider: "pg", schema }),
+    trustedOrigins: (request) => {
+      const origin = request?.headers.get("origin")
+      if (!origin) return []
+      try {
+        const { hostname } = new URL(origin)
+        if (hostname === "localhost") return [origin]
+        if (hostname.endsWith(".prood.app")) return [origin]
+        if (hostname.endsWith(".vercel.app")) return [origin]
+        return []
+      } catch {
+        return []
+      }
+    },
     databaseHooks: {
       user: {
         create: {

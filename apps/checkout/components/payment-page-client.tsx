@@ -146,7 +146,6 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
 
   // Stripe embedded Payment Element — returnUrl is set client-side via checkout.confirm()
   if (payResult?.paymentSession?.providerData?.clientSecret && data.publishableKey) {
-    const confirmUrl = `${window.location.origin}/confirm/${sessionId}`
     return (
       <div className="flex flex-col gap-6">
         <div className="text-center">
@@ -158,7 +157,6 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
         <StripePayment
           clientSecret={payResult.paymentSession.providerData.clientSecret as string}
           publishableKey={data.publishableKey}
-          returnUrl={confirmUrl}
         />
       </div>
     )

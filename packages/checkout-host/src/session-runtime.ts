@@ -4,6 +4,7 @@ import type { CheckoutSnapshot } from '@prood/checkout'
 import type { PaymentProvider } from '@prood/types'
 import { getPaymentProvider, getTenantPaymentConfig } from '@prood/commerce'
 import { loadSession, saveSession, type SessionMeta, type StoredSession } from './session-store'
+import { resolveCheckoutBaseUrl } from './checkout-url'
 
 /**
  * Hydrate a live CheckoutSession from a Redis-stored snapshot.
@@ -16,12 +17,18 @@ export function hydrateSession(
   snapshot: CheckoutSnapshot,
   meta: SessionMeta,
   provider: PaymentProvider,
+  sessionId?: string,
 ): CheckoutSession {
+  const checkoutBaseUrl = resolveCheckoutBaseUrl()
+  const confirmUrl = sessionId
+    ? `${checkoutBaseUrl}/confirm/${sessionId}`
+    : meta.returnUrl ?? undefined
+
   const session = new CheckoutSession({
     paymentProvider: provider,
     currency: snapshot.currency,
     amount: snapshot.amount,
-    returnUrl: meta.returnUrl ?? undefined,
+    returnUrl: confirmUrl,
     cancelUrl: meta.cancelUrl ?? undefined,
     orderId: snapshot.orderId ?? undefined,
     webhookUrl: meta.webhookUrl ?? undefined,
@@ -70,7 +77,7 @@ export async function loadAndHydrate(sessionId: string): Promise<LoadedSession |
     ? await getTenantPaymentConfig(stored.meta.tenantId, stored.meta.providerId)
     : undefined
   const provider = getPaymentProvider(stored.meta.providerId, tenantConfig)
-  const session = hydrateSession(stored.snapshot, stored.meta, provider)
+  const session = hydrateSession(stored.snapshot, stored.meta, provider, sessionId)
 
   return {
     session,

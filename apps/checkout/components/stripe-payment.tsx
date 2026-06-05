@@ -9,7 +9,7 @@ import {
 } from "@stripe/react-stripe-js/checkout"
 import { Button } from "@prood/ui/components/button"
 
-function PaymentForm({ returnUrl }: { returnUrl: string }) {
+function PaymentForm() {
   const checkoutState = useCheckoutElements()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -30,7 +30,7 @@ function PaymentForm({ returnUrl }: { returnUrl: string }) {
     setLoading(true)
     setError(null)
 
-    const result = await checkout.confirm({ returnUrl })
+    const result = await checkout.confirm()
     if (result.type === "error") {
       setError(result.error.message ?? "Payment failed")
       setLoading(false)
@@ -51,17 +51,15 @@ function PaymentForm({ returnUrl }: { returnUrl: string }) {
 export function StripePayment({
   clientSecret,
   publishableKey,
-  returnUrl,
 }: {
   clientSecret: string
   publishableKey: string
-  returnUrl: string
 }) {
   const stripePromise = useMemo(() => loadStripe(publishableKey), [publishableKey])
 
   return (
     <CheckoutElementsProvider stripe={stripePromise} options={{ clientSecret }}>
-      <PaymentForm returnUrl={returnUrl} />
+      <PaymentForm />
     </CheckoutElementsProvider>
   )
 }
