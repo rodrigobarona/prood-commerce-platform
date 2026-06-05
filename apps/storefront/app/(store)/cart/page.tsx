@@ -14,6 +14,7 @@ import { CartItemRow } from "@prood/ui/components/cart-item"
 import { CartSummary } from "@prood/ui/components/cart-summary"
 import { CouponInput } from "@prood/ui/components/coupon-input"
 import { EmptyState } from "@prood/ui/components/empty-state"
+import { FreeShippingBar } from "@prood/ui/components/free-shipping-bar"
 import { Separator } from "@prood/ui/components/separator"
 import { useCart } from "@/components/providers/cart-provider"
 
@@ -109,6 +110,12 @@ export default function CartPage() {
 
         {/* Sidebar: Summary + Coupon + Trust */}
         <div className="flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start">
+          <FreeShippingBar
+            subtotal={cart.totals.subtotal.amount}
+            threshold={5000}
+            currency={cart.totals.subtotal.currency}
+          />
+
           <CartSummary cart={cart} />
 
           <div className="rounded-2xl border p-5">
