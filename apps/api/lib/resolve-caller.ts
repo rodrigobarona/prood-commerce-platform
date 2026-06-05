@@ -132,7 +132,7 @@ export async function resolveCallerFromHeaders(
     }
   }
 
-  if (session?.user) {
+  if (session?.user && !DEFAULT_TENANT_ORG_ID) {
     throw new CommerceError(
       "Session is not bound to a store organization",
       "FORBIDDEN",
@@ -150,6 +150,7 @@ export async function resolveCallerFromHeaders(
       orgId: DEFAULT_TENANT_ORG_ID,
       scopes: ["storefront"],
       via: "host",
+      userId: session?.user?.id,
     }
   }
 

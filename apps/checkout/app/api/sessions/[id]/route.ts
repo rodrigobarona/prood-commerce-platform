@@ -18,6 +18,8 @@ export async function GET(
       providerId: stored.meta.providerId,
       publishableKey: stored.meta.publishableKey,
       kind: stored.meta.kind,
+      storeName: stored.meta.storeName ?? null,
+      returnUrl: stored.meta.returnUrl ?? null,
       ...stored.snapshot,
     })
   } catch (err) {

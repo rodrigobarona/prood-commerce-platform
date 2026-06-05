@@ -15,6 +15,7 @@ import {
   FieldDescription,
 } from "@prood/ui/components/field"
 import type { Locale } from "@prood/ui/lib/commerce"
+import { localized } from "@prood/ui/lib/commerce"
 import { shippingMethodSchema, type ShippingMethodValues } from "../schemas"
 
 interface ShippingMethodPrice {
@@ -25,10 +26,10 @@ interface ShippingMethodPrice {
 
 interface ShippingMethod {
   id: string
-  name: string
-  description?: string
+  name: string | Record<string, string>
+  description?: string | Record<string, string>
   price?: ShippingMethodPrice
-  estimatedDays?: string
+  estimatedDays?: string | { min: number; max: number }
 }
 
 interface ShippingStepProps {
@@ -141,15 +142,20 @@ export function ShippingStep({
                       aria-invalid={fieldState.invalid}
                     />
                     <FieldContent>
-                      <FieldTitle>{method.name}</FieldTitle>
+                      <FieldTitle>{typeof method.name === "string" ? method.name : localized(method.name, locale)}</FieldTitle>
                       {method.description ? (
                         <FieldDescription>
-                          {method.description}
+                          {typeof method.description === "string" ? method.description : localized(method.description, locale)}
                         </FieldDescription>
                       ) : null}
                       {method.estimatedDays ? (
                         <FieldDescription>
-                          Estimated delivery: {method.estimatedDays}
+                          Estimated delivery:{" "}
+                          {typeof method.estimatedDays === "string"
+                            ? method.estimatedDays
+                            : method.estimatedDays.min === method.estimatedDays.max
+                              ? `${method.estimatedDays.min} days`
+                              : `${method.estimatedDays.min}–${method.estimatedDays.max} days`}
                         </FieldDescription>
                       ) : null}
                     </FieldContent>

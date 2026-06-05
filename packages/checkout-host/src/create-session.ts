@@ -30,6 +30,8 @@ export interface CreateSessionInput {
   expiresIn?: number
   /** Organization (tenant) whose payment credentials should back this session. */
   tenantId?: string
+  /** Display name of the store, shown in the checkout header for brand continuity. */
+  storeName?: string
 }
 
 export interface CreatedSession {
@@ -81,6 +83,7 @@ export async function createCheckoutSession(input: CreateSessionInput): Promise<
     tenantId: input.tenantId ?? null,
     orderId: input.orderId ?? null,
     customerId: input.customerId ?? null,
+    storeName: input.storeName ?? null,
   }
 
   const snapshot = session.toSnapshot()
@@ -131,6 +134,7 @@ export async function createPaymentLink(input: CreateSessionInput): Promise<Crea
     tenantId: input.tenantId ?? null,
     orderId: input.orderId ?? null,
     customerId: input.customerId ?? null,
+    storeName: input.storeName ?? null,
   }
 
   const snapshot = session.toSnapshot()

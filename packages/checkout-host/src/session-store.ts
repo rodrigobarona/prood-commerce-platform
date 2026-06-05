@@ -15,6 +15,7 @@ export interface SessionMeta {
   tenantId?: string | null
   orderId?: string | null
   customerId?: string | null
+  storeName?: string | null
 }
 
 export interface StoredSession {

@@ -23,6 +23,7 @@ import {
   AddressAutocomplete,
   type ParsedAddress,
 } from "../address-autocomplete"
+import { getPhonePlaceholder, countryUsesStates } from "@/lib/geo"
 import { addressSchema, type AddressValues } from "../schemas"
 
 const GEOAPIFY_KEY = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY ?? ""
@@ -34,17 +35,21 @@ const countries = iso31661.map((c) => ({
 
 interface AddressStepProps {
   defaultValues?: Partial<AddressValues>
+  geoCountry?: string
   onSubmit: (values: AddressValues & { useSameForBilling: boolean }) => void
   onBack: () => void
 }
 
 export function AddressStep({
   defaultValues,
+  geoCountry,
   onSubmit,
   onBack,
 }: AddressStepProps) {
   const [useSameForBilling, setUseSameForBilling] = useState(true)
   const [showStreet2, setShowStreet2] = useState(!!defaultValues?.street2)
+
+  const initialCountry = defaultValues?.country || geoCountry || ""
 
   const form = useForm<AddressValues>({
     resolver: zodResolver(addressSchema),
@@ -57,13 +62,15 @@ export function AddressStep({
       city: "",
       state: "",
       postalCode: "",
-      country: "",
+      country: initialCountry,
       phone: "",
       ...defaultValues,
     },
   })
 
   const selectedCountry = form.watch("country")
+  const showState = countryUsesStates(selectedCountry)
+  const phonePlaceholder = getPhonePlaceholder(selectedCountry || geoCountry || "")
 
   const handleAutocompleteSelect = useCallback(
     (parsed: ParsedAddress) => {
@@ -101,7 +108,7 @@ export function AddressStep({
               <Input
                 {...field}
                 id={field.name}
-                autoComplete="given-name"
+                autoComplete="shipping given-name"
                 aria-invalid={fieldState.invalid}
               />
               {fieldState.invalid && (
@@ -120,7 +127,7 @@ export function AddressStep({
               <Input
                 {...field}
                 id={field.name}
-                autoComplete="family-name"
+                autoComplete="shipping family-name"
                 aria-invalid={fieldState.invalid}
               />
               {fieldState.invalid && (
@@ -132,11 +139,41 @@ export function AddressStep({
       </div>
 
       <Controller
+        name="phone"
+        control={form.control}
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel htmlFor={field.name}>
+              Phone <span className="text-muted-foreground font-normal">(for delivery updates)</span>
+            </FieldLabel>
+            <Input
+              {...field}
+              id={field.name}
+              type="tel"
+              inputMode="tel"
+              autoComplete="shipping tel"
+              aria-invalid={fieldState.invalid}
+              placeholder={phonePlaceholder}
+            />
+            {fieldState.invalid && (
+              <FieldError errors={[fieldState.error]} />
+            )}
+          </Field>
+        )}
+      />
+
+      <Controller
         name="country"
         control={form.control}
         render={({ field, fieldState }) => (
           <Field data-invalid={fieldState.invalid}>
             <FieldLabel htmlFor={field.name}>Country / Region</FieldLabel>
+            <input
+              type="hidden"
+              name="country"
+              value={field.value}
+              autoComplete="shipping country"
+            />
             <Select
               name={field.name}
               value={field.value}
@@ -185,7 +222,7 @@ export function AddressStep({
             <Input
               {...field}
               id={field.name}
-              autoComplete="address-line1"
+              autoComplete="shipping address-line1"
               aria-invalid={fieldState.invalid}
             />
             {fieldState.invalid && (
@@ -207,7 +244,7 @@ export function AddressStep({
               <Input
                 {...field}
                 id={field.name}
-                autoComplete="address-line2"
+                autoComplete="shipping address-line2"
                 aria-invalid={fieldState.invalid}
               />
               {fieldState.invalid && (
@@ -226,7 +263,7 @@ export function AddressStep({
         </button>
       )}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className={showState ? "grid grid-cols-1 gap-4 sm:grid-cols-3" : "grid grid-cols-1 gap-4 sm:grid-cols-2"}>
         <Controller
           name="city"
           control={form.control}
@@ -236,7 +273,7 @@ export function AddressStep({
               <Input
                 {...field}
                 id={field.name}
-                autoComplete="address-level2"
+                autoComplete="shipping address-level2"
                 aria-invalid={fieldState.invalid}
               />
               {fieldState.invalid && (
@@ -246,26 +283,28 @@ export function AddressStep({
           )}
         />
 
-        <Controller
-          name="state"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>
-                State / Province
-              </FieldLabel>
-              <Input
-                {...field}
-                id={field.name}
-                autoComplete="address-level1"
-                aria-invalid={fieldState.invalid}
-              />
-              {fieldState.invalid && (
-                <FieldError errors={[fieldState.error]} />
-              )}
-            </Field>
-          )}
-        />
+        {showState ? (
+          <Controller
+            name="state"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor={field.name}>
+                  State / Province
+                </FieldLabel>
+                <Input
+                  {...field}
+                  id={field.name}
+                  autoComplete="shipping address-level1"
+                  aria-invalid={fieldState.invalid}
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+        ) : null}
 
         <Controller
           name="postalCode"
@@ -276,7 +315,7 @@ export function AddressStep({
               <Input
                 {...field}
                 id={field.name}
-                autoComplete="postal-code"
+                autoComplete="shipping postal-code"
                 inputMode="text"
                 aria-invalid={fieldState.invalid}
               />

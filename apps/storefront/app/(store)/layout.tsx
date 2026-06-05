@@ -16,7 +16,7 @@ export default function StoreLayout({
   return (
     <Suspense fallback={null}>
       <TenantGuard>
-        <Suspense fallback={null}>
+        <Suspense fallback={<div className="sticky top-0 z-40 h-16 border-b" />}>
           <Header />
         </Suspense>
         <main className="flex-1">{children}</main>

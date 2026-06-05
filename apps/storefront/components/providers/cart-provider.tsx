@@ -23,6 +23,7 @@ interface CartContextValue {
   cart: Cart | null
   itemCount: number
   loading: boolean
+  hydrating: boolean
   openDrawer: () => void
   addItem: (input: AddItemInput) => Promise<void>
   addProduct: (product: Product, quantity?: number) => Promise<void>
@@ -112,6 +113,7 @@ function applyOptimisticRemove(cart: Cart, itemId: string): Cart {
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<Cart | null>(null)
   const [loading, setLoading] = useState(false)
+  const [hydrating, setHydrating] = useState(true)
   const [open, setOpen] = useState(false)
   const snapshotRef = useRef<Cart | null>(null)
 
@@ -124,6 +126,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     } catch {
       // network blip — keep current state
+    } finally {
+      setHydrating(false)
     }
   }, [])
 
@@ -250,6 +254,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         cart,
         itemCount: cart?.itemCount ?? 0,
         loading,
+        hydrating,
         openDrawer: () => setOpen(true),
         addItem,
         addProduct,

@@ -23,6 +23,7 @@ const createSchema = z.object({
   fulfillment: z.enum(["shipping", "local_delivery", "pickup", "none"]).optional(),
   expiresIn: z.number().positive().optional(),
   tenantId: z.string().optional(),
+  storeName: z.string().optional(),
 })
 
 export async function POST(request: Request) {

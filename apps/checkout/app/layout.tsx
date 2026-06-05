@@ -1,10 +1,11 @@
 import type { Metadata } from "next"
 import { Geist_Mono, Inter } from "next/font/google"
-import { Suspense } from "react"
 
 import "@prood/ui/globals.css"
 import { cn } from "@prood/ui/lib/utils"
 import { Toaster } from "@prood/ui/components/sonner"
+import { CheckoutContextProvider } from "@/components/checkout-context"
+import { CheckoutShell } from "@/components/checkout-shell"
 
 const fontSans = Inter({ subsets: ["latin"], variable: "--font-sans" })
 const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
@@ -28,10 +29,10 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn("antialiased", fontSans.variable, fontMono.variable, "font-sans")}
     >
-      <body className="bg-muted/50 flex min-h-svh flex-col items-center justify-center">
-        <Suspense fallback={null}>
-          <main className="w-full max-w-lg px-4 py-12">{children}</main>
-        </Suspense>
+      <body className="flex min-h-svh flex-col bg-muted/30">
+        <CheckoutContextProvider>
+          <CheckoutShell>{children}</CheckoutShell>
+        </CheckoutContextProvider>
         <Toaster richColors position="top-center" />
       </body>
     </html>

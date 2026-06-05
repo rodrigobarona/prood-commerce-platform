@@ -11,14 +11,18 @@ import {
   FieldError,
   FieldLabel,
 } from "@prood/ui/components/field"
+import { getPhonePlaceholder } from "@/lib/geo"
 import { contactSchema, type ContactValues } from "../schemas"
 
 interface ContactStepProps {
   defaultValues?: Partial<ContactValues>
+  geoCountry?: string
   onSubmit: (values: ContactValues) => void
 }
 
-export function ContactStep({ defaultValues, onSubmit }: ContactStepProps) {
+export function ContactStep({ defaultValues, geoCountry, onSubmit }: ContactStepProps) {
+  const phonePlaceholder = getPhonePlaceholder(geoCountry ?? "")
+
   const form = useForm<ContactValues>({
     resolver: zodResolver(contactSchema),
     mode: "onTouched",
@@ -46,7 +50,7 @@ export function ContactStep({ defaultValues, onSubmit }: ContactStepProps) {
               id={field.name}
               type="email"
               inputMode="email"
-              autoComplete="email"
+              autoComplete="shipping email"
               aria-invalid={fieldState.invalid}
               placeholder="you@example.com"
             />
@@ -72,10 +76,10 @@ export function ContactStep({ defaultValues, onSubmit }: ContactStepProps) {
               {...field}
               id={field.name}
               type="tel"
-              autoComplete="tel"
+              autoComplete="shipping tel"
               inputMode="tel"
               aria-invalid={fieldState.invalid}
-              placeholder="+1 (555) 000-0000"
+              placeholder={phonePlaceholder}
             />
             {fieldState.invalid && (
               <FieldError errors={[fieldState.error]} />

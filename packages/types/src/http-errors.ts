@@ -28,6 +28,21 @@ const STATUS_BY_CODE: Record<CommerceErrorCode, number> = {
   UNKNOWN: 500,
 }
 
+const VALID_CODES = new Set<string>(Object.keys(STATUS_BY_CODE))
+
+/** Type guard for plain objects shaped like a serialized CommerceError body. */
+function isCommerceErrorLike(
+  err: unknown,
+): err is { code: CommerceErrorCode; message: string } {
+  if (typeof err !== 'object' || err === null) return false
+  const obj = err as Record<string, unknown>
+  return (
+    typeof obj.code === 'string' &&
+    typeof obj.message === 'string' &&
+    VALID_CODES.has(obj.code)
+  )
+}
+
 /** Map any thrown error to a normalized HTTP-shaped response. */
 export function toErrorResponse(err: unknown): CommerceErrorResponse {
   if (err instanceof ZodError) {
@@ -47,6 +62,13 @@ export function toErrorResponse(err: unknown): CommerceErrorResponse {
   if (isCommerceError(err)) {
     return {
       status: err.statusCode ?? STATUS_BY_CODE[err.code] ?? 500,
+      body: { code: err.code, message: err.message },
+    }
+  }
+
+  if (isCommerceErrorLike(err)) {
+    return {
+      status: STATUS_BY_CODE[err.code] ?? 500,
       body: { code: err.code, message: err.message },
     }
   }

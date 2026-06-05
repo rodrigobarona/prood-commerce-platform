@@ -34,7 +34,7 @@ export default function CheckoutLayout({
           <ResolvedCheckoutHeader />
         </TenantGuard>
       </Suspense>
-      <main className="flex-1">{children}</main>
+      {children}
       <CheckoutFooter />
     </>
   )

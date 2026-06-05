@@ -86,12 +86,31 @@ function StepHeader({
   )
 }
 
-export function CheckoutFlow() {
-  const { cart } = useCart()
+export function CheckoutFlow({ geoCountry }: { geoCountry?: string }) {
+  const { cart, hydrating } = useCart()
   const [activeStep, setActiveStep] = useState(0)
   const [data, setData] = useState<CheckoutData>({})
 
   const goTo = useCallback((step: number) => setActiveStep(step), [])
+
+  if (hydrating) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
+        <div className="mb-6 h-8 w-40 animate-pulse rounded-lg bg-muted sm:mb-8" />
+        <div className="grid gap-6 lg:grid-cols-[1fr_380px] lg:gap-8">
+          <div className="flex flex-col gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex items-start gap-3">
+                <div className="size-7 shrink-0 animate-pulse rounded-full bg-muted" />
+                <div className="h-5 w-32 animate-pulse rounded bg-muted" />
+              </div>
+            ))}
+          </div>
+          <div className="h-64 animate-pulse rounded-2xl border bg-muted/30" />
+        </div>
+      </div>
+    )
+  }
 
   if (!cart || cart.items.length === 0) {
     return (
@@ -203,12 +222,14 @@ export function CheckoutFlow() {
                     {i === 0 && (
                       <ContactStep
                         defaultValues={data.contact}
+                        geoCountry={geoCountry}
                         onSubmit={handleContactSubmit}
                       />
                     )}
                     {i === 1 && (
                       <AddressStep
                         defaultValues={data.address}
+                        geoCountry={geoCountry}
                         onSubmit={handleAddressSubmit}
                         onBack={() => goTo(0)}
                       />

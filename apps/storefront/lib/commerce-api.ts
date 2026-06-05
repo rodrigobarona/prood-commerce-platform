@@ -9,12 +9,15 @@ export function getCommerceApiBaseUrl(): string {
   return process.env.COMMERCE_API_URL ?? "http://localhost:3005/v1"
 }
 
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1"])
+
 /**
  * True when the host can resolve to a storefront tenant on the API.
- * Filters out the bare platform domain (no subdomain to extract) and
- * Vercel preview/deployment URLs that the API cannot resolve.
+ * Filters out local dev hosts, the bare platform domain (no subdomain to
+ * extract), and Vercel preview/deployment URLs that the API cannot resolve.
  */
 function isResolvableStorefrontHost(host: string): boolean {
+  if (LOCAL_HOSTS.has(host)) return false
   if (PLATFORM_DOMAIN && host.endsWith(`.${PLATFORM_DOMAIN}`)) return true
   if (host === PLATFORM_DOMAIN) return false
   if (host.endsWith(".vercel.app")) return false

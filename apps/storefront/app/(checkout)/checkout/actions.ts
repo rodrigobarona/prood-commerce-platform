@@ -7,6 +7,8 @@ import { headers } from "next/headers"
 import { clearCartId, getCartId } from "@/lib/cart-cookie"
 import { getCommerceApi } from "@/lib/commerce-api"
 import { resolveTenantId } from "@/lib/tenant"
+import { fetchStoreInfo } from "@/lib/commerce-data"
+import { localized } from "@prood/ui/lib/commerce"
 
 type CheckoutAddress = Omit<Address, "id" | "isDefault">
 
@@ -87,6 +89,14 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
       : (process.env.BETTER_AUTH_URL ?? "http://localhost:3000")
     const tenantId = await resolveTenantId()
 
+    let storeName: string | undefined
+    try {
+      const store = await fetchStoreInfo()
+      if (store) storeName = localized(store.name) || undefined
+    } catch {
+      // non-critical — checkout works without store name
+    }
+
     const sessionRes = await fetch(`${checkoutUrl}/api/sessions`, {
       method: "POST",
       headers: {
@@ -103,6 +113,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
         returnUrl: `${storefrontOrigin}/order-confirmation?orderId=${order.id}`,
         providerId,
         tenantId,
+        storeName,
         fulfillment: "none",
         ...(input.expressPayment ? { walletType: input.expressPayment } : {}),
       }),

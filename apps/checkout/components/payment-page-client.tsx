@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Skeleton } from "@prood/ui/components/skeleton"
+import { useCheckoutContext } from "./checkout-context"
 import { StripePayment } from "./stripe-payment"
 import { ReferencePayment } from "./reference-payment"
 
@@ -24,6 +25,8 @@ interface SessionData {
   orderId: string | null
   expiresAt: string | null
   error: string | null
+  storeName?: string | null
+  returnUrl?: string | null
   paymentSession?: {
     id: string
     status: string
@@ -39,6 +42,7 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
   const [paying, setPaying] = useState(false)
   const [payResult, setPayResult] = useState<SessionData | null>(null)
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
+  const { setSession } = useCheckoutContext()
 
   useEffect(() => {
     fetch(`/api/sessions/${sessionId}`)
@@ -48,6 +52,10 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
           setError(d.error)
         } else {
           setData(d)
+          setSession({
+            storeName: d.storeName ?? null,
+            returnUrl: d.returnUrl ?? null,
+          })
         }
         setLoading(false)
       })
@@ -55,7 +63,7 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
         setError("Failed to load session")
         setLoading(false)
       })
-  }, [sessionId])
+  }, [sessionId, setSession])
 
   useEffect(() => {
     if (!data?.expiresAt) return
