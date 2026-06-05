@@ -10,6 +10,7 @@ export {
 } from '../emails/order-confirmation.js'
 export { OrderShippedEmail, type OrderShippedEmailProps } from '../emails/order-shipped.js'
 export { OrderRefundedEmail, type OrderRefundedEmailProps } from '../emails/order-refunded.js'
+export { PaymentFailedEmail, type PaymentFailedEmailProps } from '../emails/payment-failed.js'
 export { PasswordResetEmail, type PasswordResetEmailProps } from '../emails/password-reset.js'
 export { TeamInviteEmail, type TeamInviteEmailProps } from '../emails/team-invite.js'
 export { EmailLayout, type EmailLayoutProps } from '../emails/components/layout.js'
@@ -22,6 +23,7 @@ export type EmailTemplateId =
   | 'order-confirmation'
   | 'order-shipped'
   | 'order-refunded'
+  | 'payment-failed'
   | 'password-reset'
   | 'team-invite'
 
@@ -31,6 +33,7 @@ export const EMAIL_TEMPLATE_IDS = [
   'order-confirmation',
   'order-shipped',
   'order-refunded',
+  'payment-failed',
   'password-reset',
   'team-invite',
 ] as const satisfies readonly EmailTemplateId[]

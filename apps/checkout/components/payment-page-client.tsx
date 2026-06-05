@@ -27,6 +27,12 @@ interface SessionData {
   error: string | null
   storeName?: string | null
   returnUrl?: string | null
+  customerInfo?: {
+    email: string
+    firstName?: string
+    lastName?: string
+    phone?: string
+  } | null
   paymentSession?: {
     id: string
     status: string
@@ -86,7 +92,12 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
       const res = await fetch(`/api/sessions/${sessionId}/pay`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "customer@checkout.local" }),
+        body: JSON.stringify({
+          email: data.customerInfo?.email ?? "guest@checkout.local",
+          firstName: data.customerInfo?.firstName,
+          lastName: data.customerInfo?.lastName,
+          phone: data.customerInfo?.phone,
+        }),
       })
       const result = (await res.json()) as SessionData & {
         clientSecret?: string

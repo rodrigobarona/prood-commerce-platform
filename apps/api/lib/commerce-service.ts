@@ -223,6 +223,23 @@ export const webhooks = {
         })
       } else if (event.type === "payment.failed" || event.type === "payment.cancelled") {
         await adapter.updateOrderStatus(orderId, { status: "cancelled" })
+
+        void resolveOrderEmail(resolvedOrg, orderId).then((resolved) => {
+          if (!resolved) return
+          const { email, name, order } = resolved
+          void getMailer().send("email", {
+            to: email,
+            subject: `Payment failed for order #${order.orderNumber}`,
+            template: "payment-failed",
+            data: {
+              companyName: "Prood",
+              customerName: name,
+              orderNumber: order.orderNumber,
+              orderTotal: `${order.totals.total.currency} ${order.totals.total.amount}`,
+              retryUrl: `${process.env.NEXT_PUBLIC_STOREFRONT_URL ?? "http://localhost:3000"}/products`,
+            },
+          })
+        })
       }
     }
 

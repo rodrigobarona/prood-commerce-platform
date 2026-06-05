@@ -6,13 +6,15 @@ import { EmptyState } from "@prood/ui/components/empty-state"
 import { OrderTimeline } from "@prood/ui/components/order-timeline"
 import { formatPrice, localized } from "@prood/ui/lib/commerce"
 import { fetchOrder } from "@/lib/commerce-data"
+import { getSession } from "@/lib/auth"
+import { CreateAccountCard } from "@/components/checkout/create-account-card"
 
 export const metadata = { title: "Order confirmation" }
 
 export default async function OrderConfirmationPage({
   searchParams,
 }: {
-  searchParams: Promise<{ orderId?: string; id?: string }>
+  searchParams: Promise<{ orderId?: string; id?: string; email?: string }>
 }) {
   const sp = await searchParams
   const orderId = sp.orderId ?? sp.id
@@ -38,6 +40,13 @@ export default async function OrderConfirmationPage({
       </div>
     )
   }
+
+  const session = await getSession()
+  const isGuest = !session?.user
+  const customerEmail = sp.email ?? undefined
+  const customerName = [order.shippingAddress?.firstName, order.shippingAddress?.lastName]
+    .filter(Boolean)
+    .join(" ") || undefined
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-12">
@@ -66,6 +75,10 @@ export default async function OrderConfirmationPage({
         <h2 className="mb-3 font-semibold">Status</h2>
         <OrderTimeline status={order.status} />
       </div>
+
+      {isGuest && customerEmail ? (
+        <CreateAccountCard email={customerEmail} name={customerName} />
+      ) : null}
 
       <Button asChild>
         <Link href="/products">Continue shopping</Link>

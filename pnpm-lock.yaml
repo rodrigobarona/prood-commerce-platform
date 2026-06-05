@@ -615,6 +615,9 @@ importers:
       '@prood/api-client':
         specifier: workspace:*
         version: link:../../packages/api-client
+      '@prood/notification-resend':
+        specifier: workspace:*
+        version: link:../../packages/notification-resend
       '@prood/platform':
         specifier: workspace:*
         version: link:../../packages/platform

@@ -110,12 +110,19 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
         customerId: order.customerId,
         amount: priceToMajorAmount(order.totals.total),
         currency: order.totals.total.currency,
-        returnUrl: `${storefrontOrigin}/order-confirmation?orderId=${order.id}`,
+        customerInfo: input.email
+          ? {
+              email: input.email,
+              firstName: input.address?.firstName ?? undefined,
+              lastName: input.address?.lastName ?? undefined,
+              phone: input.address?.phone || undefined,
+            }
+          : undefined,
+        returnUrl: `${storefrontOrigin}/order-confirmation?orderId=${order.id}${input.email ? `&email=${encodeURIComponent(input.email)}` : ""}`,
         providerId,
         tenantId,
         storeName,
         fulfillment: "none",
-        ...(input.expressPayment ? { walletType: input.expressPayment } : {}),
       }),
     })
 

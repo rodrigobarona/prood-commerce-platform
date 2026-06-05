@@ -9,6 +9,7 @@ import {
   OrderConfirmationEmail,
   OrderShippedEmail,
   OrderRefundedEmail,
+  PaymentFailedEmail,
   PasswordResetEmail,
   TeamInviteEmail,
   WelcomeEmail,
@@ -17,6 +18,7 @@ import {
   type OrderConfirmationEmailProps,
   type OrderShippedEmailProps,
   type OrderRefundedEmailProps,
+  type PaymentFailedEmailProps,
   type PasswordResetEmailProps,
   type TeamInviteEmailProps,
   type WelcomeEmailProps,
@@ -45,6 +47,8 @@ function renderTemplate(
       return createElement(OrderShippedEmail, data as unknown as OrderShippedEmailProps)
     case 'order-refunded':
       return createElement(OrderRefundedEmail, data as unknown as OrderRefundedEmailProps)
+    case 'payment-failed':
+      return createElement(PaymentFailedEmail, data as unknown as PaymentFailedEmailProps)
     case 'password-reset':
       return createElement(PasswordResetEmail, data as unknown as PasswordResetEmailProps)
     case 'team-invite':
@@ -63,6 +67,7 @@ function isEmailTemplateId(value: string | undefined): value is EmailTemplateId 
     value === 'order-confirmation' ||
     value === 'order-shipped' ||
     value === 'order-refunded' ||
+    value === 'payment-failed' ||
     value === 'password-reset' ||
     value === 'team-invite'
   )

@@ -1,8 +1,10 @@
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { nextCookies } from "better-auth/next-js"
+import { autoLinkGuestCustomers } from "@prood/platform"
 import { authDb } from "./db"
 import * as schema from "./schema"
+import { getMailer } from "../mailer"
 
 const BUILD_FALLBACK_SECRET =
   "7f3c9a2e8b1d4f6a0c5e9b2d8f1a4c6e9b0d3f7a2c5e8b1d4f6a0c5e9b2d8f1a4c6"
@@ -29,10 +31,54 @@ function createAuth() {
   const { baseURL, secret } = resolveBetterAuthEnv("http://localhost:3000")
   return betterAuth({
     database: drizzleAdapter(authDb, { provider: "pg", schema }),
-    emailAndPassword: { enabled: true },
+    databaseHooks: {
+      user: {
+        create: {
+          after: async (user) => {
+            if (user.email) {
+              try {
+                await autoLinkGuestCustomers(user.id, user.email)
+              } catch {
+                // non-critical — linking can be retried on next login
+              }
+              void getMailer().send("email", {
+                to: user.email,
+                subject: "Welcome!",
+                template: "welcome",
+                data: {
+                  companyName: "Prood",
+                  name: user.name ?? user.email.split("@")[0],
+                  dashboardUrl: `${baseURL}/account`,
+                },
+              })
+            }
+          },
+        },
+      },
+    },
+    emailAndPassword: {
+      enabled: true,
+      sendResetPassword: async ({ user, url }) => {
+        void getMailer().send("email", {
+          to: user.email,
+          subject: "Reset your password",
+          template: "password-reset",
+          data: { companyName: "Prood", url },
+        })
+      },
+    },
+    emailVerification: {
+      sendVerificationEmail: async ({ user, url }) => {
+        void getMailer().send("email", {
+          to: user.email,
+          subject: "Confirm your email address",
+          template: "activation",
+          data: { companyName: "Prood", url },
+        })
+      },
+    },
     baseURL,
     secret,
-    // nextCookies() must be the last plugin so Set-Cookie works in Server Actions.
     plugins: [nextCookies()],
   })
 }
