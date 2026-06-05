@@ -12,8 +12,10 @@ export const orders = pgTable('orders', {
   orderNumber: text('order_number').notNull().unique(),
   customerId: text('customer_id').references(() => customers.id, { onDelete: 'set null' }),
 
-  // Status
-  status: text('status').notNull().default('pending'),
+  // Status (Commerce Layer-inspired three-dimensional model)
+  status: text('status').notNull().default('placed'),
+  paymentStatus: text('payment_status').notNull().default('unpaid'),
+  fulfillmentStatus: text('fulfillment_status').notNull().default('unfulfilled'),
 
   // Totals
   subtotal: numeric('subtotal', { precision: 12, scale: 2 }).notNull().default('0'),
@@ -36,6 +38,11 @@ export const orders = pgTable('orders', {
   // Misc
   note: text('note'),
   requiresShipping: boolean('requires_shipping').notNull().default(true),
+
+  placedAt: timestamp('placed_at', { withTimezone: true }),
+  approvedAt: timestamp('approved_at', { withTimezone: true }),
+  cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+  fulfilledAt: timestamp('fulfilled_at', { withTimezone: true }),
 
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

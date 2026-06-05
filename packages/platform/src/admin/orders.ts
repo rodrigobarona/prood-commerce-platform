@@ -70,6 +70,12 @@ function mapOrder(row: any, items: any[], currency: string): Order {
     note: row.note ?? null,
     customerId: row.customerId ?? null,
     requiresShipping: Boolean(row.requiresShipping),
+    paymentStatus: row.paymentStatus ?? 'unpaid',
+    fulfillmentStatus: row.fulfillmentStatus ?? 'unfulfilled',
+    placedAt: row.placedAt ?? null,
+    approvedAt: row.approvedAt ?? null,
+    cancelledAt: row.cancelledAt ?? null,
+    fulfilledAt: row.fulfilledAt ?? null,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     paymentTerms: null,
@@ -129,13 +135,18 @@ export function createAdminOrdersDomain(currency: string) {
       await updateOrderTracking(id, {
         trackingNumber: input.trackingNumber ?? null,
         trackingUrl: input.trackingUrl ?? null,
-        status: 'shipped',
+        status: 'fulfilled',
+      })
+
+      await updateOrder(id, {
+        fulfillmentStatus: 'fulfilled',
+        fulfilledAt: new Date(),
       })
 
       await createOrderHistory({
         orderId: id,
         fromStatus: order.status,
-        toStatus: 'shipped',
+        toStatus: 'fulfilled',
         note: input.note ?? 'Order fulfilled',
       })
     },
@@ -144,12 +155,16 @@ export function createAdminOrdersDomain(currency: string) {
       const order = await findOrderById(id)
       if (!order) throw new Error(`Order not found: ${id}`)
 
-      await updateOrder(id, { status: 'refunded' })
+      await updateOrder(id, {
+        status: 'cancelled',
+        paymentStatus: 'refunded',
+        cancelledAt: new Date(),
+      })
 
       await createOrderHistory({
         orderId: id,
         fromStatus: order.status,
-        toStatus: 'refunded',
+        toStatus: 'cancelled',
         note: note ?? 'Order refunded',
       })
     },

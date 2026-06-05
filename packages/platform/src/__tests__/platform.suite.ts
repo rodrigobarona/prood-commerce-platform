@@ -199,7 +199,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     const order = await adapter.placeOrder(cart.id)
     expect(order.id).toBeTruthy()
     expect(order.orderNumber).toBeTruthy()
-    expect(order.status).toBe('pending')
+    expect(order.status).toBe('placed')
     expect(order.items.length).toBe(1)
     expect(order.totals.total.amount).toBeGreaterThan(0)
   })
@@ -217,7 +217,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       shippingAddress: fullAddress(),
     })
     expect(order.id).toBeTruthy()
-    expect(order.status).toBe('pending')
+    expect(order.status).toBe('placed')
   })
 
   it('should get an order by id', async () => {
@@ -232,7 +232,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
   it('should list order statuses', async () => {
     const statuses = await adapter.getOrderStatuses()
     expect(statuses.length).toBeGreaterThan(0)
-    expect(statuses.find((s: any) => s.id === 'pending')).toBeTruthy()
+    expect(statuses.find((s: any) => s.id === 'placed')).toBeTruthy()
   })
 
   it('should update order status', async () => {
@@ -240,9 +240,9 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       items: [{ productId: 'prod-1', quantity: 1, unitPrice: { amount: 100, currency: 'SAR', formatted: '100 SAR' } }],
       shippingAddress: fullAddress(),
     })
-    await adapter.updateOrderStatus(order.id, { status: 'processing' })
+    await adapter.updateOrderStatus(order.id, { status: 'approved' })
     const updated = await adapter.getOrder(order.id)
-    expect(updated.status).toBe('processing')
+    expect(updated.status).toBe('approved')
   })
 
   it('should track order history', async () => {
@@ -250,7 +250,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       items: [{ productId: 'prod-1', quantity: 1, unitPrice: { amount: 100, currency: 'SAR', formatted: '100 SAR' } }],
       shippingAddress: fullAddress(),
     })
-    await adapter.updateOrderStatus(order.id, { status: 'processing' })
+    await adapter.updateOrderStatus(order.id, { status: 'approved' })
     const history = await adapter.getOrderHistory(order.id)
     expect(history.length).toBeGreaterThanOrEqual(2)
   })

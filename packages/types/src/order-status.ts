@@ -49,8 +49,12 @@ export interface OrderHistoryEntry {
  * Input for updating an order's status.
  */
 export interface UpdateOrderStatusInput {
-  /** Status slug (e.g., 'canceled', 'in_progress') or custom status ID */
+  /** Order lifecycle status (e.g., 'placed', 'approved', 'fulfilled', 'cancelled') */
   status: string
+  /** Payment lifecycle status (e.g., 'unpaid', 'paid', 'refunded', 'voided') */
+  paymentStatus?: string
+  /** Fulfillment lifecycle status (e.g., 'unfulfilled', 'in_progress', 'fulfilled') */
+  fulfillmentStatus?: string
   /** Optional note to attach to the status change */
   note?: string
   /** Whether to restore stock for canceled/returned items */

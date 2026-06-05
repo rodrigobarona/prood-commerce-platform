@@ -180,7 +180,9 @@ export async function migrateDrizzle(connectionString?: string) {
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
     order_number TEXT NOT NULL UNIQUE,
     customer_id TEXT REFERENCES customers(id) ON DELETE SET NULL,
-    status TEXT NOT NULL DEFAULT 'pending',
+    status TEXT NOT NULL DEFAULT 'placed',
+    payment_status TEXT NOT NULL DEFAULT 'unpaid',
+    fulfillment_status TEXT NOT NULL DEFAULT 'unfulfilled',
     subtotal NUMERIC(12, 2) NOT NULL DEFAULT 0,
     shipping_cost NUMERIC(12, 2),
     tax NUMERIC(12, 2),
@@ -195,6 +197,10 @@ export async function migrateDrizzle(connectionString?: string) {
     tracking_url TEXT,
     note TEXT,
     requires_shipping BOOLEAN NOT NULL DEFAULT true,
+    placed_at TIMESTAMPTZ,
+    approved_at TIMESTAMPTZ,
+    cancelled_at TIMESTAMPTZ,
+    fulfilled_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`)
@@ -355,6 +361,54 @@ export async function migrateDrizzle(connectionString?: string) {
     connected_at TIMESTAMPTZ,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
   )`)
+
+  // --- Additive migrations for existing databases ---
+
+  // Order status model: add payment_status, fulfillment_status, and lifecycle timestamps
+  await db.execute(sql.raw(
+    `ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'unpaid'`
+  ))
+  await db.execute(sql.raw(
+    `ALTER TABLE orders ADD COLUMN IF NOT EXISTS fulfillment_status TEXT NOT NULL DEFAULT 'unfulfilled'`
+  ))
+  await db.execute(sql.raw(
+    `ALTER TABLE orders ADD COLUMN IF NOT EXISTS placed_at TIMESTAMPTZ`
+  ))
+  await db.execute(sql.raw(
+    `ALTER TABLE orders ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ`
+  ))
+  await db.execute(sql.raw(
+    `ALTER TABLE orders ADD COLUMN IF NOT EXISTS cancelled_at TIMESTAMPTZ`
+  ))
+  await db.execute(sql.raw(
+    `ALTER TABLE orders ADD COLUMN IF NOT EXISTS fulfilled_at TIMESTAMPTZ`
+  ))
+
+  // Migrate legacy status values to new model
+  await db.execute(sql.raw(`
+    UPDATE orders SET
+      status = CASE
+        WHEN status = 'pending' THEN 'placed'
+        WHEN status = 'processing' THEN 'approved'
+        WHEN status = 'shipped' THEN 'fulfilled'
+        WHEN status = 'delivered' THEN 'fulfilled'
+        WHEN status = 'refunded' THEN 'cancelled'
+        WHEN status = 'returned' THEN 'cancelled'
+        ELSE status
+      END,
+      payment_status = CASE
+        WHEN status IN ('processing', 'shipped', 'delivered') THEN 'paid'
+        WHEN status = 'refunded' THEN 'refunded'
+        WHEN status = 'cancelled' THEN 'voided'
+        ELSE 'unpaid'
+      END,
+      fulfillment_status = CASE
+        WHEN status IN ('shipped', 'delivered') THEN 'fulfilled'
+        WHEN status = 'processing' THEN 'unfulfilled'
+        ELSE 'unfulfilled'
+      END
+    WHERE status IN ('pending', 'processing', 'shipped', 'delivered', 'refunded', 'returned')
+  `))
 
   // Apply multi-tenant row-level security to all tenant-owned tables.
   await applyTenantIsolation(db)

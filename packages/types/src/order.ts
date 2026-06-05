@@ -10,15 +10,29 @@ import type { CartTotals } from './cart.js'
 import type { ProductType, DigitalProductMeta, EventProductMeta } from './product.js'
 import type { PaymentTerms } from './wholesale.js'
 
-/** Order status lifecycle */
+/** Order status lifecycle (Commerce Layer-inspired) */
 export type OrderStatus =
-  | 'pending'
-  | 'processing'
-  | 'shipped'
-  | 'delivered'
+  | 'placed'
+  | 'approved'
+  | 'fulfilled'
   | 'cancelled'
+
+/** Payment status — independent dimension tracking payment lifecycle */
+export type PaymentStatus =
+  | 'unpaid'
+  | 'authorized'
+  | 'paid'
+  | 'partially_refunded'
   | 'refunded'
-  | 'returned'
+  | 'voided'
+  | 'free'
+
+/** Order-level fulfillment status */
+export type OrderFulfillmentStatus =
+  | 'unfulfilled'
+  | 'in_progress'
+  | 'fulfilled'
+  | 'not_required'
 
 /** Fulfillment status per line item */
 export type FulfillmentStatus =
@@ -59,6 +73,8 @@ export interface Order {
   id: Id
   orderNumber: string
   status: OrderStatus
+  paymentStatus: PaymentStatus
+  fulfillmentStatus: OrderFulfillmentStatus
   items: OrderItem[]
   totals: CartTotals
   shippingAddress: Maybe<Address>
@@ -73,6 +89,12 @@ export interface Order {
   customerId: Maybe<Id>
   /** Whether any item in this order requires physical shipping */
   requiresShipping: boolean
+
+  placedAt: Maybe<string>
+  approvedAt: Maybe<string>
+  cancelledAt: Maybe<string>
+  fulfilledAt: Maybe<string>
+
   createdAt: string
   updatedAt: string
 

@@ -8,13 +8,10 @@ const STATUS_VARIANT: Record<
   OrderStatus,
   "default" | "secondary" | "destructive" | "outline"
 > = {
-  pending: "secondary",
-  processing: "secondary",
-  shipped: "default",
-  delivered: "default",
+  placed: "secondary",
+  approved: "default",
+  fulfilled: "default",
   cancelled: "destructive",
-  refunded: "outline",
-  returned: "outline",
 }
 
 export interface OrderCardProps {

@@ -66,8 +66,14 @@ export function createOrdersDomain(currency: string) {
       note: row.note ?? null,
       customerId: row.customerId ?? null,
       requiresShipping: Boolean(row.requiresShipping),
+      placedAt: row.placedAt ?? null,
+      approvedAt: row.approvedAt ?? null,
+      cancelledAt: row.cancelledAt ?? null,
+      fulfilledAt: row.fulfilledAt ?? null,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
+      paymentStatus: row.paymentStatus ?? 'unpaid',
+      fulfillmentStatus: row.fulfillmentStatus ?? 'unfulfilled',
       paymentTerms: null,
       purchaseOrderNumber: null,
       companyName: null,
@@ -87,7 +93,9 @@ export function createOrdersDomain(currency: string) {
         id,
         orderNumber,
         customerId: input.customerId ?? null,
-        status: 'pending',
+        status: 'placed',
+        paymentStatus: subtotal === 0 ? 'free' : 'unpaid',
+        fulfillmentStatus: 'unfulfilled',
         subtotal,
         total: subtotal,
         currency,
@@ -95,6 +103,7 @@ export function createOrdersDomain(currency: string) {
         billingAddress: input.billingAddress as any ?? null,
         note: input.note ?? null,
         requiresShipping: true,
+        placedAt: new Date(),
       })
 
       for (const item of input.items) {
@@ -111,7 +120,7 @@ export function createOrdersDomain(currency: string) {
 
       await createOrderHistory({
         orderId: id,
-        toStatus: 'pending',
+        toStatus: 'placed',
         note: 'Order created',
       })
 
@@ -149,14 +158,14 @@ export function createOrdersDomain(currency: string) {
     },
 
     async getOrderStatuses(): Promise<OrderStatusInfo[]> {
-      const statuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded', 'returned']
+      const statuses = ['placed', 'approved', 'fulfilled', 'cancelled']
       const colors: Record<string, string> = {
-        pending: '#F59E0B', processing: '#3B82F6', shipped: '#8B5CF6',
-        delivered: '#10B981', cancelled: '#EF4444', refunded: '#6B7280', returned: '#F97316',
+        placed: '#F59E0B', approved: '#3B82F6',
+        fulfilled: '#10B981', cancelled: '#EF4444',
       }
       const icons: Record<string, string> = {
-        pending: 'clock', processing: 'refresh', shipped: 'truck',
-        delivered: 'check', cancelled: 'x', refunded: 'arrow-left', returned: 'rotate-ccw',
+        placed: 'clock', approved: 'check-circle',
+        fulfilled: 'truck', cancelled: 'x',
       }
 
       return statuses.map(s => ({
@@ -176,7 +185,16 @@ export function createOrdersDomain(currency: string) {
       const order = await findOrderById(orderId)
       if (!order) throw new Error(`Order not found: ${orderId}`)
 
-      await updateOrder(orderId, { status: input.status })
+      const updates: Record<string, any> = { status: input.status }
+      if (input.paymentStatus) updates.paymentStatus = input.paymentStatus
+      if (input.fulfillmentStatus) updates.fulfillmentStatus = input.fulfillmentStatus
+
+      const now = new Date()
+      if (input.status === 'approved' && !order.approvedAt) updates.approvedAt = now
+      if (input.status === 'cancelled' && !order.cancelledAt) updates.cancelledAt = now
+      if (input.status === 'fulfilled' && !order.fulfilledAt) updates.fulfilledAt = now
+
+      await updateOrder(orderId, updates)
 
       await createOrderHistory({
         orderId,

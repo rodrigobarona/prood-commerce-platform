@@ -202,7 +202,11 @@ export const webhooks = {
     const apply = async () => {
       const adapter = await getAdapter()
       if (event.type === "payment.captured") {
-        await adapter.updateOrderStatus(orderId, { status: "processing" })
+        await adapter.updateOrderStatus(orderId, {
+          status: "approved",
+          paymentStatus: "paid",
+          note: "Payment captured",
+        })
         try { revalidateProducts(resolvedOrg) } catch { /* best-effort */ }
 
         void resolveOrderEmail(resolvedOrg, orderId).then((resolved) => {
@@ -222,7 +226,11 @@ export const webhooks = {
           })
         })
       } else if (event.type === "payment.failed" || event.type === "payment.cancelled") {
-        await adapter.updateOrderStatus(orderId, { status: "cancelled" })
+        await adapter.updateOrderStatus(orderId, {
+          status: "cancelled",
+          paymentStatus: "voided",
+          note: event.type === "payment.failed" ? "Payment failed" : "Payment cancelled",
+        })
 
         void resolveOrderEmail(resolvedOrg, orderId).then((resolved) => {
           if (!resolved) return

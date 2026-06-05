@@ -1,7 +1,7 @@
 import type { OrderStatus } from "@prood/types"
 import { cn } from "@prood/ui/lib/utils"
 
-const FLOW: OrderStatus[] = ["pending", "processing", "shipped", "delivered"]
+const FLOW: OrderStatus[] = ["placed", "approved", "fulfilled"]
 
 export interface OrderTimelineProps {
   status: OrderStatus
@@ -9,8 +9,7 @@ export interface OrderTimelineProps {
 }
 
 export function OrderTimeline({ status, className }: OrderTimelineProps) {
-  const terminal =
-    status === "cancelled" || status === "refunded" || status === "returned"
+  const terminal = status === "cancelled"
   const currentIndex = FLOW.indexOf(status)
 
   return (

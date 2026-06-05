@@ -27,7 +27,7 @@ export type { Cart, CartItem, CartTotals } from './cart.js'
 export type { Customer, Address, RegisterInput, UpdateCustomerInput } from './customer.js'
 
 // Order
-export type { Order, OrderItem, OrderStatus, FulfillmentStatus } from './order.js'
+export type { Order, OrderItem, OrderStatus, PaymentStatus, OrderFulfillmentStatus, FulfillmentStatus } from './order.js'
 
 // Order Input (for OrderAdapter.createOrder)
 export type { CreateOrderInput, OrderItemInput } from './order-input.js'

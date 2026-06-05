@@ -16,8 +16,8 @@ import { getOrder } from "@/lib/admin-api"
 
 export const metadata = { title: "Order" }
 
-const FULFILLABLE = new Set(["pending", "processing"])
-const REFUNDABLE = new Set(["pending", "processing", "shipped", "delivered"])
+const FULFILLABLE = new Set(["placed", "approved"])
+const REFUNDABLE = new Set(["placed", "approved", "fulfilled"])
 
 export default function OrderDetailPage({
   params,

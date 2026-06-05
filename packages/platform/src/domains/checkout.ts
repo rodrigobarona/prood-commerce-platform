@@ -129,7 +129,9 @@ export function createCheckoutDomain(currency: string) {
         throw new Error('Cannot place order with empty cart')
       }
 
-      const orderStatus = options?.status ?? 'pending'
+      const orderStatus = options?.status ?? 'placed'
+      const hasPhysicalItems = true
+      const fulfillmentStatus = hasPhysicalItems ? 'unfulfilled' : 'not_required'
 
       const cartRow = await findCart(cartId)
       const shippingMethods = await this.getShippingMethods(cartId)
@@ -146,11 +148,15 @@ export function createCheckoutDomain(currency: string) {
       const discount = cart.totals.discount?.amount ?? 0
       const total = subtotal + shippingCost + tax - discount
 
+      const now = new Date()
+
       await dbCreateOrder({
         id: orderId,
         orderNumber,
         customerId: cart.customerId ?? null,
         status: orderStatus,
+        paymentStatus: total === 0 ? 'free' : 'unpaid',
+        fulfillmentStatus,
         subtotal,
         shippingCost,
         tax,
@@ -162,6 +168,7 @@ export function createCheckoutDomain(currency: string) {
         shippingMethod: selectedShipping?.name ? JSON.stringify(selectedShipping.name) : null,
         paymentMethod: selectedPayment?.name ? JSON.stringify(selectedPayment.name) : null,
         requiresShipping: true,
+        placedAt: now,
       })
 
       for (const item of cart.items) {
