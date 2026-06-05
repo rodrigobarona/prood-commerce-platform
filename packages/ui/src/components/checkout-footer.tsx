@@ -1,3 +1,5 @@
+"use client"
+
 import { ShieldCheck } from "@phosphor-icons/react"
 
 export function CheckoutFooter() {

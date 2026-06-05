@@ -1,3 +1,5 @@
+"use client"
+
 import { LockSimple } from "@phosphor-icons/react"
 
 interface CheckoutHeaderProps {
