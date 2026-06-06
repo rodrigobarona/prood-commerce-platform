@@ -135,6 +135,7 @@ CREATE TABLE orders (
   id TEXT PRIMARY KEY,
   order_number TEXT NOT NULL UNIQUE,
   customer_id TEXT REFERENCES customers(id),
+  contact_email TEXT,
 
   -- Three-dimensional status
   status TEXT NOT NULL DEFAULT 'placed',
