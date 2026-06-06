@@ -15,11 +15,13 @@ Paginated table of orders:
 | --- | --- |
 | Order # | Order ID (short format) |
 | Customer | Email and name |
-| Status | `pending`, `confirmed`, `processing`, `shipped`, `delivered`, `cancelled`, `refunded` |
+| Status | `placed`, `approved`, `fulfilled`, `cancelled` |
+| Payment | `unpaid`, `paid`, `refunded`, `voided` |
+| Fulfillment | `unfulfilled`, `in_progress`, `fulfilled` |
 | Total | Grand total (formatted with currency) |
 | Date | Order creation date |
 
-Filters: status, date range (future enhancement).
+Filters: status, payment status, date range.
 
 ## Order detail
 
@@ -32,6 +34,7 @@ Displays full order information:
 - Order ID, status, creation date
 - Customer info (email, name, phone)
 - Payment status and provider
+- Fulfillment status
 - Order totals (subtotal, tax, shipping, discount, grand total)
 
 ### Line items
@@ -70,26 +73,73 @@ export async function refundOrder(orderId: string, input: RefundOrderInput) {
 }
 ```
 
-## Order statuses
+## Order status model
 
-| Status | Meaning | Transitions |
+Orders use a **three-dimensional status model** inspired by Commerce Layer, separating order lifecycle, payment, and fulfillment into independent fields.
+
+### Order status (lifecycle)
+
+| Status | Meaning | Triggered by |
 | --- | --- | --- |
-| `pending` | Order placed, payment not confirmed | → `confirmed` (payment captured) |
-| `confirmed` | Payment confirmed | → `processing` |
-| `processing` | Being prepared | → `shipped` (fulfill action) |
-| `shipped` | In transit | → `delivered` |
-| `delivered` | Received by customer | Terminal |
-| `cancelled` | Cancelled before fulfillment | Terminal |
-| `refunded` | Payment refunded | Terminal |
+| `placed` | Order submitted, awaiting payment | Customer completes checkout |
+| `approved` | Payment confirmed, ready to fulfill | Stripe webhook (`payment.captured`) |
+| `fulfilled` | All items shipped | Admin fulfills order |
+| `cancelled` | Order voided | Payment failure or admin cancellation |
 
-Payment webhooks from the checkout app drive the `pending` → `confirmed` transition automatically.
+### Payment status
+
+| Status | Meaning | Triggered by |
+| --- | --- | --- |
+| `unpaid` | No payment received yet | Default at placement |
+| `authorized` | Funds held, capture pending | Auth-only gateways |
+| `paid` | Payment captured successfully | Stripe webhook |
+| `partially_refunded` | Partial refund issued | Admin partial refund |
+| `refunded` | Fully refunded | Admin full refund |
+| `voided` | Authorization cancelled | Payment failure or cancellation |
+| `free` | Zero-amount order | Coupons/gift cards cover full total |
+
+### Fulfillment status
+
+| Status | Meaning | Triggered by |
+| --- | --- | --- |
+| `unfulfilled` | No items shipped yet | Default at placement |
+| `in_progress` | Some items shipped | Partial fulfillment (future) |
+| `fulfilled` | All items shipped | Admin fulfills order |
+| `not_required` | Digital-only order | Auto-set for non-physical items |
+
+### Lifecycle timestamps
+
+| Field | Set when |
+| --- | --- |
+| `placedAt` | Order is created |
+| `approvedAt` | Payment is confirmed |
+| `cancelledAt` | Order is cancelled |
+| `fulfilledAt` | Order is fully shipped |
+
+### Typical flow
+
+```
+Customer places order
+  → status: placed, paymentStatus: unpaid, fulfillmentStatus: unfulfilled
+
+Stripe webhook confirms payment
+  → status: approved, paymentStatus: paid
+
+Admin ships the order
+  → status: fulfilled, fulfillmentStatus: fulfilled
+
+--- OR ---
+
+Payment fails
+  → status: cancelled, paymentStatus: voided
+```
 
 ## Refund flow
 
 1. Merchant clicks **Refund** on order detail page
 2. Dashboard sends `POST /v1/admin/orders/{id}/refund` with amount and reason
 3. API calls payment provider's `refund()` method with tenant credentials
-4. Order status updated to `refunded` (full) or partial refund recorded
+4. Order status updated to `cancelled`, payment status to `refunded`
 5. Webhook from provider confirms refund completion
 
 ## API endpoints used
@@ -104,6 +154,7 @@ Payment webhooks from the checkout app drive the `pending` → `confirmed` trans
 ## Related pages
 
 <Cards>
+  <Card title="Order lifecycle" href="/docs/architecture/order-lifecycle" description="Full architecture reference for the three-dimensional order status model." />
   <Card title="Checkout flow" href="/docs/architecture/checkout-flow" description="How orders are created and payment confirmed." />
   <Card title="Payment integration" href="/docs/guides/payment-integration" description="Provider-specific refund behavior." />
 </Cards>

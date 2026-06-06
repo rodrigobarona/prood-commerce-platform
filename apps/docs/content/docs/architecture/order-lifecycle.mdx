@@ -1,0 +1,228 @@
+---
+title: Order Lifecycle
+description: Three-dimensional order status model — separating order, payment, and fulfillment into independent dimensions.
+---
+
+## Overview
+
+Prood uses a **three-dimensional order status model** inspired by [Commerce Layer](https://commercelayer.io). Instead of a single `status` field that conflates payment and shipping state, orders track three independent dimensions:
+
+| Dimension | Field | Purpose |
+| --- | --- | --- |
+| **Order lifecycle** | `status` | Where the order is in its lifecycle |
+| **Payment** | `paymentStatus` | Whether and how much has been paid |
+| **Fulfillment** | `fulfillmentStatus` | Whether items have been shipped |
+
+This separation makes it trivial to answer questions like "show me paid orders that haven't shipped yet" or "which orders have partial refunds" without parsing a single overloaded status field.
+
+## Order status
+
+The primary lifecycle status of the order.
+
+| Value | Description |
+| --- | --- |
+| `placed` | Order submitted by customer — awaiting payment |
+| `approved` | Payment confirmed — ready for fulfillment |
+| `fulfilled` | All items shipped to customer |
+| `cancelled` | Order cancelled (payment failed, admin action, or timeout) |
+
+### State machine
+
+```
+placed → approved → fulfilled
+  ↓         ↓
+cancelled  cancelled
+```
+
+## Payment status
+
+Independent from order status. Tracks the payment lifecycle.
+
+| Value | Description |
+| --- | --- |
+| `unpaid` | No payment received (default) |
+| `authorized` | Funds held but not captured (auth-only gateways) |
+| `paid` | Payment captured — funds collected |
+| `partially_refunded` | Partial refund issued |
+| `refunded` | Full refund issued |
+| `voided` | Authorization voided — no funds collected |
+| `free` | Zero-amount order (100% coupon/gift card) |
+
+### Transitions
+
+```
+unpaid → authorized → paid → partially_refunded → refunded
+  ↓         ↓
+voided    voided
+```
+
+For auto-capture gateways (Stripe default), `unpaid` transitions directly to `paid`.
+
+## Fulfillment status
+
+Tracks shipping progress. Independent from payment — an order can be fulfilled before capture in delayed-capture scenarios.
+
+| Value | Description |
+| --- | --- |
+| `unfulfilled` | No items shipped (default) |
+| `in_progress` | Some items shipped (partial fulfillment) |
+| `fulfilled` | All items shipped |
+| `not_required` | Digital-only order — no physical shipping needed |
+
+### Per-item fulfillment
+
+Each `OrderItem` also has its own `fulfillmentStatus` for granular tracking:
+
+| Value | Applies to |
+| --- | --- |
+| `unfulfilled` | Not yet shipped |
+| `partially_fulfilled` | Multi-quantity item, some shipped |
+| `fulfilled` | Shipped |
+| `returned` | Returned by customer |
+| `download_ready` | Digital product — download link available |
+| `license_sent` | Software license delivered |
+| `access_granted` | Service/subscription access enabled |
+| `ticket_issued` | Event ticket delivered |
+
+## Lifecycle timestamps
+
+Each status transition records a timestamp:
+
+| Field | Set when |
+| --- | --- |
+| `placedAt` | Order is created via checkout |
+| `approvedAt` | Payment webhook confirms capture |
+| `cancelledAt` | Order is cancelled |
+| `fulfilledAt` | Admin ships the order |
+| `createdAt` | Record creation (same as `placedAt` for checkout orders) |
+| `updatedAt` | Any field is modified |
+
+## Complete lifecycle example
+
+### Happy path (card payment, physical goods)
+
+| Step | Trigger | `status` | `paymentStatus` | `fulfillmentStatus` |
+| --- | --- | --- | --- | --- |
+| Customer submits checkout | `POST /carts/{id}/place-order` | `placed` | `unpaid` | `unfulfilled` |
+| Stripe captures payment | Webhook `checkout.session.completed` | `approved` | `paid` | `unfulfilled` |
+| Admin ships order | `POST /admin/orders/{id}/fulfill` | `fulfilled` | `paid` | `fulfilled` |
+
+### Payment failure
+
+| Step | Trigger | `status` | `paymentStatus` | `fulfillmentStatus` |
+| --- | --- | --- | --- | --- |
+| Customer submits checkout | Place order | `placed` | `unpaid` | `unfulfilled` |
+| Card declined | Webhook `payment_intent.payment_failed` | `cancelled` | `voided` | `unfulfilled` |
+
+### Refund after fulfillment
+
+| Step | Trigger | `status` | `paymentStatus` | `fulfillmentStatus` |
+| --- | --- | --- | --- | --- |
+| Order shipped | — | `fulfilled` | `paid` | `fulfilled` |
+| Admin issues full refund | `POST /admin/orders/{id}/refund` | `cancelled` | `refunded` | `fulfilled` |
+
+### Free order (100% coupon)
+
+| Step | Trigger | `status` | `paymentStatus` | `fulfillmentStatus` |
+| --- | --- | --- | --- | --- |
+| Checkout with coupon | Place order | `placed` | `free` | `unfulfilled` |
+| Auto-approved (no payment needed) | — | `approved` | `free` | `unfulfilled` |
+
+## Database schema
+
+```sql
+CREATE TABLE orders (
+  id TEXT PRIMARY KEY,
+  order_number TEXT NOT NULL UNIQUE,
+  customer_id TEXT REFERENCES customers(id),
+
+  -- Three-dimensional status
+  status TEXT NOT NULL DEFAULT 'placed',
+  payment_status TEXT NOT NULL DEFAULT 'unpaid',
+  fulfillment_status TEXT NOT NULL DEFAULT 'unfulfilled',
+
+  -- Lifecycle timestamps
+  placed_at TIMESTAMPTZ,
+  approved_at TIMESTAMPTZ,
+  cancelled_at TIMESTAMPTZ,
+  fulfilled_at TIMESTAMPTZ,
+
+  -- Totals, addresses, etc.
+  ...
+);
+```
+
+## TypeScript types
+
+```ts
+type OrderStatus = 'placed' | 'approved' | 'fulfilled' | 'cancelled'
+
+type PaymentStatus =
+  | 'unpaid' | 'authorized' | 'paid'
+  | 'partially_refunded' | 'refunded'
+  | 'voided' | 'free'
+
+type OrderFulfillmentStatus =
+  | 'unfulfilled' | 'in_progress' | 'fulfilled' | 'not_required'
+
+interface Order {
+  status: OrderStatus
+  paymentStatus: PaymentStatus
+  fulfillmentStatus: OrderFulfillmentStatus
+  placedAt: string | null
+  approvedAt: string | null
+  cancelledAt: string | null
+  fulfilledAt: string | null
+  // ... other fields
+}
+```
+
+## Webhook-driven transitions
+
+The payment status is updated exclusively by webhooks from the payment provider. The API app's `reconcilePayment` handler maps provider events:
+
+| Webhook event | Sets `status` | Sets `paymentStatus` |
+| --- | --- | --- |
+| `checkout.session.completed` / `payment.captured` | `approved` | `paid` |
+| `payment_intent.payment_failed` | `cancelled` | `voided` |
+| `charge.refunded` (full) | `cancelled` | `refunded` |
+| `charge.refunded` (partial) | no change | `partially_refunded` |
+
+## Order history
+
+Every status change is recorded in the `order_history` table:
+
+```sql
+CREATE TABLE order_history (
+  id TEXT PRIMARY KEY,
+  order_id TEXT REFERENCES orders(id),
+  from_status TEXT,
+  to_status TEXT NOT NULL,
+  note TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+This provides a full audit trail visible in the dashboard order detail page.
+
+## Migration from legacy statuses
+
+Existing orders with legacy single-status values are automatically migrated:
+
+| Legacy status | New `status` | New `paymentStatus` | New `fulfillmentStatus` |
+| --- | --- | --- | --- |
+| `pending` | `placed` | `unpaid` | `unfulfilled` |
+| `processing` | `approved` | `paid` | `unfulfilled` |
+| `shipped` | `fulfilled` | `paid` | `fulfilled` |
+| `delivered` | `fulfilled` | `paid` | `fulfilled` |
+| `refunded` | `cancelled` | `refunded` | `unfulfilled` |
+| `returned` | `cancelled` | `refunded` | `unfulfilled` |
+
+## Related pages
+
+<Cards>
+  <Card title="Checkout flow" href="/docs/architecture/checkout-flow" description="How the checkout session creates orders and initiates payment." />
+  <Card title="Dashboard orders" href="/docs/apps/dashboard/orders" description="Managing orders in the admin UI." />
+  <Card title="Webhook setup" href="/docs/guides/webhook-setup" description="Configuring Stripe webhooks for payment events." />
+  <Card title="Unified types" href="/docs/architecture/unified-types" description="The Order type definition in @prood/types." />
+</Cards>

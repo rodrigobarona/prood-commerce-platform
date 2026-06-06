@@ -1,5 +1,5 @@
 {
   "title": "Architecture",
   "icon": "Stack",
-  "pages": ["overview", "multi-tenant", "privacy-data", "checkout-flow", "unified-types", "api-centric"]
+  "pages": ["overview", "multi-tenant", "privacy-data", "checkout-flow", "order-lifecycle", "unified-types", "api-centric"]
 }
