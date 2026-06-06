@@ -45,7 +45,9 @@ export async function lookupTenantByHost(
         console.warn(`[tenant] slug "${slug}" is reserved`)
       }
     } else {
-      console.warn(`[tenant] host "${host}" does not match *.${platformDomain}`)
+      if (!host.endsWith(".vercel.app")) {
+        console.warn(`[tenant] host "${host}" does not match *.${platformDomain}`)
+      }
     }
   } catch (err) {
     console.error(`[tenant] lookup failed for host "${host}":`, err)
