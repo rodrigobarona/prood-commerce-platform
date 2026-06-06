@@ -383,6 +383,9 @@ export async function migrateDrizzle(connectionString?: string) {
   await db.execute(sql.raw(
     `ALTER TABLE orders ADD COLUMN IF NOT EXISTS fulfilled_at TIMESTAMPTZ`
   ))
+  await db.execute(sql.raw(
+    `ALTER TABLE orders ADD COLUMN IF NOT EXISTS contact_email TEXT`
+  ))
 
   // Migrate legacy status values to new model
   await db.execute(sql.raw(`

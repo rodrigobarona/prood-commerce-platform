@@ -69,6 +69,7 @@ function mapOrder(row: any, items: any[], currency: string): Order {
     trackingUrl: row.trackingUrl ?? null,
     note: row.note ?? null,
     customerId: row.customerId ?? null,
+    contactEmail: row.contactEmail ?? null,
     requiresShipping: Boolean(row.requiresShipping),
     paymentStatus: row.paymentStatus ?? 'unpaid',
     fulfillmentStatus: row.fulfillmentStatus ?? 'unfulfilled',

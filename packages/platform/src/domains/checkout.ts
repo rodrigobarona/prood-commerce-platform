@@ -5,6 +5,8 @@
 import type {
   Cart,
   Order,
+  PaymentStatus,
+  OrderFulfillmentStatus,
   ShippingMethod,
   PaymentMethod,
   Address,
@@ -117,7 +119,7 @@ export function createCheckoutDomain(currency: string) {
 
     async placeOrder(
       cartId: string,
-      options?: { status?: string; keepCart?: boolean; customerId?: string },
+      options?: { status?: string; keepCart?: boolean; customerId?: string; contactEmail?: string },
     ): Promise<Order> {
       if (options?.customerId) {
         await updateCart(cartId, { customerId: options.customerId })
@@ -154,6 +156,7 @@ export function createCheckoutDomain(currency: string) {
         id: orderId,
         orderNumber,
         customerId: cart.customerId ?? null,
+        contactEmail: options?.contactEmail ?? null,
         status: orderStatus,
         paymentStatus: total === 0 ? 'free' : 'unpaid',
         fulfillmentStatus,
@@ -237,7 +240,14 @@ export function createCheckoutDomain(currency: string) {
         trackingUrl: order.trackingUrl ?? null,
         note: order.note ?? null,
         customerId: order.customerId ?? null,
+        contactEmail: order.contactEmail ?? null,
         requiresShipping: Boolean(order.requiresShipping),
+        paymentStatus: (order.paymentStatus ?? 'unpaid') as PaymentStatus,
+        fulfillmentStatus: (order.fulfillmentStatus ?? 'unfulfilled') as OrderFulfillmentStatus,
+        placedAt: order.placedAt instanceof Date ? order.placedAt.toISOString() : order.placedAt ?? null,
+        approvedAt: order.approvedAt instanceof Date ? order.approvedAt.toISOString() : order.approvedAt ?? null,
+        cancelledAt: order.cancelledAt instanceof Date ? order.cancelledAt.toISOString() : order.cancelledAt ?? null,
+        fulfilledAt: order.fulfilledAt instanceof Date ? order.fulfilledAt.toISOString() : order.fulfilledAt ?? null,
         createdAt: order.createdAt instanceof Date ? order.createdAt.toISOString() : order.createdAt,
         updatedAt: order.updatedAt instanceof Date ? order.updatedAt.toISOString() : order.updatedAt,
         paymentTerms: null,

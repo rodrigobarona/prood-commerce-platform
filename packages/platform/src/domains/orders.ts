@@ -65,6 +65,7 @@ export function createOrdersDomain(currency: string) {
       trackingUrl: row.trackingUrl ?? null,
       note: row.note ?? null,
       customerId: row.customerId ?? null,
+      contactEmail: row.contactEmail ?? null,
       requiresShipping: Boolean(row.requiresShipping),
       placedAt: row.placedAt ?? null,
       approvedAt: row.approvedAt ?? null,

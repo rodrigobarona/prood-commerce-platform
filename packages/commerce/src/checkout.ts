@@ -86,9 +86,10 @@ export async function placeOrder(
   cartId: string,
   tenantId?: string,
   customerId?: string,
+  contactEmail?: string,
 ): Promise<Order> {
   return runScoped(tenantId, async () =>
-    (await getAdapter()).placeOrder(cartId, customerId ? { customerId } : undefined),
+    (await getAdapter()).placeOrder(cartId, { customerId, contactEmail }),
   )
 }
 

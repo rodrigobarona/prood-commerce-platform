@@ -14,6 +14,7 @@ import type {
   UpdateProductInput,
   UpdateStoreInput,
 } from "@prood/commerce"
+import type { OrderHistoryEntry } from "@prood/types"
 import { unwrap } from "@prood/api-client"
 import { requireActiveOrg } from "@/lib/admin"
 import { getCommerceApi } from "@/lib/commerce-api"
@@ -107,6 +108,25 @@ export async function refundOrder(id: string, note?: string) {
       params: { path: { id } },
       body: note ? { note } : {},
     })
+  )
+}
+
+export async function cancelOrder(id: string, note?: string) {
+  await requireActiveOrg()
+  const api = await getCommerceApi()
+  return unwrap(
+    api.POST("/admin/orders/{id}/cancel", {
+      params: { path: { id } },
+      body: note ? { note } : {},
+    })
+  )
+}
+
+export async function getOrderHistory(id: string) {
+  await requireActiveOrg()
+  const api = await getCommerceApi()
+  return unwrap<OrderHistoryEntry[]>(
+    api.GET("/admin/orders/{id}/history", { params: { path: { id } } })
   )
 }
 

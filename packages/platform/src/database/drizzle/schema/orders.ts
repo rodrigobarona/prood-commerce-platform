@@ -11,6 +11,7 @@ export const orders = pgTable('orders', {
   organizationId: text('organization_id'),
   orderNumber: text('order_number').notNull().unique(),
   customerId: text('customer_id').references(() => customers.id, { onDelete: 'set null' }),
+  contactEmail: text('contact_email'),
 
   // Status (Commerce Layer-inspired three-dimensional model)
   status: text('status').notNull().default('placed'),

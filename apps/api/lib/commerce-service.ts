@@ -141,8 +141,8 @@ export const checkout = {
     ),
   setShippingMethod: (orgId: string, cartId: string, methodId: string) =>
     setShippingMethod(cartId, methodId, orgId),
-  placeOrder: async (orgId: string, cartId: string, customerId?: string) => {
-    const order = await placeOrder(cartId, orgId, customerId)
+  placeOrder: async (orgId: string, cartId: string, customerId?: string, contactEmail?: string) => {
+    const order = await placeOrder(cartId, orgId, customerId, contactEmail)
     try {
       revalidateProducts(orgId)
     } catch {
@@ -341,6 +341,14 @@ export const admin = {
       })
     })
   },
+  cancelOrder: async (orgId: string, id: string, note?: string) => {
+    await withTenant(orgId, async () => {
+      const adapter = await getAdapter()
+      await adapter.cancelOrder(id, note)
+    })
+  },
+  getOrderHistory: (orgId: string, id: string) =>
+    withTenant(orgId, async () => (await getAdapter()).getOrderHistory(id)),
   listCustomers: (orgId: string, q: AdminListQuery) =>
     withTenant(orgId, async () => (await getAdmin()).listCustomers(toAdminListParams(q))),
   getCustomer: (orgId: string, id: string) =>

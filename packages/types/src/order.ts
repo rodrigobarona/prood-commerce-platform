@@ -87,6 +87,8 @@ export interface Order {
   trackingUrl: Maybe<string>
   note: Maybe<string>
   customerId: Maybe<Id>
+  /** Email address provided at checkout */
+  contactEmail: Maybe<string>
   /** Whether any item in this order requires physical shipping */
   requiresShipping: boolean
 

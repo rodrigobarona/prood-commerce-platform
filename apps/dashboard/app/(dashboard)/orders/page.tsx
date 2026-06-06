@@ -20,6 +20,32 @@ import { listOrders } from "@/lib/admin-api"
 
 export const metadata = { title: "Orders" }
 
+type StatusVariant = "default" | "secondary" | "destructive" | "outline"
+
+const ORDER_VARIANT: Record<string, StatusVariant> = {
+  placed: "secondary",
+  approved: "default",
+  fulfilled: "default",
+  cancelled: "destructive",
+}
+
+const PAYMENT_VARIANT: Record<string, StatusVariant> = {
+  unpaid: "outline",
+  authorized: "secondary",
+  paid: "default",
+  partially_refunded: "secondary",
+  refunded: "destructive",
+  voided: "destructive",
+  free: "default",
+}
+
+const FULFILLMENT_VARIANT: Record<string, StatusVariant> = {
+  unfulfilled: "outline",
+  in_progress: "secondary",
+  fulfilled: "default",
+  not_required: "secondary",
+}
+
 export default function OrdersPage() {
   return (
     <div className="flex flex-col gap-6">
@@ -30,7 +56,7 @@ export default function OrdersPage() {
         </p>
       </div>
 
-      <Suspense fallback={<TablePageSkeleton columns={5} />}>
+      <Suspense fallback={<TablePageSkeleton columns={6} />}>
         <OrdersTable />
       </Suspense>
     </div>
@@ -58,6 +84,8 @@ async function OrdersTable() {
                 <TableHead className="pl-5">Order</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Payment</TableHead>
+                <TableHead>Fulfillment</TableHead>
                 <TableHead>Total</TableHead>
                 <TableHead className="pr-5 text-right">Actions</TableHead>
               </TableRow>
@@ -72,7 +100,25 @@ async function OrdersTable() {
                     {new Date(order.createdAt).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{order.status}</Badge>
+                    <Badge variant={ORDER_VARIANT[order.status] ?? "secondary"}>
+                      {order.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={PAYMENT_VARIANT[order.paymentStatus] ?? "outline"}
+                      className="text-xs"
+                    >
+                      {order.paymentStatus.replace("_", " ")}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={FULFILLMENT_VARIANT[order.fulfillmentStatus] ?? "outline"}
+                      className="text-xs"
+                    >
+                      {order.fulfillmentStatus.replace("_", " ")}
+                    </Badge>
                   </TableCell>
                   <TableCell>{formatPrice(order.totals.total)}</TableCell>
                   <TableCell className="pr-5 text-right">

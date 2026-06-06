@@ -126,7 +126,7 @@ export interface CheckoutAdapter<
   setPaymentMethod(cartId: string, methodId: string): Promise<TCart>
 
   /** Place the order (finalize checkout) */
-  placeOrder(cartId: string, options?: { customerId?: string }): Promise<TOrder>
+  placeOrder(cartId: string, options?: { customerId?: string; contactEmail?: string }): Promise<TOrder>
 }
 
 /**

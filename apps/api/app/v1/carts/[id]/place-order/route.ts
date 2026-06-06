@@ -14,13 +14,12 @@ export async function POST(
     const caller = await requireCaller("storefront")
     await assertCanPlaceOrder(caller.orgId)
 
+    const body = (await req.json().catch(() => ({}))) as { email?: string }
+
     let customerId: string
     if (caller.userId) {
       customerId = await ensureCustomer(caller.orgId, caller.userId)
     } else {
-      const body = await req.json().catch(() => ({})) as {
-        email?: string
-      }
       const cart = await getCart(id, caller.orgId)
       const addr = cart.billingAddress ?? cart.shippingAddress
       customerId = await createGuestCustomer(caller.orgId, {
@@ -31,7 +30,7 @@ export async function POST(
       })
     }
 
-    const order = await checkout.placeOrder(caller.orgId, id, customerId)
+    const order = await checkout.placeOrder(caller.orgId, id, customerId, body.email)
     return NextResponse.json(order, { status: 201 })
   } catch (err) {
     return errorResponse(err)
