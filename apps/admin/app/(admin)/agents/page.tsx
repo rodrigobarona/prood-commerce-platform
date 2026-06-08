@@ -6,7 +6,9 @@ import {
   CardTitle,
 } from "@prood/ui/components/card"
 import { Badge } from "@prood/ui/components/badge"
+import { Button } from "@prood/ui/components/button"
 import { listAllAgents } from "@/lib/admin-queries"
+import { deactivateAgentAction } from "./actions"
 
 export const metadata = { title: "Agents" }
 
@@ -30,7 +32,7 @@ export default async function AgentsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Agents</CardTitle>
-          <CardDescription>Read-only overview of Agent Auth registrations.</CardDescription>
+          <CardDescription>Manage Agent Auth registrations.</CardDescription>
         </CardHeader>
         <CardContent>
           {agents.length > 0 ? (
@@ -45,6 +47,7 @@ export default async function AgentsPage() {
                     <th className="pb-3 pr-4 font-medium">User</th>
                     <th className="pb-3 pr-4 font-medium">Last Used</th>
                     <th className="pb-3 font-medium">Created</th>
+                    <th className="pb-3 font-medium">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -77,6 +80,16 @@ export default async function AgentsPage() {
                       </td>
                       <td className="py-3 text-muted-foreground">
                         {agent.createdAt.toLocaleDateString()}
+                      </td>
+                      <td className="py-3">
+                        {agent.status === "active" ? (
+                          <form action={deactivateAgentAction}>
+                            <input name="id" type="hidden" value={agent.id} />
+                            <Button type="submit" size="sm" variant="destructive">
+                              Deactivate
+                            </Button>
+                          </form>
+                        ) : null}
                       </td>
                     </tr>
                   ))}

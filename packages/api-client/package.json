@@ -8,6 +8,7 @@
   },
   "scripts": {
     "codegen": "openapi-typescript ../../apps/docs/openapi/commerce.json -o ./src/schema.ts",
+    "codegen:check": "node scripts/check-codegen.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

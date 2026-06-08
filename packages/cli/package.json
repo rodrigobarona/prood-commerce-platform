@@ -1,0 +1,25 @@
+{
+  "name": "@prood/cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "prood": "./src/index.ts"
+  },
+  "scripts": {
+    "cli": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@prood/api-client": "workspace:*"
+  },
+  "devDependencies": {
+    "@prood/typescript-config": "workspace:*",
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

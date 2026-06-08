@@ -1,6 +1,21 @@
 import { createFromOpenAPI } from "@better-auth/agent-auth/openapi"
 import { buildOpenApiDocument } from "../openapi"
 
+function parseProxyKeysByOrg(): Record<string, string> {
+  const raw = process.env.AGENT_PROXY_API_KEYS_BY_ORG
+  if (!raw) return {}
+  const parsed = JSON.parse(raw) as unknown
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    throw new Error("AGENT_PROXY_API_KEYS_BY_ORG must be a JSON object")
+  }
+  return Object.fromEntries(
+    Object.entries(parsed).filter(
+      (entry): entry is [string, string] =>
+        typeof entry[0] === "string" && typeof entry[1] === "string"
+    )
+  )
+}
+
 /** Public base URL for REST + agent OpenAPI proxy (must include `/v1`). */
 export function getApiPublicBaseUrl(): string {
   const root =
@@ -28,19 +43,19 @@ export function getAgentAuthOpenAPIOptions() {
       DELETE: "session",
     },
     async resolveHeaders({ agentSession }) {
-      // Proxy executes against our own REST routes, which expect `x-api-key` or a
-      // session cookie. Set AGENT_PROXY_API_KEY to a tenant-scoped API key whose
-      // metadata includes `{ organizationId, scopes: ["storefront","admin"] }`.
-      const proxyKey = process.env.AGENT_PROXY_API_KEY
-      if (proxyKey) {
-        return { "x-api-key": proxyKey }
+      const metadata = agentSession.agent.metadata as { organizationId?: string } | null
+      const orgId = metadata?.organizationId
+      if (!orgId) {
+        throw new Error(
+          "Agent metadata must include organizationId for OpenAPI capability proxy execution"
+        )
       }
 
-      // Optional: bind org via agent metadata `{ "organizationId": "..." }` and use
-      // a per-org key lookup here when you outgrow a single proxy key.
-      void agentSession
+      const proxyKey = parseProxyKeysByOrg()[orgId]
+      if (proxyKey) return { "x-api-key": proxyKey }
+
       throw new Error(
-        "AGENT_PROXY_API_KEY is not set — required for OpenAPI capability proxy execution"
+        `No proxy API key configured for organization ${orgId}. Set AGENT_PROXY_API_KEYS_BY_ORG.`
       )
     },
   })

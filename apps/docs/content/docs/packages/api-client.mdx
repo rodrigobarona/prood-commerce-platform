@@ -38,9 +38,7 @@ const { data: product } = await api.GET('/products/{id}', {
 ```ts
 const api = createCommerceApiClient({
   baseUrl: COMMERCE_API_URL,
-  headers: async () => ({
-    cookie: (await headers()).get('cookie') ?? '',
-  }),
+  cookie: (await headers()).get('cookie') ?? '',
 })
 ```
 
@@ -49,10 +47,8 @@ const api = createCommerceApiClient({
 ```ts
 const api = createCommerceApiClient({
   baseUrl: COMMERCE_API_URL,
-  headers: async () => ({
-    cookie: (await headers()).get('cookie') ?? '',
-    host: (await headers()).get('host') ?? '',
-  }),
+  cookie: (await headers()).get('cookie') ?? '',
+  host: (await headers()).get('host') ?? '',
 })
 ```
 
@@ -61,7 +57,16 @@ const api = createCommerceApiClient({
 ```ts
 const api = createCommerceApiClient({
   baseUrl: COMMERCE_API_URL,
-  headers: { 'x-api-key': 'pk_xxx' },
+  apiKey: 'pk_xxx',
+})
+```
+
+### Agent Auth Bearer token
+
+```ts
+const api = createCommerceApiClient({
+  baseUrl: COMMERCE_API_URL,
+  bearerToken: agentJwt,
 })
 ```
 
@@ -81,7 +86,7 @@ await api.POST('/admin/orders/{id}/fulfill', {
 })
 
 // Dashboard stats
-const { data: stats } = await api.GET('/admin/dashboard/stats')
+const { data: stats } = await api.GET('/admin/dashboard')
 ```
 
 ## Cart operations
@@ -116,7 +121,8 @@ import type { paths } from '@prood/api-client'
 Regenerate types when the API spec changes:
 
 ```bash
-pnpm --filter @prood/api-client generate
+pnpm --filter @prood/api-client codegen
+pnpm --filter @prood/api-client codegen:check
 ```
 
 ## Error handling

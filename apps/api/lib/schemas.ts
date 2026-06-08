@@ -175,6 +175,14 @@ export const setShippingMethodBody = z.object({
   methodId: z.string().min(1),
 })
 
+export const placeOrderBody = z.object({
+  email: z.email().optional(),
+})
+
+export const cancelOrderBody = z.object({
+  note: z.string().optional(),
+})
+
 export const listCustomerOrdersQuery = z.object({
   page: z.coerce.number().int().positive().optional(),
   perPage: z.coerce.number().int().positive().max(100).optional(),

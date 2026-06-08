@@ -63,6 +63,9 @@ jobs:
       - name: Typecheck
         run: pnpm typecheck
 
+      - name: OpenAPI drift check
+        run: pnpm openapi:check
+
       - name: Unit tests
         run: pnpm --filter @prood/types --filter @prood/checkout --filter @prood/storage-s3 test
 

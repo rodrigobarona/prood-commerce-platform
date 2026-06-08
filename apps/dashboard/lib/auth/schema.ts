@@ -2,6 +2,7 @@
 // dashboard-only tables (tenant domains, integration configs).
 export {
   account,
+  apikey,
   invitation,
   member,
   organization,

@@ -1,5 +1,5 @@
 import { createMcpHandler } from "mcp-handler"
-import { CommerceError } from "@prood/types"
+import { CommerceError, toErrorResponse } from "@prood/types"
 import { resolveCallerFromHeaders } from "@/lib/resolve-caller"
 import { mcpCallerStorage } from "@/lib/mcp/context"
 import { registerCommerceMcpTools } from "@/lib/mcp/tools"
@@ -26,16 +26,19 @@ export async function handleMcpRequest(request: Request): Promise<Response> {
   try {
     const caller = await resolveCallerFromHeaders(request.headers)
     if (!caller) {
+      const { status, body } = toErrorResponse(
+        new CommerceError("Authentication required", "UNAUTHORIZED")
+      )
       return Response.json(
-        { error: "Authentication required (x-api-key, session, or host)" },
-        { status: 401 }
+        { ...body, message: "Authentication required (x-api-key, session, host, or agent JWT)" },
+        { status }
       )
     }
     return mcpCallerStorage.run(caller, () => mcpHandler(request))
   } catch (err) {
     if (err instanceof CommerceError) {
-      const status = err.code === "UNAUTHORIZED" ? 401 : err.code === "FORBIDDEN" ? 403 : 400
-      return Response.json({ error: err.message, code: err.code }, { status })
+      const { status, body } = toErrorResponse(err)
+      return Response.json(body, { status })
     }
     throw err
   }
