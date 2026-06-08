@@ -10,30 +10,21 @@ import { resolveBetterAuthTrustedOrigins, resolveTrustedOrigins } from "./origin
 
 export { resolveBetterAuthTrustedOrigins, resolveTrustedOrigins } from "./origins"
 
-/** Non-default placeholder used only when `NEXT_PHASE=phase-production-build` and no secret is set. */
-const BUILD_FALLBACK_SECRET =
-  "7f3c9a2e8b1d4f6a0c5e9b2d8f1a4c6e9b0d3f7a2c5e8b1d4f6a0c5e9b2d8f1a4c6"
-
 export interface CreateAuthOptions {
   /** Plugins inserted after organization/apiKey and before nextCookies. */
   extraPlugins?: BetterAuthPlugin[]
-  /** Fallback when BETTER_AUTH_URL is unset during build. */
+  /** Fallback base URL for local development when BETTER_AUTH_URL is unset. */
   defaultBaseUrl?: string
 }
 
 export function resolveBetterAuthEnv(defaultBaseUrl: string) {
-  const isBuild = process.env.NEXT_PHASE === "phase-production-build"
   const secret = process.env.BETTER_AUTH_SECRET?.trim()
-  const baseURL = process.env.BETTER_AUTH_URL?.trim()
-
-  if (isBuild && !secret) {
-    return {
-      baseURL: baseURL ?? defaultBaseUrl,
-      secret: BUILD_FALLBACK_SECRET,
-    }
+  if (!secret) {
+    throw new Error("BETTER_AUTH_SECRET is required and must be non-empty")
   }
 
-  return { baseURL: baseURL ?? defaultBaseUrl, secret }
+  const baseURL = process.env.BETTER_AUTH_URL?.trim() || defaultBaseUrl
+  return { baseURL, secret }
 }
 
 /**

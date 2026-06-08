@@ -48,9 +48,9 @@ flowchart TB
 
 ## Design principles
 
-### Commerce-agnostic adapters
+### Platform commerce engine
 
-The `CommerceAdapter` interface (from `@prood/types`) defines how applications talk to commerce backends. The default **platform** adapter provides a full Neon Postgres engine. Seams exist for external adapters (Medusa, Salla) via `COMMERCE_ADAPTER`.
+The `CommerceAdapter` interface (from `@prood/types`) defines the contract implemented by the built-in **platform** adapter. The current runtime supports this Neon Postgres engine only; Medusa/Salla-style external adapters are not selectable by environment variable today.
 
 ```ts
 // @prood/platform exports

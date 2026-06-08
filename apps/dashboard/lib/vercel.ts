@@ -23,9 +23,7 @@ interface VercelConfig {
 /** Read env at call time — module-level snapshots miss .env.local until restart. */
 function getVercelConfig(): VercelConfig | null {
   const token = process.env.VERCEL_TOKEN?.trim()
-  const projectId =
-    process.env.STOREFRONT_VERCEL_PROJECT_ID?.trim() ??
-    process.env.VERCEL_PROJECT_ID?.trim()
+  const projectId = process.env.STOREFRONT_VERCEL_PROJECT_ID?.trim()
   const teamId = process.env.VERCEL_TEAM_ID?.trim()
   if (!token || !projectId) return null
   return { token, projectId, teamId: teamId || undefined }

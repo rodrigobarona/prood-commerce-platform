@@ -11,7 +11,7 @@ export async function GET() {
     return NextResponse.json({
       name: "Prood Commerce API",
       version: "v1",
-      adapter: config.adapter,
+      adapter: "platform",
       currency: config.currency,
       openapi: "/v1/openapi.json",
       docs: "/docs/api",

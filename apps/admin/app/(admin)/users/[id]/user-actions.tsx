@@ -4,7 +4,6 @@ import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Button } from "@prood/ui/components/button"
-import { Badge } from "@prood/ui/components/badge"
 import {
   banUser,
   unbanUser,

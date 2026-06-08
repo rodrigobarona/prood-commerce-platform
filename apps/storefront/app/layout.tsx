@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Geist_Mono, Inter } from "next/font/google"
 import { Suspense } from "react"
 
+import "@geoapify/geocoder-autocomplete/styles/minimal.css"
 import "@prood/ui/globals.css"
 import { cn } from "@prood/ui/lib/utils"
 import { AppProviders } from "@/components/providers/app-providers"

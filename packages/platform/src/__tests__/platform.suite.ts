@@ -39,9 +39,21 @@ export interface SuiteOptions {
 export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
   let adapter: CommerceAdapter & { setCurrentCustomer?: (id: string | null) => void }
 
+  function scopedAdapter<T extends typeof adapter>(target: T): T {
+    return new Proxy(target, {
+      get(target, prop, receiver) {
+        const value = Reflect.get(target, prop, receiver)
+        if (prop === 'setCurrentCustomer') return value
+        if (typeof value !== 'function') return value
+        return (...args: unknown[]) =>
+          withTenant(DEMO_ORG_ID, () => value.apply(target, args))
+      },
+    }) as T
+  }
+
   beforeEach(async () => {
     await opts.setup()
-    adapter = (await createPlatformAdapter()).adapter as typeof adapter
+    adapter = scopedAdapter((await createPlatformAdapter()).adapter as typeof adapter)
   })
 
   async function seedCustomer(firstName: string, lastName: string): Promise<string> {

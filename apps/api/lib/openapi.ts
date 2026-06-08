@@ -33,6 +33,14 @@ const errorBody = z.object({
     .optional(),
 })
 
+const placeOrderBody = z.object({
+  email: z.string().optional(),
+})
+
+const cancelOrderBody = z.object({
+  note: z.string().optional(),
+})
+
 function schema(def: z.ZodType) {
   return z.toJSONSchema(def)
 }
@@ -233,6 +241,7 @@ export function buildOpenApiDocument() {
       "/carts/{id}/place-order": pathItem("POST", "Place order from cart", "placeOrder", {
         pathTemplate: "/carts/{id}/place-order",
         scope: "storefront",
+        body: placeOrderBody,
         responses: { "201": { description: "Order created" } },
       }),
       "/orders": pathItem("GET", "List customer orders", "listOrders", {
@@ -293,6 +302,15 @@ export function buildOpenApiDocument() {
       }),
       "/admin/orders/{id}": pathItem("GET", "Get order (admin)", "adminGetOrder", {
         pathTemplate: "/admin/orders/{id}",
+        scope: "admin",
+      }),
+      "/admin/orders/{id}/cancel": pathItem("POST", "Cancel order", "adminCancelOrder", {
+        pathTemplate: "/admin/orders/{id}/cancel",
+        scope: "admin",
+        body: cancelOrderBody,
+      }),
+      "/admin/orders/{id}/history": pathItem("GET", "Get order history", "adminGetOrderHistory", {
+        pathTemplate: "/admin/orders/{id}/history",
         scope: "admin",
       }),
       "/admin/orders/{id}/fulfill": pathItem("POST", "Fulfill order", "adminFulfillOrder", {

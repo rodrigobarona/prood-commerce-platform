@@ -39,9 +39,9 @@ Most data operations go through the Commerce API. Integration credentials and do
 | Domains | `/domains` | Live | Custom domain setup with Vercel + DNS |
 | Team | `/team` | Live | Organization members and invitations |
 | Settings | `/settings` | Live | Store name, currency, contact info |
-| API Keys | `/settings/api-keys` | Live | Programmatic API access keys |
+| API Keys | `/settings/api-keys` | Placeholder | API keys are issued by Better Auth/API today; in-dashboard creation is not wired yet |
 | Analytics | `/analytics` | Placeholder | Future analytics dashboard |
-| Billing | `/billing` | Placeholder | Shows current plan from DB; Stripe billing coming soon |
+| Billing | `/billing` | Placeholder | Shows current plan from DB; Stripe subscription billing is not wired yet |
 
 ## Auth & organization
 
@@ -79,7 +79,7 @@ Sidebar groups defined in `lib/nav.ts`:
 | `BETTER_AUTH_SECRET` | Session validation on SSR (same secret as API) |
 | `NEXT_PUBLIC_AUTH_URL` | Browser auth client → `apps/api` (default `http://localhost:3005`) |
 | `INTEGRATION_ENCRYPTION_KEY` | Encrypt provider credentials at rest |
-| `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID` | Custom domain provisioning |
+| `VERCEL_TOKEN`, `STOREFRONT_VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID` | Custom domain provisioning |
 | `NEXT_PUBLIC_PLATFORM_DOMAIN` | Shown on domains page for subdomain preview |
 
 ## Related pages

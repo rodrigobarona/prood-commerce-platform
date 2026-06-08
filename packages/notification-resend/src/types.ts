@@ -4,7 +4,7 @@ import type { Resend } from 'resend'
 export interface ResendConfig {
   /** Resend API key (`re_...`). Server-side only. */
   apiKey: string
-  /** Default sender address (e.g. `Prood <onboarding@resend.dev>`). */
+  /** Default sender address on a verified Resend domain. */
   defaultFrom: string
   /** Optional pre-constructed Resend client (useful for testing). */
   client?: Resend

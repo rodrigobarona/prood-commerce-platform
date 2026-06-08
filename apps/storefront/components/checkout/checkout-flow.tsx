@@ -21,8 +21,6 @@ const STEPS = [
   { id: "review", title: "Review" },
 ] as const
 
-type StepId = (typeof STEPS)[number]["id"]
-
 interface CheckoutData {
   contact?: ContactValues
   address?: AddressValues & { useSameForBilling?: boolean }

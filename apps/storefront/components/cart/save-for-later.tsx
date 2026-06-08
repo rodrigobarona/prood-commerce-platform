@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useSyncExternalStore } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { HeartIcon, ShoppingCartIcon, TrashIcon } from "@phosphor-icons/react"
@@ -9,6 +9,9 @@ import { Button } from "@prood/ui/components/button"
 import { formatPrice, localized, type Locale } from "@prood/ui/lib/commerce"
 
 const STORAGE_KEY = "saved-for-later"
+const EMPTY_SAVED_ITEMS: SavedItem[] = []
+const listeners = new Set<() => void>()
+let savedCache: SavedItem[] | null = null
 
 export interface SavedItem {
   id: string
@@ -39,6 +42,41 @@ function writeSaved(items: SavedItem[]) {
   }
 }
 
+function emitSavedChange() {
+  for (const listener of listeners) listener()
+}
+
+function getSavedSnapshot(): SavedItem[] {
+  if (typeof window === "undefined") return EMPTY_SAVED_ITEMS
+  savedCache ??= readSaved()
+  return savedCache
+}
+
+function getServerSavedSnapshot(): SavedItem[] {
+  return EMPTY_SAVED_ITEMS
+}
+
+function subscribeSavedItems(listener: () => void): () => void {
+  listeners.add(listener)
+  const onStorage = (event: StorageEvent) => {
+    if (event.key !== STORAGE_KEY) return
+    savedCache = null
+    listener()
+  }
+  window.addEventListener("storage", onStorage)
+
+  return () => {
+    listeners.delete(listener)
+    window.removeEventListener("storage", onStorage)
+  }
+}
+
+function persistSavedItems(items: SavedItem[]) {
+  savedCache = items
+  writeSaved(items)
+  emitSavedChange()
+}
+
 export function cartItemToSaved(item: CartItem, locale: Locale = "en"): SavedItem {
   return {
     id: item.id,
@@ -57,28 +95,21 @@ export function cartItemToSaved(item: CartItem, locale: Locale = "en"): SavedIte
 }
 
 export function useSavedItems() {
-  const [items, setItems] = useState<SavedItem[]>([])
-
-  useEffect(() => {
-    setItems(readSaved())
-  }, [])
+  const items = useSyncExternalStore(
+    subscribeSavedItems,
+    getSavedSnapshot,
+    getServerSavedSnapshot,
+  )
 
   const save = useCallback((item: SavedItem) => {
-    setItems((prev) => {
-      const exists = prev.some((s) => s.productId === item.productId)
-      if (exists) return prev
-      const next = [item, ...prev]
-      writeSaved(next)
-      return next
-    })
+    const prev = getSavedSnapshot()
+    const exists = prev.some((s) => s.productId === item.productId)
+    if (exists) return
+    persistSavedItems([item, ...prev])
   }, [])
 
   const remove = useCallback((productId: string) => {
-    setItems((prev) => {
-      const next = prev.filter((s) => s.productId !== productId)
-      writeSaved(next)
-      return next
-    })
+    persistSavedItems(getSavedSnapshot().filter((s) => s.productId !== productId))
   }, [])
 
   return { items, save, remove }

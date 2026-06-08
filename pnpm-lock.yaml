@@ -603,6 +603,12 @@ importers:
 
   apps/storefront:
     dependencies:
+      '@geoapify/geocoder-autocomplete':
+        specifier: ^3.0.1
+        version: 3.0.1
+      '@geoapify/react-geocoder-autocomplete':
+        specifier: ^3.0.0
+        version: 3.0.0(@geoapify/geocoder-autocomplete@3.0.1)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
       '@hookform/resolvers':
         specifier: ^5.4.0
         version: 5.4.0(react-hook-form@7.77.0(react@19.2.6))
@@ -1122,6 +1128,9 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.7(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(msw@2.14.6(@types/node@25.9.1)(typescript@5.9.3))(tsx@4.22.3)
 
   packages/typescript-config: {}
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useState } from "react"
-import { Controller, useForm } from "react-hook-form"
+import { Controller, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { iso31661 } from "iso-3166"
 import { Button } from "@prood/ui/components/button"
@@ -68,7 +68,7 @@ export function AddressStep({
     },
   })
 
-  const selectedCountry = form.watch("country")
+  const selectedCountry = useWatch({ control: form.control, name: "country" })
   const showState = countryUsesStates(selectedCountry)
   const phonePlaceholder = getPhonePlaceholder(selectedCountry || geoCountry || "")
 

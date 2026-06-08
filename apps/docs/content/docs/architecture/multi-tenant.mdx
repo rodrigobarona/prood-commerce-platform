@@ -112,7 +112,7 @@ Provider registry field keys in `apps/dashboard/lib/providers.ts` match provider
 
 ### Encryption at rest
 
-`integration_config.config` values are encrypted using `INTEGRATION_ENCRYPTION_KEY` (falls back to `BETTER_AUTH_SECRET`). Values without the `enc:v1:` prefix are treated as plaintext (dev / migration).
+`integration_config.config` values are encrypted using `INTEGRATION_ENCRYPTION_KEY`. The key is required. Values without the `enc:v1:` prefix are treated as plaintext during development or migration cleanup.
 
 ## Storage namespacing
 
@@ -144,7 +144,7 @@ Merchants cannot collide with or read each other's assets. Vercel Blob uploads u
 | `DEFAULT_TENANT_ORG_ID` | Explicit fallback tenant (single-tenant / dev) |
 | `NEXT_PUBLIC_PLATFORM_DOMAIN` | Apex for `{slug}.prood.app` **storefront** subdomains only — not platform hosts on `prood.com` |
 | `INTEGRATION_ENCRYPTION_KEY` | Encrypt stored provider credentials |
-| `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID` | Custom domain provisioning (optional in dev) |
+| `VERCEL_TOKEN`, `STOREFRONT_VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID` | Custom domain provisioning (optional in dev) |
 
 ## Adding new tenant tables
 
@@ -167,7 +167,7 @@ Merchants can have **two different kinds** of custom domain:
 
 - Configured in Dashboard → **Domains**
 - Stored in `tenant_domain`, verified via DNS
-- Attached to the **storefront** Vercel project (`VERCEL_PROJECT_ID`)
+- Attached to the **storefront** Vercel project (`STOREFRONT_VERCEL_PROJECT_ID`)
 - Free plan includes one verified store custom domain (`maxCustomDomains` in billing)
 
 ### Admin white-label domain (Phase 3 — not implemented)

@@ -1,9 +1,9 @@
 ---
 title: Applications Overview
-description: The five runtime applications in the Prood monorepo and how they interact.
+description: The seven runtime applications in the Prood monorepo and how they interact.
 ---
 
-Prood ships five deployable Next.js applications, each with a distinct role in the commerce platform.
+Prood ships seven deployable Next.js applications, each with a distinct role in the commerce platform.
 
 ## Application map
 
@@ -13,6 +13,7 @@ Prood ships five deployable Next.js applications, each with a distinct role in t
 | **dashboard** | 3002 | Vercel (single admin URL) | Auth + integrations + domains | `@prood/api-client`, `@prood/commerce`, `@prood/ui` |
 | **checkout** | 3004 | Vercel (single checkout URL) | None (Redis only) | `@prood/checkout-host`, `@prood/ui` |
 | **api** | 3005 | Vercel (API subdomain) | Full commerce + auth | `@prood/commerce`, `@prood/types` |
+| **admin** | 3006 | Vercel (restricted ops URL) | Auth/session/admin tables | `@prood/auth`, `@prood/ui` |
 | **web** | 3001 | Vercel | None | `@prood/ui` |
 | **docs** | 3003 | Vercel | None | Fumadocs |
 
@@ -26,6 +27,7 @@ flowchart TB
   DB[dashboard :3002]
   API[apps/api :3005]
   CHK[checkout :3004]
+  ADM[admin :3006]
   NEON[(Neon Postgres)]
   REDIS[(Upstash Redis)]
 
@@ -36,6 +38,7 @@ flowchart TB
   SF -->|CHECKOUT_URL| CHK
   CHK -->|webhooks| API
   API --> NEON
+  ADM --> NEON
   CHK --> REDIS
 ```
 
@@ -46,8 +49,9 @@ Auth issuance is centralized on **apps/api** for the dashboard; the storefront k
 | App | Users | Auth HTTP handler | Auth plugins |
 | --- | --- | --- | --- |
 | **Storefront** | Customers (buyers) | Local `/api/auth` on storefront origin | Email/password |
-| **Dashboard** | Merchants (admins) | **Remote** — browser calls `apps/api` (`NEXT_PUBLIC_AUTH_URL`) | Email/password + **organization** |
+| **Dashboard** | Merchants | **Remote** — browser calls `apps/api` (`NEXT_PUBLIC_AUTH_URL`) | Email/password + **organization** |
 | **API** | All caller types | `/api/auth` on API origin | organization + **apiKey** + **agentAuth** |
+| **Admin** | Platform operators | API-issued session, validated against shared DB | Better Auth admin/API key operations |
 
 Customer accounts on the storefront are separate from merchant accounts on the dashboard. A person can be both, but they authenticate to different apps.
 
@@ -59,6 +63,7 @@ Customer accounts on the storefront are separate from merchant accounts on the d
 | Dashboard | Products, orders, customers, stats | `@prood/api-client` → API `/v1/admin/*` |
 | Dashboard | Integrations, domains | Direct `@prood/commerce` + Drizzle (not via API) |
 | Checkout | Order status | Webhook forward → API |
+| Admin | Users, orgs, sessions, API keys, agents | Direct shared auth/admin tables |
 | API | Everything | `@prood/commerce` → `@prood/platform` |
 
 ## Deployment model
@@ -71,6 +76,7 @@ In production, each app is a **separate Vercel project** sharing the same Neon d
 | Dashboard | Single admin URL (e.g. `admin.example.com`) | Org switching in session |
 | Checkout | Single checkout URL (e.g. `checkout.example.com`) | Shared across all tenants |
 | API | Single API URL (e.g. `api.example.com`) | All callers hit one origin |
+| Admin | Restricted admin URL (e.g. `ops-admin.example.com`) | Platform operations only |
 | Docs | `docs.example.com` | Static + OpenAPI |
 
 See [Deployment guide](/docs/guides/deployment) for the full checklist.
