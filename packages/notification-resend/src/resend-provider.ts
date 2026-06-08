@@ -100,14 +100,17 @@ export class ResendNotificationProvider implements NotificationProvider {
   private readonly defaultFrom: string
 
   constructor(config: ResendConfig) {
-    if (!config.apiKey?.trim()) {
+    const apiKey = config.apiKey?.trim()
+    const defaultFrom = config.defaultFrom?.trim()
+
+    if (!apiKey) {
       throw new Error('ResendNotificationProvider requires a Resend API key')
     }
-    if (!config.defaultFrom?.trim()) {
+    if (!defaultFrom) {
       throw new Error('ResendNotificationProvider requires a default sender address')
     }
-    this.resend = config.client ?? new Resend(config.apiKey)
-    this.defaultFrom = config.defaultFrom
+    this.resend = config.client ?? new Resend(apiKey)
+    this.defaultFrom = defaultFrom
   }
 
   async send(channel: NotificationChannel, message: NotificationMessage): Promise<NotificationResult> {

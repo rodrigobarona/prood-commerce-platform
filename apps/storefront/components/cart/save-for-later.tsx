@@ -58,8 +58,16 @@ function getServerSavedSnapshot(): SavedItem[] {
 
 function subscribeSavedItems(listener: () => void): () => void {
   listeners.add(listener)
+  const onStorage = (event: StorageEvent) => {
+    if (event.key !== STORAGE_KEY) return
+    savedCache = null
+    listener()
+  }
+  window.addEventListener("storage", onStorage)
+
   return () => {
     listeners.delete(listener)
+    window.removeEventListener("storage", onStorage)
   }
 }
 

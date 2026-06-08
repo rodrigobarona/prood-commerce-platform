@@ -6,7 +6,7 @@ Production commerce platform built as a **pnpm + Turborepo** monorepo on
 
 ## Architecture
 
-```
+```text
 apps/
   storefront/              # Tenant storefront — :3000
   web/                     # Marketing site — :3001

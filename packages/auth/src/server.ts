@@ -19,9 +19,12 @@ export interface CreateAuthOptions {
 
 export function resolveBetterAuthEnv(defaultBaseUrl: string) {
   const secret = process.env.BETTER_AUTH_SECRET?.trim()
-  const baseURL = process.env.BETTER_AUTH_URL?.trim()
+  if (!secret) {
+    throw new Error("BETTER_AUTH_SECRET is required and must be non-empty")
+  }
 
-  return { baseURL: baseURL ?? defaultBaseUrl, secret }
+  const baseURL = process.env.BETTER_AUTH_URL?.trim() || defaultBaseUrl
+  return { baseURL, secret }
 }
 
 /**
