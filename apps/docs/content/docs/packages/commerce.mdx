@@ -64,14 +64,14 @@ const stats = await admin.getDashboardStats()
 ## Payment providers
 
 ```ts
-// Build provider with tenant config (or env fallback)
+// Build provider with tenant config or configured environment defaults
 const provider = await getPaymentProvider('stripe', orgId)
 
 // Verify webhook with tenant's stored secret
 const result = await verifyPaymentWebhook(payload, signature, 'stripe', orgId)
 ```
 
-Provider factory reads from `integration_config` table (decrypted) with env var fallback.
+Provider factory reads from the encrypted `integration_config` table and falls back to configured environment defaults for fields that are not stored per tenant.
 
 ## Storage
 
@@ -102,7 +102,7 @@ const decrypted = decryptConfig(encrypted)
 // → { secretKey: 'sk_live_...' }
 ```
 
-Uses AES-256-GCM with `INTEGRATION_ENCRYPTION_KEY` (falls back to `BETTER_AUTH_SECRET`).
+Uses AES-256-GCM with `INTEGRATION_ENCRYPTION_KEY`. The key is required.
 
 ## Tenant scoping
 
@@ -120,7 +120,6 @@ Read via `getCommerceConfig()`:
 
 | Setting | Env var | Default |
 | --- | --- | --- |
-| Adapter | `COMMERCE_ADAPTER` | `platform` |
 | Currency | `COMMERCE_CURRENCY` | `EUR` |
 | Storage | `STORAGE_PROVIDER` | `vercel-blob` |
 | Payment | `DEFAULT_PAYMENT_PROVIDER` | `stripe` |

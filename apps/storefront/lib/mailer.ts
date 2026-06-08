@@ -2,9 +2,15 @@ import { ResendNotificationProvider } from "@prood/notification-resend"
 
 let instance: ResendNotificationProvider | null = null
 
+function requiredEnv(name: string): string {
+  const value = process.env[name]?.trim()
+  if (!value) throw new Error(`${name} is required for email delivery`)
+  return value
+}
+
 export function getMailer(): ResendNotificationProvider {
   return (instance ??= new ResendNotificationProvider({
-    apiKey: process.env.RESEND_API_KEY!,
-    defaultFrom: process.env.RESEND_FROM_EMAIL ?? "Prood <onboarding@resend.dev>",
+    apiKey: requiredEnv("RESEND_API_KEY"),
+    defaultFrom: requiredEnv("RESEND_FROM_EMAIL"),
   }))
 }

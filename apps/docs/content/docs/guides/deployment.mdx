@@ -14,6 +14,7 @@ Prood deploys as **separate Vercel projects** sharing a single Neon Postgres dat
 | `api.prood.com` | Commerce API |
 | `checkout.prood.com` | Hosted checkout |
 | `docs.prood.com` | Documentation |
+| `admin.prood.com` | Platform super-admin |
 | `{slug}.prood.app` | Storefront (wildcard on storefront project) |
 | `shop.client.com` | Store custom domain (per merchant) |
 
@@ -28,6 +29,7 @@ flowchart TB
     DB[dashboard<br/>dashboard.prood.com]
     CHK[checkout<br/>checkout.prood.com]
     API[api<br/>api.prood.com]
+    ADMIN[admin<br/>admin.prood.com]
     DOCS[docs<br/>docs.prood.com]
     WEB[web<br/>prood.com]
   end
@@ -41,6 +43,7 @@ flowchart TB
   SF --> NEON
   DB --> NEON
   API --> NEON
+  ADMIN --> NEON
   CHK --> REDIS
   API --> BLOB
 ```
@@ -84,7 +87,6 @@ BETTER_AUTH_URL=https://api.prood.com
 AUTH_COOKIE_DOMAIN=.prood.com
 NEXT_PUBLIC_DASHBOARD_URL=https://dashboard.prood.com
 API_PUBLIC_URL=https://api.prood.com
-COMMERCE_ADAPTER=platform
 COMMERCE_CURRENCY=EUR
 DEFAULT_PAYMENT_PROVIDER=stripe
 STORAGE_PROVIDER=vercel-blob
@@ -93,6 +95,8 @@ STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 CHECKOUT_API_SECRET=<shared secret>
 INTEGRATION_ENCRYPTION_KEY=<openssl rand -base64 32>
+RESEND_API_KEY=re_...
+RESEND_FROM_EMAIL="Prood <noreply@prood.com>"
 NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app
 ```
 
@@ -112,6 +116,8 @@ BETTER_AUTH_SECRET=<same as API>
 BETTER_AUTH_URL=https://storefront.example.com
 CHECKOUT_URL=https://checkout.prood.com
 CHECKOUT_API_SECRET=<same as API>
+RESEND_API_KEY=re_...
+RESEND_FROM_EMAIL="Prood <noreply@merchant-domain.com>"
 DEFAULT_TENANT_ORG_ID=          # leave empty for multi-tenant
 NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app
 ```
@@ -157,14 +163,34 @@ BETTER_AUTH_SECRET=<same as API>
 NEXT_PUBLIC_AUTH_URL=https://api.prood.com
 INTEGRATION_ENCRYPTION_KEY=<same as API>
 VERCEL_TOKEN=<for domain provisioning>
-VERCEL_PROJECT_ID=<storefront project ID>
+STOREFRONT_VERCEL_PROJECT_ID=<storefront project ID>
 VERCEL_TEAM_ID=<team ID>
 NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app
 ```
 
 Dashboard auth (sign-in, sign-up, organization ops) is issued by **apps/api** but proxied through the dashboard at `/api/auth/*` so session cookies stay on the dashboard origin. This is required on separate `*.vercel.app` preview URLs; with custom domains, set `AUTH_COOKIE_DOMAIN=.prood.com` on the API project so cookies are also shared across subdomains.
 
-## Step 6 — Deploy docs and web
+## Step 6 — Deploy the platform admin
+
+| Setting | Value |
+| --- | --- |
+| Root directory | `apps/admin` |
+| Build command | `cd ../.. && pnpm build --filter=admin` |
+
+### Environment variables
+
+```bash
+DATABASE_URL=postgresql://...
+BETTER_AUTH_SECRET=<same as API>
+BETTER_AUTH_URL=https://api.prood.com
+NEXT_PUBLIC_AUTH_URL=https://api.prood.com
+NEXT_PUBLIC_ADMIN_URL=https://admin.prood.com
+ADMIN_USER_IDS=<comma-separated Better Auth user IDs>
+```
+
+`apps/admin` is for platform operations only. Keep it on a restricted domain and set `ADMIN_USER_IDS` before exposing it outside local development.
+
+## Step 7 — Deploy docs and web
 
 | App | Root directory | Notes |
 | --- | --- | --- |
@@ -192,7 +218,7 @@ These must be **identical** across projects:
 | `BETTER_AUTH_SECRET` | API, dashboard (SSR session validation), storefront |
 | `CHECKOUT_API_SECRET` | API, storefront, checkout |
 | `INTEGRATION_ENCRYPTION_KEY` | API, dashboard |
-| `DATABASE_URL` | API, storefront, dashboard |
+| `DATABASE_URL` | API, storefront, dashboard, admin |
 
 ## Caching in production
 
@@ -209,9 +235,11 @@ The storefront uses Next.js Cache Components:
 - [ ] `NEXT_PUBLIC_PLATFORM_DOMAIN` configured
 - [ ] Upstash Redis provisioned for checkout
 - [ ] Payment webhooks pointed to checkout domain
+- [ ] Resend sender uses a verified production domain
 - [ ] `pnpm db:setup` run against production database
 - [ ] Custom domains verified for at least one merchant
 - [ ] SSL certificates active on all domains
+- [ ] `ADMIN_USER_IDS` set before deploying `apps/admin`
 
 ## Related pages
 

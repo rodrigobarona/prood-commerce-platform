@@ -14,9 +14,8 @@
     "ADMIN_PASSWORD",
     "DEFAULT_TENANT_ORG_ID",
     "VERCEL_TOKEN",
-    "VERCEL_PROJECT_ID",
+    "STOREFRONT_VERCEL_PROJECT_ID",
     "VERCEL_TEAM_ID",
-    "COMMERCE_ADAPTER",
     "COMMERCE_CURRENCY",
     "STORAGE_PROVIDER",
     "DEFAULT_PAYMENT_PROVIDER",
@@ -30,7 +29,6 @@
     "AGENT_DEVICE_AUTH_PAGE",
     "TRUST_PROXY",
     "INTEGRATION_ENCRYPTION_KEY",
-    "AUTH_PROVIDER",
     "BLOB_READ_WRITE_TOKEN",
     "STRIPE_*",
     "NEXT_PUBLIC_STRIPE_*",
@@ -67,6 +65,9 @@
     },
     "typecheck": {
       "dependsOn": ["^typecheck"]
+    },
+    "test": {
+      "dependsOn": ["^build"]
     },
     "db:generate": {
       "cache": false

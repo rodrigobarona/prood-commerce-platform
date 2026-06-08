@@ -83,19 +83,22 @@ export function AddressAutocomplete({
   onChange,
   className,
 }: AddressAutocompleteProps) {
-  const [query, setQuery] = useState(controlledValue ?? "")
+  const [uncontrolledQuery, setUncontrolledQuery] = useState(controlledValue ?? "")
   const [suggestions, setSuggestions] = useState<GeoapifyFeature[]>([])
   const [open, setOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const query = controlledValue ?? uncontrolledQuery
 
-  useEffect(() => {
-    if (controlledValue !== undefined) {
-      setQuery(controlledValue)
-    }
-  }, [controlledValue])
+  const updateQuery = useCallback(
+    (value: string) => {
+      if (controlledValue === undefined) setUncontrolledQuery(value)
+      onChange?.(value)
+    },
+    [controlledValue, onChange],
+  )
 
   const fetchSuggestions = useCallback(
     async (text: string) => {
@@ -137,8 +140,7 @@ export function AddressAutocomplete({
 
   function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
     const val = e.target.value
-    setQuery(val)
-    onChange?.(val)
+    updateQuery(val)
 
     if (timerRef.current) clearTimeout(timerRef.current)
     timerRef.current = setTimeout(() => fetchSuggestions(val), DEBOUNCE_MS)
@@ -146,8 +148,7 @@ export function AddressAutocomplete({
 
   function handleSelect(feature: GeoapifyFeature) {
     const parsed = parseFeature(feature)
-    setQuery(feature.properties.formatted)
-    onChange?.(feature.properties.formatted)
+    updateQuery(feature.properties.formatted)
     setSuggestions([])
     setOpen(false)
     onSelect(parsed)

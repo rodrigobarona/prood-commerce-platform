@@ -44,7 +44,7 @@ At minimum, set:
 
 ```bash
 DATABASE_URL="postgresql://user:password@host/db?sslmode=require"
-BETTER_AUTH_SECRET="dev-only-local-secret-change-me-before-production"
+BETTER_AUTH_SECRET="<openssl rand -base64 32>"
 DEFAULT_TENANT_ORG_ID="org_demo"
 ```
 

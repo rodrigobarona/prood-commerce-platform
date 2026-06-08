@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  verify:
+    name: Verify
+    runs-on: ubuntu-latest
+    env:
+      NODE_ENV: test
+      DATABASE_URL: ${{ secrets.CI_DATABASE_URL || 'postgresql://user:password@localhost:5432/prood' }}
+      BETTER_AUTH_SECRET: "ci-only-secret-change-in-real-environments"
+      BETTER_AUTH_URL: "http://localhost:3005"
+      API_PUBLIC_URL: "http://localhost:3005"
+      NEXT_PUBLIC_AUTH_URL: "http://localhost:3005"
+      NEXT_PUBLIC_API_URL: "http://localhost:3005"
+      NEXT_PUBLIC_DASHBOARD_URL: "http://localhost:3002"
+      NEXT_PUBLIC_ADMIN_URL: "http://localhost:3006"
+      NEXT_PUBLIC_PLATFORM_DOMAIN: "prood.app"
+      COMMERCE_API_URL: "http://localhost:3005/v1"
+      CHECKOUT_URL: "http://localhost:3004"
+      STOREFRONT_URL: "http://localhost:3000"
+      CHECKOUT_API_SECRET: "ci-only-checkout-secret"
+      INTEGRATION_ENCRYPTION_KEY: "ci-only-integration-key-32-bytes!!"
+      RESEND_API_KEY: "re_ci_placeholder"
+      RESEND_FROM_EMAIL: "Prood <ci@example.com>"
+      HAS_CI_DATABASE_URL: ${{ secrets.CI_DATABASE_URL != '' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Unit tests
+        run: pnpm --filter @prood/types --filter @prood/checkout --filter @prood/storage-s3 test
+
+      - name: Platform database tests
+        if: env.HAS_CI_DATABASE_URL == 'true'
+        run: pnpm --filter @prood/platform test
+
+      - name: Build
+        run: pnpm build

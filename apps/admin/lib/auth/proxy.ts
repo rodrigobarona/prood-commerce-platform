@@ -20,7 +20,6 @@ const STRIP_RESPONSE_HEADERS = new Set([
 
 export function getAuthUpstreamOrigin(): string {
   const authUrl =
-    process.env.AUTH_UPSTREAM_URL?.trim() ??
     process.env.NEXT_PUBLIC_AUTH_URL?.trim() ??
     process.env.NEXT_PUBLIC_API_URL?.trim()
 

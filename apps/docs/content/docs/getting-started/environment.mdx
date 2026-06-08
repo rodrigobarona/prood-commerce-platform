@@ -3,7 +3,7 @@ title: Environment Variables
 description: Complete reference for every environment variable used across Prood applications.
 ---
 
-Prood uses a **single root** `.env.local` file symlinked to every app via `pnpm env:link`. Copy `.env.example` to `.env.local` and fill in values for your environment.
+Prood uses a **single root** `.env.local` file for local development. Run `pnpm env:link` to generate ignored `apps/*/.env.local` files with app-specific auth URL overrides.
 
 ## Database
 
@@ -26,7 +26,6 @@ DATABASE_URL="postgresql://user:password@host/db?sslmode=require"
 
 | Variable | Default | Description |
 | --- | --- | --- |
-| `COMMERCE_ADAPTER` | `platform` | Built-in Neon + Drizzle engine (only supported adapter). |
 | `COMMERCE_CURRENCY` | `EUR` | Default store currency (ISO 4217). |
 
 ## Storage
@@ -118,7 +117,7 @@ Optional for local dev; required for custom domain provisioning in production:
 | Variable | Description |
 | --- | --- |
 | `VERCEL_TOKEN` | Vercel API token |
-| `VERCEL_PROJECT_ID` | Storefront Vercel project ID |
+| `STOREFRONT_VERCEL_PROJECT_ID` | Storefront Vercel project ID. Do not use Vercel's injected `VERCEL_PROJECT_ID`; it points at the current project, not necessarily the storefront. |
 | `VERCEL_TEAM_ID` | Vercel team ID (if applicable) |
 
 ## Commerce API
@@ -151,7 +150,8 @@ Optional for local dev; required for custom domain provisioning in production:
 | **storefront** | `DATABASE_URL`, `COMMERCE_API_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `CHECKOUT_URL`, `CHECKOUT_API_SECRET`, `DEFAULT_TENANT_ORG_ID` |
 | **dashboard** | `DATABASE_URL`, `COMMERCE_API_URL`, `BETTER_AUTH_SECRET`, `NEXT_PUBLIC_AUTH_URL`, `INTEGRATION_ENCRYPTION_KEY` |
 | **checkout** | `UPSTASH_REDIS_*`, `CHECKOUT_API_SECRET`, `COMMERCE_API_URL`, payment provider keys |
-| **api** | `DATABASE_URL`, `BETTER_AUTH_*`, `AUTH_COOKIE_DOMAIN`, `COMMERCE_*`, payment/storage provider keys, `CHECKOUT_API_SECRET` |
+| **api** | `DATABASE_URL`, `BETTER_AUTH_*`, `AUTH_COOKIE_DOMAIN`, `COMMERCE_CURRENCY`, payment/storage provider keys, `CHECKOUT_API_SECRET`, `RESEND_*` |
+| **admin** | `DATABASE_URL`, `BETTER_AUTH_SECRET`, `NEXT_PUBLIC_ADMIN_URL`, `ADMIN_USER_IDS` |
 | **docs** | None (static site; OpenAPI synced at build time) |
 
 ## Production checklist
@@ -160,6 +160,7 @@ Optional for local dev; required for custom domain provisioning in production:
 2. Set `DEFAULT_TENANT_ORG_ID` only for single-tenant deployments; otherwise rely on host resolution
 3. Configure `NEXT_PUBLIC_PLATFORM_DOMAIN` for subdomain tenants
 4. Provision Upstash Redis for checkout
-5. Set production payment keys (or configure per-tenant in dashboard)
-6. Point webhook URLs to checkout: `/api/webhooks/{stripe\|easypay\|ifthenpay}/{orgId}`
-7. Run `pnpm db:setup` against the production database once
+5. Set `RESEND_API_KEY` and a verified-domain `RESEND_FROM_EMAIL`
+6. Set production payment keys (or configure per-tenant in dashboard)
+7. Point webhook URLs to checkout: `/api/webhooks/{stripe\|easypay\|ifthenpay}/{orgId}`
+8. Run `pnpm db:setup` against the production database once

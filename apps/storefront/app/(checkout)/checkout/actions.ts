@@ -75,7 +75,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
     const order = await unwrap<Order>(
       api.POST("/carts/{id}/place-order", {
         params: { path: { id: cartId } },
-        body: { email: input.email ?? "" } as any,
+        body: { email: input.email ?? "" } as never,
       })
     )
 

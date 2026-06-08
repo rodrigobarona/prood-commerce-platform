@@ -59,12 +59,13 @@ Shared:
 - `DEFAULT_TENANT_ORG_ID` — explicit fallback tenant (single-tenant/dev). When
   unset, unmatched hosts 404 in production.
 - `NEXT_PUBLIC_PLATFORM_DOMAIN` — apex used for `{slug}.platform` subdomains.
-- `INTEGRATION_ENCRYPTION_KEY` — key for encrypting stored provider credentials
-  at rest (falls back to `BETTER_AUTH_SECRET`; set a dedicated key in production).
+- `INTEGRATION_ENCRYPTION_KEY` — required key for encrypting stored provider
+  credentials at rest.
 
 Dashboard (custom domains via Vercel — optional in dev):
 
-- `VERCEL_TOKEN`, `VERCEL_PROJECT_ID` (storefront project), `VERCEL_TEAM_ID`.
+- `VERCEL_TOKEN`, `STOREFRONT_VERCEL_PROJECT_ID` (storefront project),
+  `VERCEL_TEAM_ID`.
 
 Commerce seed:
 
@@ -149,8 +150,7 @@ Every package was reviewed for cross-tenant leakage. Posture by package:
 
 1. **Secrets at rest.** `integration_config.config` values are encrypted with
    AES-256-GCM (`packages/commerce/src/crypto.ts`, `encryptConfig`/
-   `decryptConfig`) using `INTEGRATION_ENCRYPTION_KEY` (falls back to
-   `BETTER_AUTH_SECRET`). The dashboard encrypts on write and decrypts on read;
+  `decryptConfig`) using `INTEGRATION_ENCRYPTION_KEY`. The dashboard encrypts on write and decrypts on read;
    the commerce layer decrypts when building providers. Values without the
    `enc:v1:` prefix are treated as plaintext (dev / migration).
 2. **Storage key namespacing.** `uploadForTenant(orgId, input)` and
@@ -159,7 +159,7 @@ Every package was reviewed for cross-tenant leakage. Posture by package:
    use `addRandomSuffix` for unguessable URLs. Always upload via these helpers.
 3. **Per-tenant webhooks.** Provider webhooks are routed per tenant at
    `/api/webhooks/[provider]/[org]`; `verifyPaymentWebhook(payload, sig,
-   provider, org)` verifies against the merchant's stored secret (env fallback
+   provider, org)` verifies against the merchant's stored secret (configured env defaults
    when org is `_`). The checkout host registers the org-scoped webhook URL on
    each session.
 4. **Unknown-host fallback.** `resolveTenantId()` serves a store only for a

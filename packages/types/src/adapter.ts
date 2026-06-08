@@ -579,7 +579,7 @@ export interface CommerceAdapter<
   CountryAdapter,
   LocationAdapter
 {
-  /** Unique adapter identifier (e.g., "salla", "zid", "shopify") */
+  /** Unique adapter identifier (for this repo, "prood" / platform). */
   readonly name: string
 
   /**

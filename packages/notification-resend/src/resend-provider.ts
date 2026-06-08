@@ -80,7 +80,7 @@ function isEmailTemplateId(value: string | undefined): value is EmailTemplateId 
  * ```ts
  * const resend = new ResendNotificationProvider({
  *   apiKey: process.env.RESEND_API_KEY!,
- *   defaultFrom: 'Prood <onboarding@resend.dev>',
+ *   defaultFrom: process.env.RESEND_FROM_EMAIL!,
  * })
  *
  * await resend.send('email', {
@@ -100,6 +100,12 @@ export class ResendNotificationProvider implements NotificationProvider {
   private readonly defaultFrom: string
 
   constructor(config: ResendConfig) {
+    if (!config.apiKey?.trim()) {
+      throw new Error('ResendNotificationProvider requires a Resend API key')
+    }
+    if (!config.defaultFrom?.trim()) {
+      throw new Error('ResendNotificationProvider requires a default sender address')
+    }
     this.resend = config.client ?? new Resend(config.apiKey)
     this.defaultFrom = config.defaultFrom
   }
