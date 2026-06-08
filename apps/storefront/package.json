@@ -14,6 +14,8 @@
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
+    "@geoapify/geocoder-autocomplete": "^3.0.1",
+    "@geoapify/react-geocoder-autocomplete": "^3.0.0",
     "@hookform/resolvers": "^5.4.0",
     "@neondatabase/serverless": "catalog:",
     "@phosphor-icons/react": "catalog:",
