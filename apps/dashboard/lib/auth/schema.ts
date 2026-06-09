@@ -2,6 +2,11 @@
 // dashboard-only tables (tenant domains, integration configs).
 export {
   account,
+  agent,
+  agentCapabilityGrant,
+  agentHost,
+  apikey,
+  approvalRequest,
   invitation,
   member,
   organization,

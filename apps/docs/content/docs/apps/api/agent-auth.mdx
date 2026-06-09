@@ -81,7 +81,7 @@ sequenceDiagram
 
   Agent->>Auth: POST /api/auth/agent/capabilities/execute
   Auth->>Auth: Validate agent JWT + grant
-  Auth->>API: Proxy with AGENT_PROXY_API_KEY
+  Auth->>API: Proxy with org-scoped API key
   Note over Auth,API: {API_PUBLIC_URL}/v1/{operationPath}
   API-->>Auth: Response
   Auth-->>Agent: Response
@@ -92,7 +92,7 @@ sequenceDiagram
 | Variable | Purpose |
 | --- | --- |
 | `API_PUBLIC_URL` | Public API origin used in OpenAPI + proxy (defaults to `BETTER_AUTH_URL`) |
-| `AGENT_PROXY_API_KEY` | `x-api-key` sent on proxied requests; metadata must include `organizationId` and scopes |
+| `AGENT_PROXY_API_KEYS_BY_ORG` | JSON object mapping organization IDs to org-scoped API keys for proxied capability execution |
 | `AGENT_DEVICE_AUTH_PAGE` | Path for the merchant approval UI (default `/device/capabilities`) |
 | `TRUST_PROXY` | Set `true` behind a reverse proxy for JWT `aud` validation |
 
@@ -113,7 +113,7 @@ Run `pnpm --filter api db:push` after upgrading to create Agent Auth tables:
 - Mutating capabilities require explicit user approval (device authorization flow)
 - Agent JWTs are short-lived and scoped to granted capabilities
 - Tenant isolation applies — agents cannot cross organization boundaries
-- The proxy API key (`AGENT_PROXY_API_KEY`) must have metadata matching the target organization
+- Proxied capability execution requires agent metadata with `organizationId` and a matching key in `AGENT_PROXY_API_KEYS_BY_ORG`
 
 ## Example: agent shopping assistant
 

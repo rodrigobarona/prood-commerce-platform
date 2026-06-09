@@ -645,42 +645,15 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description OK */
+            /** @description Success */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
                 content: {
                     "application/json": {
-                        code: string;
-                        message: string;
-                        errors?: {
-                            path: string;
-                            message: string;
-                        }[];
-                    };
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        code: string;
-                        message: string;
-                        errors?: {
-                            path: string;
-                            message: string;
-                        }[];
+                        /** @constant */
+                        status: "ok";
                     };
                 };
             };
@@ -716,7 +689,14 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        organizationId: string;
+                        scopes: ("storefront" | "admin")[];
+                        /** @enum {string} */
+                        via: "api-key" | "session" | "host" | "agent";
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -789,7 +769,103 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        products: {
+                            items: ({
+                                id: string;
+                                sku?: string | null;
+                                name: {
+                                    [key: string]: string;
+                                };
+                                slug: string;
+                                description?: {
+                                    [key: string]: string;
+                                } | null;
+                                shortDescription?: {
+                                    [key: string]: string;
+                                } | null;
+                                price?: ({
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                }) | null;
+                                primaryImage?: ({
+                                    url: string;
+                                    alt: string;
+                                    width?: number;
+                                    height?: number;
+                                } & {
+                                    [key: string]: unknown;
+                                }) | null;
+                                gallery?: ({
+                                    url: string;
+                                    alt: string;
+                                    width?: number;
+                                    height?: number;
+                                } & {
+                                    [key: string]: unknown;
+                                })[];
+                                variants?: {
+                                    [key: string]: unknown;
+                                }[];
+                                options?: {
+                                    [key: string]: unknown;
+                                }[];
+                                attributes?: {
+                                    [key: string]: unknown;
+                                }[];
+                                categories?: ({
+                                    id: string;
+                                    name: {
+                                        [key: string]: string;
+                                    };
+                                    slug: string;
+                                    description?: {
+                                        [key: string]: string;
+                                    } | null;
+                                    image?: ({
+                                        url: string;
+                                        alt: string;
+                                        width?: number;
+                                        height?: number;
+                                    } & {
+                                        [key: string]: unknown;
+                                    }) | null;
+                                    parentId?: string | null;
+                                    children?: {
+                                        [key: string]: unknown;
+                                    }[];
+                                    productCount?: number | null;
+                                } & {
+                                    [key: string]: unknown;
+                                })[];
+                                inStock: boolean;
+                                tags?: string[];
+                                createdAt?: string;
+                                updatedAt?: string;
+                                productType?: string;
+                                status?: string | null;
+                            } & {
+                                [key: string]: unknown;
+                            })[];
+                            total: number;
+                            page?: number;
+                            perPage?: number;
+                            hasMore?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        };
+                        facets: {
+                            [key: string]: unknown;
+                        }[];
+                        suggestions?: string[] | null;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -857,7 +933,87 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: string;
+                        sku?: string | null;
+                        name: {
+                            [key: string]: string;
+                        };
+                        slug: string;
+                        description?: {
+                            [key: string]: string;
+                        } | null;
+                        shortDescription?: {
+                            [key: string]: string;
+                        } | null;
+                        price?: ({
+                            amount: number;
+                            currency: string;
+                            formatted: string;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        primaryImage?: ({
+                            url: string;
+                            alt: string;
+                            width?: number;
+                            height?: number;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        gallery?: ({
+                            url: string;
+                            alt: string;
+                            width?: number;
+                            height?: number;
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        variants?: {
+                            [key: string]: unknown;
+                        }[];
+                        options?: {
+                            [key: string]: unknown;
+                        }[];
+                        attributes?: {
+                            [key: string]: unknown;
+                        }[];
+                        categories?: ({
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            slug: string;
+                            description?: {
+                                [key: string]: string;
+                            } | null;
+                            image?: ({
+                                url: string;
+                                alt: string;
+                                width?: number;
+                                height?: number;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            parentId?: string | null;
+                            children?: {
+                                [key: string]: unknown;
+                            }[];
+                            productCount?: number | null;
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        inStock: boolean;
+                        tags?: string[];
+                        createdAt?: string;
+                        updatedAt?: string;
+                        productType?: string;
+                        status?: string | null;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -926,7 +1082,33 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": ({
+                        id: string;
+                        name: {
+                            [key: string]: string;
+                        };
+                        slug: string;
+                        description?: {
+                            [key: string]: string;
+                        } | null;
+                        image?: ({
+                            url: string;
+                            alt: string;
+                            width?: number;
+                            height?: number;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        parentId?: string | null;
+                        children?: {
+                            [key: string]: unknown;
+                        }[];
+                        productCount?: number | null;
+                    } & {
+                        [key: string]: unknown;
+                    })[];
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -992,7 +1174,33 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        name: {
+                            [key: string]: string;
+                        };
+                        description?: {
+                            [key: string]: string;
+                        } | null;
+                        logo?: ({
+                            url: string;
+                            alt: string;
+                            width?: number;
+                            height?: number;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        currencies: {
+                            [key: string]: unknown;
+                        }[];
+                        locales: {
+                            [key: string]: unknown;
+                        }[];
+                        country: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -1058,7 +1266,22 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": ({
+                        id: string;
+                        code: string;
+                        iso3?: string | null;
+                        name: {
+                            [key: string]: string;
+                        };
+                        flag?: string | null;
+                        callingCode?: string | null;
+                        currency?: string | null;
+                        capital?: string | null;
+                    } & {
+                        [key: string]: unknown;
+                    })[];
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -1119,19 +1342,163 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
             /** @description Cart created */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: string;
+                        items: ({
+                            id: string;
+                            productId: string;
+                            productSlug?: string;
+                            variantId?: string | null;
+                            name: {
+                                [key: string]: string;
+                            };
+                            quantity: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            totalPrice: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        totals: {
+                            subtotal: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            shipping?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            tax?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            discount?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            total: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        };
+                        shippingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        billingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        shippingMethod?: ({
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            fulfillmentType: string;
+                            estimatedDays: {
+                                min: number;
+                                max: number;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            estimatedMinutes?: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            cashOnDelivery: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        paymentMethod?: ({
+                            id: string;
+                            type: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            installments?: {
+                                [key: string]: unknown;
+                            } | null;
+                            icon?: string | null;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        couponCode?: string | null;
+                        customerId?: string | null;
+                        itemCount: number;
+                        createdAt: string;
+                        updatedAt: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -1199,7 +1566,158 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: string;
+                        items: ({
+                            id: string;
+                            productId: string;
+                            productSlug?: string;
+                            variantId?: string | null;
+                            name: {
+                                [key: string]: string;
+                            };
+                            quantity: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            totalPrice: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        totals: {
+                            subtotal: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            shipping?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            tax?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            discount?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            total: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        };
+                        shippingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        billingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        shippingMethod?: ({
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            fulfillmentType: string;
+                            estimatedDays: {
+                                min: number;
+                                max: number;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            estimatedMinutes?: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            cashOnDelivery: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        paymentMethod?: ({
+                            id: string;
+                            type: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            installments?: {
+                                [key: string]: unknown;
+                            } | null;
+                            icon?: string | null;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        couponCode?: string | null;
+                        customerId?: string | null;
+                        itemCount: number;
+                        createdAt: string;
+                        updatedAt: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -1270,19 +1788,163 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
             /** @description Item added */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: string;
+                        items: ({
+                            id: string;
+                            productId: string;
+                            productSlug?: string;
+                            variantId?: string | null;
+                            name: {
+                                [key: string]: string;
+                            };
+                            quantity: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            totalPrice: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        totals: {
+                            subtotal: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            shipping?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            tax?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            discount?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            total: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        };
+                        shippingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        billingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        shippingMethod?: ({
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            fulfillmentType: string;
+                            estimatedDays: {
+                                min: number;
+                                max: number;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            estimatedMinutes?: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            cashOnDelivery: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        paymentMethod?: ({
+                            id: string;
+                            type: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            installments?: {
+                                [key: string]: unknown;
+                            } | null;
+                            icon?: string | null;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        couponCode?: string | null;
+                        customerId?: string | null;
+                        itemCount: number;
+                        createdAt: string;
+                        updatedAt: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -1351,7 +2013,158 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: string;
+                        items: ({
+                            id: string;
+                            productId: string;
+                            productSlug?: string;
+                            variantId?: string | null;
+                            name: {
+                                [key: string]: string;
+                            };
+                            quantity: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            totalPrice: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        totals: {
+                            subtotal: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            shipping?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            tax?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            discount?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            total: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        };
+                        shippingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        billingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        shippingMethod?: ({
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            fulfillmentType: string;
+                            estimatedDays: {
+                                min: number;
+                                max: number;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            estimatedMinutes?: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            cashOnDelivery: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        paymentMethod?: ({
+                            id: string;
+                            type: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            installments?: {
+                                [key: string]: unknown;
+                            } | null;
+                            icon?: string | null;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        couponCode?: string | null;
+                        customerId?: string | null;
+                        itemCount: number;
+                        createdAt: string;
+                        updatedAt: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -1426,7 +2239,158 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: string;
+                        items: ({
+                            id: string;
+                            productId: string;
+                            productSlug?: string;
+                            variantId?: string | null;
+                            name: {
+                                [key: string]: string;
+                            };
+                            quantity: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            totalPrice: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        totals: {
+                            subtotal: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            shipping?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            tax?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            discount?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            total: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        };
+                        shippingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        billingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        shippingMethod?: ({
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            fulfillmentType: string;
+                            estimatedDays: {
+                                min: number;
+                                max: number;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            estimatedMinutes?: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            cashOnDelivery: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        paymentMethod?: ({
+                            id: string;
+                            type: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            installments?: {
+                                [key: string]: unknown;
+                            } | null;
+                            icon?: string | null;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        couponCode?: string | null;
+                        customerId?: string | null;
+                        itemCount: number;
+                        createdAt: string;
+                        updatedAt: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -1500,7 +2464,158 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: string;
+                        items: ({
+                            id: string;
+                            productId: string;
+                            productSlug?: string;
+                            variantId?: string | null;
+                            name: {
+                                [key: string]: string;
+                            };
+                            quantity: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            totalPrice: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        totals: {
+                            subtotal: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            shipping?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            tax?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            discount?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            total: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        };
+                        shippingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        billingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        shippingMethod?: ({
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            fulfillmentType: string;
+                            estimatedDays: {
+                                min: number;
+                                max: number;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            estimatedMinutes?: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            cashOnDelivery: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        paymentMethod?: ({
+                            id: string;
+                            type: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            installments?: {
+                                [key: string]: unknown;
+                            } | null;
+                            icon?: string | null;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        couponCode?: string | null;
+                        customerId?: string | null;
+                        itemCount: number;
+                        createdAt: string;
+                        updatedAt: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -1568,7 +2683,158 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: string;
+                        items: ({
+                            id: string;
+                            productId: string;
+                            productSlug?: string;
+                            variantId?: string | null;
+                            name: {
+                                [key: string]: string;
+                            };
+                            quantity: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            totalPrice: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        totals: {
+                            subtotal: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            shipping?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            tax?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            discount?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            total: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        };
+                        shippingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        billingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        shippingMethod?: ({
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            fulfillmentType: string;
+                            estimatedDays: {
+                                min: number;
+                                max: number;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            estimatedMinutes?: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            cashOnDelivery: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        paymentMethod?: ({
+                            id: string;
+                            type: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            installments?: {
+                                [key: string]: unknown;
+                            } | null;
+                            icon?: string | null;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        couponCode?: string | null;
+                        customerId?: string | null;
+                        itemCount: number;
+                        createdAt: string;
+                        updatedAt: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -1636,7 +2902,33 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": ({
+                        id: string;
+                        name: {
+                            [key: string]: string;
+                        };
+                        provider: string;
+                        fulfillmentType: string;
+                        estimatedDays: {
+                            min: number;
+                            max: number;
+                        } & {
+                            [key: string]: unknown;
+                        };
+                        estimatedMinutes?: number;
+                        price: {
+                            amount: number;
+                            currency: string;
+                            formatted: string;
+                        } & {
+                            [key: string]: unknown;
+                        };
+                        cashOnDelivery: boolean;
+                    } & {
+                        [key: string]: unknown;
+                    })[];
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -1704,7 +2996,22 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": ({
+                        id: string;
+                        type: string;
+                        name: {
+                            [key: string]: string;
+                        };
+                        provider: string;
+                        installments?: {
+                            [key: string]: unknown;
+                        } | null;
+                        icon?: string | null;
+                    } & {
+                        [key: string]: unknown;
+                    })[];
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -1789,7 +3096,158 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: string;
+                        items: ({
+                            id: string;
+                            productId: string;
+                            productSlug?: string;
+                            variantId?: string | null;
+                            name: {
+                                [key: string]: string;
+                            };
+                            quantity: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            totalPrice: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        totals: {
+                            subtotal: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            shipping?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            tax?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            discount?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            total: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        };
+                        shippingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        billingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        shippingMethod?: ({
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            fulfillmentType: string;
+                            estimatedDays: {
+                                min: number;
+                                max: number;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            estimatedMinutes?: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            cashOnDelivery: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        paymentMethod?: ({
+                            id: string;
+                            type: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            installments?: {
+                                [key: string]: unknown;
+                            } | null;
+                            icon?: string | null;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        couponCode?: string | null;
+                        customerId?: string | null;
+                        itemCount: number;
+                        createdAt: string;
+                        updatedAt: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -1874,7 +3332,158 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: string;
+                        items: ({
+                            id: string;
+                            productId: string;
+                            productSlug?: string;
+                            variantId?: string | null;
+                            name: {
+                                [key: string]: string;
+                            };
+                            quantity: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            totalPrice: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        totals: {
+                            subtotal: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            shipping?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            tax?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            discount?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            total: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        };
+                        shippingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        billingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        shippingMethod?: ({
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            fulfillmentType: string;
+                            estimatedDays: {
+                                min: number;
+                                max: number;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            estimatedMinutes?: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            cashOnDelivery: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        paymentMethod?: ({
+                            id: string;
+                            type: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            installments?: {
+                                [key: string]: unknown;
+                            } | null;
+                            icon?: string | null;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        couponCode?: string | null;
+                        customerId?: string | null;
+                        itemCount: number;
+                        createdAt: string;
+                        updatedAt: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -1948,7 +3557,158 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: string;
+                        items: ({
+                            id: string;
+                            productId: string;
+                            productSlug?: string;
+                            variantId?: string | null;
+                            name: {
+                                [key: string]: string;
+                            };
+                            quantity: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            totalPrice: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        totals: {
+                            subtotal: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            shipping?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            tax?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            discount?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            total: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        };
+                        shippingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        billingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        shippingMethod?: ({
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            fulfillmentType: string;
+                            estimatedDays: {
+                                min: number;
+                                max: number;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            estimatedMinutes?: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            cashOnDelivery: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        paymentMethod?: ({
+                            id: string;
+                            type: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            installments?: {
+                                [key: string]: unknown;
+                            } | null;
+                            icon?: string | null;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        couponCode?: string | null;
+                        customerId?: string | null;
+                        itemCount: number;
+                        createdAt: string;
+                        updatedAt: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -2012,24 +3772,153 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
+                    /** Format: email */
                     email?: string;
                 };
             };
         };
         responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
             /** @description Order created */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: string;
+                        orderNumber: string;
+                        status: string;
+                        paymentStatus: string;
+                        fulfillmentStatus: string;
+                        items: {
+                            [key: string]: unknown;
+                        }[];
+                        totals: {
+                            subtotal: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            shipping?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            tax?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            discount?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            total: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        };
+                        shippingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        billingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        shippingMethod?: ({
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            fulfillmentType: string;
+                            estimatedDays: {
+                                min: number;
+                                max: number;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            estimatedMinutes?: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            cashOnDelivery: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        paymentMethod?: ({
+                            id: string;
+                            type: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            installments?: {
+                                [key: string]: unknown;
+                            } | null;
+                            icon?: string | null;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        trackingNumber?: string | null;
+                        trackingUrl?: string | null;
+                        note?: string | null;
+                        customerId?: string | null;
+                        contactEmail?: string | null;
+                        requiresShipping?: boolean;
+                        createdAt: string;
+                        updatedAt: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -2098,7 +3987,150 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        items: ({
+                            id: string;
+                            orderNumber: string;
+                            status: string;
+                            paymentStatus: string;
+                            fulfillmentStatus: string;
+                            items: {
+                                [key: string]: unknown;
+                            }[];
+                            totals: {
+                                subtotal: {
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                };
+                                shipping?: ({
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                }) | null;
+                                tax?: ({
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                }) | null;
+                                discount?: ({
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                }) | null;
+                                total: {
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                };
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            shippingAddress?: ({
+                                id?: string;
+                                firstName: string;
+                                lastName: string;
+                                phone?: string | null;
+                                street: string;
+                                street2?: string | null;
+                                city: string;
+                                state?: string | null;
+                                country: string;
+                                postalCode?: string | null;
+                                district?: string | null;
+                                nationalAddress?: string | null;
+                                additionalNumber?: string | null;
+                                isDefault?: boolean;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            billingAddress?: ({
+                                id?: string;
+                                firstName: string;
+                                lastName: string;
+                                phone?: string | null;
+                                street: string;
+                                street2?: string | null;
+                                city: string;
+                                state?: string | null;
+                                country: string;
+                                postalCode?: string | null;
+                                district?: string | null;
+                                nationalAddress?: string | null;
+                                additionalNumber?: string | null;
+                                isDefault?: boolean;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            shippingMethod?: ({
+                                id: string;
+                                name: {
+                                    [key: string]: string;
+                                };
+                                provider: string;
+                                fulfillmentType: string;
+                                estimatedDays: {
+                                    min: number;
+                                    max: number;
+                                } & {
+                                    [key: string]: unknown;
+                                };
+                                estimatedMinutes?: number;
+                                price: {
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                };
+                                cashOnDelivery: boolean;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            paymentMethod?: ({
+                                id: string;
+                                type: string;
+                                name: {
+                                    [key: string]: string;
+                                };
+                                provider: string;
+                                installments?: {
+                                    [key: string]: unknown;
+                                } | null;
+                                icon?: string | null;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            trackingNumber?: string | null;
+                            trackingUrl?: string | null;
+                            note?: string | null;
+                            customerId?: string | null;
+                            contactEmail?: string | null;
+                            requiresShipping?: boolean;
+                            createdAt: string;
+                            updatedAt: string;
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        total: number;
+                        page?: number;
+                        perPage?: number;
+                        hasMore?: boolean;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -2166,7 +4198,142 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: string;
+                        orderNumber: string;
+                        status: string;
+                        paymentStatus: string;
+                        fulfillmentStatus: string;
+                        items: {
+                            [key: string]: unknown;
+                        }[];
+                        totals: {
+                            subtotal: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            shipping?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            tax?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            discount?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            total: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        };
+                        shippingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        billingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        shippingMethod?: ({
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            fulfillmentType: string;
+                            estimatedDays: {
+                                min: number;
+                                max: number;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            estimatedMinutes?: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            cashOnDelivery: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        paymentMethod?: ({
+                            id: string;
+                            type: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            installments?: {
+                                [key: string]: unknown;
+                            } | null;
+                            icon?: string | null;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        trackingNumber?: string | null;
+                        trackingUrl?: string | null;
+                        note?: string | null;
+                        customerId?: string | null;
+                        contactEmail?: string | null;
+                        requiresShipping?: boolean;
+                        createdAt: string;
+                        updatedAt: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -2238,7 +4405,95 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        items: ({
+                            id: string;
+                            sku?: string | null;
+                            name: {
+                                [key: string]: string;
+                            };
+                            slug: string;
+                            description?: {
+                                [key: string]: string;
+                            } | null;
+                            shortDescription?: {
+                                [key: string]: string;
+                            } | null;
+                            price?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            primaryImage?: ({
+                                url: string;
+                                alt: string;
+                                width?: number;
+                                height?: number;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            gallery?: ({
+                                url: string;
+                                alt: string;
+                                width?: number;
+                                height?: number;
+                            } & {
+                                [key: string]: unknown;
+                            })[];
+                            variants?: {
+                                [key: string]: unknown;
+                            }[];
+                            options?: {
+                                [key: string]: unknown;
+                            }[];
+                            attributes?: {
+                                [key: string]: unknown;
+                            }[];
+                            categories?: ({
+                                id: string;
+                                name: {
+                                    [key: string]: string;
+                                };
+                                slug: string;
+                                description?: {
+                                    [key: string]: string;
+                                } | null;
+                                image?: ({
+                                    url: string;
+                                    alt: string;
+                                    width?: number;
+                                    height?: number;
+                                } & {
+                                    [key: string]: unknown;
+                                }) | null;
+                                parentId?: string | null;
+                                children?: {
+                                    [key: string]: unknown;
+                                }[];
+                                productCount?: number | null;
+                            } & {
+                                [key: string]: unknown;
+                            })[];
+                            inStock: boolean;
+                            tags?: string[];
+                            createdAt?: string;
+                            updatedAt?: string;
+                            productType?: string;
+                            status?: string | null;
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        total: number;
+                        page?: number;
+                        perPage?: number;
+                        hasMore?: boolean;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -2357,19 +4612,92 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
             /** @description Product created */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: string;
+                        sku?: string | null;
+                        name: {
+                            [key: string]: string;
+                        };
+                        slug: string;
+                        description?: {
+                            [key: string]: string;
+                        } | null;
+                        shortDescription?: {
+                            [key: string]: string;
+                        } | null;
+                        price?: ({
+                            amount: number;
+                            currency: string;
+                            formatted: string;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        primaryImage?: ({
+                            url: string;
+                            alt: string;
+                            width?: number;
+                            height?: number;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        gallery?: ({
+                            url: string;
+                            alt: string;
+                            width?: number;
+                            height?: number;
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        variants?: {
+                            [key: string]: unknown;
+                        }[];
+                        options?: {
+                            [key: string]: unknown;
+                        }[];
+                        attributes?: {
+                            [key: string]: unknown;
+                        }[];
+                        categories?: ({
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            slug: string;
+                            description?: {
+                                [key: string]: string;
+                            } | null;
+                            image?: ({
+                                url: string;
+                                alt: string;
+                                width?: number;
+                                height?: number;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            parentId?: string | null;
+                            children?: {
+                                [key: string]: unknown;
+                            }[];
+                            productCount?: number | null;
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        inStock: boolean;
+                        tags?: string[];
+                        createdAt?: string;
+                        updatedAt?: string;
+                        productType?: string;
+                        status?: string | null;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -2437,7 +4765,87 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: string;
+                        sku?: string | null;
+                        name: {
+                            [key: string]: string;
+                        };
+                        slug: string;
+                        description?: {
+                            [key: string]: string;
+                        } | null;
+                        shortDescription?: {
+                            [key: string]: string;
+                        } | null;
+                        price?: ({
+                            amount: number;
+                            currency: string;
+                            formatted: string;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        primaryImage?: ({
+                            url: string;
+                            alt: string;
+                            width?: number;
+                            height?: number;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        gallery?: ({
+                            url: string;
+                            alt: string;
+                            width?: number;
+                            height?: number;
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        variants?: {
+                            [key: string]: unknown;
+                        }[];
+                        options?: {
+                            [key: string]: unknown;
+                        }[];
+                        attributes?: {
+                            [key: string]: unknown;
+                        }[];
+                        categories?: ({
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            slug: string;
+                            description?: {
+                                [key: string]: string;
+                            } | null;
+                            image?: ({
+                                url: string;
+                                alt: string;
+                                width?: number;
+                                height?: number;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            parentId?: string | null;
+                            children?: {
+                                [key: string]: unknown;
+                            }[];
+                            productCount?: number | null;
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        inStock: boolean;
+                        tags?: string[];
+                        createdAt?: string;
+                        updatedAt?: string;
+                        productType?: string;
+                        status?: string | null;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -2500,13 +4908,6 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
             /** @description Deleted */
             204: {
                 headers: {
@@ -2638,7 +5039,87 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: string;
+                        sku?: string | null;
+                        name: {
+                            [key: string]: string;
+                        };
+                        slug: string;
+                        description?: {
+                            [key: string]: string;
+                        } | null;
+                        shortDescription?: {
+                            [key: string]: string;
+                        } | null;
+                        price?: ({
+                            amount: number;
+                            currency: string;
+                            formatted: string;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        primaryImage?: ({
+                            url: string;
+                            alt: string;
+                            width?: number;
+                            height?: number;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        gallery?: ({
+                            url: string;
+                            alt: string;
+                            width?: number;
+                            height?: number;
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        variants?: {
+                            [key: string]: unknown;
+                        }[];
+                        options?: {
+                            [key: string]: unknown;
+                        }[];
+                        attributes?: {
+                            [key: string]: unknown;
+                        }[];
+                        categories?: ({
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            slug: string;
+                            description?: {
+                                [key: string]: string;
+                            } | null;
+                            image?: ({
+                                url: string;
+                                alt: string;
+                                width?: number;
+                                height?: number;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            parentId?: string | null;
+                            children?: {
+                                [key: string]: unknown;
+                            }[];
+                            productCount?: number | null;
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        inStock: boolean;
+                        tags?: string[];
+                        createdAt?: string;
+                        updatedAt?: string;
+                        productType?: string;
+                        status?: string | null;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -2714,19 +5195,38 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
             /** @description Category created */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: string;
+                        name: {
+                            [key: string]: string;
+                        };
+                        slug: string;
+                        description?: {
+                            [key: string]: string;
+                        } | null;
+                        image?: ({
+                            url: string;
+                            alt: string;
+                            width?: number;
+                            height?: number;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        parentId?: string | null;
+                        children?: {
+                            [key: string]: unknown;
+                        }[];
+                        productCount?: number | null;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -2789,13 +5289,6 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Success */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
             /** @description Deleted */
             204: {
                 headers: {
@@ -2884,7 +5377,33 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: string;
+                        name: {
+                            [key: string]: string;
+                        };
+                        slug: string;
+                        description?: {
+                            [key: string]: string;
+                        } | null;
+                        image?: ({
+                            url: string;
+                            alt: string;
+                            width?: number;
+                            height?: number;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        parentId?: string | null;
+                        children?: {
+                            [key: string]: unknown;
+                        }[];
+                        productCount?: number | null;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -2958,7 +5477,150 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        items: ({
+                            id: string;
+                            orderNumber: string;
+                            status: string;
+                            paymentStatus: string;
+                            fulfillmentStatus: string;
+                            items: {
+                                [key: string]: unknown;
+                            }[];
+                            totals: {
+                                subtotal: {
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                };
+                                shipping?: ({
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                }) | null;
+                                tax?: ({
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                }) | null;
+                                discount?: ({
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                }) | null;
+                                total: {
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                };
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            shippingAddress?: ({
+                                id?: string;
+                                firstName: string;
+                                lastName: string;
+                                phone?: string | null;
+                                street: string;
+                                street2?: string | null;
+                                city: string;
+                                state?: string | null;
+                                country: string;
+                                postalCode?: string | null;
+                                district?: string | null;
+                                nationalAddress?: string | null;
+                                additionalNumber?: string | null;
+                                isDefault?: boolean;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            billingAddress?: ({
+                                id?: string;
+                                firstName: string;
+                                lastName: string;
+                                phone?: string | null;
+                                street: string;
+                                street2?: string | null;
+                                city: string;
+                                state?: string | null;
+                                country: string;
+                                postalCode?: string | null;
+                                district?: string | null;
+                                nationalAddress?: string | null;
+                                additionalNumber?: string | null;
+                                isDefault?: boolean;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            shippingMethod?: ({
+                                id: string;
+                                name: {
+                                    [key: string]: string;
+                                };
+                                provider: string;
+                                fulfillmentType: string;
+                                estimatedDays: {
+                                    min: number;
+                                    max: number;
+                                } & {
+                                    [key: string]: unknown;
+                                };
+                                estimatedMinutes?: number;
+                                price: {
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                };
+                                cashOnDelivery: boolean;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            paymentMethod?: ({
+                                id: string;
+                                type: string;
+                                name: {
+                                    [key: string]: string;
+                                };
+                                provider: string;
+                                installments?: {
+                                    [key: string]: unknown;
+                                } | null;
+                                icon?: string | null;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            trackingNumber?: string | null;
+                            trackingUrl?: string | null;
+                            note?: string | null;
+                            customerId?: string | null;
+                            contactEmail?: string | null;
+                            requiresShipping?: boolean;
+                            createdAt: string;
+                            updatedAt: string;
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        total: number;
+                        page?: number;
+                        perPage?: number;
+                        hasMore?: boolean;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -3026,7 +5688,142 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: string;
+                        orderNumber: string;
+                        status: string;
+                        paymentStatus: string;
+                        fulfillmentStatus: string;
+                        items: {
+                            [key: string]: unknown;
+                        }[];
+                        totals: {
+                            subtotal: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            shipping?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            tax?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            discount?: ({
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            total: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                        } & {
+                            [key: string]: unknown;
+                        };
+                        shippingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        billingAddress?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        shippingMethod?: ({
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            fulfillmentType: string;
+                            estimatedDays: {
+                                min: number;
+                                max: number;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            estimatedMinutes?: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            cashOnDelivery: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        paymentMethod?: ({
+                            id: string;
+                            type: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            provider: string;
+                            installments?: {
+                                [key: string]: unknown;
+                            } | null;
+                            icon?: string | null;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        trackingNumber?: string | null;
+                        trackingUrl?: string | null;
+                        note?: string | null;
+                        customerId?: string | null;
+                        contactEmail?: string | null;
+                        requiresShipping?: boolean;
+                        createdAt: string;
+                        updatedAt: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -3100,7 +5897,12 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -3168,7 +5970,17 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": ({
+                        id: string;
+                        orderId: string;
+                        action: string;
+                        note?: string | null;
+                        createdAt: string;
+                    } & {
+                        [key: string]: unknown;
+                    })[];
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -3244,7 +6056,12 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -3318,7 +6135,12 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -3390,7 +6212,46 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        items: ({
+                            id: string;
+                            email?: string | null;
+                            firstName?: string | null;
+                            lastName?: string | null;
+                            phone?: string | null;
+                            addresses?: ({
+                                id?: string;
+                                firstName: string;
+                                lastName: string;
+                                phone?: string | null;
+                                street: string;
+                                street2?: string | null;
+                                city: string;
+                                state?: string | null;
+                                country: string;
+                                postalCode?: string | null;
+                                district?: string | null;
+                                nationalAddress?: string | null;
+                                additionalNumber?: string | null;
+                                isDefault?: boolean;
+                            } & {
+                                [key: string]: unknown;
+                            })[];
+                            defaultAddressId?: string | null;
+                            createdAt: string;
+                            updatedAt: string;
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        total: number;
+                        page?: number;
+                        perPage?: number;
+                        hasMore?: boolean;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -3458,7 +6319,38 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        id: string;
+                        email?: string | null;
+                        firstName?: string | null;
+                        lastName?: string | null;
+                        phone?: string | null;
+                        addresses?: ({
+                            id?: string;
+                            firstName: string;
+                            lastName: string;
+                            phone?: string | null;
+                            street: string;
+                            street2?: string | null;
+                            city: string;
+                            state?: string | null;
+                            country: string;
+                            postalCode?: string | null;
+                            district?: string | null;
+                            nationalAddress?: string | null;
+                            additionalNumber?: string | null;
+                            isDefault?: boolean;
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        defaultAddressId?: string | null;
+                        createdAt: string;
+                        updatedAt: string;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -3524,7 +6416,31 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        name?: {
+                            [key: string]: string;
+                        };
+                        description?: {
+                            [key: string]: string;
+                        } | null;
+                        logo?: string | null;
+                        favicon?: string | null;
+                        currency?: string;
+                        locale?: string;
+                        timezone?: string;
+                        supportedCurrencies?: string[];
+                        supportedLocales?: string[];
+                        contactEmail?: string | null;
+                        contactPhone?: string | null;
+                        address?: string | null;
+                        socialLinks?: {
+                            [key: string]: string;
+                        } | null;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -3611,7 +6527,31 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        name?: {
+                            [key: string]: string;
+                        };
+                        description?: {
+                            [key: string]: string;
+                        } | null;
+                        logo?: string | null;
+                        favicon?: string | null;
+                        currency?: string;
+                        locale?: string;
+                        timezone?: string;
+                        supportedCurrencies?: string[];
+                        supportedLocales?: string[];
+                        contactEmail?: string | null;
+                        contactPhone?: string | null;
+                        address?: string | null;
+                        socialLinks?: {
+                            [key: string]: string;
+                        } | null;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -3687,7 +6627,12 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -3753,7 +6698,154 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        totalProducts?: number;
+                        activeProducts?: number;
+                        totalOrders?: number;
+                        totalRevenue?: number;
+                        totalCustomers?: number;
+                        recentOrders?: ({
+                            id: string;
+                            orderNumber: string;
+                            status: string;
+                            paymentStatus: string;
+                            fulfillmentStatus: string;
+                            items: {
+                                [key: string]: unknown;
+                            }[];
+                            totals: {
+                                subtotal: {
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                };
+                                shipping?: ({
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                }) | null;
+                                tax?: ({
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                }) | null;
+                                discount?: ({
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                }) | null;
+                                total: {
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                };
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            shippingAddress?: ({
+                                id?: string;
+                                firstName: string;
+                                lastName: string;
+                                phone?: string | null;
+                                street: string;
+                                street2?: string | null;
+                                city: string;
+                                state?: string | null;
+                                country: string;
+                                postalCode?: string | null;
+                                district?: string | null;
+                                nationalAddress?: string | null;
+                                additionalNumber?: string | null;
+                                isDefault?: boolean;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            billingAddress?: ({
+                                id?: string;
+                                firstName: string;
+                                lastName: string;
+                                phone?: string | null;
+                                street: string;
+                                street2?: string | null;
+                                city: string;
+                                state?: string | null;
+                                country: string;
+                                postalCode?: string | null;
+                                district?: string | null;
+                                nationalAddress?: string | null;
+                                additionalNumber?: string | null;
+                                isDefault?: boolean;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            shippingMethod?: ({
+                                id: string;
+                                name: {
+                                    [key: string]: string;
+                                };
+                                provider: string;
+                                fulfillmentType: string;
+                                estimatedDays: {
+                                    min: number;
+                                    max: number;
+                                } & {
+                                    [key: string]: unknown;
+                                };
+                                estimatedMinutes?: number;
+                                price: {
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                };
+                                cashOnDelivery: boolean;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            paymentMethod?: ({
+                                id: string;
+                                type: string;
+                                name: {
+                                    [key: string]: string;
+                                };
+                                provider: string;
+                                installments?: {
+                                    [key: string]: unknown;
+                                } | null;
+                                icon?: string | null;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            trackingNumber?: string | null;
+                            trackingUrl?: string | null;
+                            note?: string | null;
+                            customerId?: string | null;
+                            contactEmail?: string | null;
+                            requiresShipping?: boolean;
+                            createdAt: string;
+                            updatedAt: string;
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        ordersByStatus?: {
+                            [key: string]: number;
+                        };
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -3821,7 +6913,12 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        received: true;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {
@@ -3889,7 +6986,12 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        received: true;
+                    };
+                };
             };
             /** @description Unauthorized */
             401: {

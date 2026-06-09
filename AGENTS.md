@@ -1,5 +1,11 @@
-<!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
+# Prood Commerce Platform Agent Guidance
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-<!-- END:nextjs-agent-rules -->
+## Learned User Preferences
+
+- For this dev-only workspace, prefer clean breaking changes over compatibility layers; remove dead or legacy code instead of adding shims, backfills, fallbacks, or workarounds.
+
+## Learned Workspace Facts
+
+- The workspace is a Turborepo/pnpm monorepo with `apps/*` applications and shared `packages/*`.
+- `apps/api` is the intended API contract boundary for REST `/v1`, OpenAPI, MCP, and Agent Auth discovery.
+- `apps/docs` publishes LLM-readable docs routes, and `packages/api-client` is the TypeScript API client surface.

@@ -1,0 +1,98 @@
+---
+title: Machine Access
+description: API keys, Agent Auth, MCP, OpenAPI, and CLI access for machines and agents.
+---
+
+Prood exposes one API-first automation surface for humans, services, and agents:
+
+- **OpenAPI**: `GET /v1/openapi.json`
+- **Interactive docs**: Fumadocs OpenAPI at `/docs/api`
+- **TypeScript client**: `@prood/api-client`
+- **MCP**: `POST /mcp`
+- **Agent Auth**: `GET /.well-known/agent-configuration`
+- **CLI**: `prood`
+
+## API keys
+
+Create organization-scoped keys in Dashboard → Settings → API keys. Keys include metadata:
+
+```json
+{
+  "organizationId": "org_...",
+  "scopes": ["storefront", "admin"]
+}
+```
+
+Use the key with REST, MCP, or the CLI:
+
+```bash
+curl -H "x-api-key: pk_xxx" http://localhost:3005/v1/me
+prood auth whoami --api-url http://localhost:3005/v1 --api-key pk_xxx --json
+```
+
+## Agent Auth
+
+Agents discover the provider configuration:
+
+```bash
+curl http://localhost:3005/.well-known/agent-configuration
+```
+
+Every OpenAPI `operationId` becomes an Agent Auth capability. Direct REST calls use:
+
+```bash
+curl -H "Authorization: Bearer eyJ..." http://localhost:3005/v1/products
+```
+
+Proxied capability execution requires `AGENT_PROXY_API_KEYS_BY_ORG`. This
+environment variable is a JSON object that maps organization IDs to
+tenant-scoped API keys:
+
+```bash
+export AGENT_PROXY_API_KEYS_BY_ORG='{"org_abc":"pk_xxx","org_def":"pk_yyy"}'
+```
+
+Configure it anywhere the API app runs: local `.env` / `.env.local`, CI, and
+deployment environment variables. These keys are sensitive secrets; store them
+only in encrypted secret managers or platform environment-variable stores, and
+rotate any key that is exposed.
+
+## MCP
+
+MCP tools use the same names as OpenAPI operation IDs:
+
+```json
+{
+  "mcpServers": {
+    "prood-commerce": {
+      "url": "http://localhost:3005/mcp",
+      "headers": {
+        "x-api-key": "pk_xxx"
+      }
+    }
+  }
+}
+```
+
+## TypeScript client
+
+```ts
+import { createCommerceApiClient, unwrap } from '@prood/api-client'
+
+const api = createCommerceApiClient({
+  baseUrl: 'http://localhost:3005/v1',
+  apiKey: 'pk_xxx',
+})
+
+const caller = await unwrap(api.GET('/me'))
+```
+
+## CLI
+
+```bash
+prood auth whoami --api-url http://localhost:3005/v1 --api-key pk_xxx --json
+prood products list --api-url http://localhost:3005/v1 --api-key pk_xxx --json
+prood mcp config --api-url http://localhost:3005/v1 --api-key pk_xxx
+prood openapi sync --check
+```
+

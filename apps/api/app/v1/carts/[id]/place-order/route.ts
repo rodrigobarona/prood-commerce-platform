@@ -4,6 +4,8 @@ import { requireCaller } from "@/lib/auth-tenant"
 import { checkout } from "@/lib/commerce-service"
 import { assertCanPlaceOrder } from "@/lib/enforcement"
 import { errorResponse } from "@/lib/api"
+import { placeOrderBody } from "@/lib/schemas"
+import { readBody } from "@/lib/validate"
 
 export async function POST(
   req: Request,
@@ -14,7 +16,7 @@ export async function POST(
     const caller = await requireCaller("storefront")
     await assertCanPlaceOrder(caller.orgId)
 
-    const body = (await req.json().catch(() => ({}))) as { email?: string }
+    const body = await readBody(req, placeOrderBody)
 
     let customerId: string
     if (caller.userId) {

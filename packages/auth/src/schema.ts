@@ -9,6 +9,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
 } from "drizzle-orm/pg-core"
 
 export const user = pgTable("user", {
@@ -170,21 +171,30 @@ export const agent = pgTable("agent", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 })
 
-export const agentCapabilityGrant = pgTable("agentCapabilityGrant", {
-  id: text("id").primaryKey(),
-  agentId: text("agent_id")
-    .notNull()
-    .references(() => agent.id, { onDelete: "cascade" }),
-  capability: text("capability").notNull(),
-  deniedBy: text("denied_by").references(() => user.id, { onDelete: "cascade" }),
-  grantedBy: text("granted_by").references(() => user.id, { onDelete: "cascade" }),
-  expiresAt: timestamp("expires_at"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-  status: text("status").notNull().default("active"),
-  reason: text("reason"),
-  constraints: text("constraints"),
-})
+export const agentCapabilityGrant = pgTable(
+  "agentCapabilityGrant",
+  {
+    id: text("id").primaryKey(),
+    agentId: text("agent_id")
+      .notNull()
+      .references(() => agent.id, { onDelete: "cascade" }),
+    capability: text("capability").notNull(),
+    deniedBy: text("denied_by").references(() => user.id, { onDelete: "cascade" }),
+    grantedBy: text("granted_by").references(() => user.id, { onDelete: "cascade" }),
+    expiresAt: timestamp("expires_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+    status: text("status").notNull().default("active"),
+    reason: text("reason"),
+    constraints: text("constraints"),
+  },
+  (table) => [
+    uniqueIndex("agentCapabilityGrant_agent_id_capability_unique").on(
+      table.agentId,
+      table.capability
+    ),
+  ]
+)
 
 export const approvalRequest = pgTable("approvalRequest", {
   id: text("id").primaryKey(),

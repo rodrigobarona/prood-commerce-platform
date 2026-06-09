@@ -126,7 +126,7 @@ Optional for local dev; required for custom domain provisioning in production:
 | --- | --- | --- |
 | `COMMERCE_API_URL` | `http://localhost:3005/v1` | Base URL for `@prood/api-client` in storefront and dashboard |
 | `API_PUBLIC_URL` | `http://localhost:3005` | Public API origin for Agent Auth OpenAPI proxy and discovery |
-| `AGENT_PROXY_API_KEY` | — | API key sent on proxied agent requests; metadata must include `organizationId` and scopes |
+| `AGENT_PROXY_API_KEYS_BY_ORG` | `{}` | JSON object mapping organization IDs to tenant-scoped API keys for proxied agent requests |
 | `AGENT_DEVICE_AUTH_PAGE` | `/device/capabilities` | Merchant approval UI path for device authorization |
 | `TRUST_PROXY` | `false` | Set `true` behind a reverse proxy for JWT `aud` validation |
 

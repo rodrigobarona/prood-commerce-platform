@@ -444,3 +444,11 @@ export const listAllAgents = cache(async function listAllAgents(): Promise<Agent
     .leftJoin(schema.user, eq(schema.agent.userId, schema.user.id))
     .orderBy(desc(schema.agent.createdAt))
 })
+
+export async function deactivateAgent(id: string): Promise<void> {
+  await connection()
+  await db
+    .update(schema.agent)
+    .set({ status: "inactive", updatedAt: new Date() })
+    .where(eq(schema.agent.id, id))
+}
