@@ -100,7 +100,7 @@ export default async function ApiKeysPage() {
                 </tbody>
               </table>
             </div>
-          ) : (
+          ) : keysError ? null : (
             <p className="p-6 text-center text-sm text-muted-foreground">
               No API keys created yet.
             </p>

@@ -3,7 +3,7 @@
 import "server-only"
 
 import { and, eq, inArray } from "drizzle-orm"
-import { redirect } from "next/navigation"
+import { redirect, unstable_rethrow } from "next/navigation"
 import { authDb } from "@/lib/auth/db"
 import {
   agent,
@@ -36,6 +36,10 @@ export interface ApprovalRequestDetails {
 }
 
 function parseCapabilities(raw: string | null): string[] {
+  return Array.from(new Set(parseCapabilitiesRaw(raw)))
+}
+
+function parseCapabilitiesRaw(raw: string | null): string[] {
   if (!raw) return []
   try {
     const parsed = JSON.parse(raw) as unknown
@@ -240,11 +244,9 @@ export async function approveCapabilityRequest(
       ...grantInserts,
     ])
   } catch (error) {
+    unstable_rethrow(error)
     console.error("[approveCapabilityRequest] failed:", error)
-    return {
-      error:
-        error instanceof Error ? error.message : "Could not approve capability request.",
-    }
+    return { error: "Could not approve capability request." }
   }
 
   redirect("/settings/api-keys")
@@ -325,10 +327,9 @@ export async function denyCapabilityRequest(
       ...grantInserts,
     ])
   } catch (error) {
+    unstable_rethrow(error)
     console.error("[denyCapabilityRequest] failed:", error)
-    return {
-      error: error instanceof Error ? error.message : "Could not deny capability request.",
-    }
+    return { error: "Could not deny capability request." }
   }
 
   redirect("/settings/api-keys")

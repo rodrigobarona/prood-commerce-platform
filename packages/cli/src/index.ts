@@ -175,8 +175,8 @@ async function main() {
     const apiUrl = stringFlag(flags, "api-url") ?? process.env.COMMERCE_API_URL
     if (!apiUrl) throw new Error("Missing --api-url <url> or COMMERCE_API_URL")
     const headers: Record<string, string> = {}
-    const apiKey = stringFlag(flags, "api-key")
-    const bearerToken = stringFlag(flags, "bearer-token")
+    const apiKey = stringFlag(flags, "api-key") ?? process.env.PROOD_API_KEY
+    const bearerToken = stringFlag(flags, "bearer-token") ?? process.env.PROOD_BEARER_TOKEN
     if (apiKey) headers["x-api-key"] = apiKey
     if (bearerToken) headers.Authorization = `Bearer ${bearerToken}`
     print(

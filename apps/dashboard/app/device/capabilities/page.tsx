@@ -1,3 +1,4 @@
+import { unstable_rethrow } from "next/navigation"
 import { DashboardFormPage } from "@/components/layout/dashboard-page"
 import { Badge } from "@prood/ui/components/badge"
 import { ApprovalControls } from "./approval-controls"
@@ -14,6 +15,7 @@ export default async function AgentCapabilityApprovalPage({
   const requestId = typeof params.request_id === "string" ? params.request_id : null
   const details = requestId
     ? await getApprovalRequest(requestId).catch((error: unknown) => {
+        unstable_rethrow(error)
         console.error("[AgentCapabilityApprovalPage] getApprovalRequest failed:", error)
         return { error: "Could not load approval request." }
       })
