@@ -20,7 +20,18 @@ try {
     { stdio: "inherit" }
   )
 
-  const current = readFileSync("src/schema.ts", "utf8")
+  let current
+  try {
+    current = readFileSync("src/schema.ts", "utf8")
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+      console.error(
+        "API client schema not found — run `pnpm --filter @prood/api-client codegen`"
+      )
+      process.exit(1)
+    }
+    throw error
+  }
   const next = readFileSync(generated, "utf8")
   if (current !== next) {
     console.error(

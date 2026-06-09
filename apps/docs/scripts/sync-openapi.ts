@@ -15,7 +15,21 @@ mkdirSync(outDir, { recursive: true })
 const next = `${JSON.stringify(buildOpenApiDocument(), null, 2)}\n`
 
 if (process.argv.includes("--check")) {
-  const current = readFileSync(outFile, "utf8")
+  let current: string
+  try {
+    current = readFileSync(outFile, "utf8")
+  } catch (error) {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "ENOENT"
+    ) {
+      console.error("OpenAPI snapshot missing — run `pnpm openapi:sync`")
+      process.exit(1)
+    }
+    throw error
+  }
   if (current !== next) {
     console.error(
       "OpenAPI docs snapshot is stale. Run `pnpm openapi:sync` and commit the result."

@@ -51,11 +51,18 @@ async function placeOrderForCaller(cartId: string, email?: string) {
   } else {
     const cart = await getCart(cartId, orgId)
     const addr = cart.billingAddress ?? cart.shippingAddress
+    if (!addr) {
+      throw new CommerceError(
+        "Cannot place a guest order without a shipping or billing address",
+        "VALIDATION",
+        400
+      )
+    }
     customerId = await createGuestCustomer(orgId, {
       email: email ?? null,
-      firstName: addr?.firstName ?? null,
-      lastName: addr?.lastName ?? null,
-      phone: addr?.phone ?? null,
+      firstName: addr.firstName ?? null,
+      lastName: addr.lastName ?? null,
+      phone: addr.phone ?? null,
     })
   }
   return checkout.placeOrder(orgId, cartId, customerId, email)

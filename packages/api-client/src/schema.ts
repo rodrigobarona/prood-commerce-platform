@@ -6418,6 +6418,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        name?: {
+                            [key: string]: string;
+                        };
+                        description?: {
+                            [key: string]: string;
+                        } | null;
+                        logo?: string | null;
+                        favicon?: string | null;
+                        currency?: string;
+                        locale?: string;
+                        timezone?: string;
+                        supportedCurrencies?: string[];
+                        supportedLocales?: string[];
+                        contactEmail?: string | null;
+                        contactPhone?: string | null;
+                        address?: string | null;
+                        socialLinks?: {
+                            [key: string]: string;
+                        } | null;
+                    } & {
                         [key: string]: unknown;
                     };
                 };
@@ -6509,6 +6529,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        name?: {
+                            [key: string]: string;
+                        };
+                        description?: {
+                            [key: string]: string;
+                        } | null;
+                        logo?: string | null;
+                        favicon?: string | null;
+                        currency?: string;
+                        locale?: string;
+                        timezone?: string;
+                        supportedCurrencies?: string[];
+                        supportedLocales?: string[];
+                        contactEmail?: string | null;
+                        contactPhone?: string | null;
+                        address?: string | null;
+                        socialLinks?: {
+                            [key: string]: string;
+                        } | null;
+                    } & {
                         [key: string]: unknown;
                     };
                 };
@@ -6660,6 +6700,149 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        totalProducts?: number;
+                        activeProducts?: number;
+                        totalOrders?: number;
+                        totalRevenue?: number;
+                        totalCustomers?: number;
+                        recentOrders?: ({
+                            id: string;
+                            orderNumber: string;
+                            status: string;
+                            paymentStatus: string;
+                            fulfillmentStatus: string;
+                            items: {
+                                [key: string]: unknown;
+                            }[];
+                            totals: {
+                                subtotal: {
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                };
+                                shipping?: ({
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                }) | null;
+                                tax?: ({
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                }) | null;
+                                discount?: ({
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                }) | null;
+                                total: {
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                };
+                            } & {
+                                [key: string]: unknown;
+                            };
+                            shippingAddress?: ({
+                                id?: string;
+                                firstName: string;
+                                lastName: string;
+                                phone?: string | null;
+                                street: string;
+                                street2?: string | null;
+                                city: string;
+                                state?: string | null;
+                                country: string;
+                                postalCode?: string | null;
+                                district?: string | null;
+                                nationalAddress?: string | null;
+                                additionalNumber?: string | null;
+                                isDefault?: boolean;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            billingAddress?: ({
+                                id?: string;
+                                firstName: string;
+                                lastName: string;
+                                phone?: string | null;
+                                street: string;
+                                street2?: string | null;
+                                city: string;
+                                state?: string | null;
+                                country: string;
+                                postalCode?: string | null;
+                                district?: string | null;
+                                nationalAddress?: string | null;
+                                additionalNumber?: string | null;
+                                isDefault?: boolean;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            shippingMethod?: ({
+                                id: string;
+                                name: {
+                                    [key: string]: string;
+                                };
+                                provider: string;
+                                fulfillmentType: string;
+                                estimatedDays: {
+                                    min: number;
+                                    max: number;
+                                } & {
+                                    [key: string]: unknown;
+                                };
+                                estimatedMinutes?: number;
+                                price: {
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } & {
+                                    [key: string]: unknown;
+                                };
+                                cashOnDelivery: boolean;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            paymentMethod?: ({
+                                id: string;
+                                type: string;
+                                name: {
+                                    [key: string]: string;
+                                };
+                                provider: string;
+                                installments?: {
+                                    [key: string]: unknown;
+                                } | null;
+                                icon?: string | null;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            trackingNumber?: string | null;
+                            trackingUrl?: string | null;
+                            note?: string | null;
+                            customerId?: string | null;
+                            contactEmail?: string | null;
+                            requiresShipping?: boolean;
+                            createdAt: string;
+                            updatedAt: string;
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        ordersByStatus?: {
+                            [key: string]: number;
+                        };
+                    } & {
                         [key: string]: unknown;
                     };
                 };

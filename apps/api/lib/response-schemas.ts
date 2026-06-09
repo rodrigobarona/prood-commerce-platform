@@ -250,6 +250,38 @@ export const country = z
   })
   .catchall(z.unknown())
 
-export const adminStoreSettings = z.record(z.string(), z.unknown())
-export const adminDashboardStats = z.record(z.string(), z.unknown())
+export const adminStoreSettings = z
+  .object({
+    name: localizedField,
+    description: localizedField.nullable(),
+    logo: nullableString,
+    favicon: nullableString,
+    currency: z.string(),
+    locale: z.string(),
+    timezone: z.string(),
+    supportedCurrencies: z.array(z.string()),
+    supportedLocales: z.array(z.string()),
+    contactEmail: nullableString,
+    contactPhone: nullableString,
+    address: nullableString,
+    socialLinks: z.record(z.string(), z.string()).nullable(),
+  })
+  .partial()
+  .catchall(z.unknown())
+
+export const adminDashboardStats = z
+  .object({
+    totalProducts: z.number(),
+    activeProducts: z.number(),
+    totalOrders: z.number(),
+    totalRevenue: z.number(),
+    totalCustomers: z.number(),
+    recentOrders: z.array(order),
+    ordersByStatus: z.record(z.string(), z.number()),
+  })
+  .partial()
+  .catchall(z.unknown())
+
+export type AdminStoreSettings = z.infer<typeof adminStoreSettings>
+export type AdminDashboardStats = z.infer<typeof adminDashboardStats>
 

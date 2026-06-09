@@ -1,19 +1,43 @@
 import { createFromOpenAPI } from "@better-auth/agent-auth/openapi"
 import { buildOpenApiDocument } from "../openapi"
 
+let cachedProxyKeysByOrg: Record<string, string> | null = null
+
 function parseProxyKeysByOrg(): Record<string, string> {
+  if (cachedProxyKeysByOrg) return cachedProxyKeysByOrg
+
   const raw = process.env.AGENT_PROXY_API_KEYS_BY_ORG
-  if (!raw) return {}
-  const parsed = JSON.parse(raw) as unknown
-  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-    throw new Error("AGENT_PROXY_API_KEYS_BY_ORG must be a JSON object")
+  if (!raw) {
+    cachedProxyKeysByOrg = {}
+    return cachedProxyKeysByOrg
   }
-  return Object.fromEntries(
+
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(raw) as unknown
+  } catch (error) {
+    console.error(
+      "[agent-config] AGENT_PROXY_API_KEYS_BY_ORG must be valid JSON:",
+      raw,
+      error instanceof Error ? error.message : error
+    )
+    cachedProxyKeysByOrg = {}
+    return cachedProxyKeysByOrg
+  }
+
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    console.error("[agent-config] AGENT_PROXY_API_KEYS_BY_ORG must be a JSON object:", raw)
+    cachedProxyKeysByOrg = {}
+    return cachedProxyKeysByOrg
+  }
+
+  cachedProxyKeysByOrg = Object.fromEntries(
     Object.entries(parsed).filter(
       (entry): entry is [string, string] =>
         typeof entry[0] === "string" && typeof entry[1] === "string"
     )
   )
+  return cachedProxyKeysByOrg
 }
 
 /** Public base URL for REST + agent OpenAPI proxy (must include `/v1`). */

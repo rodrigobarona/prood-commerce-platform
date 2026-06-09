@@ -1,5 +1,5 @@
 import createClient, { type Client, type Middleware } from "openapi-fetch"
-import type { paths } from "./schema"
+import type { paths } from "./schema.js"
 
 export type { paths }
 export type CommerceApiClient = Client<paths>
@@ -11,16 +11,17 @@ export interface CommerceErrorBody {
 }
 
 /** Unwrap an `openapi-fetch` response, throwing on error or empty data. */
-export async function unwrap<T>(
-  promise: Promise<{ data?: T; error?: CommerceErrorBody | unknown } | unknown>
-): Promise<T> {
-  const { data, error } = (await promise) as {
-    data?: T
+export async function unwrap<
+  T,
+  TResponse extends { data?: unknown; error?: CommerceErrorBody | unknown } = {
+    data?: unknown
     error?: CommerceErrorBody | unknown
-  }
+  },
+>(promise: Promise<TResponse>): Promise<T> {
+  const { data, error } = await promise
   if (error) throw error
   if (data === undefined) throw new Error("Empty API response")
-  return data
+  return data as T
 }
 
 export function isCommerceApiError(error: unknown): error is CommerceErrorBody {
@@ -29,7 +30,16 @@ export function isCommerceApiError(error: unknown): error is CommerceErrorBody {
   return (
     typeof candidate.code === "string" &&
     typeof candidate.message === "string" &&
-    (candidate.errors === undefined || Array.isArray(candidate.errors))
+    (candidate.errors === undefined ||
+      (Array.isArray(candidate.errors) &&
+        candidate.errors.every((item) => {
+          if (typeof item !== "object" || item === null) return false
+          const serializedError = item as Record<string, unknown>
+          return (
+            typeof serializedError.path === "string" &&
+            typeof serializedError.message === "string"
+          )
+        })))
   )
 }
 

@@ -11,7 +11,20 @@ export const metadata = { title: "API keys" }
 
 export default async function ApiKeysPage() {
   const apiBase = process.env.COMMERCE_API_URL ?? "http://localhost:3005/v1"
-  const keys = await listActiveOrgApiKeys()
+  const docsBase = process.env.NEXT_PUBLIC_DOCS_URL?.replace(/\/$/, "")
+  const docsHref = docsBase ? `${docsBase}/docs/api` : "/docs/api"
+  let keys: Awaited<ReturnType<typeof listActiveOrgApiKeys>> = []
+  let keysError: string | null = null
+
+  try {
+    keys = await listActiveOrgApiKeys()
+  } catch (error) {
+    console.error("[ApiKeysPage] listActiveOrgApiKeys failed:", error)
+    keysError =
+      error instanceof Error
+        ? error.message
+        : "Could not load API keys. Try refreshing the page."
+  }
 
   return (
     <DashboardFormPage>
@@ -35,6 +48,9 @@ export default async function ApiKeysPage() {
               </p>
             </div>
           </div>
+          {keysError ? (
+            <p className="border-b p-4 text-sm text-destructive">{keysError}</p>
+          ) : null}
           {keys.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -109,7 +125,7 @@ export default async function ApiKeysPage() {
           </p>
           <p>
             Interactive reference:{" "}
-            <Link href="http://localhost:3003/docs/api" className="underline">
+            <Link href={docsHref} className="underline">
               docs / Commerce API
             </Link>
             . Agent Auth discovery:{" "}

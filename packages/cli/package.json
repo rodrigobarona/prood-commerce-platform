@@ -4,9 +4,11 @@
   "private": true,
   "type": "module",
   "bin": {
-    "prood": "./src/index.ts"
+    "prood": "./dist/index.js"
   },
+  "files": ["dist"],
   "scripts": {
+    "build": "tsc && chmod +x dist/index.js",
     "cli": "tsx src/index.ts",
     "typecheck": "tsc --noEmit"
   },

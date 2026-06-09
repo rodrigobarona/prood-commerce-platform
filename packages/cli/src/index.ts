@@ -1,8 +1,14 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env node
 import { execFileSync } from "node:child_process"
 import { createCommerceApiClient, isCommerceApiError, unwrap } from "@prood/api-client"
 
 type Flags = Record<string, string | boolean>
+
+const SHORT_FLAG_ALIASES: Record<string, string> = {
+  c: "check",
+  h: "help",
+  j: "json",
+}
 
 function parseArgs(argv: string[]) {
   const positionals: string[] = []
@@ -10,17 +16,37 @@ function parseArgs(argv: string[]) {
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index]
     if (!arg) continue
+    if (arg === "--") {
+      positionals.push(...argv.slice(index + 1))
+      break
+    }
+    if (arg.startsWith("--")) {
+      const [rawKey, inlineValue] = arg.slice(2).split(/=(.*)/s, 2)
+      const key = rawKey
+      if (!key) continue
+      if (inlineValue !== undefined) {
+        flags[key] = inlineValue
+        continue
+      }
+      const next = argv[index + 1]
+      if (!next || next.startsWith("-")) {
+        flags[key] = true
+      } else {
+        flags[key] = next
+        index += 1
+      }
+      continue
+    }
+    if (arg.startsWith("-") && arg.length === 2) {
+      const key = SHORT_FLAG_ALIASES[arg.slice(1)]
+      if (key) {
+        flags[key] = true
+        continue
+      }
+    }
     if (!arg.startsWith("--")) {
       positionals.push(arg)
       continue
-    }
-    const key = arg.slice(2)
-    const next = argv[index + 1]
-    if (!next || next.startsWith("--")) {
-      flags[key] = true
-    } else {
-      flags[key] = next
-      index += 1
     }
   }
   return { positionals, flags }
@@ -78,6 +104,48 @@ function print(data: unknown, flags: Flags) {
   }
 }
 
+function mcpUrlFromApiUrl(apiUrl: string): string {
+  const url = new URL(apiUrl)
+  url.pathname = "/mcp"
+  url.search = ""
+  url.hash = ""
+  return url.toString()
+}
+
+function commandExists(command: string): boolean {
+  try {
+    execFileSync(command, ["--version"], { stdio: "ignore" })
+    return true
+  } catch {
+    return false
+  }
+}
+
+function detectPackageManagerCommand(): { command: string; args: string[] } {
+  const userAgent = process.env.npm_config_user_agent ?? ""
+  const execPath = process.env.npm_execpath ?? ""
+  const hint = `${userAgent} ${execPath}`.toLowerCase()
+
+  if (hint.includes("pnpm")) return { command: "pnpm", args: ["openapi:check"] }
+  if (hint.includes("yarn")) return { command: "yarn", args: ["openapi:check"] }
+  if (hint.includes("npm")) return { command: "npm", args: ["run", "openapi:check"] }
+  if (commandExists("pnpm")) return { command: "pnpm", args: ["openapi:check"] }
+
+  throw new Error(
+    "Could not determine a package manager for OpenAPI checks. Install pnpm or run `npm run openapi:check` / `yarn openapi:check` from the repository root."
+  )
+}
+
+function runOpenApiCheck() {
+  const { command, args } = detectPackageManagerCommand()
+  if (!commandExists(command)) {
+    throw new Error(
+      `Package manager '${command}' was detected but is not available on PATH. Install it or run the repository OpenAPI check with npm/yarn directly.`
+    )
+  }
+  execFileSync(command, args, { stdio: "inherit" })
+}
+
 async function main() {
   const { positionals, flags } = parseArgs(process.argv.slice(2))
   const [resource, command] = positionals
@@ -104,25 +172,27 @@ async function main() {
   if (resource === "mcp" && command === "config") {
     const apiUrl = stringFlag(flags, "api-url") ?? process.env.COMMERCE_API_URL
     if (!apiUrl) throw new Error("Missing --api-url <url> or COMMERCE_API_URL")
-    const url = apiUrl.replace(/\/v1\/?$/, "/mcp")
+    const headers: Record<string, string> = {}
+    const apiKey = stringFlag(flags, "api-key")
+    const bearerToken = stringFlag(flags, "bearer-token")
+    if (apiKey) headers["x-api-key"] = apiKey
+    if (bearerToken) headers.Authorization = `Bearer ${bearerToken}`
     print(
       {
         mcpServers: {
           "prood-commerce": {
-            url,
-            headers: stringFlag(flags, "api-key")
-              ? { "x-api-key": stringFlag(flags, "api-key") }
-              : undefined,
+            url: mcpUrlFromApiUrl(apiUrl),
+            headers: Object.keys(headers).length > 0 ? headers : undefined,
           },
         },
       },
-      { ...flags, json: true }
+      flags
     )
     return
   }
 
   if (resource === "openapi" && command === "sync" && flags.check) {
-    execFileSync("pnpm", ["openapi:check"], { stdio: "inherit" })
+    runOpenApiCheck()
     return
   }
 

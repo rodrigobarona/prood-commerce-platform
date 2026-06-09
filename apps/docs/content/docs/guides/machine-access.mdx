@@ -44,7 +44,18 @@ Every OpenAPI `operationId` becomes an Agent Auth capability. Direct REST calls 
 curl -H "Authorization: Bearer eyJ..." http://localhost:3005/v1/products
 ```
 
-Proxied capability execution requires `AGENT_PROXY_API_KEYS_BY_ORG`, a JSON object mapping organization IDs to tenant-scoped API keys.
+Proxied capability execution requires `AGENT_PROXY_API_KEYS_BY_ORG`. This
+environment variable is a JSON object that maps organization IDs to
+tenant-scoped API keys:
+
+```bash
+export AGENT_PROXY_API_KEYS_BY_ORG='{"org_abc":"pk_xxx","org_def":"pk_yyy"}'
+```
+
+Configure it anywhere the API app runs: local `.env` / `.env.local`, CI, and
+deployment environment variables. These keys are sensitive secrets; store them
+only in encrypted secret managers or platform environment-variable stores, and
+rotate any key that is exposed.
 
 ## MCP
 
