@@ -18,15 +18,14 @@ function parseProxyKeysByOrg(): Record<string, string> {
   } catch (error) {
     console.error(
       "[agent-config] AGENT_PROXY_API_KEYS_BY_ORG must be valid JSON:",
-      raw,
-      error instanceof Error ? error.message : error
+      error instanceof Error ? error.message : String(error)
     )
     cachedProxyKeysByOrg = {}
     return cachedProxyKeysByOrg
   }
 
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-    console.error("[agent-config] AGENT_PROXY_API_KEYS_BY_ORG must be a JSON object:", raw)
+    console.error("[agent-config] AGENT_PROXY_API_KEYS_BY_ORG must be a JSON object")
     cachedProxyKeysByOrg = {}
     return cachedProxyKeysByOrg
   }

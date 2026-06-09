@@ -13,12 +13,10 @@ export default async function AgentCapabilityApprovalPage({
   const params = await searchParams
   const requestId = typeof params.request_id === "string" ? params.request_id : null
   const details = requestId
-    ? await getApprovalRequest(requestId).catch((error: unknown) => ({
-        error:
-          error instanceof Error
-            ? error.message
-            : "Could not load approval request.",
-      }))
+    ? await getApprovalRequest(requestId).catch((error: unknown) => {
+        console.error("[AgentCapabilityApprovalPage] getApprovalRequest failed:", error)
+        return { error: "Could not load approval request." }
+      })
     : null
 
   return (

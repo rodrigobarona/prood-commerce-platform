@@ -194,39 +194,40 @@ export async function approveCapabilityRequest(
     const existingCapabilities = new Set(existing.map((grant) => grant.capability))
     const now = new Date()
 
-    await Promise.all(
-      existing.map((grant) =>
-        authDb
-          .update(agentCapabilityGrant)
-          .set({
-            status: "active",
-            grantedBy: row.userId,
-            deniedBy: null,
-            reason: null,
-            updatedAt: now,
-          })
-          .where(eq(agentCapabilityGrant.id, grant.id))
-      )
+    const grantUpdates = existing.map((grant) =>
+      authDb
+        .update(agentCapabilityGrant)
+        .set({
+          status: "active",
+          grantedBy: row.userId,
+          deniedBy: null,
+          reason: null,
+          updatedAt: now,
+        })
+        .where(eq(agentCapabilityGrant.id, grant.id))
     )
 
     const missingCapabilities = capabilities.filter(
       (capability) => !existingCapabilities.has(capability)
     )
-    if (missingCapabilities.length > 0) {
-      await authDb.insert(agentCapabilityGrant).values(
-        missingCapabilities.map((capability) => ({
-          id: crypto.randomUUID(),
-          agentId: row.agent.id,
-          capability,
-          grantedBy: row.userId,
-          status: "active",
-          createdAt: now,
-          updatedAt: now,
-        }))
-      )
-    }
+    const grantInserts =
+      missingCapabilities.length > 0
+        ? [
+            authDb.insert(agentCapabilityGrant).values(
+              missingCapabilities.map((capability) => ({
+                id: crypto.randomUUID(),
+                agentId: row.agent.id,
+                capability,
+                grantedBy: row.userId,
+                status: "active",
+                createdAt: now,
+                updatedAt: now,
+              }))
+            ),
+          ]
+        : []
 
-    await Promise.all([
+    await authDb.batch([
       authDb
         .update(approvalRequest)
         .set({ status: "approved", updatedAt: now })
@@ -235,6 +236,8 @@ export async function approveCapabilityRequest(
         .update(agent)
         .set({ status: "active", activatedAt: now, updatedAt: now })
         .where(eq(agent.id, row.agent.id)),
+      ...grantUpdates,
+      ...grantInserts,
     ])
   } catch (error) {
     console.error("[approveCapabilityRequest] failed:", error)
@@ -258,22 +261,58 @@ export async function denyCapabilityRequest(
     const reason = String(formData.get("reason") ?? "").trim() || "Denied by merchant"
     const now = new Date()
 
-    if (capabilities.length > 0) {
-      await authDb.insert(agentCapabilityGrant).values(
-        capabilities.map((capability) => ({
-          id: crypto.randomUUID(),
-          agentId: row.agent.id,
-          capability,
-          deniedBy: row.userId,
-          status: "denied",
-          reason,
-          createdAt: now,
-          updatedAt: now,
-        }))
-      )
-    }
+    const existing =
+      capabilities.length > 0
+        ? await authDb
+            .select({
+              id: agentCapabilityGrant.id,
+              capability: agentCapabilityGrant.capability,
+            })
+            .from(agentCapabilityGrant)
+            .where(
+              and(
+                eq(agentCapabilityGrant.agentId, row.agent.id),
+                inArray(agentCapabilityGrant.capability, capabilities)
+              )
+            )
+        : []
 
-    await Promise.all([
+    const existingCapabilities = new Set(existing.map((grant) => grant.capability))
+
+    const grantUpdates = existing.map((grant) =>
+      authDb
+        .update(agentCapabilityGrant)
+        .set({
+          status: "denied",
+          deniedBy: row.userId,
+          reason,
+          updatedAt: now,
+        })
+        .where(eq(agentCapabilityGrant.id, grant.id))
+    )
+
+    const missingCapabilities = capabilities.filter(
+      (capability) => !existingCapabilities.has(capability)
+    )
+    const grantInserts =
+      missingCapabilities.length > 0
+        ? [
+            authDb.insert(agentCapabilityGrant).values(
+              missingCapabilities.map((capability) => ({
+                id: crypto.randomUUID(),
+                agentId: row.agent.id,
+                capability,
+                deniedBy: row.userId,
+                status: "denied",
+                reason,
+                createdAt: now,
+                updatedAt: now,
+              }))
+            ),
+          ]
+        : []
+
+    await authDb.batch([
       authDb
         .update(approvalRequest)
         .set({ status: "denied", updatedAt: now })
@@ -282,6 +321,8 @@ export async function denyCapabilityRequest(
         .update(agent)
         .set({ status: "rejected", updatedAt: now })
         .where(eq(agent.id, row.agent.id)),
+      ...grantUpdates,
+      ...grantInserts,
     ])
   } catch (error) {
     console.error("[denyCapabilityRequest] failed:", error)

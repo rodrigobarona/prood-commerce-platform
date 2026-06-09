@@ -20,10 +20,7 @@ export default async function ApiKeysPage() {
     keys = await listActiveOrgApiKeys()
   } catch (error) {
     console.error("[ApiKeysPage] listActiveOrgApiKeys failed:", error)
-    keysError =
-      error instanceof Error
-        ? error.message
-        : "Could not load API keys. Try refreshing the page."
+    keysError = "Could not load API keys. Try refreshing the page."
   }
 
   return (

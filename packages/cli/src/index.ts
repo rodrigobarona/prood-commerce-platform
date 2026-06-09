@@ -130,6 +130,8 @@ function detectPackageManagerCommand(): { command: string; args: string[] } {
   if (hint.includes("yarn")) return { command: "yarn", args: ["openapi:check"] }
   if (hint.includes("npm")) return { command: "npm", args: ["run", "openapi:check"] }
   if (commandExists("pnpm")) return { command: "pnpm", args: ["openapi:check"] }
+  if (commandExists("yarn")) return { command: "yarn", args: ["openapi:check"] }
+  if (commandExists("npm")) return { command: "npm", args: ["run", "openapi:check"] }
 
   throw new Error(
     "Could not determine a package manager for OpenAPI checks. Install pnpm or run `npm run openapi:check` / `yarn openapi:check` from the repository root."
