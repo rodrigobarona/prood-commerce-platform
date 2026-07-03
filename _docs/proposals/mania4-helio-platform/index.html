@@ -1,0 +1,1126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mania4 Platform - Statement of Work Proposal</title>
+    <meta
+      name="description"
+      content="WPP Enterprise Solutions proposal for a Mania4 multi-brand commerce, 3D customization, and print-on-demand platform for HELIOtextil."
+    />
+    <style>
+      :root {
+        --wpp-navy: #000050;
+        --wpp-indigo: #191d63;
+        --wpp-blue: #328fff;
+        --ink: #111111;
+        --muted: #555555;
+        --line: #dadada;
+        --paper: #ffffff;
+        --warm: #e3e1e2;
+        --soft: #f6f6f8;
+        --blue-tint: rgba(0, 0, 80, 0.08);
+        --purple-tint: rgba(102, 38, 97, 0.1);
+        --max: 1180px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--paper);
+        font-family:
+          "Segoe UI",
+          Arial,
+          Helvetica,
+          sans-serif;
+        line-height: 1.55;
+      }
+
+      a {
+        color: inherit;
+        text-decoration-color: var(--wpp-blue);
+        text-underline-offset: 0.2em;
+      }
+
+      img {
+        max-width: 100%;
+      }
+
+      .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(12px);
+      }
+
+      .nav {
+        max-width: var(--max);
+        margin: 0 auto;
+        padding: 18px 28px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+
+      .brand-mark {
+        width: 94px;
+        height: auto;
+        display: block;
+      }
+
+      .nav-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--wpp-navy);
+      }
+
+      .nav-links a {
+        text-decoration: none;
+      }
+
+      .hero {
+        min-height: 78vh;
+        color: white;
+        background:
+          linear-gradient(115deg, rgba(0, 0, 80, 0.96), rgba(0, 0, 80, 0.72) 46%, rgba(0, 0, 0, 0.38)),
+          radial-gradient(circle at 78% 18%, rgba(50, 143, 255, 0.34), transparent 32%),
+          linear-gradient(135deg, #070735, #000050);
+        display: grid;
+        align-items: end;
+      }
+
+      .hero-inner {
+        max-width: var(--max);
+        width: 100%;
+        margin: 0 auto;
+        padding: 110px 28px 72px;
+      }
+
+      .eyebrow {
+        margin: 0 0 16px;
+        color: var(--wpp-blue);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        max-width: 980px;
+        margin-bottom: 26px;
+        font-size: clamp(46px, 8vw, 104px);
+        line-height: 0.95;
+        letter-spacing: -0.06em;
+        text-transform: uppercase;
+      }
+
+      .hero-lede {
+        max-width: 760px;
+        font-size: clamp(19px, 2vw, 27px);
+        font-weight: 300;
+      }
+
+      .hero-meta {
+        margin-top: 44px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        border-top: 1px solid rgba(255, 255, 255, 0.34);
+      }
+
+      .hero-meta div {
+        padding: 20px 24px 0 0;
+        min-height: 92px;
+      }
+
+      .hero-meta strong {
+        display: block;
+        color: white;
+        font-size: 13px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .hero-meta span {
+        display: block;
+        margin-top: 7px;
+        color: rgba(255, 255, 255, 0.78);
+        font-size: 14px;
+      }
+
+      .section {
+        max-width: var(--max);
+        margin: 0 auto;
+        padding: 86px 28px;
+      }
+
+      .section-tight {
+        padding-top: 48px;
+        padding-bottom: 48px;
+      }
+
+      .section-title {
+        margin-bottom: 34px;
+        color: var(--wpp-navy);
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .lead {
+        max-width: 900px;
+        font-size: clamp(24px, 3.2vw, 46px);
+        line-height: 1.08;
+        letter-spacing: -0.04em;
+        color: var(--wpp-navy);
+      }
+
+      .body-large {
+        max-width: 860px;
+        color: #252525;
+        font-size: 20px;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+        gap: 52px;
+        align-items: start;
+      }
+
+      .grid {
+        display: grid;
+        gap: 24px;
+      }
+
+      .grid-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .grid-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .grid-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .card {
+        min-height: 100%;
+        border: 1px solid var(--line);
+        background: white;
+        padding: 28px;
+      }
+
+      .card-dark {
+        background: var(--wpp-navy);
+        border-color: var(--wpp-navy);
+        color: white;
+      }
+
+      .card-tint {
+        background: var(--blue-tint);
+      }
+
+      .card h3 {
+        margin-bottom: 12px;
+        color: var(--wpp-navy);
+        font-size: 24px;
+        line-height: 1.1;
+      }
+
+      .card-dark h3,
+      .card-dark .small-title {
+        color: white;
+      }
+
+      .card p,
+      .card li {
+        color: var(--muted);
+      }
+
+      .card-dark p,
+      .card-dark li {
+        color: rgba(255, 255, 255, 0.82);
+      }
+
+      .small-title {
+        display: block;
+        margin-bottom: 14px;
+        color: var(--wpp-navy);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .number {
+        display: block;
+        margin-bottom: 18px;
+        color: var(--wpp-blue);
+        font-size: 54px;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.06em;
+      }
+
+      .full-bleed {
+        background: var(--soft);
+      }
+
+      .full-bleed-navy {
+        color: white;
+        background: var(--wpp-navy);
+      }
+
+      .full-bleed .section,
+      .full-bleed-navy .section {
+        max-width: var(--max);
+      }
+
+      .full-bleed-navy .section-title,
+      .full-bleed-navy .lead {
+        color: white;
+      }
+
+      .full-bleed-navy .body-large {
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .scope-row {
+        display: grid;
+        grid-template-columns: 220px 1fr 1fr;
+        gap: 0;
+        border-top: 1px solid var(--line);
+      }
+
+      .scope-row:last-child {
+        border-bottom: 1px solid var(--line);
+      }
+
+      .scope-row > div {
+        padding: 22px 20px;
+        border-right: 1px solid var(--line);
+      }
+
+      .scope-row > div:last-child {
+        border-right: 0;
+      }
+
+      .scope-row h3 {
+        margin: 0;
+        color: var(--wpp-navy);
+        font-size: 18px;
+      }
+
+      .scope-row ul,
+      .checklist,
+      .plain-list {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      .scope-row li,
+      .checklist li,
+      .plain-list li {
+        margin: 0 0 8px;
+      }
+
+      .timeline {
+        counter-reset: phase;
+        display: grid;
+        gap: 18px;
+      }
+
+      .phase {
+        counter-increment: phase;
+        display: grid;
+        grid-template-columns: 80px 1fr 180px;
+        gap: 24px;
+        padding: 24px;
+        border: 1px solid var(--line);
+        background: white;
+      }
+
+      .phase::before {
+        content: counter(phase, decimal-leading-zero);
+        color: var(--wpp-blue);
+        font-size: 42px;
+        font-weight: 800;
+        line-height: 1;
+      }
+
+      .phase h3 {
+        margin-bottom: 8px;
+        color: var(--wpp-navy);
+      }
+
+      .duration {
+        color: var(--muted);
+        font-size: 13px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .architecture {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .node {
+        min-height: 108px;
+        padding: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .node strong {
+        display: block;
+        margin-bottom: 8px;
+        color: white;
+      }
+
+      .node span {
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 14px;
+      }
+
+      .flow-arrow {
+        margin: 20px 0;
+        color: rgba(255, 255, 255, 0.78);
+        font-size: 13px;
+        letter-spacing: 0.14em;
+        text-align: center;
+        text-transform: uppercase;
+      }
+
+      .callout {
+        padding: 30px;
+        background: var(--purple-tint);
+        border-left: 8px solid var(--wpp-navy);
+      }
+
+      .status {
+        display: inline-block;
+        padding: 6px 10px;
+        border: 1px solid currentColor;
+        color: var(--wpp-navy);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .footer-cta {
+        color: white;
+        background:
+          linear-gradient(135deg, rgba(0, 0, 80, 0.96), rgba(0, 0, 0, 0.75)),
+          radial-gradient(circle at 20% 20%, rgba(50, 143, 255, 0.32), transparent 30%);
+      }
+
+      .footer-cta .section {
+        padding-top: 96px;
+        padding-bottom: 96px;
+        text-align: center;
+      }
+
+      .footer-cta h2 {
+        max-width: 820px;
+        margin: 0 auto 20px;
+        font-size: clamp(36px, 5vw, 72px);
+        line-height: 0.98;
+        letter-spacing: -0.06em;
+        text-transform: uppercase;
+      }
+
+      .footer-cta p {
+        max-width: 720px;
+        margin: 0 auto;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 20px;
+      }
+
+      .doc-footer {
+        padding: 32px 28px;
+        color: rgba(255, 255, 255, 0.76);
+        background: #050515;
+        font-size: 13px;
+      }
+
+      .doc-footer-inner {
+        max-width: var(--max);
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+      }
+
+      @media (max-width: 880px) {
+        .nav {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .hero-meta,
+        .two-col,
+        .grid-2,
+        .grid-3,
+        .grid-4,
+        .architecture,
+        .phase,
+        .scope-row {
+          grid-template-columns: 1fr;
+        }
+
+        .scope-row > div {
+          border-right: 0;
+          border-bottom: 1px solid var(--line);
+        }
+
+        .scope-row > div:last-child {
+          border-bottom: 0;
+        }
+      }
+
+      @media print {
+        .site-header {
+          position: static;
+        }
+
+        .hero {
+          min-height: auto;
+        }
+
+        .section {
+          padding-top: 42px;
+          padding-bottom: 42px;
+        }
+
+        a {
+          text-decoration: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <nav class="nav" aria-label="Proposal navigation">
+        <img class="brand-mark" src="assets/wpp-logo.svg" alt="WPP" />
+        <div class="nav-links">
+          <a href="#summary">Summary</a>
+          <a href="#scope">Scope</a>
+          <a href="#architecture">Architecture</a>
+          <a href="#delivery">Delivery</a>
+          <a href="#governance">Governance</a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-inner">
+          <p class="eyebrow">WPP Enterprise Solutions Proposal</p>
+          <h1>Mania4 commerce, 3D customization and print-on-demand platform</h1>
+          <p class="hero-lede">
+            A multi-brand digital platform for HELIOtextil to sell, customize,
+            produce, and replicate merchandise experiences across HELIOPromo,
+            Identity FC, football clubs, universities, festivals, and events.
+          </p>
+          <div class="hero-meta" aria-label="Proposal metadata">
+            <div>
+              <strong>Prepared for</strong>
+              <span>André Catalão, CMO, HELIOtextil Group</span>
+            </div>
+            <div>
+              <strong>Prepared by</strong>
+              <span>WPP Enterprise Solutions</span>
+            </div>
+            <div>
+              <strong>Working name</strong>
+              <span>Mania4 Studio Commerce</span>
+            </div>
+            <div>
+              <strong>Date</strong>
+              <span>July 2026</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="summary" class="section">
+        <p class="section-title">Executive Summary</p>
+        <p class="lead">
+          This is not only a website. It is a commerce operating platform that
+          lets Mania4 launch branded stores, sell personalized products, and
+          control payment, production, pickup, delivery, and reconciliation from
+          one reusable system.
+        </p>
+        <p class="body-large">
+          The proposed platform turns HELIOtextil's existing strengths in
+          personalization, sports equipment, and promotional materials into a
+          scalable digital product. Mania4 becomes the owned retail and payment
+          layer. HELIOPromo and Identity FC become flagship use cases. Clubs,
+          universities, festivals, and event partners can then be launched as
+          replicated storefronts with their own products, domains, QR codes,
+          MUPI/tablet flows, and fulfillment rules.
+        </p>
+      </section>
+
+      <section class="full-bleed">
+        <div class="section">
+          <p class="section-title">Client Context</p>
+          <div class="grid grid-3">
+            <article class="card">
+              <span class="small-title">HELIOtextil Group</span>
+              <h3>Industrial credibility</h3>
+              <p>
+                HELIOtextil has decades of textile production expertise across
+                labels, transfers, emblems, personalized products, sports,
+                technical textiles, fashion, packaging, and promotional sectors.
+              </p>
+            </article>
+            <article class="card">
+              <span class="small-title">HELIOPromo</span>
+              <h3>Next generation merchandise</h3>
+              <p>
+                HELIOPromo is positioned around original, certified, sustainable
+                merchandise and event activation. The platform should make this
+                offer easier to sell, replicate, and measure.
+              </p>
+            </article>
+            <article class="card">
+              <span class="small-title">Identity FC</span>
+              <h3>Football and sport focus</h3>
+              <p>
+                Identity FC can use the same platform for football clubs,
+                member discounts, team stores, sponsor logos, player names,
+                numbers, pickup points, and repeat orders.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <p class="section-title">Business Opportunity</p>
+        <div class="two-col">
+          <div>
+            <p class="lead">
+              Mania4 can own the transaction while every partner gets a branded
+              buying experience.
+            </p>
+          </div>
+          <div>
+            <p class="body-large">
+              The operating model discussed in the meeting is clear: Mania4
+              controls checkout, payment, invoicing, and order data. The partner
+              store, club, or event receives orders to produce or hand over,
+              then reconciliation happens through reports, redemption codes, or
+              agreed settlement rules.
+            </p>
+            <div class="callout">
+              <strong>Key principle:</strong> replicate the Shopify-like
+              convenience of fast store creation, but with Mania4 owning the
+              commerce rules, checkout, personalization engine, and production
+              assets.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section section-tight">
+        <div class="grid grid-4">
+          <article class="card card-tint">
+            <span class="number">01</span>
+            <h3>Launch stores fast</h3>
+            <p>
+              Create branded stores for HELIOPromo, clubs, universities, or
+              events using reusable templates, selected catalogs, custom logos,
+              colors, content, domains, and QR links.
+            </p>
+          </article>
+          <article class="card card-tint">
+            <span class="number">02</span>
+            <h3>Customize in 3D</h3>
+            <p>
+              Let customers choose colors, add text, names, numbers, and logos,
+              then export a preview and production-ready design data.
+            </p>
+          </article>
+          <article class="card card-tint">
+            <span class="number">03</span>
+            <h3>Sell anywhere</h3>
+            <p>
+              Support desktop, mobile, tablets, QR codes, MUPI kiosks, event
+              booths, and retail pickup flows from the same commerce core.
+            </p>
+          </article>
+          <article class="card card-tint">
+            <span class="number">04</span>
+            <h3>Operate centrally</h3>
+            <p>
+              Manage orders, payment status, partner settlement, production
+              assets, delivery, pickup validation, and reporting in one place.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="scope" class="section">
+        <p class="section-title">Scope of Work</p>
+        <p class="body-large">
+          The SoW is structured as six workstreams. They can be presented as two
+          commercial rubrics for funding and procurement, while remaining one
+          coherent platform implementation.
+        </p>
+
+        <div class="scope-row">
+          <div><h3>Institutional commerce presence</h3></div>
+          <div>
+            <ul>
+              <li>Mania4 / HELIOPromo storefront foundation.</li>
+              <li>Content pages for brand story, sustainability, services, and campaigns.</li>
+              <li>Product catalog, categories, product detail pages, cart, checkout handoff, and confirmation.</li>
+            </ul>
+          </div>
+          <div>
+            <ul>
+              <li>Clear brand experience for B2C and B2B audiences.</li>
+              <li>Baseline store that becomes the reference for future client stores.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="scope-row">
+          <div><h3>Client and event store replication</h3></div>
+          <div>
+            <ul>
+              <li>Admin flow to create stores from a template.</li>
+              <li>Per-store logo, colors, content, product selection, domain, QR code, delivery options, and access rules.</li>
+              <li>Support for clubs, festivals, universities, physical shops, and event booths.</li>
+            </ul>
+          </div>
+          <div>
+            <ul>
+              <li>Example: Nova activation, NOS Alive, Rock in Rio, football club store, or university merchandise shop.</li>
+              <li>Store launch becomes configuration work instead of a new build each time.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="scope-row">
+          <div><h3>3D customization and print-on-demand</h3></div>
+          <div>
+            <ul>
+              <li>Embed the 3D customization engine into product pages.</li>
+              <li>Product configuration schema for model, texture, zones, colors, fonts, constraints, and pricing modifiers.</li>
+              <li>Customer inputs for base color, text, player name, number, logo upload, and preview.</li>
+              <li>Export design ID, preview, print texture, and structured configuration JSON.</li>
+            </ul>
+          </div>
+          <div>
+            <ul>
+              <li>Supports apparel and promotional materials where a product model or validated template exists.</li>
+              <li>Automatic 3D creation from arbitrary photos is treated as R&D, not guaranteed MVP scope.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="scope-row">
+          <div><h3>Order operations and fulfillment</h3></div>
+          <div>
+            <ul>
+              <li>Order back office for Mania4 and optional partner/operator roles.</li>
+              <li>Production states: paid, pending production, in production, ready for pickup, shipped, delivered, cancelled.</li>
+              <li>Pickup validation by code, QR, or operator view.</li>
+              <li>Delivery and in-store pickup options per store or activation.</li>
+            </ul>
+          </div>
+          <div>
+            <ul>
+              <li>Works for online delivery, club shop pickup, and event booth handover.</li>
+              <li>Partner does not need to run payment locally to fulfill the order.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="scope-row">
+          <div><h3>Payments, invoicing and settlement</h3></div>
+          <div>
+            <ul>
+              <li>Centralized Mania4 checkout and payment configuration.</li>
+              <li>Payment methods aligned with the selected provider, including future physical terminal/MUPI flow where supported.</li>
+              <li>Partner reporting for redemptions, products sold, quantities, taxes, fees, and monthly settlement.</li>
+            </ul>
+          </div>
+          <div>
+            <ul>
+              <li>Mania4 controls the payment relationship and banking negotiation.</li>
+              <li>Partner reconciliation can be report-based before deeper ERP/API integrations.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="scope-row">
+          <div><h3>Integrations and data imports</h3></div>
+          <div>
+            <ul>
+              <li>Member discount imports through CSV, Excel mapping, SFTP, or API where available.</li>
+              <li>API hooks for partner order notification where needed.</li>
+              <li>Storage for 3D assets, generated previews, print files, and configuration history.</li>
+              <li>Future event stream for production telemetry and IoT machine counters.</li>
+            </ul>
+          </div>
+          <div>
+            <ul>
+              <li>Start with robust imports and notifications; expand to direct APIs only when partner systems justify it.</li>
+              <li>IoT and printer telemetry are recommended as a later phase once the commerce flow is stable.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="architecture" class="full-bleed-navy">
+        <div class="section">
+          <p class="section-title">Technical Architecture</p>
+          <p class="lead">
+            A single API-first platform powers all storefronts, checkout,
+            customization, order operations, and future integrations.
+          </p>
+          <p class="body-large">
+            The architecture builds on an existing multi-tenant commerce
+            foundation: Next.js, React, Neon Postgres, Drizzle ORM, tenant data
+            isolation, hosted checkout, payment provider adapters, object
+            storage, and typed APIs. The 3D customization engine adds React
+            Three Fiber, a deterministic texture pipeline, a zone authoring
+            studio, and production export endpoints.
+          </p>
+
+          <div class="architecture" aria-label="Architecture flow">
+            <div class="node"><strong>Channels</strong><span>Web, mobile, QR, tablet, MUPI kiosk, event booth.</span></div>
+            <div class="node"><strong>Storefronts</strong><span>HELIOPromo, Identity FC, club stores, festival stores, university stores.</span></div>
+            <div class="node"><strong>3D Engine</strong><span>GLB models, zones, texture rendering, previews, exports.</span></div>
+            <div class="node"><strong>Checkout</strong><span>Central Mania4 payment, invoicing, order confirmation.</span></div>
+          </div>
+          <div class="flow-arrow">Channels to stores to customization to checkout to operations</div>
+          <div class="architecture">
+            <div class="node"><strong>Commerce API</strong><span>Products, carts, orders, customers, tenants, integration contracts.</span></div>
+            <div class="node"><strong>Data and Storage</strong><span>Neon Postgres, tenant isolation, generated assets, print files.</span></div>
+            <div class="node"><strong>Back Office</strong><span>Store setup, order production, pickup validation, reporting.</span></div>
+            <div class="node"><strong>Integrations</strong><span>Member imports, partner APIs, payment provider, future IoT telemetry.</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="delivery" class="section">
+        <p class="section-title">Phased Delivery Plan</p>
+        <p class="body-large">
+          Indicative delivery is 16 to 22 weeks depending on content readiness,
+          number of pilot products, 3D asset availability, payment provider
+          onboarding, and depth of partner integrations.
+        </p>
+
+        <div class="timeline">
+          <article class="phase">
+            <div>
+              <h3>Discovery and operating model</h3>
+              <p>
+                Confirm brand architecture, product types, pilot stores, payment
+                ownership, pickup/delivery rules, data imports, and success metrics.
+              </p>
+            </div>
+            <div class="duration">1-2 weeks</div>
+          </article>
+          <article class="phase">
+            <div>
+              <h3>Platform foundation</h3>
+              <p>
+                Configure tenant model, storefront templates, dashboard roles,
+                catalog structure, checkout path, storage, and deployment environments.
+              </p>
+            </div>
+            <div class="duration">3-4 weeks</div>
+          </article>
+          <article class="phase">
+            <div>
+              <h3>Mania4 / HELIOPromo MVP</h3>
+              <p>
+                Launch the reference store with content pages, product catalog,
+                cart, centralized checkout, email notifications, order dashboard,
+                delivery and pickup options.
+              </p>
+            </div>
+            <div class="duration">3-4 weeks</div>
+          </article>
+          <article class="phase">
+            <div>
+              <h3>3D customization pilot</h3>
+              <p>
+                Integrate the configurator for selected products, zone studio,
+                preview generation, print export, cart/order design payload, and
+                production asset storage.
+              </p>
+            </div>
+            <div class="duration">4-5 weeks</div>
+          </article>
+          <article class="phase">
+            <div>
+              <h3>Replicated store and event activation</h3>
+              <p>
+                Configure one partner or event pilot with QR/MUPI/tablet flow,
+                store-specific catalog, pickup validation, operator back office,
+                and settlement reporting.
+              </p>
+            </div>
+            <div class="duration">3-4 weeks</div>
+          </article>
+          <article class="phase">
+            <div>
+              <h3>Hardening and rollout</h3>
+              <p>
+                Complete responsive QA, accessibility checks, security review,
+                performance testing, operational documentation, analytics,
+                training, and launch support.
+              </p>
+            </div>
+            <div class="duration">2-3 weeks</div>
+          </article>
+        </div>
+      </section>
+
+      <section class="full-bleed">
+        <div class="section">
+          <p class="section-title">Deliverables and Acceptance Criteria</p>
+          <div class="grid grid-2">
+            <article class="card">
+              <span class="small-title">Platform deliverables</span>
+              <ul class="checklist">
+                <li>Reusable storefront template with Mania4/HELIOPromo reference implementation.</li>
+                <li>Multi-store admin setup flow for stores, products, branding, domains, QR links, and fulfillment options.</li>
+                <li>Central checkout flow under Mania4 payment ownership.</li>
+                <li>Back office for orders, production status, pickup validation, and settlement reporting.</li>
+                <li>Technical documentation for environments, store creation, operations, and launch process.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="small-title">3D and POD deliverables</span>
+              <ul class="checklist">
+                <li>Customer-facing 3D configurator embedded on selected product detail pages.</li>
+                <li>Admin/designer zone studio for product personalization areas.</li>
+                <li>Validated product configuration schema for model, texture, zones, colors, fonts, constraints, and pricing modifiers.</li>
+                <li>Generated preview image, design ID, configuration JSON, and print/export asset per confirmed design.</li>
+                <li>Production handoff visible inside the order detail.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="small-title">Acceptance criteria</span>
+              <ul class="checklist">
+                <li>A customer can enter a store, select a product, customize where applicable, pay through Mania4 checkout, and receive confirmation.</li>
+                <li>An operator can view the order, access design/production files, update status, and mark pickup or delivery complete.</li>
+                <li>A new partner/event store can be configured without code changes for standard template use cases.</li>
+                <li>Member/import discounts can be tested through the agreed CSV/SFTP/API approach.</li>
+                <li>The site works on desktop, tablet, and mobile, with a kiosk-safe path for MUPI/tablet activations.</li>
+              </ul>
+            </article>
+            <article class="card">
+              <span class="small-title">Quality criteria</span>
+              <ul class="checklist">
+                <li>Core user journeys pass functional QA before launch.</li>
+                <li>Checkout and order state changes are auditable.</li>
+                <li>Uploaded artwork is validated for allowed file types and size limits.</li>
+                <li>Production secrets and payment credentials are not exposed to storefront users.</li>
+                <li>Launch documentation is complete enough for Mania4 operators to run the pilot.</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <p class="section-title">Assumptions and Dependencies</p>
+        <div class="grid grid-3">
+          <article class="card">
+            <h3>Content and brand</h3>
+            <p>
+              HELIOtextil provides final copy, logos, campaign images, legal
+              content, product descriptions, pricing rules, and approval for the
+              client-facing naming system.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Products and 3D assets</h3>
+            <p>
+              The MVP uses selected pilot products with validated 3D models,
+              UV layouts, or agreed 2D/3D templates. New product modeling and
+              automatic photo-to-3D workflows are estimated separately.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Payments and operations</h3>
+            <p>
+              Mania4 confirms payment provider, invoicing responsibility, tax
+              handling, refund rules, pickup/delivery procedures, and settlement
+              model with partners before launch.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Partner systems</h3>
+            <p>
+              Member discounts and partner order notifications depend on the
+              data each club, university, or event partner can provide: API,
+              CSV, Excel, SFTP, or manual import.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Hardware</h3>
+            <p>
+              MUPI, payment terminal, printer, press, camera, NFC, QR reader,
+              and thermal printer procurement or certification are outside the
+              software build unless added as a hardware workstream.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Launch scope</h3>
+            <p>
+              The first release should focus on one reference store, a small set
+              of products, one replicated activation, and a controlled order
+              operations model before scaling the network.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section section-tight">
+        <p class="section-title">Out of Scope Unless Separately Agreed</p>
+        <div class="callout">
+          <ul class="plain-list">
+            <li>Replacing HELIOtextil's ERP, accounting, warehouse, or manufacturing systems.</li>
+            <li>Guaranteeing automatic high-quality 3D model creation from arbitrary customer photos.</li>
+            <li>Deep integration with every partner checkout or payment provider.</li>
+            <li>Hardware procurement, device certification, and on-site installation.</li>
+            <li>Full IoT machine telemetry, printer history extraction, or press counter reconciliation in MVP.</li>
+            <li>Native iOS/Android apps. The initial recommendation is a responsive web app and kiosk/tablet mode.</li>
+            <li>Unlimited product modeling. Each new product family requires an agreed asset and configuration process.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="governance" class="section">
+        <p class="section-title">Commercial and Governance Notes</p>
+        <div class="grid grid-2">
+          <article class="card card-dark">
+            <span class="small-title">Recommended budget split</span>
+            <h3>Two rubrics, one platform</h3>
+            <p>
+              To support the internationalization funding structure, the work
+              can be described as two investment lines: institutional digital
+              commerce presence and replicated online sales platform for client
+              projects. The implementation should remain one shared platform to
+              avoid duplicate systems.
+            </p>
+          </article>
+          <article class="card">
+            <span class="small-title">Ownership model</span>
+            <h3>Mania4 owns the software layer</h3>
+            <p>
+              Mania4 should own the application, database, configurations, and
+              operating process. Managed cloud services can be used, but the
+              platform should avoid lock-in to a third-party commerce SaaS as
+              the core business engine.
+            </p>
+          </article>
+          <article class="card">
+            <span class="small-title">Pilot governance</span>
+            <h3>Start with controlled pilots</h3>
+            <p>
+              Recommended pilots are one HELIOPromo/Mania4 store, one football
+              or university store, and one event/MUPI activation. Each pilot
+              should have measurable conversion, production, pickup, and
+              reconciliation criteria.
+            </p>
+          </article>
+          <article class="card">
+            <span class="small-title">Future scale</span>
+            <h3>Build toward a productized service</h3>
+            <p>
+              After MVP, Mania4 can sell this as a service: branded stores,
+              custom merchandise, event activation, 3D design, production
+              handoff, and settlement reporting for multiple markets.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <p class="section-title">Reference Inspiration</p>
+        <div class="grid grid-3">
+          <article class="card">
+            <h3>Nike By You</h3>
+            <p>
+              Demonstrates the customer expectation for premium 3D
+              personalization, material/color selection, and made-to-order
+              product communication.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Spized and sports kit configurators</h3>
+            <p>
+              Shows the market need for club clothing customization with logos,
+              sponsors, names, numbers, bulk team orders, and fast reorder flows.
+            </p>
+          </article>
+          <article class="card">
+            <h3>HELIOPromo positioning</h3>
+            <p>
+              The platform should reinforce sustainable, certified, original
+              merchandise with a digital experience that makes customization
+              simple and measurable.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="footer-cta">
+        <div class="section">
+          <h2>Recommended next step: a pilot definition workshop</h2>
+          <p>
+            Align on the first store, first event or club pilot, first 3D
+            product family, payment provider, operating roles, and launch
+            success metrics. The workshop output becomes the final backlog,
+            timeline, and commercial estimate.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="doc-footer">
+      <div class="doc-footer-inner">
+        <span>WPP Enterprise Solutions - Mania4 Platform SoW Proposal</span>
+        <span>Prepared for HELIOtextil Group - July 2026</span>
+      </div>
+    </footer>
+  </body>
+</html>
