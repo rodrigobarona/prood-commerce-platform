@@ -11,6 +11,14 @@ Standalone HTML proposal package for HELIOtextil / Mania4, prepared as a WPP Ent
 
 Open `index.html` directly in a browser. No build step is required.
 
+## Deploy on Vercel
+
+This folder is static HTML. In the Vercel project settings, set **Root Directory** to
+`_docs/proposals/mania4-helio-platform`. Without that, Vercel detects the monorepo at the
+repo root and runs `pnpm install` + Turbo for all workspace apps.
+
+`vercel.json` in this folder skips install/build. Framework preset: **Other**. Output: `.`
+
 Before sharing externally, review:
 
 - Final client-facing name: `Mania4 Studio Commerce` is used as a working name.
