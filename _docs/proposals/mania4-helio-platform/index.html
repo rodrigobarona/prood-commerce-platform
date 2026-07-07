@@ -417,6 +417,107 @@
         text-transform: uppercase;
       }
 
+      .diagram-card {
+        margin: 12px 0 8px;
+        padding: 30px 26px;
+        background: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: 16px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32);
+        overflow-x: auto;
+      }
+
+      .diagram-card .mermaid {
+        display: flex;
+        justify-content: center;
+        min-width: 760px;
+      }
+
+      .diagram-caption {
+        margin: 0 0 20px;
+        color: var(--muted);
+        font-size: 13px;
+        letter-spacing: 0.06em;
+      }
+
+      .diagram-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-top: 24px;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.82);
+      }
+
+      .diagram-legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .swatch {
+        width: 15px;
+        height: 15px;
+        border-radius: 4px;
+        display: inline-block;
+        border: 1px solid rgba(255, 255, 255, 0.45);
+      }
+
+      .stack-grid {
+        margin-top: 52px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 24px;
+      }
+
+      .stack-card {
+        padding: 28px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 14px;
+      }
+
+      .stack-card h3 {
+        margin-bottom: 18px;
+        color: white;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .stack-card ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .stack-card li {
+        padding: 12px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.14);
+        color: rgba(255, 255, 255, 0.78);
+        font-size: 14px;
+      }
+
+      .stack-card li:first-child {
+        border-top: 0;
+      }
+
+      .stack-card li strong {
+        display: block;
+        margin-bottom: 3px;
+        color: white;
+        font-size: 15px;
+      }
+
+      .stack-card code {
+        padding: 1px 5px;
+        border-radius: 4px;
+        background: rgba(50, 143, 255, 0.22);
+        color: #d7e6ff;
+        font-size: 13px;
+      }
+
       .callout {
         padding: 30px;
         background: var(--purple-tint);
@@ -490,6 +591,7 @@
         .grid-3,
         .grid-4,
         .architecture,
+        .stack-grid,
         .phase,
         .scope-row {
           grid-template-columns: 1fr;
@@ -819,18 +921,150 @@
             studio, and production export endpoints.
           </p>
 
-          <div class="architecture" aria-label="Architecture flow">
-            <div class="node"><strong>Channels</strong><span>Web, mobile, QR, tablet, MUPI kiosk, event booth.</span></div>
-            <div class="node"><strong>Storefronts</strong><span>HELIOPromo, Identity FC, club stores, festival stores, university stores.</span></div>
-            <div class="node"><strong>3D Engine</strong><span>GLB models, zones, texture rendering, previews, exports.</span></div>
-            <div class="node"><strong>Checkout</strong><span>Central Mania4 payment, invoicing, order confirmation.</span></div>
+          <div class="diagram-card">
+            <p class="diagram-caption">
+              How the pieces fit together — from sales channels down to
+              infrastructure. The Commerce API is the single contract every app,
+              partner, and AI agent connects through.
+            </p>
+            <pre class="mermaid">
+flowchart TB
+  subgraph CH["Sales channels"]
+    direction LR
+    C1["Web &amp; mobile"]
+    C2["QR codes"]
+    C3["Tablet / MUPI kiosk"]
+    C4["Event booth POS"]
+  end
+
+  subgraph APPS["Applications &mdash; Next.js on Vercel"]
+    direction LR
+    A1["Storefronts<br/><small>*.prood.app &middot; custom domains</small>"]
+    A2["3D customization engine<br/><small>React Three Fiber</small>"]
+    A3["Hosted checkout<br/><small>checkout.prood.com</small>"]
+    A4["Merchant dashboard<br/><small>store &amp; order ops</small>"]
+    A5["Super-admin<br/><small>admin.prood.com</small>"]
+    A6["Marketing &amp; docs<br/><small>prood.com &middot; docs.prood.com</small>"]
+  end
+
+  API["Commerce API &mdash; api.prood.com<br/><small>REST /v1 &middot; OpenAPI 3.1 &middot; MCP &middot; Agent Auth &middot; Better Auth</small>"]
+
+  subgraph CORE["Shared engine &mdash; packages"]
+    direction LR
+    P1["@prood/commerce<br/><small>server facade</small>"]
+    P2["@prood/checkout-host<br/><small>session host</small>"]
+    P3["@prood/platform<br/><small>Drizzle ORM &middot; Postgres RLS</small>"]
+  end
+
+  subgraph PAY["Payment providers"]
+    direction LR
+    PS["Stripe"]
+    PE["Easypay<br/><small>MB &middot; MB WAY</small>"]
+    PI["Ifthenpay<br/><small>Multibanco &middot; MB WAY</small>"]
+  end
+
+  subgraph INFRA["Infrastructure"]
+    direction LR
+    I1[("Neon Postgres<br/><small>multi-tenant &middot; RLS</small>")]
+    I2[("Upstash Redis<br/><small>checkout sessions</small>")]
+    I3[("Vercel Blob / S3<br/><small>3D assets &middot; print files</small>")]
+    I4["Resend<br/><small>transactional email</small>"]
+  end
+
+  subgraph INT["Integrations &amp; data"]
+    direction LR
+    N1["Member imports<br/><small>CSV &middot; Excel &middot; SFTP &middot; API</small>"]
+    N2["Partner order APIs<br/><small>notify &middot; settlement</small>"]
+    N3["AI agents<br/><small>MCP &middot; Agent Auth</small>"]
+    N4["Future event stream<br/><small>QStash &middot; IoT telemetry</small>"]
+  end
+
+  C1 --> A1
+  C2 --> A1
+  C3 --> A1
+  C4 --> A3
+  A1 --> A2
+  A1 --> A3
+  A1 --> API
+  A4 --> API
+  A5 --> API
+  A6 -.-> API
+  A2 -->|"design JSON &middot; previews"| I3
+  A3 --> P2
+  P2 --> I2
+  P2 --> PS & PE & PI
+  API --> P1
+  P1 --> P3
+  P3 --> I1
+  API --> I3
+  API --> I4
+  N1 --> API
+  N2 --> API
+  N3 --> API
+  API --> N4
+
+  classDef channel fill:#ffffff,stroke:#328fff,stroke-width:1.5px,color:#000050;
+  classDef app fill:#eaf1ff,stroke:#328fff,stroke-width:1.5px,color:#000050;
+  classDef hub fill:#000050,stroke:#000050,color:#ffffff,stroke-width:2px;
+  classDef engine fill:#191d63,stroke:#191d63,color:#ffffff;
+  classDef infra fill:#f0eef6,stroke:#191d63,stroke-width:1.5px,color:#191d63;
+  classDef pay fill:#f3ecf4,stroke:#662661,stroke-width:1.5px,color:#3d1a3b;
+  classDef integ fill:#e9e7ea,stroke:#555555,stroke-width:1.5px,color:#222222;
+
+  class C1,C2,C3,C4 channel;
+  class A1,A2,A3,A4,A5,A6 app;
+  class API hub;
+  class P1,P2,P3 engine;
+  class I1,I2,I3,I4 infra;
+  class PS,PE,PI pay;
+  class N1,N2,N3,N4 integ;
+            </pre>
           </div>
-          <div class="flow-arrow">Channels to stores to customization to checkout to operations</div>
-          <div class="architecture">
-            <div class="node"><strong>Commerce API</strong><span>Products, carts, orders, customers, tenants, integration contracts.</span></div>
-            <div class="node"><strong>Data and Storage</strong><span>Neon Postgres, tenant isolation, generated assets, print files.</span></div>
-            <div class="node"><strong>Back Office</strong><span>Store setup, order production, pickup validation, reporting.</span></div>
-            <div class="node"><strong>Integrations</strong><span>Member imports, partner APIs, payment provider, future IoT telemetry.</span></div>
+
+          <div class="diagram-legend" aria-label="Diagram legend">
+            <span><i class="swatch" style="background:#eaf1ff"></i> Applications</span>
+            <span><i class="swatch" style="background:#000050"></i> Commerce API</span>
+            <span><i class="swatch" style="background:#191d63"></i> Shared engine</span>
+            <span><i class="swatch" style="background:#f3ecf4"></i> Payments</span>
+            <span><i class="swatch" style="background:#f0eef6"></i> Infrastructure</span>
+            <span><i class="swatch" style="background:#e9e7ea"></i> Integrations</span>
+          </div>
+
+          <div class="stack-grid">
+            <article class="stack-card">
+              <h3>Applications</h3>
+              <ul>
+                <li><strong>Storefronts</strong>Multi-tenant shops on <code>*.prood.app</code> and custom domains.</li>
+                <li><strong>3D customization engine</strong>React Three Fiber configurator with zones, previews, and print export.</li>
+                <li><strong>Hosted checkout</strong>Central Mania4 payment, invoicing, and confirmation.</li>
+                <li><strong>Merchant dashboard</strong>Store setup, catalog, orders, production, and settlement.</li>
+                <li><strong>Commerce API</strong>REST <code>/v1</code>, OpenAPI 3.1, and the single contract boundary.</li>
+                <li><strong>Super-admin</strong>Platform-wide operations and tenant governance.</li>
+                <li><strong>Marketing &amp; docs</strong><code>prood.com</code> plus Fumadocs documentation.</li>
+              </ul>
+            </article>
+            <article class="stack-card">
+              <h3>Integrations</h3>
+              <ul>
+                <li><strong>Payments</strong>Stripe, Easypay (MB, MB WAY), Ifthenpay (Multibanco, MB WAY).</li>
+                <li><strong>Member imports</strong>CSV, Excel mapping, SFTP, or partner API.</li>
+                <li><strong>Partner order APIs</strong>Order notifications and settlement reporting.</li>
+                <li><strong>AI agents</strong>MCP protocol (38 tools) and Agent Auth.</li>
+                <li><strong>Email</strong>Resend with React Email templates.</li>
+                <li><strong>Future</strong>QStash event stream and IoT / printer telemetry.</li>
+              </ul>
+            </article>
+            <article class="stack-card">
+              <h3>Infrastructure</h3>
+              <ul>
+                <li><strong>Hosting</strong>Vercel edge + serverless, independent projects.</li>
+                <li><strong>Database</strong>Neon Postgres, Drizzle ORM, Row-Level Security.</li>
+                <li><strong>Cache &amp; sessions</strong>Upstash Redis for checkout sessions.</li>
+                <li><strong>Object storage</strong>Vercel Blob (default) or S3-compatible (R2, MinIO).</li>
+                <li><strong>Auth</strong>Better Auth — organizations, API keys, Agent Auth.</li>
+                <li><strong>Delivery</strong>pnpm + Turborepo, GitHub Actions CI, Node.js 24.</li>
+              </ul>
+            </article>
           </div>
         </div>
       </section>
@@ -1122,5 +1356,32 @@
         <span>Prepared for HELIOtextil Group - July 2026</span>
       </div>
     </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <script>
+      mermaid.initialize({
+        startOnLoad: true,
+        securityLevel: "loose",
+        theme: "base",
+        themeVariables: {
+          fontFamily: '"Segoe UI", Arial, Helvetica, sans-serif',
+          fontSize: "14px",
+          primaryColor: "#eaf1ff",
+          primaryTextColor: "#000050",
+          primaryBorderColor: "#000050",
+          lineColor: "#328fff",
+          clusterBkg: "#f6f6f8",
+          clusterBorder: "#c9cee6",
+          tertiaryColor: "#ffffff",
+        },
+        flowchart: {
+          curve: "basis",
+          htmlLabels: true,
+          padding: 14,
+          nodeSpacing: 46,
+          rankSpacing: 60,
+        },
+      });
+    </script>
   </body>
 </html>
