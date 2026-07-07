@@ -418,6 +418,7 @@
       }
 
       .diagram-card {
+        position: relative;
         margin: 12px 0 8px;
         padding: 30px 26px;
         background: #ffffff;
@@ -427,10 +428,82 @@
         overflow-x: auto;
       }
 
+      .diagram-tools {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+
+      .diagram-tools button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        border: 1px solid var(--wpp-navy);
+        border-radius: 50%;
+        background: #ffffff;
+        color: var(--wpp-navy);
+        cursor: pointer;
+        transition:
+          background 0.15s ease,
+          color 0.15s ease,
+          transform 0.15s ease;
+      }
+
+      .diagram-tools button:hover {
+        background: var(--wpp-navy);
+        color: #ffffff;
+        transform: translateY(-1px);
+      }
+
+      .diagram-tools button:focus-visible {
+        outline: 2px solid var(--wpp-blue);
+        outline-offset: 2px;
+      }
+
+      .diagram-tools button svg {
+        width: 19px;
+        height: 19px;
+        display: block;
+      }
+
+      .diagram-tools button:disabled {
+        opacity: 0.4;
+        cursor: default;
+      }
+
       .diagram-card .mermaid {
         display: flex;
         justify-content: center;
         min-width: 760px;
+      }
+
+      .diagram-card:fullscreen {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 32px;
+        border-radius: 0;
+      }
+
+      .diagram-card:fullscreen .diagram-caption {
+        display: none;
+      }
+
+      .diagram-card:fullscreen .mermaid {
+        flex: 1;
+        min-width: 0;
+        align-items: center;
+      }
+
+      .diagram-card:fullscreen .mermaid svg {
+        width: 100%;
+        height: 100%;
+        max-height: calc(100vh - 120px);
       }
 
       .diagram-caption {
@@ -921,62 +994,87 @@
             studio, and production export endpoints.
           </p>
 
-          <div class="diagram-card">
+          <div class="diagram-card" id="architecture-diagram">
+            <div class="diagram-tools" role="toolbar" aria-label="Diagram actions">
+              <button type="button" data-action="fullscreen" title="Full screen" aria-label="View diagram full screen">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+                  <path d="M16 3h3a2 2 0 0 1 2 2v3" />
+                  <path d="M8 21H5a2 2 0 0 1-2-2v-3" />
+                  <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
+                </svg>
+              </button>
+              <button type="button" data-action="svg" title="Download SVG (vector)" aria-label="Download diagram as SVG vector image">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="3" width="4.5" height="4.5" rx="1" />
+                  <rect x="16.5" y="16.5" width="4.5" height="4.5" rx="1" />
+                  <path d="M5.5 7.5c0 6 5 11 11 11" />
+                </svg>
+              </button>
+              <button type="button" data-action="png" title="Download PNG (image)" aria-label="Download diagram as PNG image">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="4" width="18" height="16" rx="2" />
+                  <circle cx="8.5" cy="9.5" r="1.6" />
+                  <path d="m4 18 5-5 4 4 3-3 4 4" />
+                </svg>
+              </button>
+            </div>
             <p class="diagram-caption">
-              How the pieces fit together — from sales channels down to
-              infrastructure. The Commerce API is the single contract every app,
-              partner, and AI agent connects through.
+              How the pieces fit together, left to right: customers arrive
+              through any channel (1), use the Mania4 apps (2), which — together
+              with partner integrations (3) — all talk to one Commerce API. The
+              API runs on the platform core (4) and shared infrastructure (5).
             </p>
             <pre class="mermaid">
-flowchart TB
-  subgraph CH["Sales channels"]
-    direction LR
+flowchart LR
+  subgraph CH["1 · Sales channels"]
+    direction TB
     C1["Web &amp; mobile"]
     C2["QR codes"]
     C3["Tablet / MUPI kiosk"]
     C4["Event booth POS"]
   end
 
-  subgraph APPS["Applications &mdash; Next.js on Vercel"]
-    direction LR
-    A1["Storefronts<br/><small>*.prood.app &middot; custom domains</small>"]
-    A2["3D customization engine<br/><small>React Three Fiber</small>"]
-    A3["Hosted checkout<br/><small>checkout.prood.com</small>"]
-    A4["Merchant dashboard<br/><small>store &amp; order ops</small>"]
-    A5["Super-admin<br/><small>admin.prood.com</small>"]
-    A6["Marketing &amp; docs<br/><small>prood.com &middot; docs.prood.com</small>"]
+  subgraph APPS["2 · Customer &amp; team apps"]
+    direction TB
+    A1["Branded storefronts<br/><small>store.mania4.app &middot; custom domains</small>"]
+    A2["3D customization studio<br/><small>design in 3D &middot; print-ready export</small>"]
+    A3["Central checkout<br/><small>checkout.mania4.com</small>"]
+    A4["Merchant dashboard<br/><small>dashboard.mania4.com</small>"]
+    A5["Platform admin<br/><small>admin.mania4.com</small>"]
+    A6["Marketing &amp; docs<br/><small>mania4.com &middot; docs.mania4.com</small>"]
   end
 
-  API["Commerce API &mdash; api.prood.com<br/><small>REST /v1 &middot; OpenAPI 3.1 &middot; MCP &middot; Agent Auth &middot; Better Auth</small>"]
+  API["Mania4 Commerce API<br/><b>api.mania4.com</b><br/><small>one secure API for every app, partner &amp; AI agent</small>"]
 
-  subgraph CORE["Shared engine &mdash; packages"]
-    direction LR
-    P1["@prood/commerce<br/><small>server facade</small>"]
-    P2["@prood/checkout-host<br/><small>session host</small>"]
-    P3["@prood/platform<br/><small>Drizzle ORM &middot; Postgres RLS</small>"]
+  subgraph CORE["4 · Platform core"]
+    direction TB
+    P1["Commerce engine<br/><small>products &middot; carts &middot; orders</small>"]
+    P2["Checkout host<br/><small>secure payment sessions</small>"]
+    P3["Database layer<br/><small>per-store data isolation</small>"]
   end
 
-  subgraph PAY["Payment providers"]
-    direction LR
-    PS["Stripe"]
-    PE["Easypay<br/><small>MB &middot; MB WAY</small>"]
+  subgraph PAY["Payments"]
+    direction TB
+    PS["Stripe<br/><small>cards &middot; international</small>"]
+    PE["Easypay<br/><small>Multibanco &middot; MB WAY</small>"]
     PI["Ifthenpay<br/><small>Multibanco &middot; MB WAY</small>"]
   end
 
-  subgraph INFRA["Infrastructure"]
-    direction LR
-    I1[("Neon Postgres<br/><small>multi-tenant &middot; RLS</small>")]
-    I2[("Upstash Redis<br/><small>checkout sessions</small>")]
-    I3[("Vercel Blob / S3<br/><small>3D assets &middot; print files</small>")]
-    I4["Resend<br/><small>transactional email</small>"]
+  subgraph INFRA["5 · Infrastructure"]
+    direction TB
+    I1[("Database<br/><small>Neon Postgres</small>")]
+    I2[("Sessions cache<br/><small>Upstash Redis</small>")]
+    I3[("File storage<br/><small>3D assets &middot; print files</small>")]
+    I4["Email<br/><small>order &amp; account notifications</small>"]
   end
 
-  subgraph INT["Integrations &amp; data"]
-    direction LR
+  subgraph INT["3 · Integrations &amp; data"]
+    direction TB
     N1["Member imports<br/><small>CSV &middot; Excel &middot; SFTP &middot; API</small>"]
-    N2["Partner order APIs<br/><small>notify &middot; settlement</small>"]
-    N3["AI agents<br/><small>MCP &middot; Agent Auth</small>"]
-    N4["Future event stream<br/><small>QStash &middot; IoT telemetry</small>"]
+    N2["Partner order feeds<br/><small>notify &middot; settlement</small>"]
+    N3["AI agents<br/><small>automation &middot; assistants</small>"]
+    N4["Future: production telemetry<br/><small>events &middot; IoT / printers</small>"]
   end
 
   C1 --> A1
@@ -989,13 +1087,13 @@ flowchart TB
   A4 --> API
   A5 --> API
   A6 -.-> API
-  A2 -->|"design JSON &middot; previews"| I3
+  A2 -->|"designs &amp; previews"| I3
   A3 --> P2
-  P2 --> I2
   P2 --> PS & PE & PI
   API --> P1
   P1 --> P3
   P3 --> I1
+  P2 --> I2
   API --> I3
   API --> I4
   N1 --> API
@@ -1034,13 +1132,13 @@ flowchart TB
             <article class="stack-card">
               <h3>Applications</h3>
               <ul>
-                <li><strong>Storefronts</strong>Multi-tenant shops on <code>*.prood.app</code> and custom domains.</li>
-                <li><strong>3D customization engine</strong>React Three Fiber configurator with zones, previews, and print export.</li>
-                <li><strong>Hosted checkout</strong>Central Mania4 payment, invoicing, and confirmation.</li>
+                <li><strong>Branded storefronts</strong>Per-store shops on <code>store.mania4.app</code> and custom domains.</li>
+                <li><strong>3D customization studio</strong>Configurator with zones, live preview, and print-ready export.</li>
+                <li><strong>Central checkout</strong>Mania4-owned payment, invoicing, and confirmation.</li>
                 <li><strong>Merchant dashboard</strong>Store setup, catalog, orders, production, and settlement.</li>
-                <li><strong>Commerce API</strong>REST <code>/v1</code>, OpenAPI 3.1, and the single contract boundary.</li>
-                <li><strong>Super-admin</strong>Platform-wide operations and tenant governance.</li>
-                <li><strong>Marketing &amp; docs</strong><code>prood.com</code> plus Fumadocs documentation.</li>
+                <li><strong>Commerce API</strong>One secure API (<code>api.mania4.com</code>) every app and partner shares.</li>
+                <li><strong>Platform admin</strong>Platform-wide operations and store governance.</li>
+                <li><strong>Marketing &amp; docs</strong><code>mania4.com</code> plus the documentation site.</li>
               </ul>
             </article>
             <article class="stack-card">
@@ -1360,7 +1458,7 @@ flowchart TB
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
     <script>
       mermaid.initialize({
-        startOnLoad: true,
+        startOnLoad: false,
         securityLevel: "loose",
         theme: "base",
         themeVariables: {
@@ -1382,6 +1480,126 @@ flowchart TB
           rankSpacing: 60,
         },
       });
+
+      const FILE_NAME = "mania4-platform-architecture";
+
+      function getDiagramSvg() {
+        return document.querySelector("#architecture-diagram svg");
+      }
+
+      function svgDimensions(svg) {
+        const box = svg.viewBox && svg.viewBox.baseVal;
+        if (box && box.width && box.height) {
+          return { width: box.width, height: box.height };
+        }
+        const rect = svg.getBoundingClientRect();
+        return { width: rect.width, height: rect.height };
+      }
+
+      function serializeSvg(svg, { width, height } = {}) {
+        const clone = svg.cloneNode(true);
+        clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+        clone.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
+        if (width && height) {
+          clone.setAttribute("width", width);
+          clone.setAttribute("height", height);
+        }
+        const source = new XMLSerializer().serializeToString(clone);
+        return '<?xml version="1.0" encoding="UTF-8"?>\n' + source;
+      }
+
+      function triggerDownload(href, filename) {
+        const link = document.createElement("a");
+        link.href = href;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      }
+
+      function downloadSvg() {
+        const svg = getDiagramSvg();
+        if (!svg) return;
+        const { width, height } = svgDimensions(svg);
+        const blob = new Blob([serializeSvg(svg, { width, height })], {
+          type: "image/svg+xml;charset=utf-8",
+        });
+        const url = URL.createObjectURL(blob);
+        triggerDownload(url, FILE_NAME + ".svg");
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+      }
+
+      function downloadPng() {
+        const svg = getDiagramSvg();
+        if (!svg) return;
+        const { width, height } = svgDimensions(svg);
+        const scale = 2;
+        const blob = new Blob([serializeSvg(svg, { width, height })], {
+          type: "image/svg+xml;charset=utf-8",
+        });
+        const url = URL.createObjectURL(blob);
+        const image = new Image();
+        image.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.ceil(width * scale);
+          canvas.height = Math.ceil(height * scale);
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+          URL.revokeObjectURL(url);
+          try {
+            canvas.toBlob((out) => {
+              if (!out) throw new Error("toBlob failed");
+              const pngUrl = URL.createObjectURL(out);
+              triggerDownload(pngUrl, FILE_NAME + ".png");
+              setTimeout(() => URL.revokeObjectURL(pngUrl), 4000);
+            }, "image/png");
+          } catch (err) {
+            alert(
+              "PNG export is not supported in this browser. Use “Download SVG” for a high-quality vector image.",
+            );
+          }
+        };
+        image.onerror = () => {
+          URL.revokeObjectURL(url);
+          alert(
+            "PNG export failed in this browser. Use “Download SVG” for a high-quality vector image.",
+          );
+        };
+        image.src = url;
+      }
+
+      function toggleFullscreen() {
+        const card = document.getElementById("architecture-diagram");
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+        } else if (card.requestFullscreen) {
+          card.requestFullscreen();
+        } else if (card.webkitRequestFullscreen) {
+          card.webkitRequestFullscreen();
+        }
+      }
+
+      function setupDiagramTools() {
+        const toolbar = document.querySelector(
+          "#architecture-diagram .diagram-tools",
+        );
+        if (!toolbar) return;
+        toolbar.addEventListener("click", (event) => {
+          const button = event.target.closest("button");
+          if (!button) return;
+          const action = button.dataset.action;
+          if (action === "fullscreen") toggleFullscreen();
+          else if (action === "svg") downloadSvg();
+          else if (action === "png") downloadPng();
+        });
+      }
+
+      mermaid
+        .run({ querySelector: "#architecture-diagram .mermaid" })
+        .then(setupDiagramTools)
+        .catch((error) => console.error("Mermaid render failed:", error));
     </script>
   </body>
 </html>
