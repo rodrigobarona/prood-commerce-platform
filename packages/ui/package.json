@@ -9,8 +9,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@geoapify/geocoder-autocomplete": "^3.0.1",
-    "@geoapify/react-geocoder-autocomplete": "^3.0.0",
+    "@geoapify/geocoder-autocomplete": "^3.1.0",
+    "@geoapify/react-geocoder-autocomplete": "^3.1.0",
     "@phosphor-icons/react": "catalog:",
     "@prood/types": "workspace:*",
     "class-variance-authority": "catalog:",
@@ -18,7 +18,7 @@
     "cmdk": "catalog:",
     "iso-3166": "^4.4.0",
     "next-themes": "catalog:",
-    "postcode-validator": "^3.10.15",
+    "postcode-validator": "^3.10.26",
     "radix-ui": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",

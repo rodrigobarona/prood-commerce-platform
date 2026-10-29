@@ -25,6 +25,7 @@ export function ReviewStars({
           const filled = i < Math.round(rating)
           return (
             <StarIcon
+              // eslint-disable-next-line @eslint-react/no-array-index-key -- fixed star positions
               key={i}
               size={size}
               weight={filled ? "fill" : "regular"}

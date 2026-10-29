@@ -16,7 +16,7 @@
   "dependencies": {
     "@better-auth/agent-auth": "catalog:",
     "@better-auth/api-key": "catalog:",
-    "@modelcontextprotocol/sdk": "catalog:",
+    "@modelcontextprotocol/server": "catalog:",
     "@neondatabase/serverless": "catalog:",
     "@prood/auth": "workspace:*",
     "@prood/billing": "workspace:*",

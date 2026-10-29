@@ -33,7 +33,7 @@ export function MermaidViewer({ svg }: MermaidViewerProps) {
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
-  const panOrigin = useRef({ x: 0, y: 0, tx: 0, ty: 0 });
+  const panOriginRef = useRef({ x: 0, y: 0, tx: 0, ty: 0 });
 
   useEffect(() => {
     const onFullscreenChange = () => {
@@ -68,7 +68,7 @@ export function MermaidViewer({ svg }: MermaidViewerProps) {
       if (event.button !== 0) return;
       event.currentTarget.setPointerCapture(event.pointerId);
       setIsPanning(true);
-      panOrigin.current = {
+      panOriginRef.current = {
         x: event.clientX,
         y: event.clientY,
         tx: translate.x,
@@ -82,8 +82,8 @@ export function MermaidViewer({ svg }: MermaidViewerProps) {
     (event: ReactPointerEvent<HTMLDivElement>) => {
       if (!isPanning) return;
       setTranslate({
-        x: panOrigin.current.tx + (event.clientX - panOrigin.current.x),
-        y: panOrigin.current.ty + (event.clientY - panOrigin.current.y),
+        x: panOriginRef.current.tx + (event.clientX - panOriginRef.current.x),
+        y: panOriginRef.current.ty + (event.clientY - panOriginRef.current.y),
       });
     },
     [isPanning],
@@ -191,6 +191,7 @@ export function MermaidViewer({ svg }: MermaidViewerProps) {
             transformOrigin: 'center center',
             transition: isPanning ? undefined : 'transform 80ms ease-out',
           }}
+          // eslint-disable-next-line @eslint-react/dom-no-dangerously-set-innerhtml -- SVG rendered at build time from repo-authored MDX
           dangerouslySetInnerHTML={{ __html: svg }}
         />
       </div>

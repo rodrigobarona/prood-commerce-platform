@@ -14,8 +14,10 @@ export function ConfirmClient({
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   useEffect(() => {
+    const controller = new AbortController()
     fetch(`/api/sessions/${sessionId}/confirm`, {
       method: "POST",
+      signal: controller.signal,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ providerSessionId: stripeSessionId }),
     })
@@ -34,9 +36,11 @@ export function ConfirmClient({
         setStatus("success")
       })
       .catch(() => {
+        if (controller.signal.aborted) return
         setErrorMsg("Confirmation failed")
         setStatus("error")
       })
+    return () => controller.abort()
   }, [sessionId, stripeSessionId])
 
   useEffect(() => {

@@ -94,10 +94,9 @@ export default async function ProductDetailPage({
           {product.description ? (
             <div className="border-t pt-5">
               <h2 className="mb-2 font-semibold">Description</h2>
-              <div
-                className="prose prose-sm text-muted-foreground max-w-none"
-                dangerouslySetInnerHTML={{ __html: localized(product.description) }}
-              />
+              <p className="text-muted-foreground text-sm whitespace-pre-line">
+                {localized(product.description)}
+              </p>
             </div>
           ) : null}
         </div>

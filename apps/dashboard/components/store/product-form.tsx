@@ -72,7 +72,7 @@ export function ProductForm({
   const router = useRouter()
   const [pending, startTransition] = useTransition()
 
-  const [values, setValues] = useState<ProductFormValues>({
+  const [values, setValues] = useState<ProductFormValues>(() => ({
     name: initial?.name ?? emptyLocalizedField(),
     slug: initial?.slug ?? "",
     description: initial?.description ?? emptyLocalizedField(),
@@ -83,7 +83,7 @@ export function ProductForm({
     status: initial?.status ?? "active",
     inStock: initial?.inStock ?? true,
     requiresShipping: initial?.requiresShipping ?? true,
-  })
+  }))
 
   function set<K extends keyof ProductFormValues>(
     key: K,

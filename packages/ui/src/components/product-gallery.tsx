@@ -36,6 +36,7 @@ export function ProductGallery({ images, alt = "", className }: ProductGalleryPr
         <div className="flex gap-2 overflow-x-auto">
           {images.map((image, i) => (
             <button
+              // eslint-disable-next-line @eslint-react/no-array-index-key -- the same URL may repeat
               key={`${image.url}-${i}`}
               type="button"
               onClick={() => setActive(i)}

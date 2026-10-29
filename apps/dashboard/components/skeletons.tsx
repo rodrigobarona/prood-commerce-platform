@@ -1,3 +1,4 @@
+/* eslint-disable @eslint-react/no-array-index-key -- static placeholder lists */
 import {
   Card,
   CardContent,

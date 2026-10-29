@@ -1,4 +1,4 @@
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import type { McpServer } from "@modelcontextprotocol/server"
 import { createGuestCustomer, ensureCustomer, getCart } from "@prood/commerce"
 import { CommerceError } from "@prood/types"
 import { z } from "zod"
@@ -74,7 +74,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     {
       title: "List products",
       description: "Search and list storefront products for the current tenant.",
-      inputSchema: searchProductsQuery.shape,
+      inputSchema: searchProductsQuery,
     },
     async (args) => {
       const orgId = requireScope("storefront")
@@ -87,7 +87,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     {
       title: "Get product",
       description: "Fetch a single product by id.",
-      inputSchema: { id: z.string().min(1) },
+      inputSchema: z.object({ id: z.string().min(1) }),
     },
     async ({ id }) => {
       const orgId = requireScope("storefront")
@@ -100,10 +100,10 @@ export function registerCommerceMcpTools(server: McpServer) {
     {
       title: "List categories",
       description: "List product categories for the storefront.",
-      inputSchema: {
+      inputSchema: z.object({
         parentId: z.string().optional(),
         depth: z.coerce.number().int().nonnegative().optional(),
-      },
+      }),
     },
     async (args) => {
       const orgId = requireScope("storefront")
@@ -157,7 +157,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     {
       title: "Get cart",
       description: "Fetch a cart by id.",
-      inputSchema: { id: z.string().min(1) },
+      inputSchema: z.object({ id: z.string().min(1) }),
     },
     async ({ id }) => {
       const orgId = requireScope("storefront")
@@ -170,10 +170,10 @@ export function registerCommerceMcpTools(server: McpServer) {
     {
       title: "Add cart item",
       description: "Add a line item to a cart.",
-      inputSchema: {
+      inputSchema: z.object({
         cartId: z.string().min(1),
         ...addToCartBody.shape,
-      },
+      }),
     },
     async ({ cartId, ...item }) => {
       const orgId = requireScope("storefront")
@@ -187,11 +187,11 @@ export function registerCommerceMcpTools(server: McpServer) {
     {
       title: "Update cart item",
       description: "Update quantity for a cart line item.",
-      inputSchema: {
+      inputSchema: z.object({
         cartId: z.string().min(1),
         itemId: z.string().min(1),
         ...updateCartItemBody.shape,
-      },
+      }),
     },
     async ({ cartId, itemId, ...body }) => {
       const orgId = requireScope("storefront")
@@ -204,10 +204,10 @@ export function registerCommerceMcpTools(server: McpServer) {
     "removeCartItem",
     {
       title: "Remove cart item",
-      inputSchema: {
+      inputSchema: z.object({
         cartId: z.string().min(1),
         itemId: z.string().min(1),
-      },
+      }),
     },
     async ({ cartId, itemId }) => {
       const orgId = requireScope("storefront")
@@ -219,7 +219,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "applyCartCoupon",
     {
       title: "Apply cart coupon",
-      inputSchema: { cartId: z.string().min(1), ...couponBody.shape },
+      inputSchema: z.object({ cartId: z.string().min(1), ...couponBody.shape }),
     },
     async ({ cartId, code }) => {
       const orgId = requireScope("storefront")
@@ -231,7 +231,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "removeCartCoupon",
     {
       title: "Remove cart coupon",
-      inputSchema: { cartId: z.string().min(1) },
+      inputSchema: z.object({ cartId: z.string().min(1) }),
     },
     async ({ cartId }) => {
       const orgId = requireScope("storefront")
@@ -243,7 +243,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "listCartShippingMethods",
     {
       title: "List cart shipping methods",
-      inputSchema: { cartId: z.string().min(1) },
+      inputSchema: z.object({ cartId: z.string().min(1) }),
     },
     async ({ cartId }) => {
       const orgId = requireScope("storefront")
@@ -255,7 +255,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "listCartPaymentMethods",
     {
       title: "List cart payment methods",
-      inputSchema: { cartId: z.string().min(1) },
+      inputSchema: z.object({ cartId: z.string().min(1) }),
     },
     async ({ cartId }) => {
       const orgId = requireScope("storefront")
@@ -267,7 +267,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "setCartShippingAddress",
     {
       title: "Set cart shipping address",
-      inputSchema: { cartId: z.string().min(1), ...checkoutAddressBody.shape },
+      inputSchema: z.object({ cartId: z.string().min(1), ...checkoutAddressBody.shape }),
     },
     async ({ cartId, ...address }) => {
       const orgId = requireScope("storefront")
@@ -281,7 +281,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "setCartBillingAddress",
     {
       title: "Set cart billing address",
-      inputSchema: { cartId: z.string().min(1), ...checkoutAddressBody.shape },
+      inputSchema: z.object({ cartId: z.string().min(1), ...checkoutAddressBody.shape }),
     },
     async ({ cartId, ...address }) => {
       const orgId = requireScope("storefront")
@@ -295,7 +295,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "setCartShippingMethod",
     {
       title: "Set cart shipping method",
-      inputSchema: { cartId: z.string().min(1), ...setShippingMethodBody.shape },
+      inputSchema: z.object({ cartId: z.string().min(1), ...setShippingMethodBody.shape }),
     },
     async ({ cartId, ...body }) => {
       const orgId = requireScope("storefront")
@@ -308,7 +308,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "placeOrder",
     {
       title: "Place order",
-      inputSchema: { cartId: z.string().min(1), ...placeOrderBody.shape },
+      inputSchema: z.object({ cartId: z.string().min(1), ...placeOrderBody.shape }),
     },
     async ({ cartId, ...body }) => {
       const { email } = placeOrderBody.parse(body)
@@ -320,7 +320,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "listOrders",
     {
       title: "List customer orders",
-      inputSchema: listCustomerOrdersQuery.shape,
+      inputSchema: listCustomerOrdersQuery,
     },
     async (args) => {
       const orgId = requireScope("storefront")
@@ -332,7 +332,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "getOrder",
     {
       title: "Get order",
-      inputSchema: { id: z.string().min(1) },
+      inputSchema: z.object({ id: z.string().min(1) }),
     },
     async ({ id }) => {
       const orgId = requireScope("storefront")
@@ -344,7 +344,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "adminListProducts",
     {
       title: "Admin list products",
-      inputSchema: adminListQuery.shape,
+      inputSchema: adminListQuery,
     },
     async (args) => {
       const orgId = requireScope("admin")
@@ -356,7 +356,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "adminCreateProduct",
     {
       title: "Admin create product",
-      inputSchema: createProductBody.shape,
+      inputSchema: createProductBody,
     },
     async (args) => {
       const orgId = requireScope("admin")
@@ -368,7 +368,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "adminGetProduct",
     {
       title: "Admin get product",
-      inputSchema: { id: z.string().min(1) },
+      inputSchema: z.object({ id: z.string().min(1) }),
     },
     async ({ id }) => {
       const orgId = requireScope("admin")
@@ -380,7 +380,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "adminUpdateProduct",
     {
       title: "Admin update product",
-      inputSchema: { id: z.string().min(1), ...updateProductBody.shape },
+      inputSchema: z.object({ id: z.string().min(1), ...updateProductBody.shape }),
     },
     async ({ id, ...input }) => {
       const orgId = requireScope("admin")
@@ -392,7 +392,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "adminDeleteProduct",
     {
       title: "Admin delete product",
-      inputSchema: { id: z.string().min(1) },
+      inputSchema: z.object({ id: z.string().min(1) }),
     },
     async ({ id }) => {
       const orgId = requireScope("admin")
@@ -405,7 +405,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "adminCreateCategory",
     {
       title: "Admin create category",
-      inputSchema: createCategoryBody.shape,
+      inputSchema: createCategoryBody,
     },
     async (args) => {
       const orgId = requireScope("admin")
@@ -417,7 +417,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "adminUpdateCategory",
     {
       title: "Admin update category",
-      inputSchema: { id: z.string().min(1), ...updateCategoryBody.shape },
+      inputSchema: z.object({ id: z.string().min(1), ...updateCategoryBody.shape }),
     },
     async ({ id, ...input }) => {
       const orgId = requireScope("admin")
@@ -429,7 +429,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "adminDeleteCategory",
     {
       title: "Admin delete category",
-      inputSchema: { id: z.string().min(1) },
+      inputSchema: z.object({ id: z.string().min(1) }),
     },
     async ({ id }) => {
       const orgId = requireScope("admin")
@@ -442,7 +442,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "adminListOrders",
     {
       title: "Admin list orders",
-      inputSchema: adminListOrdersQuery.shape,
+      inputSchema: adminListOrdersQuery,
     },
     async (args) => {
       const orgId = requireScope("admin")
@@ -454,7 +454,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "adminGetOrder",
     {
       title: "Admin get order",
-      inputSchema: { id: z.string().min(1) },
+      inputSchema: z.object({ id: z.string().min(1) }),
     },
     async ({ id }) => {
       const orgId = requireScope("admin")
@@ -466,7 +466,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "adminCancelOrder",
     {
       title: "Admin cancel order",
-      inputSchema: { id: z.string().min(1), ...cancelOrderBody.shape },
+      inputSchema: z.object({ id: z.string().min(1), ...cancelOrderBody.shape }),
     },
     async ({ id, ...body }) => {
       const orgId = requireScope("admin")
@@ -480,7 +480,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "adminGetOrderHistory",
     {
       title: "Admin get order history",
-      inputSchema: { id: z.string().min(1) },
+      inputSchema: z.object({ id: z.string().min(1) }),
     },
     async ({ id }) => {
       const orgId = requireScope("admin")
@@ -492,7 +492,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "adminFulfillOrder",
     {
       title: "Admin fulfill order",
-      inputSchema: { id: z.string().min(1), ...fulfillOrderBody.shape },
+      inputSchema: z.object({ id: z.string().min(1), ...fulfillOrderBody.shape }),
     },
     async ({ id, ...body }) => {
       const orgId = requireScope("admin")
@@ -505,7 +505,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "adminRefundOrder",
     {
       title: "Admin refund order",
-      inputSchema: { id: z.string().min(1), ...refundOrderBody.shape },
+      inputSchema: z.object({ id: z.string().min(1), ...refundOrderBody.shape }),
     },
     async ({ id, ...body }) => {
       const orgId = requireScope("admin")
@@ -519,7 +519,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "adminListCustomers",
     {
       title: "Admin list customers",
-      inputSchema: adminListQuery.shape,
+      inputSchema: adminListQuery,
     },
     async (args) => {
       const orgId = requireScope("admin")
@@ -531,7 +531,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "adminGetCustomer",
     {
       title: "Admin get customer",
-      inputSchema: { id: z.string().min(1) },
+      inputSchema: z.object({ id: z.string().min(1) }),
     },
     async ({ id }) => {
       const orgId = requireScope("admin")
@@ -554,7 +554,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "adminUpdateStore",
     {
       title: "Admin update store settings",
-      inputSchema: updateStoreBody.shape,
+      inputSchema: updateStoreBody,
     },
     async (args) => {
       const orgId = requireScope("admin")
@@ -566,7 +566,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "adminUpdateInventory",
     {
       title: "Admin update inventory",
-      inputSchema: updateInventoryBody.shape,
+      inputSchema: updateInventoryBody,
     },
     async (args) => {
       const orgId = requireScope("admin")

@@ -42,7 +42,7 @@ export default function Image() {
             maxWidth: 900,
           }}
         >
-          {heroCopy.title} {heroCopy.titleAccent}
+          {`${heroCopy.title} ${heroCopy.titleAccent}`}
         </div>
         <div
           style={{
