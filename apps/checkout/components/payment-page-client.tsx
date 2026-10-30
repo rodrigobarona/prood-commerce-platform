@@ -51,10 +51,12 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
   const { setSession } = useCheckoutContext()
 
   useEffect(() => {
+    let active = true
     const controller = new AbortController()
     fetch(`/api/sessions/${sessionId}`, { signal: controller.signal })
       .then((r) => r.json())
       .then((d: SessionData & { error?: string }) => {
+        if (!active) return
         if (d.error) {
           setError(d.error)
         } else {
@@ -67,11 +69,14 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
         setLoading(false)
       })
       .catch(() => {
-        if (controller.signal.aborted) return
+        if (!active) return
         setError("Failed to load session")
         setLoading(false)
       })
-    return () => controller.abort()
+    return () => {
+      active = false
+      controller.abort()
+    }
   }, [sessionId, setSession])
 
   useEffect(() => {
