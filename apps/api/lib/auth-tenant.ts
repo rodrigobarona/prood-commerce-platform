@@ -14,6 +14,8 @@ export interface ApiCaller {
   via: "api-key" | "session" | "host" | "agent"
   /** Better Auth user id — used only server-side to resolve commerce customer UUID */
   userId?: string
+  /** Operations an agent was granted. Agents can only use these, whatever their scopes. */
+  capabilities?: string[]
 }
 
 export async function resolveApiCaller(): Promise<ApiCaller | null> {

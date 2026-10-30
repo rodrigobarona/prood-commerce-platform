@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { APIError } from "better-auth/api"
 import { headers } from "next/headers"
 import { getAuth } from "@/lib/auth/server"
 import { requireActiveOrg } from "@/lib/admin"
@@ -25,22 +26,17 @@ export async function createApiKeyAction(
   if (scopes.length === 0) return { error: "Select at least one scope." }
 
   const orgId = await requireActiveOrg()
-  const result = await getAuth().api.createApiKey({
-    headers: await headers(),
-    body: {
-      name,
-      prefix: "pk",
-      organizationId: orgId,
-      metadata: {
-        organizationId: orgId,
-        scopes,
-      },
-    },
-  })
-
-  const key = (result as { key?: string }).key
-  revalidatePath("/settings/api-keys")
-  return key ? { key } : { error: "API key was created, but no secret was returned." }
+  try {
+    const result = await getAuth().api.createApiKey({
+      headers: await headers(),
+      body: { name, prefix: "pk", organizationId: orgId, metadata: { scopes } },
+    })
+    revalidatePath("/settings/api-keys")
+    return { key: result.key }
+  } catch (err) {
+    if (err instanceof APIError) return { error: err.message }
+    throw err
+  }
 }
 
 export async function revokeApiKeyAction(formData: FormData): Promise<void> {

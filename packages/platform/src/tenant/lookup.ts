@@ -1,5 +1,6 @@
 import { CommerceError } from '@prood/types'
 import { neon, type NeonQueryFunction } from "@neondatabase/serverless"
+import { storeOriginForSlug } from "@prood/types"
 
 // Tenant resolution reads auth-schema tables (organization, tenant_domain),
 // which are not tenant-scoped, so it uses a plain HTTP client.
@@ -79,7 +80,5 @@ export async function getStorefrontIdentity(
   if (!row) throw new CommerceError(`Organization not found: ${organizationId}`, "NOT_FOUND")
 
   if (row.domain) return { name: row.name, origin: `https://${row.domain}` }
-  const url = new URL(storefrontUrl)
-  url.hostname = `${row.slug}.${url.hostname}`
-  return { name: row.name, origin: url.origin }
+  return { name: row.name, origin: storeOriginForSlug(storefrontUrl, row.slug) }
 }

@@ -100,9 +100,9 @@ async function getScopedApprovalRequest(requestId: string) {
     throw new Error("This approval request belongs to a different user.")
   }
 
-  const metadata = parseAgentMetadata(requestAgent.metadata)
-  if (metadata.organizationId !== orgId) {
-    throw new Error("This approval request is not bound to the active organization.")
+  const { organizationId } = parseAgentMetadata(requestAgent.metadata)
+  if (organizationId && organizationId !== orgId) {
+    throw new Error("This agent belongs to a different store. Switch stores to approve it.")
   }
 
   return {
@@ -121,11 +121,6 @@ export async function getApprovalRequest(
   if (!row) return null
 
   const capabilities = parseCapabilities(row.request.capabilities)
-  const organizationId = parseAgentMetadata(row.agent.metadata).organizationId
-
-  if (!organizationId) {
-    throw new Error("This approval request is missing organization metadata.")
-  }
 
   return {
     id: row.request.id,
@@ -139,7 +134,7 @@ export async function getApprovalRequest(
       name: row.agent.name,
       mode: row.agent.mode,
       status: row.agent.status,
-      organizationId,
+      organizationId: row.orgId,
     },
     host: row.host
       ? {
@@ -238,7 +233,13 @@ export async function approveCapabilityRequest(
         .where(eq(approvalRequest.id, requestId)),
       authDb
         .update(agent)
-        .set({ status: "active", activatedAt: now, updatedAt: now })
+        .set({
+          status: "active",
+          activatedAt: now,
+          updatedAt: now,
+          // Approving binds the agent to this store; the API reads it from here.
+          metadata: JSON.stringify({ organizationId: row.orgId }),
+        })
         .where(eq(agent.id, row.agent.id)),
       ...grantUpdates,
       ...grantInserts,

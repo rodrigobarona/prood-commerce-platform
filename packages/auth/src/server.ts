@@ -4,6 +4,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { nextCookies } from "better-auth/next-js"
 import { admin, organization } from "better-auth/plugins"
 import { apiKey } from "@better-auth/api-key"
+import { requiredEnv } from "@prood/types"
 import { authDb } from "./db"
 import * as schema from "./schema"
 import { resolveBetterAuthTrustedOrigins, resolveTrustedOrigins } from "./origins"
@@ -13,18 +14,21 @@ export { resolveBetterAuthTrustedOrigins, resolveTrustedOrigins } from "./origin
 export interface CreateAuthOptions {
   /** Plugins inserted after organization/apiKey and before nextCookies. */
   extraPlugins?: BetterAuthPlugin[]
-  /** Fallback base URL for local development when BETTER_AUTH_URL is unset. */
-  defaultBaseUrl?: string
 }
 
-export function resolveBetterAuthEnv(defaultBaseUrl: string) {
-  const secret = process.env.BETTER_AUTH_SECRET?.trim()
-  if (!secret) {
-    throw new Error("BETTER_AUTH_SECRET is required and must be non-empty")
-  }
+/** Shared secret + issuer URL (apps/api) for every Better Auth instance. */
+/**
+ * API keys belong to a store: the plugin checks membership at creation and
+ * stores the organization as `referenceId`, which is the only tenant binding
+ * to trust. Metadata is client-supplied and only carries the requested scopes.
+ */
+export const storeApiKey = () => apiKey({ references: "organization", enableMetadata: true })
 
-  const baseURL = process.env.BETTER_AUTH_URL?.trim() || defaultBaseUrl
-  return { baseURL, secret }
+export function resolveBetterAuthEnv() {
+  return {
+    secret: requiredEnv(process.env.BETTER_AUTH_SECRET, "BETTER_AUTH_SECRET"),
+    baseURL: requiredEnv(process.env.BETTER_AUTH_URL, "BETTER_AUTH_URL"),
+  }
 }
 
 /**
@@ -32,8 +36,7 @@ export function resolveBetterAuthEnv(defaultBaseUrl: string) {
  * organization plugin, API keys, and optional extra plugins (e.g. agentAuth).
  */
 export function createAuth(options: CreateAuthOptions = {}) {
-  const defaultBaseUrl = options.defaultBaseUrl ?? "http://localhost:3005"
-  const { baseURL, secret } = resolveBetterAuthEnv(defaultBaseUrl)
+  const { baseURL, secret } = resolveBetterAuthEnv()
   const cookieDomain = process.env.AUTH_COOKIE_DOMAIN?.trim()
 
   return betterAuth({
@@ -52,7 +55,7 @@ export function createAuth(options: CreateAuthOptions = {}) {
       : undefined,
     plugins: [
       organization(),
-      apiKey(),
+      storeApiKey(),
       admin({
         defaultRole: "user",
       }),

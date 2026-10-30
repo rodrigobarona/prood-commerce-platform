@@ -2,17 +2,18 @@ import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { nextCookies } from "better-auth/next-js"
 import { admin, organization } from "better-auth/plugins"
-import { apiKey } from "@better-auth/api-key"
 import { agentAuth } from "@better-auth/agent-auth"
 import {
   resolveBetterAuthEnv,
   resolveBetterAuthTrustedOrigins,
+  storeApiKey,
 } from "@prood/auth/server"
 import { authDb } from "@prood/auth/db"
 import * as schema from "@prood/auth/schema"
 import { autoLinkGuestCustomers } from "@prood/platform"
 import { organizationHooks } from "./organization-hooks"
 import { getAgentAuthOpenAPIOptions } from "./agent-config"
+import { requiredEnv } from "@prood/types"
 import { getMailer } from "../mailer"
 
 /**
@@ -21,14 +22,9 @@ import { getMailer } from "../mailer"
  * `betterAuth()` call here).
  */
 function createAuth() {
-  const { secret } = resolveBetterAuthEnv("http://localhost:3005")
-  const baseURL =
-    process.env.API_PUBLIC_URL?.trim() ??
-    process.env.BETTER_AUTH_URL?.trim() ??
-    "http://localhost:3005"
+  const { secret, baseURL } = resolveBetterAuthEnv()
   const cookieDomain = process.env.AUTH_COOKIE_DOMAIN?.trim()
-  const dashboardUrl =
-    process.env.NEXT_PUBLIC_DASHBOARD_URL?.trim() ?? "http://localhost:3002"
+  const dashboardUrl = requiredEnv(process.env.NEXT_PUBLIC_DASHBOARD_URL, "NEXT_PUBLIC_DASHBOARD_URL")
 
   return betterAuth({
     database: drizzleAdapter(authDb, { provider: "pg", schema }),
@@ -100,7 +96,7 @@ function createAuth() {
           })
         },
       }),
-      apiKey(),
+      storeApiKey(),
       admin({ defaultRole: "user" }),
       agentAuth({
         modes: ["delegated", "autonomous"],

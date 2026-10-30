@@ -31,29 +31,15 @@ import {
   isVercelConfigured,
 } from "@/lib/vercel"
 
+import { requiredEnv, storeOriginForSlug } from "@prood/types"
+
 export const metadata = { title: "Domains" }
 
-const PLATFORM_DOMAIN = process.env.NEXT_PUBLIC_PLATFORM_DOMAIN ?? "example.com"
-
 function buildStorefrontUrl(slug: string): string {
-  const host = `${slug}.${PLATFORM_DOMAIN}`
-  const base = process.env.NEXT_PUBLIC_STOREFRONT_URL?.trim()
-
-  let protocol = process.env.NODE_ENV === "development" ? "http" : "https"
-  let port = process.env.NODE_ENV === "development" ? ":3000" : ""
-
-  if (base) {
-    try {
-      const url = new URL(base)
-      protocol = url.protocol.replace(":", "")
-      port =
-        url.port && url.port !== "80" && url.port !== "443" ? `:${url.port}` : ""
-    } catch {
-      /* keep defaults */
-    }
-  }
-
-  return `${protocol}://${host}${port}`
+  return storeOriginForSlug(
+    requiredEnv(process.env.NEXT_PUBLIC_STOREFRONT_URL, "NEXT_PUBLIC_STOREFRONT_URL"),
+    slug
+  )
 }
 
 export default function DomainsPage() {
@@ -81,13 +67,13 @@ async function DomainsContent() {
   if (org) {
     try {
       domains = await listDomains(org.id)
-    } catch {
-      /* DB unavailable */
+    } catch (err) {
+      console.error("[domains] listDomains failed", err)
     }
   }
 
-  const subdomain = org ? `${org.slug}.${PLATFORM_DOMAIN}` : null
   const storefrontUrl = org ? buildStorefrontUrl(org.slug) : null
+  const subdomain = storefrontUrl ? new URL(storefrontUrl).host : null
 
   return (
     <>

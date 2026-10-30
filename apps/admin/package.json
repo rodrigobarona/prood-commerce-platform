@@ -16,6 +16,7 @@
     "@neondatabase/serverless": "catalog:",
     "@phosphor-icons/react": "catalog:",
     "@prood/auth": "workspace:*",
+    "@prood/types": "workspace:*",
     "@prood/ui": "workspace:*",
     "better-auth": "catalog:",
     "drizzle-orm": "catalog:",

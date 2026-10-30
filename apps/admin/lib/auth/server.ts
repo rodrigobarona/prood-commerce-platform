@@ -14,7 +14,7 @@ import { eq, and, gt } from "drizzle-orm"
 // ---------------------------------------------------------------------------
 
 function createAdminAuth() {
-  const { baseURL, secret } = resolveBetterAuthEnv("http://localhost:3005")
+  const { baseURL, secret } = resolveBetterAuthEnv()
   return betterAuth({
     database: drizzleAdapter(authDb, { provider: "pg", schema }),
     emailAndPassword: { enabled: true },

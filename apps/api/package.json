@@ -10,6 +10,7 @@
     "lint": "eslint --max-warnings 0",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push"
   },
@@ -36,6 +37,8 @@
     "@prood/eslint-config": "workspace:^",
     "@prood/typescript-config": "workspace:*",
     "@types/node": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "drizzle-kit": "catalog:",

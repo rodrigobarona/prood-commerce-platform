@@ -47,10 +47,12 @@ Uploaded files are namespaced per tenant: `org/<orgId>/…` via `uploadForTenant
 
 | Variable | Required | Used by | Description |
 | --- | --- | --- | --- |
-| `BETTER_AUTH_SECRET` | Yes (prod) | API, dashboard (SSR), storefront | Session signing secret. Generate: `openssl rand -base64 32` |
-| `BETTER_AUTH_URL` | Yes | **API** (and storefront) | Public origin of the Better Auth HTTP handler. API: `http://localhost:3005`. Storefront: `http://localhost:3000`. Dashboard does **not** host `/api/auth`. |
-| `NEXT_PUBLIC_AUTH_URL` | Yes | Dashboard (browser) | Origin the dashboard auth client calls for sign-in/sign-up/org ops. Same as API: `http://localhost:3005` |
-| `NEXT_PUBLIC_DASHBOARD_URL` | Prod | API (`trustedOrigins`) | Merchant admin URL, e.g. `https://dashboard.prood.com`. On Vercel preview deploys, set this on the **API** project to your dashboard URL (e.g. `https://dashboard-prood.vercel.app`). |
+| `BETTER_AUTH_SECRET` | Yes | API, dashboard, admin, storefront | Session signing secret. Generate: `openssl rand -base64 32` |
+| `BETTER_AUTH_URL` | Yes | API, dashboard, admin | Public origin of the API, which issues all merchant sessions: `http://localhost:3005`. Do not set it on the storefront, which infers its origin per store. |
+| `NEXT_PUBLIC_AUTH_URL` | Yes | Dashboard, admin | Origin their auth proxies forward sign-in/sign-up/org ops to. Same as API: `http://localhost:3005` |
+| `NEXT_PUBLIC_DASHBOARD_URL` | Yes | API, dashboard | Merchant admin URL, e.g. `https://dashboard.prood.com`. On Vercel preview deploys, set this on the **API** project to your dashboard URL (e.g. `https://dashboard-prood.vercel.app`). |
+| `NEXT_PUBLIC_ADMIN_URL` | Yes | API, admin | Platform admin URL, e.g. `https://admin.prood.com`. |
+| `NEXT_PUBLIC_STOREFRONT_URL` | Yes | API, dashboard, storefront | Storefront **apex**, e.g. `https://prood.app`. Stores are its subdomains, so never a single store's host. |
 | `AUTH_COOKIE_DOMAIN` | Prod | API | Shared cookie domain for dashboard + API on `*.prood.com`, e.g. `.prood.com`. Unset locally and on `*.vercel.app` preview URLs (browsers cannot share cookies across separate `*.vercel.app` hostnames). |
 
 ### Seed credentials
@@ -141,7 +143,7 @@ Optional for local dev; required for custom domain provisioning in production:
 | Variable | Description |
 | --- | --- |
 | `NEXT_PUBLIC_DOCS_URL` | Docs site URL (default `http://localhost:3003`) |
-| `NEXT_PUBLIC_STOREFRONT_URL` | Storefront URL for marketing CTAs |
+| `NEXT_PUBLIC_DEMO_STORE_URL` | Demo store linked from the marketing site |
 
 ## Per-app summary
 
