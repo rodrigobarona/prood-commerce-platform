@@ -14,17 +14,13 @@ import {
   updateCart,
   deleteCart,
   findProductById,
-  createOrder as dbCreateOrder,
-  createOrderItem,
-  createOrderHistory,
-  findOrderById,
 } from '../database/index.js'
-import { generateOrderNumber, normalizeLocalizedField } from './helpers.js'
+import { normalizeLocalizedField } from './helpers.js'
 import { getStoreCurrency } from '../tenant/store-info.js'
 import { requireSellable } from './availability.js'
 import { createCartDomain } from './cart.js'
 import { listPaymentMethods, listShippingMethods } from './checkout-methods.js'
-import { mapOrder } from './order-mapper.js'
+import { recordOrder, type OrderLine } from './order-recorder.js'
 
 export function createCheckoutDomain() {
   const cartDomain = createCartDomain()
@@ -66,7 +62,7 @@ export function createCheckoutDomain() {
 
     async placeOrder(
       cartId: string,
-      options?: { status?: string; keepCart?: boolean; customerId?: string; contactEmail?: string },
+      options?: { customerId?: string; contactEmail?: string },
     ): Promise<Order> {
       if (options?.customerId) {
         await updateCart(cartId, { customerId: options.customerId })
@@ -75,84 +71,46 @@ export function createCheckoutDomain() {
       const cart = await cartDomain.getCart(cartId)
 
       if (cart.items.length === 0) {
-        throw new Error('Cannot place order with empty cart')
+        throw new CommerceError('Cannot place an order with an empty cart.', 'VALIDATION', 422)
       }
 
-      // A product can be archived while it sits in a cart.
+      const lines: OrderLine[] = []
       for (const item of cart.items) {
+        // A product can be archived or sell out while it sits in a cart.
         const product = await findProductById(item.productId)
         if (product?.status !== 'active') {
           const name = normalizeLocalizedField(item.name).en ?? item.productId
           throw new CommerceError(`${name} is no longer available.`, 'VALIDATION', 422)
         }
         await requireSellable(product, item.variantId)
-      }
 
-      const orderStatus = options?.status ?? 'placed'
-      const hasPhysicalItems = true
-      const fulfillmentStatus = hasPhysicalItems ? 'unfulfilled' : 'not_required'
-
-      const orderId = crypto.randomUUID()
-      const orderNumber = generateOrderNumber()
-
-      const subtotal = cart.totals.subtotal.amount
-      const shippingCost = cart.totals.shipping?.amount ?? 0
-      const tax = cart.totals.tax?.amount ?? 0
-      const discount = cart.totals.discount?.amount ?? 0
-      const total = subtotal + shippingCost + tax - discount
-
-      const now = new Date()
-
-      await dbCreateOrder({
-        id: orderId,
-        orderNumber,
-        customerId: cart.customerId ?? null,
-        contactEmail: options?.contactEmail ?? null,
-        status: orderStatus,
-        paymentStatus: total === 0 ? 'free' : 'unpaid',
-        fulfillmentStatus,
-        subtotal,
-        shippingCost,
-        tax,
-        discount,
-        total,
-        currency: await getStoreCurrency(),
-        shippingAddress: cart.shippingAddress as any,
-        billingAddress: cart.billingAddress as any,
-        shippingMethod: cart.shippingMethod,
-        paymentMethod: cart.paymentMethod,
-        requiresShipping: true,
-        placedAt: now,
-      })
-
-      for (const item of cart.items) {
-        await createOrderItem({
-          orderId,
+        lines.push({
           productId: item.productId,
-          variantId: item.variantId ?? null,
-          name: typeof item.name === 'object' ? item.name : { en: String(item.name) },
+          variantId: item.variantId,
+          name: item.name,
+          variantName: item.variantName ?? null,
+          image: item.image?.url ?? null,
           quantity: item.quantity,
           price: item.price.amount,
-          totalPrice: item.totalPrice.amount,
-          productType: 'physical',
-          fulfillmentStatus: 'unfulfilled',
+          productType: product.productType,
+          requiresShipping: product.requiresShipping,
         })
       }
 
-      await createOrderHistory({
-        orderId,
-        fromStatus: null,
-        toStatus: orderStatus,
-        note: 'Order placed',
+      const order = await recordOrder({
+        lines,
+        customerId: cart.customerId,
+        contactEmail: options?.contactEmail,
+        shippingAddress: cart.shippingAddress,
+        billingAddress: cart.billingAddress,
+        shippingMethod: cart.shippingMethod,
+        paymentMethod: cart.paymentMethod,
+        couponCode: cart.couponCode,
+        historyNote: 'Order placed',
       })
 
-      if (!options?.keepCart) {
-        await deleteCart(cartId)
-      }
-
-      const order = await findOrderById(orderId)
-      if (!order) throw new Error(`Order not found after creation: ${orderId}`)
-      return mapOrder(order)
+      await deleteCart(cartId)
+      return order
     },
   }
 }

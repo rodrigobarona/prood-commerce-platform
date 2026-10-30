@@ -27,15 +27,18 @@ export function CouponInput({
 
   if (appliedCode) {
     return (
-      <div className={cn("flex items-center justify-between rounded-2xl border px-3 py-2", className)}>
-        <span className="text-sm">
-          Coupon <span className="font-medium">{appliedCode}</span> applied
-        </span>
-        {onRemove ? (
-          <Button type="button" variant="ghost" size="icon" onClick={onRemove} aria-label="Remove coupon">
-            <XIcon />
-          </Button>
-        ) : null}
+      <div className={cn("flex flex-col gap-1", className)}>
+        <div className="flex items-center justify-between rounded-2xl border px-3 py-2">
+          <span className="text-sm">
+            Coupon <span className="font-medium">{appliedCode}</span>{error ? null : " applied"}
+          </span>
+          {onRemove ? (
+            <Button type="button" variant="ghost" size="icon" onClick={onRemove} aria-label="Remove coupon">
+              <XIcon />
+            </Button>
+          ) : null}
+        </div>
+        {error ? <p className="text-destructive text-xs">{error}</p> : null}
       </div>
     )
   }
