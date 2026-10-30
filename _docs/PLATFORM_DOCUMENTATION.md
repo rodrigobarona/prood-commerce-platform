@@ -937,9 +937,7 @@ address-form, checkout-header, checkout-footer, checkout-stepper, order-card,
 order-timeline, review-stars, review-card, wishlist-grid, search-palette,
 hero-banner, promo-banner
 
-**Specialized product types:** auction-card, bid-panel, rental-card,
-rental-booking-form, event-card, subscription-card, gift-card-form,
-gift-card-balance, quote-request-form, price-tier-table
+**Specialized product types:** event-card, subscription-card
 
 **Utility exports:**
 - `@prood/ui/lib/utils` — `cn()` class merging
