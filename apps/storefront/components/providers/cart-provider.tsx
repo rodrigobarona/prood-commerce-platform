@@ -3,7 +3,7 @@
 import {
   createContext,
   useCallback,
-  useContext,
+  use,
   useEffect,
   useRef,
   useState,
@@ -37,7 +37,7 @@ interface CartContextValue {
 const CartContext = createContext<CartContextValue | null>(null)
 
 export function useCart(): CartContextValue {
-  const ctx = useContext(CartContext)
+  const ctx = use(CartContext)
   if (!ctx) throw new Error("useCart must be used within <CartProvider>")
   return ctx
 }
@@ -249,7 +249,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [mutate])
 
   return (
-    <CartContext.Provider
+    <CartContext
       value={{
         cart,
         itemCount: cart?.itemCount ?? 0,
@@ -274,6 +274,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
         onUpdateQuantity={updateItem}
         onRemove={removeItem}
       />
-    </CartContext.Provider>
+    </CartContext>
   )
 }

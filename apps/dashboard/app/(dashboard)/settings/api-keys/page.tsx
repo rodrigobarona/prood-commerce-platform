@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { unstable_rethrow } from "next/navigation"
 import { Key } from "@phosphor-icons/react/dist/ssr"
 import { DashboardFormPage } from "@/components/layout/dashboard-page"
 import { Badge } from "@prood/ui/components/badge"
@@ -19,6 +20,7 @@ export default async function ApiKeysPage() {
   try {
     keys = await listActiveOrgApiKeys()
   } catch (error) {
+    unstable_rethrow(error)
     console.error("[ApiKeysPage] listActiveOrgApiKeys failed:", error)
     keysError = "Could not load API keys. Try refreshing the page."
   }

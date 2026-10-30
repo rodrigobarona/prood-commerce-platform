@@ -28,6 +28,7 @@
   "devDependencies": {
     "@prood/types": "workspace:*",
     "typescript": "catalog:",
+    "vite": "catalog:",
     "vitest": "catalog:"
   }
 }

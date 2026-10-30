@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useCallback, useContext, useState, type ReactNode } from "react"
+import { createContext, use, useCallback, useState, type ReactNode } from "react"
 
 interface CheckoutContextValue {
   storeName: string | null
@@ -15,7 +15,7 @@ const CheckoutContext = createContext<CheckoutContextValue>({
 })
 
 export function useCheckoutContext() {
-  return useContext(CheckoutContext)
+  return use(CheckoutContext)
 }
 
 export function CheckoutContextProvider({ children }: { children: ReactNode }) {
@@ -31,8 +31,8 @@ export function CheckoutContextProvider({ children }: { children: ReactNode }) {
   )
 
   return (
-    <CheckoutContext.Provider value={{ storeName, returnUrl, setSession }}>
+    <CheckoutContext value={{ storeName, returnUrl, setSession }}>
       {children}
-    </CheckoutContext.Provider>
+    </CheckoutContext>
   )
 }

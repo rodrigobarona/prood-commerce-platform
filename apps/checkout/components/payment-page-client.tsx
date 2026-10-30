@@ -51,9 +51,12 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
   const { setSession } = useCheckoutContext()
 
   useEffect(() => {
-    fetch(`/api/sessions/${sessionId}`)
+    let active = true
+    const controller = new AbortController()
+    fetch(`/api/sessions/${sessionId}`, { signal: controller.signal })
       .then((r) => r.json())
       .then((d: SessionData & { error?: string }) => {
+        if (!active) return
         if (d.error) {
           setError(d.error)
         } else {
@@ -66,9 +69,14 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
         setLoading(false)
       })
       .catch(() => {
+        if (!active) return
         setError("Failed to load session")
         setLoading(false)
       })
+    return () => {
+      active = false
+      controller.abort()
+    }
   }, [sessionId, setSession])
 
   useEffect(() => {
@@ -79,9 +87,12 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
       setTimeLeft(remaining)
       if (remaining <= 0) setError("This payment link has expired")
     }
-    tick()
+    const first = setTimeout(tick, 0)
     const iv = setInterval(tick, 1000)
-    return () => clearInterval(iv)
+    return () => {
+      clearTimeout(first)
+      clearInterval(iv)
+    }
   }, [data?.expiresAt])
 
   async function handlePay() {

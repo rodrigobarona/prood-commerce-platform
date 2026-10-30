@@ -15,6 +15,6 @@ export async function deactivateAgentAction(formData: FormData): Promise<void> {
     revalidatePath("/agents")
   } catch (error) {
     console.error("[deactivateAgentAction] deactivateAgent failed:", error)
-    throw new Error("Could not deactivate agent. Please try again.")
+    throw new Error("Could not deactivate agent. Please try again.", { cause: error })
   }
 }

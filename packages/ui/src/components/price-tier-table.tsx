@@ -20,8 +20,8 @@ export function PriceTierTable({ tiers, locale = "en", className }: PriceTierTab
         </tr>
       </thead>
       <tbody>
-        {tiers.map((tier, i) => (
-          <tr key={i} className="border-b last:border-0">
+        {tiers.map((tier) => (
+          <tr key={tier.minQuantity} className="border-b last:border-0">
             <td className="py-2">
               {tier.label ? (
                 <span className="mr-2 font-medium">{localized(tier.label, locale)}</span>

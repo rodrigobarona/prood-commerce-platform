@@ -13,10 +13,6 @@ const mcpHandler = createMcpHandler(
       name: "prood-commerce",
       version: "1.0.0",
     },
-  },
-  {
-    basePath: "",
-    maxDuration: 60,
     verboseLogs: process.env.NODE_ENV === "development",
   }
 )
