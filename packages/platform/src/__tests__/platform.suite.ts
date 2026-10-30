@@ -9,10 +9,11 @@ import { createPlatformAdapter } from '../adapter.js'
 import { getDb, withTenant } from '../database/drizzle/client.js'
 import { createCustomer } from '../database/drizzle/queries/customers.js'
 import { DEMO_ORG_ID } from '../database/drizzle/seed.js'
-import type { CommerceAdapter, Address, CheckoutAddress, Order, PaginationParams } from '@prood/types'
+import type { PlatformAdapter } from '../adapter.js'
+import type { CheckoutAddress, Order, PaginationParams } from '@prood/types'
 
 /** Helper: create a full Address with all required fields */
-function fullAddress(overrides: Partial<Address> = {}): CheckoutAddress {
+function fullAddress(overrides: Partial<CheckoutAddress> = {}): CheckoutAddress {
   return {
     firstName: 'Ana',
     lastName: 'Silva',
@@ -35,9 +36,9 @@ export interface SuiteOptions {
 }
 
 export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
-  let adapter: CommerceAdapter & { setCurrentCustomer?: (id: string | null) => void }
+  let adapter: PlatformAdapter
 
-  function scopedAdapter<T extends typeof adapter>(target: T): T {
+  function scopedAdapter(target: PlatformAdapter): PlatformAdapter {
     return new Proxy(target, {
       get(target, prop, receiver) {
         const value = Reflect.get(target, prop, receiver)
@@ -46,12 +47,12 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
         return (...args: unknown[]) =>
           withTenant(DEMO_ORG_ID, () => value.apply(target, args))
       },
-    }) as T
+    })
   }
 
   beforeEach(async () => {
     await opts.setup()
-    adapter = scopedAdapter((await createPlatformAdapter()).adapter as typeof adapter)
+    adapter = scopedAdapter((await createPlatformAdapter()).adapter)
   })
 
   async function seedCustomer(firstName: string, lastName: string): Promise<string> {
@@ -364,7 +365,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       const placed = await adapter.placeOrder(cart.id, { customerId })
 
       const order = await adapter.getOrder(placed.id)
-      const customerOrders = await adapter.getCustomerOrders({ customerId } as PaginationParams)
+      const customerOrders = await adapter.getCustomerOrders({ customerId })
       const admin = await asTenant(async (admin) => ({
         order: await admin.getOrder(placed.id),
         list: await admin.listOrders({}),
@@ -399,7 +400,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       await placedOrder({ customerId: other })
 
       const list = (params: PaginationParams) =>
-        adapter.getCustomerOrders({ ...params, customerId } as PaginationParams)
+        adapter.getCustomerOrders({ ...params, customerId })
 
       const first = await list({ page: 1, perPage: 2 })
       expect(first.items).toHaveLength(2)
@@ -667,7 +668,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
 
   it('should manage addresses when a customer session is set', async () => {
     const customerId = await seedCustomer('Addr', 'User')
-    adapter.setCurrentCustomer!(customerId)
+    adapter.setCurrentCustomer(customerId)
 
     // Add
     const addr = await adapter.addAddress(fullAddress())

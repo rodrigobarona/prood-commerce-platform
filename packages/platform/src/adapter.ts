@@ -2,7 +2,7 @@
 // PlatformAdapter — native commerce engine implementing CommerceAdapter
 // ---------------------------------------------------------------------------
 
-import type { CommerceAdapter, AdapterDomain } from '@prood/types'
+import type { CommerceAdapter, ReturnRequest } from '@prood/types'
 import type { PlatformConfig } from './types.js'
 import type { AdminAPI } from './admin/types.js'
 import { createAdminAPI } from './admin/index.js'
@@ -42,10 +42,18 @@ async function initDatabase(connectionString: string) {
   initDrizzle(connectionString)
 }
 
+/** The platform's CommerceAdapter, plus what only the native engine offers. */
+export interface PlatformAdapter extends CommerceAdapter {
+  /** Set the customer that address-book and profile calls act for */
+  setCurrentCustomer(id: string | null): void
+  /** All return requests of an order */
+  getOrderReturns(orderId: string): Promise<ReturnRequest[]>
+}
+
 /** Result of createPlatformAdapter — storefront adapter + admin API */
 export interface PlatformAdapterResult {
   /** Storefront adapter implementing CommerceAdapter */
-  adapter: CommerceAdapter
+  adapter: PlatformAdapter
   /** Admin API for merchant operations (platform-only) */
   admin: AdminAPI
 }
@@ -86,9 +94,9 @@ export async function createPlatformAdapter(config: PlatformConfig = {}): Promis
   // Build the admin API
   const admin = createAdminAPI(currency)
 
-  const adapter = {
+  const adapter: PlatformAdapter = {
     name: 'prood',
-    capabilities: ['catalog', 'cart', 'checkout', 'orders', 'customers', 'store', 'brands', 'countries', 'wishlist', 'reviews', 'promotions', 'returns'] as AdapterDomain[],
+    capabilities: ['catalog', 'cart', 'checkout', 'orders', 'customers', 'store', 'brands', 'countries', 'wishlist', 'reviews', 'promotions', 'returns'],
 
     // ---- Catalog ----
     getProduct: catalog.getProduct,
@@ -111,8 +119,7 @@ export async function createPlatformAdapter(config: PlatformConfig = {}): Promis
     setShippingMethod: checkout.setShippingMethod,
     getPaymentMethods: checkout.getPaymentMethods,
     setPaymentMethod: checkout.setPaymentMethod,
-    placeOrder: (cartId: string, options?: { customerId?: string }) =>
-      checkout.placeOrder(cartId, options),
+    placeOrder: checkout.placeOrder,
 
     // ---- Customers ----
     login: customers.login,
@@ -168,7 +175,7 @@ export async function createPlatformAdapter(config: PlatformConfig = {}): Promis
     getReturns: returnsDomain.getReturns,
     getOrderReturns: returnsDomain.getOrderReturns,
     cancelReturn: returnsDomain.cancelReturn,
-  } as CommerceAdapter
+  }
 
   return { adapter, admin }
 }

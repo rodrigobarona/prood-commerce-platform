@@ -41,6 +41,14 @@ export interface GetCategoriesParams {
   depth?: number
 }
 
+export interface CustomerOrdersParams extends PaginationParams {
+  /** Whose orders to list. Without one the result is empty. */
+  customerId?: string
+}
+
+/** A new address-book entry: not the default unless it says so. */
+export type AddressInput = CheckoutAddress & { isDefault?: boolean }
+
 export interface AddToCartInput {
   productId: string
   variantId?: string
@@ -131,10 +139,10 @@ export interface CheckoutAdapter<
 export interface CustomerAdapter<
   TCustomer extends Customer = Customer,
 > {
-  /** Authenticate a customer */
+  /** Authenticate a customer. Better Auth owns this: throws NOT_SUPPORTED. */
   login(email: string, password: string): Promise<TCustomer>
 
-  /** Register a new customer */
+  /** Register a new customer. Better Auth owns this: throws NOT_SUPPORTED. */
   register(input: RegisterInput): Promise<TCustomer>
 
   /** Get the currently authenticated customer */
@@ -148,10 +156,10 @@ export interface CustomerAdapter<
 
   // ---- Password Reset ----
 
-  /** Send a password reset email / OTP */
+  /** Send a password reset email. Better Auth owns this: throws NOT_SUPPORTED. */
   forgotPassword(email: string): Promise<void>
 
-  /** Reset password using a token/OTP received via email */
+  /** Reset a password. Better Auth owns this: throws NOT_SUPPORTED. */
   resetPassword(token: string, newPassword: string): Promise<void>
 
   // ---- Address Book ----
@@ -160,7 +168,7 @@ export interface CustomerAdapter<
   getAddresses(): Promise<Address[]>
 
   /** Add a new address to the customer's address book */
-  addAddress(address: Omit<Address, 'id'>): Promise<Address>
+  addAddress(address: AddressInput): Promise<Address>
 
   /** Update an existing address */
   updateAddress(addressId: string, address: Partial<Omit<Address, 'id'>>): Promise<Address>
@@ -183,8 +191,8 @@ export interface OrderAdapter<TOrder extends Order = Order> {
   /** Get a single order by ID */
   getOrder(orderId: string): Promise<TOrder>
 
-  /** Get paginated list of orders (optionally filtered by customer) */
-  getCustomerOrders(params?: PaginationParams): Promise<PaginatedResult<TOrder>>
+  /** Get paginated list of a customer's orders */
+  getCustomerOrders(params?: CustomerOrdersParams): Promise<PaginatedResult<TOrder>>
 
   /** Get all available order statuses (with labels, colors, icons) */
   getOrderStatuses(): Promise<OrderStatusInfo[]>
@@ -213,14 +221,14 @@ export interface OrderAdapter<TOrder extends Order = Order> {
  * Wishlist operations — favorites / saved items.
  */
 export interface WishlistAdapter<TWishlist extends Wishlist = Wishlist> {
-  /** Get the authenticated customer's wishlist */
-  getWishlist(): Promise<TWishlist>
+  /** Get a customer's wishlist */
+  getWishlist(customerId?: string): Promise<TWishlist>
 
-  /** Add a product to the wishlist */
-  addToWishlist(productId: string, variantId?: string): Promise<TWishlist>
+  /** Add a product to a customer's wishlist */
+  addToWishlist(productId: string, variantId?: string, customerId?: string): Promise<TWishlist>
 
-  /** Remove an item from the wishlist */
-  removeFromWishlist(itemId: string): Promise<TWishlist>
+  /** Remove a product from a customer's wishlist */
+  removeFromWishlist(productId: string, customerId?: string): Promise<TWishlist>
 }
 
 /**
@@ -252,8 +260,8 @@ export interface PromotionAdapter {
   /** Get all currently active promotions */
   getActivePromotions(): Promise<Promotion[]>
 
-  /** Validate a coupon code and return coupon details */
-  validateCoupon(code: string): Promise<Coupon>
+  /** Look up a coupon code and whether it can be used now; null if unknown */
+  validateCoupon(code: string): Promise<Coupon | null>
 }
 
 /**
@@ -266,8 +274,8 @@ export interface ReturnAdapter {
   /** Get paginated list of customer's return requests */
   getReturns(params?: PaginationParams): Promise<PaginatedResult<ReturnRequest>>
 
-  /** Get a single return request by ID */
-  getReturn(returnId: string): Promise<ReturnRequest>
+  /** Get a single return request by ID; null if unknown */
+  getReturn(returnId: string): Promise<ReturnRequest | null>
 
   /** Cancel a return request (only if status is 'requested') */
   cancelReturn(returnId: string): Promise<ReturnRequest>

@@ -22,6 +22,7 @@ export interface Review {
 /** Input for submitting a product review */
 export interface ReviewInput {
   productId: string
+  authorName: string
   rating: number
   title?: string
   body?: string

@@ -6,7 +6,7 @@
 
 // Adapter
 export { createPlatformAdapter } from './adapter.js'
-export type { PlatformAdapterResult } from './adapter.js'
+export type { PlatformAdapter, PlatformAdapterResult } from './adapter.js'
 
 // Admin API
 export { createAdminAPI } from './admin/index.js'

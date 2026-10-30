@@ -6,7 +6,7 @@ import { CommerceError } from '@prood/types'
 import type {
   Order,
   CreateOrderInput,
-  PaginationParams,
+  CustomerOrdersParams,
   PaginatedResult,
   OrderStatusInfo,
   OrderHistoryEntry,
@@ -82,9 +82,7 @@ export function createOrdersDomain(currency: string) {
       return mapOrder(row)
     },
 
-    async getCustomerOrders(
-      params?: PaginationParams & { customerId?: string },
-    ): Promise<PaginatedResult<Order>> {
+    async getCustomerOrders(params?: CustomerOrdersParams): Promise<PaginatedResult<Order>> {
       const page = params?.page ?? 1
       const perPage = params?.perPage ?? 20
       const offset = (page - 1) * perPage

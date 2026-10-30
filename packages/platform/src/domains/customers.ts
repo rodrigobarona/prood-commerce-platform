@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import { CommerceError } from '@prood/types'
-import type { Customer, Address, UpdateCustomerInput } from '@prood/types'
+import type { Customer, Address, AddressInput, UpdateCustomerInput } from '@prood/types'
 import {
   findCustomerById,
   updateCustomer as dbUpdateCustomer,
@@ -111,7 +111,7 @@ export function createCustomersDomain() {
       return rows.map(mapAddress)
     },
 
-    async addAddress(address: Omit<Address, 'id'>): Promise<Address> {
+    async addAddress(address: AddressInput): Promise<Address> {
       if (!currentCustomerId) throw new CommerceError('Not authenticated', 'UNAUTHORIZED')
       const id = crypto.randomUUID()
 
