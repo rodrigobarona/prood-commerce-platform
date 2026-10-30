@@ -1,6 +1,6 @@
 "use server"
 
-import type { Address, Order } from "@prood/types"
+import type { CheckoutAddress } from "@prood/types"
 import { unwrap } from "@prood/api-client"
 import { headers } from "next/headers"
 import { clearCartId, getCartId } from "@/lib/cart-cookie"
@@ -8,8 +8,6 @@ import { getCommerceApi } from "@/lib/commerce-api"
 import { resolveTenantId } from "@/lib/tenant"
 import { fetchStoreInfo } from "@/lib/commerce-data"
 import { localized } from "@prood/ui/lib/commerce"
-
-type CheckoutAddress = Omit<Address, "id" | "isDefault">
 
 export interface CheckoutResult {
   ok: boolean
@@ -69,7 +67,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
       )
     }
 
-    const methods = await unwrap<{ id: string }[]>(
+    const methods = await unwrap(
       api.GET("/carts/{id}/shipping-methods", { params: { path: { id: cartId } } })
     )
     const methodId = input.shippingMethodId ?? methods[0]?.id
@@ -82,7 +80,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
       )
     }
 
-    const order = await unwrap<Order>(
+    const order = await unwrap(
       api.POST("/carts/{id}/place-order", {
         params: { path: { id: cartId } },
         body: { email: input.email || undefined, providerId: input.providerId },
@@ -99,7 +97,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
     let storeName: string | undefined
     try {
       const store = await fetchStoreInfo()
-      if (store) storeName = localized(store.name) || undefined
+      storeName = localized(store.name) || undefined
     } catch {
       // non-critical — checkout works without store name
     }

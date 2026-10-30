@@ -29,10 +29,8 @@ export default async function HomePage() {
   }
   try {
     const store = await fetchStoreInfo()
-    if (store) {
-      storeName = localized(store.name) || storeName
-      tagline = store.description ? localized(store.description) : undefined
-    }
+    storeName = localized(store.name) || storeName
+    tagline = store.description ? localized(store.description) : undefined
   } catch {
     /* DB unavailable */
   }

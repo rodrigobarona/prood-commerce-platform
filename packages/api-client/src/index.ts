@@ -10,18 +10,30 @@ export interface CommerceErrorBody {
   errors?: { path: string; message: string }[]
 }
 
-/** Unwrap an `openapi-fetch` response, throwing on error or empty data. */
-export async function unwrap<
-  T,
-  TResponse extends { data?: unknown; error?: CommerceErrorBody | unknown } = {
-    data?: unknown
-    error?: CommerceErrorBody | unknown
-  },
->(promise: Promise<TResponse>): Promise<T> {
-  const { data, error } = await promise
+interface ApiResponse {
+  data?: unknown
+  error?: unknown
+  response: Response
+}
+
+type SuccessBody<TResponse extends ApiResponse> = Exclude<TResponse["data"], undefined>
+
+/** The success body of a response; `void` for 204 No Content operations. */
+export type ResponseBody<TResponse extends ApiResponse> = [SuccessBody<TResponse>] extends [never]
+  ? void
+  : SuccessBody<TResponse>
+
+/**
+ * Unwrap an `openapi-fetch` response, throwing on error or on an unexpectedly
+ * empty body. A 204 has no body, so it resolves to nothing.
+ */
+export async function unwrap<TResponse extends ApiResponse>(
+  promise: Promise<TResponse>
+): Promise<ResponseBody<TResponse>> {
+  const { data, error, response } = await promise
   if (error) throw error
-  if (data === undefined) throw new Error("Empty API response")
-  return data as T
+  if (data === undefined && response.status !== 204) throw new Error("Empty API response")
+  return data as ResponseBody<TResponse>
 }
 
 export function isCommerceApiError(error: unknown): error is CommerceErrorBody {
