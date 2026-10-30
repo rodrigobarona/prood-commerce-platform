@@ -71,7 +71,6 @@ export function createCatalogDomain(currency: string) {
         description: c.description ? normalizeLocalizedField(c.description) : null,
         image: c.image ? img(c.image, null) : null,
         parentId: c.parentId ?? null,
-        children: [],
         productCount: null,
       })),
       inStock: Boolean(row.inStock),
@@ -200,7 +199,6 @@ export function createCatalogDomain(currency: string) {
         description: row.description ? normalizeLocalizedField(row.description) : null,
         image: row.image ? img(row.image, null) : null,
         parentId: row.parentId ?? null,
-        children: [],
         productCount: null,
       }))
     },

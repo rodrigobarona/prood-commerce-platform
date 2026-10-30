@@ -110,18 +110,18 @@ export interface UpdateStoreInput {
 
 export interface StoreSettings {
   name: LocalizedField
-  description?: LocalizedField | null
-  logo?: string | null
-  favicon?: string | null
+  description: LocalizedField | null
+  logo: string | null
+  favicon: string | null
   currency: string
   locale: string
   timezone: string
   supportedCurrencies: string[]
   supportedLocales: string[]
-  contactEmail?: string | null
-  contactPhone?: string | null
-  address?: string | null
-  socialLinks?: Record<string, string> | null
+  contactEmail: string | null
+  contactPhone: string | null
+  address: string | null
+  socialLinks: Record<string, string> | null
 }
 
 // ---- Inventory ----

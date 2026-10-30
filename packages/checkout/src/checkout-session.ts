@@ -15,7 +15,7 @@
 //                            failed → payment (retry)
 // ---------------------------------------------------------------------------
 
-import type { Address, PaymentProvider, PaymentSession } from '@prood/types'
+import type { CheckoutAddress, PaymentProvider, PaymentSession } from '@prood/types'
 import { EventEmitter } from './events.js'
 import type {
   CheckoutState,
@@ -106,8 +106,8 @@ export class CheckoutSession extends EventEmitter<CheckoutEvents> {
   // --- Internal state ---
   private _state: CheckoutState = 'idle'
   private _customerInfo: CheckoutCustomerInfo | null = null
-  private _shippingAddress: Omit<Address, 'id' | 'isDefault'> | null = null
-  private _billingAddress: Omit<Address, 'id' | 'isDefault'> | null = null
+  private _shippingAddress: CheckoutAddress | null = null
+  private _billingAddress: CheckoutAddress | null = null
   private _shippingMethodId: string | null = null
   private _paymentSession: PaymentSession | null = null
   private _error: Error | null = null
@@ -134,8 +134,8 @@ export class CheckoutSession extends EventEmitter<CheckoutEvents> {
 
   get state(): CheckoutState { return this._state }
   get customerInfo(): CheckoutCustomerInfo | null { return this._customerInfo }
-  get shippingAddress(): Omit<Address, 'id' | 'isDefault'> | null { return this._shippingAddress }
-  get billingAddress(): Omit<Address, 'id' | 'isDefault'> | null { return this._billingAddress }
+  get shippingAddress(): CheckoutAddress | null { return this._shippingAddress }
+  get billingAddress(): CheckoutAddress | null { return this._billingAddress }
   get shippingMethodId(): string | null { return this._shippingMethodId }
   get paymentSession(): PaymentSession | null { return this._paymentSession }
   get amount(): number { return this._amount }
@@ -168,8 +168,8 @@ export class CheckoutSession extends EventEmitter<CheckoutEvents> {
    * Only available when fulfillment requires an address (shipping, local_delivery).
    */
   setShippingAddress(
-    address: Omit<Address, 'id' | 'isDefault'>,
-    billingAddress?: Omit<Address, 'id' | 'isDefault'>,
+    address: CheckoutAddress,
+    billingAddress?: CheckoutAddress,
   ): void {
     this.assertNotExpired()
     this.assertTransition('shipping')

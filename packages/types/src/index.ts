@@ -24,7 +24,7 @@ export type { Brand } from './brand.js'
 export type { Cart, CartItem, CartTotals } from './cart.js'
 
 // Customer
-export type { Customer, Address, RegisterInput, UpdateCustomerInput } from './customer.js'
+export type { Customer, Address, CheckoutAddress, RegisterInput, UpdateCustomerInput } from './customer.js'
 
 // Order
 export type { Order, OrderItem, OrderStatus, PaymentStatus, OrderFulfillmentStatus, FulfillmentStatus } from './order.js'

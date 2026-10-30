@@ -8,10 +8,10 @@ import { createPlatformAdapter } from '../adapter.js'
 import { withTenant } from '../database/drizzle/client.js'
 import { createCustomer } from '../database/drizzle/queries/customers.js'
 import { DEMO_ORG_ID } from '../database/drizzle/seed.js'
-import type { CommerceAdapter, Address } from '@prood/types'
+import type { CommerceAdapter, Address, CheckoutAddress } from '@prood/types'
 
 /** Helper: create a full Address with all required fields */
-function fullAddress(overrides: Partial<Address> = {}): Omit<Address, 'id' | 'isDefault'> {
+function fullAddress(overrides: Partial<Address> = {}): CheckoutAddress {
   return {
     firstName: 'Ana',
     lastName: 'Silva',

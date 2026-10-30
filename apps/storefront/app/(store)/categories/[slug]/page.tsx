@@ -5,12 +5,7 @@ import { ConnectedProductGrid } from "@/components/commerce/connected-product-gr
 import { fetchCategories, fetchProductList } from "@/lib/commerce-data"
 
 function findBySlug(categories: Category[], slug: string): Category | null {
-  for (const category of categories) {
-    if (category.slug === slug) return category
-    const child = findBySlug(category.children, slug)
-    if (child) return child
-  }
-  return null
+  return categories.find((category) => category.slug === slug) ?? null
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {

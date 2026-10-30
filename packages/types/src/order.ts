@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import type { Id, Image, LocalizedString, Maybe, Price } from './common.js'
-import type { Address } from './customer.js'
+import type { CheckoutAddress } from './customer.js'
 import type { ShippingMethod } from './shipping.js'
 import type { PaymentMethod } from './payment.js'
 import type { CartTotals } from './cart.js'
@@ -76,8 +76,8 @@ export interface Order {
   fulfillmentStatus: OrderFulfillmentStatus
   items: OrderItem[]
   totals: CartTotals
-  shippingAddress: Maybe<Address>
-  billingAddress: Maybe<Address>
+  shippingAddress: Maybe<CheckoutAddress>
+  billingAddress: Maybe<CheckoutAddress>
   shippingMethod: Maybe<ShippingMethod>
   paymentMethod: Maybe<PaymentMethod>
   /** Tracking number from shipping provider */

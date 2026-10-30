@@ -2,7 +2,7 @@
 // Checkout engine types
 // ---------------------------------------------------------------------------
 
-import type { Address, FulfillmentType, PaymentProvider, PaymentSession } from '@prood/types'
+import type { CheckoutAddress, FulfillmentType, PaymentProvider, PaymentSession } from '@prood/types'
 
 // ---- Channel & fulfillment ------------------------------------------------
 
@@ -102,8 +102,8 @@ export interface CheckoutSnapshot {
   fulfillment: CheckoutFulfillment
   expiresAt: string | null
   customerInfo: CheckoutCustomerInfo | null
-  shippingAddress: Omit<Address, 'id' | 'isDefault'> | null
-  billingAddress: Omit<Address, 'id' | 'isDefault'> | null
+  shippingAddress: CheckoutAddress | null
+  billingAddress: CheckoutAddress | null
   shippingMethodId: string | null
   paymentSession: PaymentSession | null
   amount: number

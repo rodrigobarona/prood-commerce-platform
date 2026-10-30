@@ -21,7 +21,6 @@ function mapCategory(row: any): Category {
     description: row.description ? normalizeLocalizedField(row.description) : null,
     image: row.image ? img(row.image, null) : null,
     parentId: row.parentId ?? null,
-    children: [],
     productCount: null,
   }
 }

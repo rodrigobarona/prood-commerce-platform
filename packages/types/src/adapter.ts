@@ -13,7 +13,7 @@ import type { PaginatedResult, PaginationParams } from './common.js'
 import type { Product } from './product.js'
 import type { Category } from './category.js'
 import type { Cart } from './cart.js'
-import type { Customer, Address, RegisterInput, UpdateCustomerInput } from './customer.js'
+import type { Customer, Address, CheckoutAddress, RegisterInput, UpdateCustomerInput } from './customer.js'
 import type { Order } from './order.js'
 import type { PaymentEventInput, PaymentEventResult } from './order-status.js'
 import type { ShippingMethod } from './shipping.js'
@@ -107,10 +107,10 @@ export interface CheckoutAdapter<
   getShippingMethods(cartId: string): Promise<ShippingMethod[]>
 
   /** Set the shipping address */
-  setShippingAddress(cartId: string, address: Omit<Address, 'id' | 'isDefault'>): Promise<TCart>
+  setShippingAddress(cartId: string, address: CheckoutAddress): Promise<TCart>
 
   /** Set the billing address */
-  setBillingAddress(cartId: string, address: Omit<Address, 'id' | 'isDefault'>): Promise<TCart>
+  setBillingAddress(cartId: string, address: CheckoutAddress): Promise<TCart>
 
   /** Select a shipping method */
   setShippingMethod(cartId: string, methodId: string): Promise<TCart>

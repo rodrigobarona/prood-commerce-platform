@@ -62,7 +62,6 @@ function mapProduct(row: any, related: {
       description: c.description ? normalizeLocalizedField(c.description) : null,
       image: c.image ? img(c.image, null) : null,
       parentId: c.parentId ?? null,
-      children: [],
       productCount: null,
     })),
     inStock: Boolean(row.inStock),
