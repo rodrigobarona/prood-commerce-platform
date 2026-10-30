@@ -789,98 +789,187 @@ export interface operations {
                 content: {
                     "application/json": {
                         products: {
-                            items: ({
+                            items: {
                                 id: string;
-                                sku?: string | null;
+                                sku: string | null;
                                 name: {
                                     [key: string]: string;
                                 };
                                 slug: string;
-                                description?: {
+                                description: {
                                     [key: string]: string;
                                 } | null;
-                                shortDescription?: {
+                                shortDescription: {
                                     [key: string]: string;
                                 } | null;
-                                price?: ({
+                                price: {
                                     amount: number;
                                     currency: string;
                                     formatted: string;
-                                } & {
-                                    [key: string]: unknown;
-                                }) | null;
-                                primaryImage?: ({
+                                    originalAmount?: number;
+                                    discountPercent?: number;
+                                } | null;
+                                primaryImage: {
                                     url: string;
                                     alt: string;
                                     width?: number;
                                     height?: number;
-                                } & {
-                                    [key: string]: unknown;
-                                }) | null;
-                                gallery?: ({
+                                } | null;
+                                gallery: {
                                     url: string;
                                     alt: string;
                                     width?: number;
                                     height?: number;
-                                } & {
-                                    [key: string]: unknown;
-                                })[];
-                                variants?: {
-                                    [key: string]: unknown;
                                 }[];
-                                options?: {
-                                    [key: string]: unknown;
+                                rating: {
+                                    average: number;
+                                    count: number;
+                                } | null;
+                                variants: {
+                                    id: string;
+                                    sku: string | null;
+                                    name: {
+                                        [key: string]: string;
+                                    } | null;
+                                    price: {
+                                        amount: number;
+                                        currency: string;
+                                        formatted: string;
+                                        originalAmount?: number;
+                                        discountPercent?: number;
+                                    } | null;
+                                    attributes: {
+                                        code: string;
+                                        name: {
+                                            [key: string]: string;
+                                        };
+                                        value: {
+                                            [key: string]: string;
+                                        };
+                                    }[];
+                                    inStock: boolean;
+                                    inventoryQuantity: number | null;
                                 }[];
-                                attributes?: {
-                                    [key: string]: unknown;
+                                options: {
+                                    id: string;
+                                    name: {
+                                        [key: string]: string;
+                                    };
+                                    values: {
+                                        id: string;
+                                        name: {
+                                            [key: string]: string;
+                                        };
+                                    }[];
                                 }[];
-                                categories?: ({
+                                attributes: {
+                                    code: string;
+                                    name: {
+                                        [key: string]: string;
+                                    };
+                                    value: {
+                                        [key: string]: string;
+                                    };
+                                }[];
+                                quantityLimit: number | null;
+                                categories: {
                                     id: string;
                                     name: {
                                         [key: string]: string;
                                     };
                                     slug: string;
-                                    description?: {
+                                    description: {
                                         [key: string]: string;
                                     } | null;
-                                    image?: ({
+                                    image: {
                                         url: string;
                                         alt: string;
                                         width?: number;
                                         height?: number;
-                                    } & {
-                                        [key: string]: unknown;
-                                    }) | null;
-                                    parentId?: string | null;
-                                    children?: {
-                                        [key: string]: unknown;
-                                    }[];
-                                    productCount?: number | null;
-                                } & {
-                                    [key: string]: unknown;
-                                })[];
+                                    } | null;
+                                    parentId: string | null;
+                                    productCount: number | null;
+                                }[];
                                 inStock: boolean;
-                                tags?: string[];
-                                createdAt?: string;
-                                updatedAt?: string;
-                                productType?: string;
-                                status?: string | null;
-                            } & {
-                                [key: string]: unknown;
-                            })[];
+                                vatIncluded: boolean;
+                                vatRate: number | null;
+                                tags: string[];
+                                createdAt: string;
+                                updatedAt: string;
+                                /** @enum {string} */
+                                productType: "physical" | "digital" | "service" | "event" | "subscription";
+                                digital: {
+                                    downloadUrl: string | null;
+                                    fileSize: number | null;
+                                    fileType: string | null;
+                                    licenseKey: string | null;
+                                    maxDownloads: number | null;
+                                    expiresInHours: number | null;
+                                } | null;
+                                service: {
+                                    durationMinutes: number | null;
+                                    requiresBooking: boolean;
+                                    /** @enum {string} */
+                                    deliveryMode: "in_person" | "remote" | "hybrid";
+                                } | null;
+                                event: {
+                                    startDate: string;
+                                    endDate: string | null;
+                                    venue: {
+                                        [key: string]: string;
+                                    } | null;
+                                    location: string | null;
+                                    isVirtual: boolean;
+                                    seatInfo: string | null;
+                                    capacity: number | null;
+                                } | null;
+                                subscription: {
+                                    /** @enum {string} */
+                                    interval: "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
+                                    intervalCount: number;
+                                    trialDays: number;
+                                    recurringPrice: {
+                                        amount: number;
+                                        currency: string;
+                                        formatted: string;
+                                    };
+                                } | null;
+                                preOrder: {
+                                    enabled: boolean;
+                                    releaseDate: string | null;
+                                    depositAmount: {
+                                        amount: number;
+                                        currency: string;
+                                        formatted: string;
+                                    } | null;
+                                    message: {
+                                        [key: string]: string;
+                                    } | null;
+                                } | null;
+                                requiresShipping: boolean;
+                                isDropshipped: boolean;
+                                status: string | null;
+                            }[];
                             total: number;
-                            page?: number;
-                            perPage?: number;
-                            hasMore?: boolean;
-                        } & {
-                            [key: string]: unknown;
+                            page: number;
+                            perPage: number;
+                            hasMore: boolean;
                         };
                         facets: {
-                            [key: string]: unknown;
+                            name: {
+                                [key: string]: string;
+                            };
+                            code: string;
+                            values: {
+                                label: {
+                                    [key: string]: string;
+                                };
+                                value: string;
+                                count: number;
+                                selected: boolean;
+                            }[];
                         }[];
-                        suggestions?: string[] | null;
-                    } & {
-                        [key: string]: unknown;
+                        suggestions: string[] | null;
                     };
                 };
             };
@@ -953,82 +1042,164 @@ export interface operations {
                 content: {
                     "application/json": {
                         id: string;
-                        sku?: string | null;
+                        sku: string | null;
                         name: {
                             [key: string]: string;
                         };
                         slug: string;
-                        description?: {
+                        description: {
                             [key: string]: string;
                         } | null;
-                        shortDescription?: {
+                        shortDescription: {
                             [key: string]: string;
                         } | null;
-                        price?: ({
+                        price: {
                             amount: number;
                             currency: string;
                             formatted: string;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        primaryImage?: ({
+                            originalAmount?: number;
+                            discountPercent?: number;
+                        } | null;
+                        primaryImage: {
                             url: string;
                             alt: string;
                             width?: number;
                             height?: number;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        gallery?: ({
+                        } | null;
+                        gallery: {
                             url: string;
                             alt: string;
                             width?: number;
                             height?: number;
-                        } & {
-                            [key: string]: unknown;
-                        })[];
-                        variants?: {
-                            [key: string]: unknown;
                         }[];
-                        options?: {
-                            [key: string]: unknown;
+                        rating: {
+                            average: number;
+                            count: number;
+                        } | null;
+                        variants: {
+                            id: string;
+                            sku: string | null;
+                            name: {
+                                [key: string]: string;
+                            } | null;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                                originalAmount?: number;
+                                discountPercent?: number;
+                            } | null;
+                            attributes: {
+                                code: string;
+                                name: {
+                                    [key: string]: string;
+                                };
+                                value: {
+                                    [key: string]: string;
+                                };
+                            }[];
+                            inStock: boolean;
+                            inventoryQuantity: number | null;
                         }[];
-                        attributes?: {
-                            [key: string]: unknown;
+                        options: {
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            values: {
+                                id: string;
+                                name: {
+                                    [key: string]: string;
+                                };
+                            }[];
                         }[];
-                        categories?: ({
+                        attributes: {
+                            code: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            value: {
+                                [key: string]: string;
+                            };
+                        }[];
+                        quantityLimit: number | null;
+                        categories: {
                             id: string;
                             name: {
                                 [key: string]: string;
                             };
                             slug: string;
-                            description?: {
+                            description: {
                                 [key: string]: string;
                             } | null;
-                            image?: ({
+                            image: {
                                 url: string;
                                 alt: string;
                                 width?: number;
                                 height?: number;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            parentId?: string | null;
-                            children?: {
-                                [key: string]: unknown;
-                            }[];
-                            productCount?: number | null;
-                        } & {
-                            [key: string]: unknown;
-                        })[];
+                            } | null;
+                            parentId: string | null;
+                            productCount: number | null;
+                        }[];
                         inStock: boolean;
-                        tags?: string[];
-                        createdAt?: string;
-                        updatedAt?: string;
-                        productType?: string;
-                        status?: string | null;
-                    } & {
-                        [key: string]: unknown;
+                        vatIncluded: boolean;
+                        vatRate: number | null;
+                        tags: string[];
+                        createdAt: string;
+                        updatedAt: string;
+                        /** @enum {string} */
+                        productType: "physical" | "digital" | "service" | "event" | "subscription";
+                        digital: {
+                            downloadUrl: string | null;
+                            fileSize: number | null;
+                            fileType: string | null;
+                            licenseKey: string | null;
+                            maxDownloads: number | null;
+                            expiresInHours: number | null;
+                        } | null;
+                        service: {
+                            durationMinutes: number | null;
+                            requiresBooking: boolean;
+                            /** @enum {string} */
+                            deliveryMode: "in_person" | "remote" | "hybrid";
+                        } | null;
+                        event: {
+                            startDate: string;
+                            endDate: string | null;
+                            venue: {
+                                [key: string]: string;
+                            } | null;
+                            location: string | null;
+                            isVirtual: boolean;
+                            seatInfo: string | null;
+                            capacity: number | null;
+                        } | null;
+                        subscription: {
+                            /** @enum {string} */
+                            interval: "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
+                            intervalCount: number;
+                            trialDays: number;
+                            recurringPrice: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            };
+                        } | null;
+                        preOrder: {
+                            enabled: boolean;
+                            releaseDate: string | null;
+                            depositAmount: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } | null;
+                            message: {
+                                [key: string]: string;
+                            } | null;
+                        } | null;
+                        requiresShipping: boolean;
+                        isDropshipped: boolean;
+                        status: string | null;
                     };
                 };
             };
@@ -1101,82 +1272,164 @@ export interface operations {
                 content: {
                     "application/json": {
                         id: string;
-                        sku?: string | null;
+                        sku: string | null;
                         name: {
                             [key: string]: string;
                         };
                         slug: string;
-                        description?: {
+                        description: {
                             [key: string]: string;
                         } | null;
-                        shortDescription?: {
+                        shortDescription: {
                             [key: string]: string;
                         } | null;
-                        price?: ({
+                        price: {
                             amount: number;
                             currency: string;
                             formatted: string;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        primaryImage?: ({
+                            originalAmount?: number;
+                            discountPercent?: number;
+                        } | null;
+                        primaryImage: {
                             url: string;
                             alt: string;
                             width?: number;
                             height?: number;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        gallery?: ({
+                        } | null;
+                        gallery: {
                             url: string;
                             alt: string;
                             width?: number;
                             height?: number;
-                        } & {
-                            [key: string]: unknown;
-                        })[];
-                        variants?: {
-                            [key: string]: unknown;
                         }[];
-                        options?: {
-                            [key: string]: unknown;
+                        rating: {
+                            average: number;
+                            count: number;
+                        } | null;
+                        variants: {
+                            id: string;
+                            sku: string | null;
+                            name: {
+                                [key: string]: string;
+                            } | null;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                                originalAmount?: number;
+                                discountPercent?: number;
+                            } | null;
+                            attributes: {
+                                code: string;
+                                name: {
+                                    [key: string]: string;
+                                };
+                                value: {
+                                    [key: string]: string;
+                                };
+                            }[];
+                            inStock: boolean;
+                            inventoryQuantity: number | null;
                         }[];
-                        attributes?: {
-                            [key: string]: unknown;
+                        options: {
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            values: {
+                                id: string;
+                                name: {
+                                    [key: string]: string;
+                                };
+                            }[];
                         }[];
-                        categories?: ({
+                        attributes: {
+                            code: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            value: {
+                                [key: string]: string;
+                            };
+                        }[];
+                        quantityLimit: number | null;
+                        categories: {
                             id: string;
                             name: {
                                 [key: string]: string;
                             };
                             slug: string;
-                            description?: {
+                            description: {
                                 [key: string]: string;
                             } | null;
-                            image?: ({
+                            image: {
                                 url: string;
                                 alt: string;
                                 width?: number;
                                 height?: number;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            parentId?: string | null;
-                            children?: {
-                                [key: string]: unknown;
-                            }[];
-                            productCount?: number | null;
-                        } & {
-                            [key: string]: unknown;
-                        })[];
+                            } | null;
+                            parentId: string | null;
+                            productCount: number | null;
+                        }[];
                         inStock: boolean;
-                        tags?: string[];
-                        createdAt?: string;
-                        updatedAt?: string;
-                        productType?: string;
-                        status?: string | null;
-                    } & {
-                        [key: string]: unknown;
+                        vatIncluded: boolean;
+                        vatRate: number | null;
+                        tags: string[];
+                        createdAt: string;
+                        updatedAt: string;
+                        /** @enum {string} */
+                        productType: "physical" | "digital" | "service" | "event" | "subscription";
+                        digital: {
+                            downloadUrl: string | null;
+                            fileSize: number | null;
+                            fileType: string | null;
+                            licenseKey: string | null;
+                            maxDownloads: number | null;
+                            expiresInHours: number | null;
+                        } | null;
+                        service: {
+                            durationMinutes: number | null;
+                            requiresBooking: boolean;
+                            /** @enum {string} */
+                            deliveryMode: "in_person" | "remote" | "hybrid";
+                        } | null;
+                        event: {
+                            startDate: string;
+                            endDate: string | null;
+                            venue: {
+                                [key: string]: string;
+                            } | null;
+                            location: string | null;
+                            isVirtual: boolean;
+                            seatInfo: string | null;
+                            capacity: number | null;
+                        } | null;
+                        subscription: {
+                            /** @enum {string} */
+                            interval: "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
+                            intervalCount: number;
+                            trialDays: number;
+                            recurringPrice: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            };
+                        } | null;
+                        preOrder: {
+                            enabled: boolean;
+                            releaseDate: string | null;
+                            depositAmount: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } | null;
+                            message: {
+                                [key: string]: string;
+                            } | null;
+                        } | null;
+                        requiresShipping: boolean;
+                        isDropshipped: boolean;
+                        status: string | null;
                     };
                 };
             };
@@ -1264,31 +1517,24 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": ({
+                    "application/json": {
                         id: string;
                         name: {
                             [key: string]: string;
                         };
                         slug: string;
-                        description?: {
+                        description: {
                             [key: string]: string;
                         } | null;
-                        image?: ({
+                        image: {
                             url: string;
                             alt: string;
                             width?: number;
                             height?: number;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        parentId?: string | null;
-                        children?: {
-                            [key: string]: unknown;
-                        }[];
-                        productCount?: number | null;
-                    } & {
-                        [key: string]: unknown;
-                    })[];
+                        } | null;
+                        parentId: string | null;
+                        productCount: number | null;
+                    }[];
                 };
             };
             /** @description Unauthorized */
@@ -1360,26 +1606,28 @@ export interface operations {
                         name: {
                             [key: string]: string;
                         };
-                        description?: {
+                        description: {
                             [key: string]: string;
                         } | null;
-                        logo?: ({
+                        logo: {
                             url: string;
                             alt: string;
                             width?: number;
                             height?: number;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
+                        } | null;
                         currencies: {
-                            [key: string]: unknown;
+                            code: string;
+                            symbol: string;
+                            isDefault: boolean;
                         }[];
                         locales: {
-                            [key: string]: unknown;
+                            code: string;
+                            name: string;
+                            /** @enum {string} */
+                            direction: "ltr" | "rtl";
+                            isDefault: boolean;
                         }[];
                         country: string;
-                    } & {
-                        [key: string]: unknown;
                     };
                 };
             };
@@ -1448,20 +1696,18 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": ({
+                    "application/json": {
                         id: string;
                         code: string;
-                        iso3?: string | null;
+                        iso3: string | null;
                         name: {
                             [key: string]: string;
                         };
-                        flag?: string | null;
-                        callingCode?: string | null;
-                        currency?: string | null;
-                        capital?: string | null;
-                    } & {
-                        [key: string]: unknown;
-                    })[];
+                        flag: string | null;
+                        callingCode: string | null;
+                        currency: string | null;
+                        capital: string | null;
+                    }[];
                 };
             };
             /** @description Unauthorized */
@@ -1531,73 +1777,65 @@ export interface operations {
                 content: {
                     "application/json": {
                         id: string;
-                        items: ({
+                        items: {
                             id: string;
                             productId: string;
                             productSlug?: string;
-                            variantId?: string | null;
+                            variantId: string | null;
                             name: {
                                 [key: string]: string;
                             };
+                            variantName?: {
+                                [key: string]: string;
+                            };
+                            image: {
+                                url: string;
+                                alt: string;
+                                width?: number;
+                                height?: number;
+                            } | null;
                             quantity: number;
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
+                                originalAmount?: number;
+                                discountPercent?: number;
                             };
                             totalPrice: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
-                        })[];
+                        }[];
                         totals: {
                             subtotal: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                            shipping?: ({
+                            shipping: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            tax?: ({
+                            } | null;
+                            tax: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            discount?: ({
+                            } | null;
+                            discount: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
+                            } | null;
                             total: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
                         };
-                        shippingAddress?: ({
-                            id?: string;
+                        shippingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -1607,12 +1845,8 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        billingAddress?: ({
-                            id?: string;
+                        } | null;
+                        billingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -1622,55 +1856,45 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        shippingMethod?: ({
+                        } | null;
+                        shippingMethod: {
                             id: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            fulfillmentType: string;
+                            /** @enum {string} */
+                            fulfillmentType: "shipping" | "local_delivery" | "pickup";
                             estimatedDays: {
                                 min: number;
                                 max: number;
-                            } & {
-                                [key: string]: unknown;
                             };
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
                             cashOnDelivery: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        paymentMethod?: ({
+                        } | null;
+                        paymentMethod: {
                             id: string;
                             type: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            installments?: {
-                                [key: string]: unknown;
+                            installments: {
+                                count: number;
+                                amount: number;
+                                currency: string;
                             } | null;
-                            icon?: string | null;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        couponCode?: string | null;
-                        customerId?: string | null;
+                            icon: string | null;
+                        } | null;
+                        couponCode: string | null;
+                        customerId: string | null;
                         itemCount: number;
                         createdAt: string;
                         updatedAt: string;
-                    } & {
-                        [key: string]: unknown;
                     };
                 };
             };
@@ -1743,73 +1967,65 @@ export interface operations {
                 content: {
                     "application/json": {
                         id: string;
-                        items: ({
+                        items: {
                             id: string;
                             productId: string;
                             productSlug?: string;
-                            variantId?: string | null;
+                            variantId: string | null;
                             name: {
                                 [key: string]: string;
                             };
+                            variantName?: {
+                                [key: string]: string;
+                            };
+                            image: {
+                                url: string;
+                                alt: string;
+                                width?: number;
+                                height?: number;
+                            } | null;
                             quantity: number;
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
+                                originalAmount?: number;
+                                discountPercent?: number;
                             };
                             totalPrice: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
-                        })[];
+                        }[];
                         totals: {
                             subtotal: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                            shipping?: ({
+                            shipping: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            tax?: ({
+                            } | null;
+                            tax: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            discount?: ({
+                            } | null;
+                            discount: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
+                            } | null;
                             total: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
                         };
-                        shippingAddress?: ({
-                            id?: string;
+                        shippingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -1819,12 +2035,8 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        billingAddress?: ({
-                            id?: string;
+                        } | null;
+                        billingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -1834,55 +2046,45 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        shippingMethod?: ({
+                        } | null;
+                        shippingMethod: {
                             id: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            fulfillmentType: string;
+                            /** @enum {string} */
+                            fulfillmentType: "shipping" | "local_delivery" | "pickup";
                             estimatedDays: {
                                 min: number;
                                 max: number;
-                            } & {
-                                [key: string]: unknown;
                             };
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
                             cashOnDelivery: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        paymentMethod?: ({
+                        } | null;
+                        paymentMethod: {
                             id: string;
                             type: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            installments?: {
-                                [key: string]: unknown;
+                            installments: {
+                                count: number;
+                                amount: number;
+                                currency: string;
                             } | null;
-                            icon?: string | null;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        couponCode?: string | null;
-                        customerId?: string | null;
+                            icon: string | null;
+                        } | null;
+                        couponCode: string | null;
+                        customerId: string | null;
                         itemCount: number;
                         createdAt: string;
                         updatedAt: string;
-                    } & {
-                        [key: string]: unknown;
                     };
                 };
             };
@@ -1963,73 +2165,65 @@ export interface operations {
                 content: {
                     "application/json": {
                         id: string;
-                        items: ({
+                        items: {
                             id: string;
                             productId: string;
                             productSlug?: string;
-                            variantId?: string | null;
+                            variantId: string | null;
                             name: {
                                 [key: string]: string;
                             };
+                            variantName?: {
+                                [key: string]: string;
+                            };
+                            image: {
+                                url: string;
+                                alt: string;
+                                width?: number;
+                                height?: number;
+                            } | null;
                             quantity: number;
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
+                                originalAmount?: number;
+                                discountPercent?: number;
                             };
                             totalPrice: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
-                        })[];
+                        }[];
                         totals: {
                             subtotal: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                            shipping?: ({
+                            shipping: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            tax?: ({
+                            } | null;
+                            tax: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            discount?: ({
+                            } | null;
+                            discount: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
+                            } | null;
                             total: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
                         };
-                        shippingAddress?: ({
-                            id?: string;
+                        shippingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -2039,12 +2233,8 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        billingAddress?: ({
-                            id?: string;
+                        } | null;
+                        billingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -2054,55 +2244,45 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        shippingMethod?: ({
+                        } | null;
+                        shippingMethod: {
                             id: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            fulfillmentType: string;
+                            /** @enum {string} */
+                            fulfillmentType: "shipping" | "local_delivery" | "pickup";
                             estimatedDays: {
                                 min: number;
                                 max: number;
-                            } & {
-                                [key: string]: unknown;
                             };
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
                             cashOnDelivery: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        paymentMethod?: ({
+                        } | null;
+                        paymentMethod: {
                             id: string;
                             type: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            installments?: {
-                                [key: string]: unknown;
+                            installments: {
+                                count: number;
+                                amount: number;
+                                currency: string;
                             } | null;
-                            icon?: string | null;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        couponCode?: string | null;
-                        customerId?: string | null;
+                            icon: string | null;
+                        } | null;
+                        couponCode: string | null;
+                        customerId: string | null;
                         itemCount: number;
                         createdAt: string;
                         updatedAt: string;
-                    } & {
-                        [key: string]: unknown;
                     };
                 };
             };
@@ -2176,73 +2356,65 @@ export interface operations {
                 content: {
                     "application/json": {
                         id: string;
-                        items: ({
+                        items: {
                             id: string;
                             productId: string;
                             productSlug?: string;
-                            variantId?: string | null;
+                            variantId: string | null;
                             name: {
                                 [key: string]: string;
                             };
+                            variantName?: {
+                                [key: string]: string;
+                            };
+                            image: {
+                                url: string;
+                                alt: string;
+                                width?: number;
+                                height?: number;
+                            } | null;
                             quantity: number;
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
+                                originalAmount?: number;
+                                discountPercent?: number;
                             };
                             totalPrice: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
-                        })[];
+                        }[];
                         totals: {
                             subtotal: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                            shipping?: ({
+                            shipping: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            tax?: ({
+                            } | null;
+                            tax: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            discount?: ({
+                            } | null;
+                            discount: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
+                            } | null;
                             total: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
                         };
-                        shippingAddress?: ({
-                            id?: string;
+                        shippingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -2252,12 +2424,8 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        billingAddress?: ({
-                            id?: string;
+                        } | null;
+                        billingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -2267,55 +2435,45 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        shippingMethod?: ({
+                        } | null;
+                        shippingMethod: {
                             id: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            fulfillmentType: string;
+                            /** @enum {string} */
+                            fulfillmentType: "shipping" | "local_delivery" | "pickup";
                             estimatedDays: {
                                 min: number;
                                 max: number;
-                            } & {
-                                [key: string]: unknown;
                             };
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
                             cashOnDelivery: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        paymentMethod?: ({
+                        } | null;
+                        paymentMethod: {
                             id: string;
                             type: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            installments?: {
-                                [key: string]: unknown;
+                            installments: {
+                                count: number;
+                                amount: number;
+                                currency: string;
                             } | null;
-                            icon?: string | null;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        couponCode?: string | null;
-                        customerId?: string | null;
+                            icon: string | null;
+                        } | null;
+                        couponCode: string | null;
+                        customerId: string | null;
                         itemCount: number;
                         createdAt: string;
                         updatedAt: string;
-                    } & {
-                        [key: string]: unknown;
                     };
                 };
             };
@@ -2395,73 +2553,65 @@ export interface operations {
                 content: {
                     "application/json": {
                         id: string;
-                        items: ({
+                        items: {
                             id: string;
                             productId: string;
                             productSlug?: string;
-                            variantId?: string | null;
+                            variantId: string | null;
                             name: {
                                 [key: string]: string;
                             };
+                            variantName?: {
+                                [key: string]: string;
+                            };
+                            image: {
+                                url: string;
+                                alt: string;
+                                width?: number;
+                                height?: number;
+                            } | null;
                             quantity: number;
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
+                                originalAmount?: number;
+                                discountPercent?: number;
                             };
                             totalPrice: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
-                        })[];
+                        }[];
                         totals: {
                             subtotal: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                            shipping?: ({
+                            shipping: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            tax?: ({
+                            } | null;
+                            tax: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            discount?: ({
+                            } | null;
+                            discount: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
+                            } | null;
                             total: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
                         };
-                        shippingAddress?: ({
-                            id?: string;
+                        shippingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -2471,12 +2621,8 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        billingAddress?: ({
-                            id?: string;
+                        } | null;
+                        billingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -2486,55 +2632,45 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        shippingMethod?: ({
+                        } | null;
+                        shippingMethod: {
                             id: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            fulfillmentType: string;
+                            /** @enum {string} */
+                            fulfillmentType: "shipping" | "local_delivery" | "pickup";
                             estimatedDays: {
                                 min: number;
                                 max: number;
-                            } & {
-                                [key: string]: unknown;
                             };
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
                             cashOnDelivery: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        paymentMethod?: ({
+                        } | null;
+                        paymentMethod: {
                             id: string;
                             type: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            installments?: {
-                                [key: string]: unknown;
+                            installments: {
+                                count: number;
+                                amount: number;
+                                currency: string;
                             } | null;
-                            icon?: string | null;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        couponCode?: string | null;
-                        customerId?: string | null;
+                            icon: string | null;
+                        } | null;
+                        couponCode: string | null;
+                        customerId: string | null;
                         itemCount: number;
                         createdAt: string;
                         updatedAt: string;
-                    } & {
-                        [key: string]: unknown;
                     };
                 };
             };
@@ -2613,73 +2749,65 @@ export interface operations {
                 content: {
                     "application/json": {
                         id: string;
-                        items: ({
+                        items: {
                             id: string;
                             productId: string;
                             productSlug?: string;
-                            variantId?: string | null;
+                            variantId: string | null;
                             name: {
                                 [key: string]: string;
                             };
+                            variantName?: {
+                                [key: string]: string;
+                            };
+                            image: {
+                                url: string;
+                                alt: string;
+                                width?: number;
+                                height?: number;
+                            } | null;
                             quantity: number;
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
+                                originalAmount?: number;
+                                discountPercent?: number;
                             };
                             totalPrice: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
-                        })[];
+                        }[];
                         totals: {
                             subtotal: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                            shipping?: ({
+                            shipping: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            tax?: ({
+                            } | null;
+                            tax: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            discount?: ({
+                            } | null;
+                            discount: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
+                            } | null;
                             total: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
                         };
-                        shippingAddress?: ({
-                            id?: string;
+                        shippingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -2689,12 +2817,8 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        billingAddress?: ({
-                            id?: string;
+                        } | null;
+                        billingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -2704,55 +2828,45 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        shippingMethod?: ({
+                        } | null;
+                        shippingMethod: {
                             id: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            fulfillmentType: string;
+                            /** @enum {string} */
+                            fulfillmentType: "shipping" | "local_delivery" | "pickup";
                             estimatedDays: {
                                 min: number;
                                 max: number;
-                            } & {
-                                [key: string]: unknown;
                             };
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
                             cashOnDelivery: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        paymentMethod?: ({
+                        } | null;
+                        paymentMethod: {
                             id: string;
                             type: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            installments?: {
-                                [key: string]: unknown;
+                            installments: {
+                                count: number;
+                                amount: number;
+                                currency: string;
                             } | null;
-                            icon?: string | null;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        couponCode?: string | null;
-                        customerId?: string | null;
+                            icon: string | null;
+                        } | null;
+                        couponCode: string | null;
+                        customerId: string | null;
                         itemCount: number;
                         createdAt: string;
                         updatedAt: string;
-                    } & {
-                        [key: string]: unknown;
                     };
                 };
             };
@@ -2825,73 +2939,65 @@ export interface operations {
                 content: {
                     "application/json": {
                         id: string;
-                        items: ({
+                        items: {
                             id: string;
                             productId: string;
                             productSlug?: string;
-                            variantId?: string | null;
+                            variantId: string | null;
                             name: {
                                 [key: string]: string;
                             };
+                            variantName?: {
+                                [key: string]: string;
+                            };
+                            image: {
+                                url: string;
+                                alt: string;
+                                width?: number;
+                                height?: number;
+                            } | null;
                             quantity: number;
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
+                                originalAmount?: number;
+                                discountPercent?: number;
                             };
                             totalPrice: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
-                        })[];
+                        }[];
                         totals: {
                             subtotal: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                            shipping?: ({
+                            shipping: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            tax?: ({
+                            } | null;
+                            tax: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            discount?: ({
+                            } | null;
+                            discount: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
+                            } | null;
                             total: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
                         };
-                        shippingAddress?: ({
-                            id?: string;
+                        shippingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -2901,12 +3007,8 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        billingAddress?: ({
-                            id?: string;
+                        } | null;
+                        billingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -2916,55 +3018,45 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        shippingMethod?: ({
+                        } | null;
+                        shippingMethod: {
                             id: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            fulfillmentType: string;
+                            /** @enum {string} */
+                            fulfillmentType: "shipping" | "local_delivery" | "pickup";
                             estimatedDays: {
                                 min: number;
                                 max: number;
-                            } & {
-                                [key: string]: unknown;
                             };
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
                             cashOnDelivery: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        paymentMethod?: ({
+                        } | null;
+                        paymentMethod: {
                             id: string;
                             type: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            installments?: {
-                                [key: string]: unknown;
+                            installments: {
+                                count: number;
+                                amount: number;
+                                currency: string;
                             } | null;
-                            icon?: string | null;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        couponCode?: string | null;
-                        customerId?: string | null;
+                            icon: string | null;
+                        } | null;
+                        couponCode: string | null;
+                        customerId: string | null;
                         itemCount: number;
                         createdAt: string;
                         updatedAt: string;
-                    } & {
-                        [key: string]: unknown;
                     };
                 };
             };
@@ -3035,30 +3127,25 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": ({
+                    "application/json": {
                         id: string;
                         name: {
                             [key: string]: string;
                         };
                         provider: string;
-                        fulfillmentType: string;
+                        /** @enum {string} */
+                        fulfillmentType: "shipping" | "local_delivery" | "pickup";
                         estimatedDays: {
                             min: number;
                             max: number;
-                        } & {
-                            [key: string]: unknown;
                         };
                         price: {
                             amount: number;
                             currency: string;
                             formatted: string;
-                        } & {
-                            [key: string]: unknown;
                         };
                         cashOnDelivery: boolean;
-                    } & {
-                        [key: string]: unknown;
-                    })[];
+                    }[];
                 };
             };
             /** @description Unauthorized */
@@ -3128,20 +3215,20 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": ({
+                    "application/json": {
                         id: string;
                         type: string;
                         name: {
                             [key: string]: string;
                         };
                         provider: string;
-                        installments?: {
-                            [key: string]: unknown;
+                        installments: {
+                            count: number;
+                            amount: number;
+                            currency: string;
                         } | null;
-                        icon?: string | null;
-                    } & {
-                        [key: string]: unknown;
-                    })[];
+                        icon: string | null;
+                    }[];
                 };
             };
             /** @description Unauthorized */
@@ -3227,73 +3314,65 @@ export interface operations {
                 content: {
                     "application/json": {
                         id: string;
-                        items: ({
+                        items: {
                             id: string;
                             productId: string;
                             productSlug?: string;
-                            variantId?: string | null;
+                            variantId: string | null;
                             name: {
                                 [key: string]: string;
                             };
+                            variantName?: {
+                                [key: string]: string;
+                            };
+                            image: {
+                                url: string;
+                                alt: string;
+                                width?: number;
+                                height?: number;
+                            } | null;
                             quantity: number;
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
+                                originalAmount?: number;
+                                discountPercent?: number;
                             };
                             totalPrice: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
-                        })[];
+                        }[];
                         totals: {
                             subtotal: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                            shipping?: ({
+                            shipping: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            tax?: ({
+                            } | null;
+                            tax: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            discount?: ({
+                            } | null;
+                            discount: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
+                            } | null;
                             total: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
                         };
-                        shippingAddress?: ({
-                            id?: string;
+                        shippingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -3303,12 +3382,8 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        billingAddress?: ({
-                            id?: string;
+                        } | null;
+                        billingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -3318,55 +3393,45 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        shippingMethod?: ({
+                        } | null;
+                        shippingMethod: {
                             id: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            fulfillmentType: string;
+                            /** @enum {string} */
+                            fulfillmentType: "shipping" | "local_delivery" | "pickup";
                             estimatedDays: {
                                 min: number;
                                 max: number;
-                            } & {
-                                [key: string]: unknown;
                             };
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
                             cashOnDelivery: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        paymentMethod?: ({
+                        } | null;
+                        paymentMethod: {
                             id: string;
                             type: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            installments?: {
-                                [key: string]: unknown;
+                            installments: {
+                                count: number;
+                                amount: number;
+                                currency: string;
                             } | null;
-                            icon?: string | null;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        couponCode?: string | null;
-                        customerId?: string | null;
+                            icon: string | null;
+                        } | null;
+                        couponCode: string | null;
+                        customerId: string | null;
                         itemCount: number;
                         createdAt: string;
                         updatedAt: string;
-                    } & {
-                        [key: string]: unknown;
                     };
                 };
             };
@@ -3453,73 +3518,65 @@ export interface operations {
                 content: {
                     "application/json": {
                         id: string;
-                        items: ({
+                        items: {
                             id: string;
                             productId: string;
                             productSlug?: string;
-                            variantId?: string | null;
+                            variantId: string | null;
                             name: {
                                 [key: string]: string;
                             };
+                            variantName?: {
+                                [key: string]: string;
+                            };
+                            image: {
+                                url: string;
+                                alt: string;
+                                width?: number;
+                                height?: number;
+                            } | null;
                             quantity: number;
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
+                                originalAmount?: number;
+                                discountPercent?: number;
                             };
                             totalPrice: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
-                        })[];
+                        }[];
                         totals: {
                             subtotal: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                            shipping?: ({
+                            shipping: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            tax?: ({
+                            } | null;
+                            tax: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            discount?: ({
+                            } | null;
+                            discount: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
+                            } | null;
                             total: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
                         };
-                        shippingAddress?: ({
-                            id?: string;
+                        shippingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -3529,12 +3586,8 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        billingAddress?: ({
-                            id?: string;
+                        } | null;
+                        billingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -3544,55 +3597,45 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        shippingMethod?: ({
+                        } | null;
+                        shippingMethod: {
                             id: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            fulfillmentType: string;
+                            /** @enum {string} */
+                            fulfillmentType: "shipping" | "local_delivery" | "pickup";
                             estimatedDays: {
                                 min: number;
                                 max: number;
-                            } & {
-                                [key: string]: unknown;
                             };
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
                             cashOnDelivery: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        paymentMethod?: ({
+                        } | null;
+                        paymentMethod: {
                             id: string;
                             type: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            installments?: {
-                                [key: string]: unknown;
+                            installments: {
+                                count: number;
+                                amount: number;
+                                currency: string;
                             } | null;
-                            icon?: string | null;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        couponCode?: string | null;
-                        customerId?: string | null;
+                            icon: string | null;
+                        } | null;
+                        couponCode: string | null;
+                        customerId: string | null;
                         itemCount: number;
                         createdAt: string;
                         updatedAt: string;
-                    } & {
-                        [key: string]: unknown;
                     };
                 };
             };
@@ -3671,73 +3714,65 @@ export interface operations {
                 content: {
                     "application/json": {
                         id: string;
-                        items: ({
+                        items: {
                             id: string;
                             productId: string;
                             productSlug?: string;
-                            variantId?: string | null;
+                            variantId: string | null;
                             name: {
                                 [key: string]: string;
                             };
+                            variantName?: {
+                                [key: string]: string;
+                            };
+                            image: {
+                                url: string;
+                                alt: string;
+                                width?: number;
+                                height?: number;
+                            } | null;
                             quantity: number;
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
+                                originalAmount?: number;
+                                discountPercent?: number;
                             };
                             totalPrice: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
-                        })[];
+                        }[];
                         totals: {
                             subtotal: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                            shipping?: ({
+                            shipping: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            tax?: ({
+                            } | null;
+                            tax: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            discount?: ({
+                            } | null;
+                            discount: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
+                            } | null;
                             total: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
                         };
-                        shippingAddress?: ({
-                            id?: string;
+                        shippingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -3747,12 +3782,8 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        billingAddress?: ({
-                            id?: string;
+                        } | null;
+                        billingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -3762,55 +3793,45 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        shippingMethod?: ({
+                        } | null;
+                        shippingMethod: {
                             id: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            fulfillmentType: string;
+                            /** @enum {string} */
+                            fulfillmentType: "shipping" | "local_delivery" | "pickup";
                             estimatedDays: {
                                 min: number;
                                 max: number;
-                            } & {
-                                [key: string]: unknown;
                             };
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
                             cashOnDelivery: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        paymentMethod?: ({
+                        } | null;
+                        paymentMethod: {
                             id: string;
                             type: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            installments?: {
-                                [key: string]: unknown;
+                            installments: {
+                                count: number;
+                                amount: number;
+                                currency: string;
                             } | null;
-                            icon?: string | null;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        couponCode?: string | null;
-                        customerId?: string | null;
+                            icon: string | null;
+                        } | null;
+                        couponCode: string | null;
+                        customerId: string | null;
                         itemCount: number;
                         createdAt: string;
                         updatedAt: string;
-                    } & {
-                        [key: string]: unknown;
                     };
                 };
             };
@@ -3892,53 +3913,88 @@ export interface operations {
                     "application/json": {
                         id: string;
                         orderNumber: string;
-                        status: string;
-                        paymentStatus: string;
-                        fulfillmentStatus: string;
+                        /** @enum {string} */
+                        status: "placed" | "approved" | "fulfilled" | "cancelled";
+                        /** @enum {string} */
+                        paymentStatus: "unpaid" | "authorized" | "paid" | "partially_refunded" | "refunded" | "voided" | "free";
+                        /** @enum {string} */
+                        fulfillmentStatus: "unfulfilled" | "in_progress" | "fulfilled" | "not_required";
                         items: {
-                            [key: string]: unknown;
+                            id: string;
+                            productId: string;
+                            variantId: string | null;
+                            name: {
+                                [key: string]: string;
+                            };
+                            image: {
+                                url: string;
+                                alt: string;
+                                width?: number;
+                                height?: number;
+                            } | null;
+                            quantity: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            };
+                            totalPrice: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            };
+                            /** @enum {string} */
+                            fulfillmentStatus: "unfulfilled" | "partially_fulfilled" | "fulfilled" | "returned" | "download_ready" | "license_sent" | "access_granted" | "ticket_issued";
+                            /** @enum {string} */
+                            productType: "physical" | "digital" | "service" | "event" | "subscription";
+                            digital: {
+                                downloadUrl: string | null;
+                                fileSize: number | null;
+                                fileType: string | null;
+                                licenseKey: string | null;
+                                maxDownloads: number | null;
+                                expiresInHours: number | null;
+                            } | null;
+                            event: {
+                                startDate: string;
+                                endDate: string | null;
+                                venue: {
+                                    [key: string]: string;
+                                } | null;
+                                location: string | null;
+                                isVirtual: boolean;
+                                seatInfo: string | null;
+                                capacity: number | null;
+                            } | null;
                         }[];
                         totals: {
                             subtotal: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                            shipping?: ({
+                            shipping: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            tax?: ({
+                            } | null;
+                            tax: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            discount?: ({
+                            } | null;
+                            discount: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
+                            } | null;
                             total: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
                         };
-                        shippingAddress?: ({
-                            id?: string;
+                        shippingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -3948,12 +4004,8 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        billingAddress?: ({
-                            id?: string;
+                        } | null;
+                        billingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -3963,58 +4015,52 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        shippingMethod?: ({
+                        } | null;
+                        shippingMethod: {
                             id: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            fulfillmentType: string;
+                            /** @enum {string} */
+                            fulfillmentType: "shipping" | "local_delivery" | "pickup";
                             estimatedDays: {
                                 min: number;
                                 max: number;
-                            } & {
-                                [key: string]: unknown;
                             };
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
                             cashOnDelivery: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        paymentMethod?: ({
+                        } | null;
+                        paymentMethod: {
                             id: string;
                             type: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            installments?: {
-                                [key: string]: unknown;
+                            installments: {
+                                count: number;
+                                amount: number;
+                                currency: string;
                             } | null;
-                            icon?: string | null;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        trackingNumber?: string | null;
-                        trackingUrl?: string | null;
-                        note?: string | null;
-                        customerId?: string | null;
-                        contactEmail?: string | null;
-                        requiresShipping?: boolean;
+                            icon: string | null;
+                        } | null;
+                        trackingNumber: string | null;
+                        trackingUrl: string | null;
+                        note: string | null;
+                        customerId: string | null;
+                        contactEmail: string | null;
+                        requiresShipping: boolean;
+                        placedAt: string | null;
+                        approvedAt: string | null;
+                        cancelledAt: string | null;
+                        fulfilledAt: string | null;
                         createdAt: string;
                         updatedAt: string;
-                    } & {
-                        [key: string]: unknown;
                     };
                 };
             };
@@ -4087,56 +4133,91 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        items: ({
+                        items: {
                             id: string;
                             orderNumber: string;
-                            status: string;
-                            paymentStatus: string;
-                            fulfillmentStatus: string;
+                            /** @enum {string} */
+                            status: "placed" | "approved" | "fulfilled" | "cancelled";
+                            /** @enum {string} */
+                            paymentStatus: "unpaid" | "authorized" | "paid" | "partially_refunded" | "refunded" | "voided" | "free";
+                            /** @enum {string} */
+                            fulfillmentStatus: "unfulfilled" | "in_progress" | "fulfilled" | "not_required";
                             items: {
-                                [key: string]: unknown;
+                                id: string;
+                                productId: string;
+                                variantId: string | null;
+                                name: {
+                                    [key: string]: string;
+                                };
+                                image: {
+                                    url: string;
+                                    alt: string;
+                                    width?: number;
+                                    height?: number;
+                                } | null;
+                                quantity: number;
+                                price: {
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                };
+                                totalPrice: {
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                };
+                                /** @enum {string} */
+                                fulfillmentStatus: "unfulfilled" | "partially_fulfilled" | "fulfilled" | "returned" | "download_ready" | "license_sent" | "access_granted" | "ticket_issued";
+                                /** @enum {string} */
+                                productType: "physical" | "digital" | "service" | "event" | "subscription";
+                                digital: {
+                                    downloadUrl: string | null;
+                                    fileSize: number | null;
+                                    fileType: string | null;
+                                    licenseKey: string | null;
+                                    maxDownloads: number | null;
+                                    expiresInHours: number | null;
+                                } | null;
+                                event: {
+                                    startDate: string;
+                                    endDate: string | null;
+                                    venue: {
+                                        [key: string]: string;
+                                    } | null;
+                                    location: string | null;
+                                    isVirtual: boolean;
+                                    seatInfo: string | null;
+                                    capacity: number | null;
+                                } | null;
                             }[];
                             totals: {
                                 subtotal: {
                                     amount: number;
                                     currency: string;
                                     formatted: string;
-                                } & {
-                                    [key: string]: unknown;
                                 };
-                                shipping?: ({
+                                shipping: {
                                     amount: number;
                                     currency: string;
                                     formatted: string;
-                                } & {
-                                    [key: string]: unknown;
-                                }) | null;
-                                tax?: ({
+                                } | null;
+                                tax: {
                                     amount: number;
                                     currency: string;
                                     formatted: string;
-                                } & {
-                                    [key: string]: unknown;
-                                }) | null;
-                                discount?: ({
+                                } | null;
+                                discount: {
                                     amount: number;
                                     currency: string;
                                     formatted: string;
-                                } & {
-                                    [key: string]: unknown;
-                                }) | null;
+                                } | null;
                                 total: {
                                     amount: number;
                                     currency: string;
                                     formatted: string;
-                                } & {
-                                    [key: string]: unknown;
                                 };
-                            } & {
-                                [key: string]: unknown;
                             };
-                            shippingAddress?: ({
-                                id?: string;
+                            shippingAddress: {
                                 firstName: string;
                                 lastName: string;
                                 phone?: string | null;
@@ -4146,12 +4227,8 @@ export interface operations {
                                 state?: string | null;
                                 country: string;
                                 postalCode?: string | null;
-                                isDefault?: boolean;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            billingAddress?: ({
-                                id?: string;
+                            } | null;
+                            billingAddress: {
                                 firstName: string;
                                 lastName: string;
                                 phone?: string | null;
@@ -4161,65 +4238,57 @@ export interface operations {
                                 state?: string | null;
                                 country: string;
                                 postalCode?: string | null;
-                                isDefault?: boolean;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            shippingMethod?: ({
+                            } | null;
+                            shippingMethod: {
                                 id: string;
                                 name: {
                                     [key: string]: string;
                                 };
                                 provider: string;
-                                fulfillmentType: string;
+                                /** @enum {string} */
+                                fulfillmentType: "shipping" | "local_delivery" | "pickup";
                                 estimatedDays: {
                                     min: number;
                                     max: number;
-                                } & {
-                                    [key: string]: unknown;
                                 };
                                 price: {
                                     amount: number;
                                     currency: string;
                                     formatted: string;
-                                } & {
-                                    [key: string]: unknown;
                                 };
                                 cashOnDelivery: boolean;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            paymentMethod?: ({
+                            } | null;
+                            paymentMethod: {
                                 id: string;
                                 type: string;
                                 name: {
                                     [key: string]: string;
                                 };
                                 provider: string;
-                                installments?: {
-                                    [key: string]: unknown;
+                                installments: {
+                                    count: number;
+                                    amount: number;
+                                    currency: string;
                                 } | null;
-                                icon?: string | null;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            trackingNumber?: string | null;
-                            trackingUrl?: string | null;
-                            note?: string | null;
-                            customerId?: string | null;
-                            contactEmail?: string | null;
-                            requiresShipping?: boolean;
+                                icon: string | null;
+                            } | null;
+                            trackingNumber: string | null;
+                            trackingUrl: string | null;
+                            note: string | null;
+                            customerId: string | null;
+                            contactEmail: string | null;
+                            requiresShipping: boolean;
+                            placedAt: string | null;
+                            approvedAt: string | null;
+                            cancelledAt: string | null;
+                            fulfilledAt: string | null;
                             createdAt: string;
                             updatedAt: string;
-                        } & {
-                            [key: string]: unknown;
-                        })[];
+                        }[];
                         total: number;
-                        page?: number;
-                        perPage?: number;
-                        hasMore?: boolean;
-                    } & {
-                        [key: string]: unknown;
+                        page: number;
+                        perPage: number;
+                        hasMore: boolean;
                     };
                 };
             };
@@ -4293,53 +4362,88 @@ export interface operations {
                     "application/json": {
                         id: string;
                         orderNumber: string;
-                        status: string;
-                        paymentStatus: string;
-                        fulfillmentStatus: string;
+                        /** @enum {string} */
+                        status: "placed" | "approved" | "fulfilled" | "cancelled";
+                        /** @enum {string} */
+                        paymentStatus: "unpaid" | "authorized" | "paid" | "partially_refunded" | "refunded" | "voided" | "free";
+                        /** @enum {string} */
+                        fulfillmentStatus: "unfulfilled" | "in_progress" | "fulfilled" | "not_required";
                         items: {
-                            [key: string]: unknown;
+                            id: string;
+                            productId: string;
+                            variantId: string | null;
+                            name: {
+                                [key: string]: string;
+                            };
+                            image: {
+                                url: string;
+                                alt: string;
+                                width?: number;
+                                height?: number;
+                            } | null;
+                            quantity: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            };
+                            totalPrice: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            };
+                            /** @enum {string} */
+                            fulfillmentStatus: "unfulfilled" | "partially_fulfilled" | "fulfilled" | "returned" | "download_ready" | "license_sent" | "access_granted" | "ticket_issued";
+                            /** @enum {string} */
+                            productType: "physical" | "digital" | "service" | "event" | "subscription";
+                            digital: {
+                                downloadUrl: string | null;
+                                fileSize: number | null;
+                                fileType: string | null;
+                                licenseKey: string | null;
+                                maxDownloads: number | null;
+                                expiresInHours: number | null;
+                            } | null;
+                            event: {
+                                startDate: string;
+                                endDate: string | null;
+                                venue: {
+                                    [key: string]: string;
+                                } | null;
+                                location: string | null;
+                                isVirtual: boolean;
+                                seatInfo: string | null;
+                                capacity: number | null;
+                            } | null;
                         }[];
                         totals: {
                             subtotal: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                            shipping?: ({
+                            shipping: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            tax?: ({
+                            } | null;
+                            tax: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            discount?: ({
+                            } | null;
+                            discount: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
+                            } | null;
                             total: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
                         };
-                        shippingAddress?: ({
-                            id?: string;
+                        shippingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -4349,12 +4453,8 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        billingAddress?: ({
-                            id?: string;
+                        } | null;
+                        billingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -4364,58 +4464,52 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        shippingMethod?: ({
+                        } | null;
+                        shippingMethod: {
                             id: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            fulfillmentType: string;
+                            /** @enum {string} */
+                            fulfillmentType: "shipping" | "local_delivery" | "pickup";
                             estimatedDays: {
                                 min: number;
                                 max: number;
-                            } & {
-                                [key: string]: unknown;
                             };
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
                             cashOnDelivery: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        paymentMethod?: ({
+                        } | null;
+                        paymentMethod: {
                             id: string;
                             type: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            installments?: {
-                                [key: string]: unknown;
+                            installments: {
+                                count: number;
+                                amount: number;
+                                currency: string;
                             } | null;
-                            icon?: string | null;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        trackingNumber?: string | null;
-                        trackingUrl?: string | null;
-                        note?: string | null;
-                        customerId?: string | null;
-                        contactEmail?: string | null;
-                        requiresShipping?: boolean;
+                            icon: string | null;
+                        } | null;
+                        trackingNumber: string | null;
+                        trackingUrl: string | null;
+                        note: string | null;
+                        customerId: string | null;
+                        contactEmail: string | null;
+                        requiresShipping: boolean;
+                        placedAt: string | null;
+                        approvedAt: string | null;
+                        cancelledAt: string | null;
+                        fulfilledAt: string | null;
                         createdAt: string;
                         updatedAt: string;
-                    } & {
-                        [key: string]: unknown;
                     };
                 };
             };
@@ -4491,91 +4585,171 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        items: ({
+                        items: {
                             id: string;
-                            sku?: string | null;
+                            sku: string | null;
                             name: {
                                 [key: string]: string;
                             };
                             slug: string;
-                            description?: {
+                            description: {
                                 [key: string]: string;
                             } | null;
-                            shortDescription?: {
+                            shortDescription: {
                                 [key: string]: string;
                             } | null;
-                            price?: ({
+                            price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            primaryImage?: ({
+                                originalAmount?: number;
+                                discountPercent?: number;
+                            } | null;
+                            primaryImage: {
                                 url: string;
                                 alt: string;
                                 width?: number;
                                 height?: number;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            gallery?: ({
+                            } | null;
+                            gallery: {
                                 url: string;
                                 alt: string;
                                 width?: number;
                                 height?: number;
-                            } & {
-                                [key: string]: unknown;
-                            })[];
-                            variants?: {
-                                [key: string]: unknown;
                             }[];
-                            options?: {
-                                [key: string]: unknown;
+                            rating: {
+                                average: number;
+                                count: number;
+                            } | null;
+                            variants: {
+                                id: string;
+                                sku: string | null;
+                                name: {
+                                    [key: string]: string;
+                                } | null;
+                                price: {
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                    originalAmount?: number;
+                                    discountPercent?: number;
+                                } | null;
+                                attributes: {
+                                    code: string;
+                                    name: {
+                                        [key: string]: string;
+                                    };
+                                    value: {
+                                        [key: string]: string;
+                                    };
+                                }[];
+                                inStock: boolean;
+                                inventoryQuantity: number | null;
                             }[];
-                            attributes?: {
-                                [key: string]: unknown;
+                            options: {
+                                id: string;
+                                name: {
+                                    [key: string]: string;
+                                };
+                                values: {
+                                    id: string;
+                                    name: {
+                                        [key: string]: string;
+                                    };
+                                }[];
                             }[];
-                            categories?: ({
+                            attributes: {
+                                code: string;
+                                name: {
+                                    [key: string]: string;
+                                };
+                                value: {
+                                    [key: string]: string;
+                                };
+                            }[];
+                            quantityLimit: number | null;
+                            categories: {
                                 id: string;
                                 name: {
                                     [key: string]: string;
                                 };
                                 slug: string;
-                                description?: {
+                                description: {
                                     [key: string]: string;
                                 } | null;
-                                image?: ({
+                                image: {
                                     url: string;
                                     alt: string;
                                     width?: number;
                                     height?: number;
-                                } & {
-                                    [key: string]: unknown;
-                                }) | null;
-                                parentId?: string | null;
-                                children?: {
-                                    [key: string]: unknown;
-                                }[];
-                                productCount?: number | null;
-                            } & {
-                                [key: string]: unknown;
-                            })[];
+                                } | null;
+                                parentId: string | null;
+                                productCount: number | null;
+                            }[];
                             inStock: boolean;
-                            tags?: string[];
-                            createdAt?: string;
-                            updatedAt?: string;
-                            productType?: string;
-                            status?: string | null;
-                        } & {
-                            [key: string]: unknown;
-                        })[];
+                            vatIncluded: boolean;
+                            vatRate: number | null;
+                            tags: string[];
+                            createdAt: string;
+                            updatedAt: string;
+                            /** @enum {string} */
+                            productType: "physical" | "digital" | "service" | "event" | "subscription";
+                            digital: {
+                                downloadUrl: string | null;
+                                fileSize: number | null;
+                                fileType: string | null;
+                                licenseKey: string | null;
+                                maxDownloads: number | null;
+                                expiresInHours: number | null;
+                            } | null;
+                            service: {
+                                durationMinutes: number | null;
+                                requiresBooking: boolean;
+                                /** @enum {string} */
+                                deliveryMode: "in_person" | "remote" | "hybrid";
+                            } | null;
+                            event: {
+                                startDate: string;
+                                endDate: string | null;
+                                venue: {
+                                    [key: string]: string;
+                                } | null;
+                                location: string | null;
+                                isVirtual: boolean;
+                                seatInfo: string | null;
+                                capacity: number | null;
+                            } | null;
+                            subscription: {
+                                /** @enum {string} */
+                                interval: "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
+                                intervalCount: number;
+                                trialDays: number;
+                                recurringPrice: {
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                };
+                            } | null;
+                            preOrder: {
+                                enabled: boolean;
+                                releaseDate: string | null;
+                                depositAmount: {
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                } | null;
+                                message: {
+                                    [key: string]: string;
+                                } | null;
+                            } | null;
+                            requiresShipping: boolean;
+                            isDropshipped: boolean;
+                            status: string | null;
+                        }[];
                         total: number;
-                        page?: number;
-                        perPage?: number;
-                        hasMore?: boolean;
-                    } & {
-                        [key: string]: unknown;
+                        page: number;
+                        perPage: number;
+                        hasMore: boolean;
                     };
                 };
             };
@@ -4705,82 +4879,164 @@ export interface operations {
                 content: {
                     "application/json": {
                         id: string;
-                        sku?: string | null;
+                        sku: string | null;
                         name: {
                             [key: string]: string;
                         };
                         slug: string;
-                        description?: {
+                        description: {
                             [key: string]: string;
                         } | null;
-                        shortDescription?: {
+                        shortDescription: {
                             [key: string]: string;
                         } | null;
-                        price?: ({
+                        price: {
                             amount: number;
                             currency: string;
                             formatted: string;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        primaryImage?: ({
+                            originalAmount?: number;
+                            discountPercent?: number;
+                        } | null;
+                        primaryImage: {
                             url: string;
                             alt: string;
                             width?: number;
                             height?: number;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        gallery?: ({
+                        } | null;
+                        gallery: {
                             url: string;
                             alt: string;
                             width?: number;
                             height?: number;
-                        } & {
-                            [key: string]: unknown;
-                        })[];
-                        variants?: {
-                            [key: string]: unknown;
                         }[];
-                        options?: {
-                            [key: string]: unknown;
+                        rating: {
+                            average: number;
+                            count: number;
+                        } | null;
+                        variants: {
+                            id: string;
+                            sku: string | null;
+                            name: {
+                                [key: string]: string;
+                            } | null;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                                originalAmount?: number;
+                                discountPercent?: number;
+                            } | null;
+                            attributes: {
+                                code: string;
+                                name: {
+                                    [key: string]: string;
+                                };
+                                value: {
+                                    [key: string]: string;
+                                };
+                            }[];
+                            inStock: boolean;
+                            inventoryQuantity: number | null;
                         }[];
-                        attributes?: {
-                            [key: string]: unknown;
+                        options: {
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            values: {
+                                id: string;
+                                name: {
+                                    [key: string]: string;
+                                };
+                            }[];
                         }[];
-                        categories?: ({
+                        attributes: {
+                            code: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            value: {
+                                [key: string]: string;
+                            };
+                        }[];
+                        quantityLimit: number | null;
+                        categories: {
                             id: string;
                             name: {
                                 [key: string]: string;
                             };
                             slug: string;
-                            description?: {
+                            description: {
                                 [key: string]: string;
                             } | null;
-                            image?: ({
+                            image: {
                                 url: string;
                                 alt: string;
                                 width?: number;
                                 height?: number;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            parentId?: string | null;
-                            children?: {
-                                [key: string]: unknown;
-                            }[];
-                            productCount?: number | null;
-                        } & {
-                            [key: string]: unknown;
-                        })[];
+                            } | null;
+                            parentId: string | null;
+                            productCount: number | null;
+                        }[];
                         inStock: boolean;
-                        tags?: string[];
-                        createdAt?: string;
-                        updatedAt?: string;
-                        productType?: string;
-                        status?: string | null;
-                    } & {
-                        [key: string]: unknown;
+                        vatIncluded: boolean;
+                        vatRate: number | null;
+                        tags: string[];
+                        createdAt: string;
+                        updatedAt: string;
+                        /** @enum {string} */
+                        productType: "physical" | "digital" | "service" | "event" | "subscription";
+                        digital: {
+                            downloadUrl: string | null;
+                            fileSize: number | null;
+                            fileType: string | null;
+                            licenseKey: string | null;
+                            maxDownloads: number | null;
+                            expiresInHours: number | null;
+                        } | null;
+                        service: {
+                            durationMinutes: number | null;
+                            requiresBooking: boolean;
+                            /** @enum {string} */
+                            deliveryMode: "in_person" | "remote" | "hybrid";
+                        } | null;
+                        event: {
+                            startDate: string;
+                            endDate: string | null;
+                            venue: {
+                                [key: string]: string;
+                            } | null;
+                            location: string | null;
+                            isVirtual: boolean;
+                            seatInfo: string | null;
+                            capacity: number | null;
+                        } | null;
+                        subscription: {
+                            /** @enum {string} */
+                            interval: "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
+                            intervalCount: number;
+                            trialDays: number;
+                            recurringPrice: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            };
+                        } | null;
+                        preOrder: {
+                            enabled: boolean;
+                            releaseDate: string | null;
+                            depositAmount: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } | null;
+                            message: {
+                                [key: string]: string;
+                            } | null;
+                        } | null;
+                        requiresShipping: boolean;
+                        isDropshipped: boolean;
+                        status: string | null;
                     };
                 };
             };
@@ -4853,82 +5109,164 @@ export interface operations {
                 content: {
                     "application/json": {
                         id: string;
-                        sku?: string | null;
+                        sku: string | null;
                         name: {
                             [key: string]: string;
                         };
                         slug: string;
-                        description?: {
+                        description: {
                             [key: string]: string;
                         } | null;
-                        shortDescription?: {
+                        shortDescription: {
                             [key: string]: string;
                         } | null;
-                        price?: ({
+                        price: {
                             amount: number;
                             currency: string;
                             formatted: string;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        primaryImage?: ({
+                            originalAmount?: number;
+                            discountPercent?: number;
+                        } | null;
+                        primaryImage: {
                             url: string;
                             alt: string;
                             width?: number;
                             height?: number;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        gallery?: ({
+                        } | null;
+                        gallery: {
                             url: string;
                             alt: string;
                             width?: number;
                             height?: number;
-                        } & {
-                            [key: string]: unknown;
-                        })[];
-                        variants?: {
-                            [key: string]: unknown;
                         }[];
-                        options?: {
-                            [key: string]: unknown;
+                        rating: {
+                            average: number;
+                            count: number;
+                        } | null;
+                        variants: {
+                            id: string;
+                            sku: string | null;
+                            name: {
+                                [key: string]: string;
+                            } | null;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                                originalAmount?: number;
+                                discountPercent?: number;
+                            } | null;
+                            attributes: {
+                                code: string;
+                                name: {
+                                    [key: string]: string;
+                                };
+                                value: {
+                                    [key: string]: string;
+                                };
+                            }[];
+                            inStock: boolean;
+                            inventoryQuantity: number | null;
                         }[];
-                        attributes?: {
-                            [key: string]: unknown;
+                        options: {
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            values: {
+                                id: string;
+                                name: {
+                                    [key: string]: string;
+                                };
+                            }[];
                         }[];
-                        categories?: ({
+                        attributes: {
+                            code: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            value: {
+                                [key: string]: string;
+                            };
+                        }[];
+                        quantityLimit: number | null;
+                        categories: {
                             id: string;
                             name: {
                                 [key: string]: string;
                             };
                             slug: string;
-                            description?: {
+                            description: {
                                 [key: string]: string;
                             } | null;
-                            image?: ({
+                            image: {
                                 url: string;
                                 alt: string;
                                 width?: number;
                                 height?: number;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            parentId?: string | null;
-                            children?: {
-                                [key: string]: unknown;
-                            }[];
-                            productCount?: number | null;
-                        } & {
-                            [key: string]: unknown;
-                        })[];
+                            } | null;
+                            parentId: string | null;
+                            productCount: number | null;
+                        }[];
                         inStock: boolean;
-                        tags?: string[];
-                        createdAt?: string;
-                        updatedAt?: string;
-                        productType?: string;
-                        status?: string | null;
-                    } & {
-                        [key: string]: unknown;
+                        vatIncluded: boolean;
+                        vatRate: number | null;
+                        tags: string[];
+                        createdAt: string;
+                        updatedAt: string;
+                        /** @enum {string} */
+                        productType: "physical" | "digital" | "service" | "event" | "subscription";
+                        digital: {
+                            downloadUrl: string | null;
+                            fileSize: number | null;
+                            fileType: string | null;
+                            licenseKey: string | null;
+                            maxDownloads: number | null;
+                            expiresInHours: number | null;
+                        } | null;
+                        service: {
+                            durationMinutes: number | null;
+                            requiresBooking: boolean;
+                            /** @enum {string} */
+                            deliveryMode: "in_person" | "remote" | "hybrid";
+                        } | null;
+                        event: {
+                            startDate: string;
+                            endDate: string | null;
+                            venue: {
+                                [key: string]: string;
+                            } | null;
+                            location: string | null;
+                            isVirtual: boolean;
+                            seatInfo: string | null;
+                            capacity: number | null;
+                        } | null;
+                        subscription: {
+                            /** @enum {string} */
+                            interval: "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
+                            intervalCount: number;
+                            trialDays: number;
+                            recurringPrice: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            };
+                        } | null;
+                        preOrder: {
+                            enabled: boolean;
+                            releaseDate: string | null;
+                            depositAmount: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } | null;
+                            message: {
+                                [key: string]: string;
+                            } | null;
+                        } | null;
+                        requiresShipping: boolean;
+                        isDropshipped: boolean;
+                        status: string | null;
                     };
                 };
             };
@@ -5128,82 +5466,164 @@ export interface operations {
                 content: {
                     "application/json": {
                         id: string;
-                        sku?: string | null;
+                        sku: string | null;
                         name: {
                             [key: string]: string;
                         };
                         slug: string;
-                        description?: {
+                        description: {
                             [key: string]: string;
                         } | null;
-                        shortDescription?: {
+                        shortDescription: {
                             [key: string]: string;
                         } | null;
-                        price?: ({
+                        price: {
                             amount: number;
                             currency: string;
                             formatted: string;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        primaryImage?: ({
+                            originalAmount?: number;
+                            discountPercent?: number;
+                        } | null;
+                        primaryImage: {
                             url: string;
                             alt: string;
                             width?: number;
                             height?: number;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        gallery?: ({
+                        } | null;
+                        gallery: {
                             url: string;
                             alt: string;
                             width?: number;
                             height?: number;
-                        } & {
-                            [key: string]: unknown;
-                        })[];
-                        variants?: {
-                            [key: string]: unknown;
                         }[];
-                        options?: {
-                            [key: string]: unknown;
+                        rating: {
+                            average: number;
+                            count: number;
+                        } | null;
+                        variants: {
+                            id: string;
+                            sku: string | null;
+                            name: {
+                                [key: string]: string;
+                            } | null;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                                originalAmount?: number;
+                                discountPercent?: number;
+                            } | null;
+                            attributes: {
+                                code: string;
+                                name: {
+                                    [key: string]: string;
+                                };
+                                value: {
+                                    [key: string]: string;
+                                };
+                            }[];
+                            inStock: boolean;
+                            inventoryQuantity: number | null;
                         }[];
-                        attributes?: {
-                            [key: string]: unknown;
+                        options: {
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            values: {
+                                id: string;
+                                name: {
+                                    [key: string]: string;
+                                };
+                            }[];
                         }[];
-                        categories?: ({
+                        attributes: {
+                            code: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            value: {
+                                [key: string]: string;
+                            };
+                        }[];
+                        quantityLimit: number | null;
+                        categories: {
                             id: string;
                             name: {
                                 [key: string]: string;
                             };
                             slug: string;
-                            description?: {
+                            description: {
                                 [key: string]: string;
                             } | null;
-                            image?: ({
+                            image: {
                                 url: string;
                                 alt: string;
                                 width?: number;
                                 height?: number;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            parentId?: string | null;
-                            children?: {
-                                [key: string]: unknown;
-                            }[];
-                            productCount?: number | null;
-                        } & {
-                            [key: string]: unknown;
-                        })[];
+                            } | null;
+                            parentId: string | null;
+                            productCount: number | null;
+                        }[];
                         inStock: boolean;
-                        tags?: string[];
-                        createdAt?: string;
-                        updatedAt?: string;
-                        productType?: string;
-                        status?: string | null;
-                    } & {
-                        [key: string]: unknown;
+                        vatIncluded: boolean;
+                        vatRate: number | null;
+                        tags: string[];
+                        createdAt: string;
+                        updatedAt: string;
+                        /** @enum {string} */
+                        productType: "physical" | "digital" | "service" | "event" | "subscription";
+                        digital: {
+                            downloadUrl: string | null;
+                            fileSize: number | null;
+                            fileType: string | null;
+                            licenseKey: string | null;
+                            maxDownloads: number | null;
+                            expiresInHours: number | null;
+                        } | null;
+                        service: {
+                            durationMinutes: number | null;
+                            requiresBooking: boolean;
+                            /** @enum {string} */
+                            deliveryMode: "in_person" | "remote" | "hybrid";
+                        } | null;
+                        event: {
+                            startDate: string;
+                            endDate: string | null;
+                            venue: {
+                                [key: string]: string;
+                            } | null;
+                            location: string | null;
+                            isVirtual: boolean;
+                            seatInfo: string | null;
+                            capacity: number | null;
+                        } | null;
+                        subscription: {
+                            /** @enum {string} */
+                            interval: "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
+                            intervalCount: number;
+                            trialDays: number;
+                            recurringPrice: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            };
+                        } | null;
+                        preOrder: {
+                            enabled: boolean;
+                            releaseDate: string | null;
+                            depositAmount: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            } | null;
+                            message: {
+                                [key: string]: string;
+                            } | null;
+                        } | null;
+                        requiresShipping: boolean;
+                        isDropshipped: boolean;
+                        status: string | null;
                     };
                 };
             };
@@ -5293,24 +5713,17 @@ export interface operations {
                             [key: string]: string;
                         };
                         slug: string;
-                        description?: {
+                        description: {
                             [key: string]: string;
                         } | null;
-                        image?: ({
+                        image: {
                             url: string;
                             alt: string;
                             width?: number;
                             height?: number;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        parentId?: string | null;
-                        children?: {
-                            [key: string]: unknown;
-                        }[];
-                        productCount?: number | null;
-                    } & {
-                        [key: string]: unknown;
+                        } | null;
+                        parentId: string | null;
+                        productCount: number | null;
                     };
                 };
             };
@@ -5470,24 +5883,17 @@ export interface operations {
                             [key: string]: string;
                         };
                         slug: string;
-                        description?: {
+                        description: {
                             [key: string]: string;
                         } | null;
-                        image?: ({
+                        image: {
                             url: string;
                             alt: string;
                             width?: number;
                             height?: number;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        parentId?: string | null;
-                        children?: {
-                            [key: string]: unknown;
-                        }[];
-                        productCount?: number | null;
-                    } & {
-                        [key: string]: unknown;
+                        } | null;
+                        parentId: string | null;
+                        productCount: number | null;
                     };
                 };
             };
@@ -5565,56 +5971,91 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        items: ({
+                        items: {
                             id: string;
                             orderNumber: string;
-                            status: string;
-                            paymentStatus: string;
-                            fulfillmentStatus: string;
+                            /** @enum {string} */
+                            status: "placed" | "approved" | "fulfilled" | "cancelled";
+                            /** @enum {string} */
+                            paymentStatus: "unpaid" | "authorized" | "paid" | "partially_refunded" | "refunded" | "voided" | "free";
+                            /** @enum {string} */
+                            fulfillmentStatus: "unfulfilled" | "in_progress" | "fulfilled" | "not_required";
                             items: {
-                                [key: string]: unknown;
+                                id: string;
+                                productId: string;
+                                variantId: string | null;
+                                name: {
+                                    [key: string]: string;
+                                };
+                                image: {
+                                    url: string;
+                                    alt: string;
+                                    width?: number;
+                                    height?: number;
+                                } | null;
+                                quantity: number;
+                                price: {
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                };
+                                totalPrice: {
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                };
+                                /** @enum {string} */
+                                fulfillmentStatus: "unfulfilled" | "partially_fulfilled" | "fulfilled" | "returned" | "download_ready" | "license_sent" | "access_granted" | "ticket_issued";
+                                /** @enum {string} */
+                                productType: "physical" | "digital" | "service" | "event" | "subscription";
+                                digital: {
+                                    downloadUrl: string | null;
+                                    fileSize: number | null;
+                                    fileType: string | null;
+                                    licenseKey: string | null;
+                                    maxDownloads: number | null;
+                                    expiresInHours: number | null;
+                                } | null;
+                                event: {
+                                    startDate: string;
+                                    endDate: string | null;
+                                    venue: {
+                                        [key: string]: string;
+                                    } | null;
+                                    location: string | null;
+                                    isVirtual: boolean;
+                                    seatInfo: string | null;
+                                    capacity: number | null;
+                                } | null;
                             }[];
                             totals: {
                                 subtotal: {
                                     amount: number;
                                     currency: string;
                                     formatted: string;
-                                } & {
-                                    [key: string]: unknown;
                                 };
-                                shipping?: ({
+                                shipping: {
                                     amount: number;
                                     currency: string;
                                     formatted: string;
-                                } & {
-                                    [key: string]: unknown;
-                                }) | null;
-                                tax?: ({
+                                } | null;
+                                tax: {
                                     amount: number;
                                     currency: string;
                                     formatted: string;
-                                } & {
-                                    [key: string]: unknown;
-                                }) | null;
-                                discount?: ({
+                                } | null;
+                                discount: {
                                     amount: number;
                                     currency: string;
                                     formatted: string;
-                                } & {
-                                    [key: string]: unknown;
-                                }) | null;
+                                } | null;
                                 total: {
                                     amount: number;
                                     currency: string;
                                     formatted: string;
-                                } & {
-                                    [key: string]: unknown;
                                 };
-                            } & {
-                                [key: string]: unknown;
                             };
-                            shippingAddress?: ({
-                                id?: string;
+                            shippingAddress: {
                                 firstName: string;
                                 lastName: string;
                                 phone?: string | null;
@@ -5624,12 +6065,8 @@ export interface operations {
                                 state?: string | null;
                                 country: string;
                                 postalCode?: string | null;
-                                isDefault?: boolean;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            billingAddress?: ({
-                                id?: string;
+                            } | null;
+                            billingAddress: {
                                 firstName: string;
                                 lastName: string;
                                 phone?: string | null;
@@ -5639,65 +6076,57 @@ export interface operations {
                                 state?: string | null;
                                 country: string;
                                 postalCode?: string | null;
-                                isDefault?: boolean;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            shippingMethod?: ({
+                            } | null;
+                            shippingMethod: {
                                 id: string;
                                 name: {
                                     [key: string]: string;
                                 };
                                 provider: string;
-                                fulfillmentType: string;
+                                /** @enum {string} */
+                                fulfillmentType: "shipping" | "local_delivery" | "pickup";
                                 estimatedDays: {
                                     min: number;
                                     max: number;
-                                } & {
-                                    [key: string]: unknown;
                                 };
                                 price: {
                                     amount: number;
                                     currency: string;
                                     formatted: string;
-                                } & {
-                                    [key: string]: unknown;
                                 };
                                 cashOnDelivery: boolean;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            paymentMethod?: ({
+                            } | null;
+                            paymentMethod: {
                                 id: string;
                                 type: string;
                                 name: {
                                     [key: string]: string;
                                 };
                                 provider: string;
-                                installments?: {
-                                    [key: string]: unknown;
+                                installments: {
+                                    count: number;
+                                    amount: number;
+                                    currency: string;
                                 } | null;
-                                icon?: string | null;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            trackingNumber?: string | null;
-                            trackingUrl?: string | null;
-                            note?: string | null;
-                            customerId?: string | null;
-                            contactEmail?: string | null;
-                            requiresShipping?: boolean;
+                                icon: string | null;
+                            } | null;
+                            trackingNumber: string | null;
+                            trackingUrl: string | null;
+                            note: string | null;
+                            customerId: string | null;
+                            contactEmail: string | null;
+                            requiresShipping: boolean;
+                            placedAt: string | null;
+                            approvedAt: string | null;
+                            cancelledAt: string | null;
+                            fulfilledAt: string | null;
                             createdAt: string;
                             updatedAt: string;
-                        } & {
-                            [key: string]: unknown;
-                        })[];
+                        }[];
                         total: number;
-                        page?: number;
-                        perPage?: number;
-                        hasMore?: boolean;
-                    } & {
-                        [key: string]: unknown;
+                        page: number;
+                        perPage: number;
+                        hasMore: boolean;
                     };
                 };
             };
@@ -5771,53 +6200,88 @@ export interface operations {
                     "application/json": {
                         id: string;
                         orderNumber: string;
-                        status: string;
-                        paymentStatus: string;
-                        fulfillmentStatus: string;
+                        /** @enum {string} */
+                        status: "placed" | "approved" | "fulfilled" | "cancelled";
+                        /** @enum {string} */
+                        paymentStatus: "unpaid" | "authorized" | "paid" | "partially_refunded" | "refunded" | "voided" | "free";
+                        /** @enum {string} */
+                        fulfillmentStatus: "unfulfilled" | "in_progress" | "fulfilled" | "not_required";
                         items: {
-                            [key: string]: unknown;
+                            id: string;
+                            productId: string;
+                            variantId: string | null;
+                            name: {
+                                [key: string]: string;
+                            };
+                            image: {
+                                url: string;
+                                alt: string;
+                                width?: number;
+                                height?: number;
+                            } | null;
+                            quantity: number;
+                            price: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            };
+                            totalPrice: {
+                                amount: number;
+                                currency: string;
+                                formatted: string;
+                            };
+                            /** @enum {string} */
+                            fulfillmentStatus: "unfulfilled" | "partially_fulfilled" | "fulfilled" | "returned" | "download_ready" | "license_sent" | "access_granted" | "ticket_issued";
+                            /** @enum {string} */
+                            productType: "physical" | "digital" | "service" | "event" | "subscription";
+                            digital: {
+                                downloadUrl: string | null;
+                                fileSize: number | null;
+                                fileType: string | null;
+                                licenseKey: string | null;
+                                maxDownloads: number | null;
+                                expiresInHours: number | null;
+                            } | null;
+                            event: {
+                                startDate: string;
+                                endDate: string | null;
+                                venue: {
+                                    [key: string]: string;
+                                } | null;
+                                location: string | null;
+                                isVirtual: boolean;
+                                seatInfo: string | null;
+                                capacity: number | null;
+                            } | null;
                         }[];
                         totals: {
                             subtotal: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                            shipping?: ({
+                            shipping: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            tax?: ({
+                            } | null;
+                            tax: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            discount?: ({
+                            } | null;
+                            discount: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
+                            } | null;
                             total: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
-                        } & {
-                            [key: string]: unknown;
                         };
-                        shippingAddress?: ({
-                            id?: string;
+                        shippingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -5827,12 +6291,8 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        billingAddress?: ({
-                            id?: string;
+                        } | null;
+                        billingAddress: {
                             firstName: string;
                             lastName: string;
                             phone?: string | null;
@@ -5842,58 +6302,52 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        shippingMethod?: ({
+                        } | null;
+                        shippingMethod: {
                             id: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            fulfillmentType: string;
+                            /** @enum {string} */
+                            fulfillmentType: "shipping" | "local_delivery" | "pickup";
                             estimatedDays: {
                                 min: number;
                                 max: number;
-                            } & {
-                                [key: string]: unknown;
                             };
                             price: {
                                 amount: number;
                                 currency: string;
                                 formatted: string;
-                            } & {
-                                [key: string]: unknown;
                             };
                             cashOnDelivery: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        paymentMethod?: ({
+                        } | null;
+                        paymentMethod: {
                             id: string;
                             type: string;
                             name: {
                                 [key: string]: string;
                             };
                             provider: string;
-                            installments?: {
-                                [key: string]: unknown;
+                            installments: {
+                                count: number;
+                                amount: number;
+                                currency: string;
                             } | null;
-                            icon?: string | null;
-                        } & {
-                            [key: string]: unknown;
-                        }) | null;
-                        trackingNumber?: string | null;
-                        trackingUrl?: string | null;
-                        note?: string | null;
-                        customerId?: string | null;
-                        contactEmail?: string | null;
-                        requiresShipping?: boolean;
+                            icon: string | null;
+                        } | null;
+                        trackingNumber: string | null;
+                        trackingUrl: string | null;
+                        note: string | null;
+                        customerId: string | null;
+                        contactEmail: string | null;
+                        requiresShipping: boolean;
+                        placedAt: string | null;
+                        approvedAt: string | null;
+                        cancelledAt: string | null;
+                        fulfilledAt: string | null;
                         createdAt: string;
                         updatedAt: string;
-                    } & {
-                        [key: string]: unknown;
                     };
                 };
             };
@@ -6043,15 +6497,13 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": ({
+                    "application/json": {
                         id: string;
                         orderId: string;
                         action: string;
-                        note?: string | null;
+                        note: string | null;
                         createdAt: string;
-                    } & {
-                        [key: string]: unknown;
-                    })[];
+                    }[];
                 };
             };
             /** @description Unauthorized */
@@ -6286,39 +6738,33 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        items: ({
+                        items: {
                             id: string;
-                            email?: string | null;
-                            firstName?: string | null;
-                            lastName?: string | null;
-                            phone?: string | null;
-                            addresses?: ({
-                                id?: string;
+                            email: string | null;
+                            firstName: string | null;
+                            lastName: string | null;
+                            phone: string | null;
+                            addresses: {
+                                id: string;
                                 firstName: string;
                                 lastName: string;
-                                phone?: string | null;
+                                phone: string | null;
                                 street: string;
-                                street2?: string | null;
+                                street2: string | null;
                                 city: string;
-                                state?: string | null;
+                                state: string | null;
                                 country: string;
-                                postalCode?: string | null;
-                                isDefault?: boolean;
-                            } & {
-                                [key: string]: unknown;
-                            })[];
-                            defaultAddressId?: string | null;
+                                postalCode: string | null;
+                                isDefault: boolean;
+                            }[];
+                            defaultAddressId: string | null;
                             createdAt: string;
                             updatedAt: string;
-                        } & {
-                            [key: string]: unknown;
-                        })[];
+                        }[];
                         total: number;
-                        page?: number;
-                        perPage?: number;
-                        hasMore?: boolean;
-                    } & {
-                        [key: string]: unknown;
+                        page: number;
+                        perPage: number;
+                        hasMore: boolean;
                     };
                 };
             };
@@ -6391,30 +6837,26 @@ export interface operations {
                 content: {
                     "application/json": {
                         id: string;
-                        email?: string | null;
-                        firstName?: string | null;
-                        lastName?: string | null;
-                        phone?: string | null;
-                        addresses?: ({
-                            id?: string;
+                        email: string | null;
+                        firstName: string | null;
+                        lastName: string | null;
+                        phone: string | null;
+                        addresses: {
+                            id: string;
                             firstName: string;
                             lastName: string;
-                            phone?: string | null;
+                            phone: string | null;
                             street: string;
-                            street2?: string | null;
+                            street2: string | null;
                             city: string;
-                            state?: string | null;
+                            state: string | null;
                             country: string;
-                            postalCode?: string | null;
-                            isDefault?: boolean;
-                        } & {
-                            [key: string]: unknown;
-                        })[];
-                        defaultAddressId?: string | null;
+                            postalCode: string | null;
+                            isDefault: boolean;
+                        }[];
+                        defaultAddressId: string | null;
                         createdAt: string;
                         updatedAt: string;
-                    } & {
-                        [key: string]: unknown;
                     };
                 };
             };
@@ -6484,27 +6926,25 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        name?: {
+                        name: {
                             [key: string]: string;
                         };
-                        description?: {
+                        description: {
                             [key: string]: string;
                         } | null;
-                        logo?: string | null;
-                        favicon?: string | null;
-                        currency?: string;
-                        locale?: string;
-                        timezone?: string;
-                        supportedCurrencies?: string[];
-                        supportedLocales?: string[];
-                        contactEmail?: string | null;
-                        contactPhone?: string | null;
-                        address?: string | null;
-                        socialLinks?: {
+                        logo: string | null;
+                        favicon: string | null;
+                        currency: string;
+                        locale: string;
+                        timezone: string;
+                        supportedCurrencies: string[];
+                        supportedLocales: string[];
+                        contactEmail: string | null;
+                        contactPhone: string | null;
+                        address: string | null;
+                        socialLinks: {
                             [key: string]: string;
                         } | null;
-                    } & {
-                        [key: string]: unknown;
                     };
                 };
             };
@@ -6595,27 +7035,25 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        name?: {
+                        name: {
                             [key: string]: string;
                         };
-                        description?: {
+                        description: {
                             [key: string]: string;
                         } | null;
-                        logo?: string | null;
-                        favicon?: string | null;
-                        currency?: string;
-                        locale?: string;
-                        timezone?: string;
-                        supportedCurrencies?: string[];
-                        supportedLocales?: string[];
-                        contactEmail?: string | null;
-                        contactPhone?: string | null;
-                        address?: string | null;
-                        socialLinks?: {
+                        logo: string | null;
+                        favicon: string | null;
+                        currency: string;
+                        locale: string;
+                        timezone: string;
+                        supportedCurrencies: string[];
+                        supportedLocales: string[];
+                        contactEmail: string | null;
+                        contactPhone: string | null;
+                        address: string | null;
+                        socialLinks: {
                             [key: string]: string;
                         } | null;
-                    } & {
-                        [key: string]: unknown;
                     };
                 };
             };
@@ -6766,61 +7204,96 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        totalProducts?: number;
-                        activeProducts?: number;
-                        totalOrders?: number;
-                        totalRevenue?: number;
-                        totalCustomers?: number;
-                        recentOrders?: ({
+                        totalProducts: number;
+                        activeProducts: number;
+                        totalOrders: number;
+                        totalRevenue: number;
+                        totalCustomers: number;
+                        recentOrders: {
                             id: string;
                             orderNumber: string;
-                            status: string;
-                            paymentStatus: string;
-                            fulfillmentStatus: string;
+                            /** @enum {string} */
+                            status: "placed" | "approved" | "fulfilled" | "cancelled";
+                            /** @enum {string} */
+                            paymentStatus: "unpaid" | "authorized" | "paid" | "partially_refunded" | "refunded" | "voided" | "free";
+                            /** @enum {string} */
+                            fulfillmentStatus: "unfulfilled" | "in_progress" | "fulfilled" | "not_required";
                             items: {
-                                [key: string]: unknown;
+                                id: string;
+                                productId: string;
+                                variantId: string | null;
+                                name: {
+                                    [key: string]: string;
+                                };
+                                image: {
+                                    url: string;
+                                    alt: string;
+                                    width?: number;
+                                    height?: number;
+                                } | null;
+                                quantity: number;
+                                price: {
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                };
+                                totalPrice: {
+                                    amount: number;
+                                    currency: string;
+                                    formatted: string;
+                                };
+                                /** @enum {string} */
+                                fulfillmentStatus: "unfulfilled" | "partially_fulfilled" | "fulfilled" | "returned" | "download_ready" | "license_sent" | "access_granted" | "ticket_issued";
+                                /** @enum {string} */
+                                productType: "physical" | "digital" | "service" | "event" | "subscription";
+                                digital: {
+                                    downloadUrl: string | null;
+                                    fileSize: number | null;
+                                    fileType: string | null;
+                                    licenseKey: string | null;
+                                    maxDownloads: number | null;
+                                    expiresInHours: number | null;
+                                } | null;
+                                event: {
+                                    startDate: string;
+                                    endDate: string | null;
+                                    venue: {
+                                        [key: string]: string;
+                                    } | null;
+                                    location: string | null;
+                                    isVirtual: boolean;
+                                    seatInfo: string | null;
+                                    capacity: number | null;
+                                } | null;
                             }[];
                             totals: {
                                 subtotal: {
                                     amount: number;
                                     currency: string;
                                     formatted: string;
-                                } & {
-                                    [key: string]: unknown;
                                 };
-                                shipping?: ({
+                                shipping: {
                                     amount: number;
                                     currency: string;
                                     formatted: string;
-                                } & {
-                                    [key: string]: unknown;
-                                }) | null;
-                                tax?: ({
+                                } | null;
+                                tax: {
                                     amount: number;
                                     currency: string;
                                     formatted: string;
-                                } & {
-                                    [key: string]: unknown;
-                                }) | null;
-                                discount?: ({
+                                } | null;
+                                discount: {
                                     amount: number;
                                     currency: string;
                                     formatted: string;
-                                } & {
-                                    [key: string]: unknown;
-                                }) | null;
+                                } | null;
                                 total: {
                                     amount: number;
                                     currency: string;
                                     formatted: string;
-                                } & {
-                                    [key: string]: unknown;
                                 };
-                            } & {
-                                [key: string]: unknown;
                             };
-                            shippingAddress?: ({
-                                id?: string;
+                            shippingAddress: {
                                 firstName: string;
                                 lastName: string;
                                 phone?: string | null;
@@ -6830,12 +7303,8 @@ export interface operations {
                                 state?: string | null;
                                 country: string;
                                 postalCode?: string | null;
-                                isDefault?: boolean;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            billingAddress?: ({
-                                id?: string;
+                            } | null;
+                            billingAddress: {
                                 firstName: string;
                                 lastName: string;
                                 phone?: string | null;
@@ -6845,64 +7314,56 @@ export interface operations {
                                 state?: string | null;
                                 country: string;
                                 postalCode?: string | null;
-                                isDefault?: boolean;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            shippingMethod?: ({
+                            } | null;
+                            shippingMethod: {
                                 id: string;
                                 name: {
                                     [key: string]: string;
                                 };
                                 provider: string;
-                                fulfillmentType: string;
+                                /** @enum {string} */
+                                fulfillmentType: "shipping" | "local_delivery" | "pickup";
                                 estimatedDays: {
                                     min: number;
                                     max: number;
-                                } & {
-                                    [key: string]: unknown;
                                 };
                                 price: {
                                     amount: number;
                                     currency: string;
                                     formatted: string;
-                                } & {
-                                    [key: string]: unknown;
                                 };
                                 cashOnDelivery: boolean;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            paymentMethod?: ({
+                            } | null;
+                            paymentMethod: {
                                 id: string;
                                 type: string;
                                 name: {
                                     [key: string]: string;
                                 };
                                 provider: string;
-                                installments?: {
-                                    [key: string]: unknown;
+                                installments: {
+                                    count: number;
+                                    amount: number;
+                                    currency: string;
                                 } | null;
-                                icon?: string | null;
-                            } & {
-                                [key: string]: unknown;
-                            }) | null;
-                            trackingNumber?: string | null;
-                            trackingUrl?: string | null;
-                            note?: string | null;
-                            customerId?: string | null;
-                            contactEmail?: string | null;
-                            requiresShipping?: boolean;
+                                icon: string | null;
+                            } | null;
+                            trackingNumber: string | null;
+                            trackingUrl: string | null;
+                            note: string | null;
+                            customerId: string | null;
+                            contactEmail: string | null;
+                            requiresShipping: boolean;
+                            placedAt: string | null;
+                            approvedAt: string | null;
+                            cancelledAt: string | null;
+                            fulfilledAt: string | null;
                             createdAt: string;
                             updatedAt: string;
-                        } & {
-                            [key: string]: unknown;
-                        })[];
-                        ordersByStatus?: {
+                        }[];
+                        ordersByStatus: {
                             [key: string]: number;
                         };
-                    } & {
-                        [key: string]: unknown;
                     };
                 };
             };
@@ -6976,6 +7437,8 @@ export interface operations {
                     "application/json": {
                         /** @constant */
                         received: true;
+                        /** @enum {string} */
+                        result: "applied" | "duplicate" | "amount_mismatch" | "order_cancelled" | "ignored";
                     };
                 };
             };
@@ -7049,6 +7512,8 @@ export interface operations {
                     "application/json": {
                         /** @constant */
                         received: true;
+                        /** @enum {string} */
+                        result: "applied" | "duplicate" | "amount_mismatch" | "order_cancelled" | "ignored";
                     };
                 };
             };
