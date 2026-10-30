@@ -12,8 +12,6 @@ export type { PlatformAdapterResult } from './adapter.js'
 export { createAdminAPI } from './admin/index.js'
 export type { AdminAPI } from './admin/types.js'
 export type {
-  AdminUser,
-  AdminUserSafe,
   CreateProductInput,
   UpdateProductInput,
   CreateCategoryInput,

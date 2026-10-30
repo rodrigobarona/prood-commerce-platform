@@ -11,7 +11,6 @@ import { getCommerceConfig } from './env'
 // merchant operations without depending on @prood/platform directly.
 export type {
   AdminAPI,
-  AdminUserSafe,
   AdminListParams,
   AdminListOrdersParams,
   CreateProductInput,

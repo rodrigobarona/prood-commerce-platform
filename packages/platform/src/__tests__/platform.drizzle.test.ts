@@ -14,6 +14,7 @@ vi.mock('../database/index.js', async () => {
 })
 
 import { randomBytes } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { Pool } from '@neondatabase/serverless'
@@ -30,6 +31,11 @@ if (!SERVER_URL) {
   throw new Error(
     'DATABASE_URL is required — set it in repo-root .env.local or packages/platform/.env',
   )
+}
+
+const MIGRATIONS = resolve(import.meta.dirname, '../../drizzle')
+const journal = JSON.parse(readFileSync(resolve(MIGRATIONS, 'meta/_journal.json'), 'utf8')) as {
+  entries: unknown[]
 }
 
 const TEST_DATABASE = `prood_test_${randomBytes(6).toString('hex')}`
@@ -50,7 +56,7 @@ async function applyMigrations() {
   const pool = new Pool({ connectionString: TEST_DATABASE_URL })
   try {
     await migrate(drizzle({ client: pool }), {
-      migrationsFolder: resolve(import.meta.dirname, '../../drizzle'),
+      migrationsFolder: MIGRATIONS,
     })
   } finally {
     await pool.end()
@@ -94,7 +100,7 @@ describe('@prood/platform [drizzle]', () => {
     const { rows } = await getDb().execute(
       sql`select count(*)::int as count from drizzle.__drizzle_migrations`,
     )
-    expect(rows[0]?.count).toBe(3)
+    expect(rows[0]?.count).toBe(journal.entries.length)
   })
 
   describe('row-level security', () => {

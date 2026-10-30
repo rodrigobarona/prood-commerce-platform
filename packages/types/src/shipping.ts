@@ -4,22 +4,18 @@
 
 import type { Id, LocalizedString, Price } from './common.js'
 
-/** Known GCC shipping providers */
+/** Known shipping providers */
 export type ShippingProvider =
-  | 'aramex'
-  | 'smsa'
+  | 'ctt'
+  | 'dpd'
   | 'dhl'
-  | 'fetchr'
-  | 'jnt'
-  | 'naqel'
-  | 'zajil'
   | 'fedex'
   | 'ups'
   | 'custom'
 
 /** How the order will be fulfilled */
 export type FulfillmentType =
-  | 'shipping'        // Traditional courier (Aramex, DHL, etc.)
+  | 'shipping'        // Traditional courier (CTT, DHL, etc.)
   | 'local_delivery'  // Merchant-arranged local delivery
   | 'pickup'          // Customer collects from store/branch
 

@@ -2,22 +2,7 @@
 // Admin API types — platform-only input/output types for merchant operations
 // ---------------------------------------------------------------------------
 
-import type { PaginationParams, PaginatedResult, Order, Product, Customer, Category, LocalizedField } from '@prood/types'
-
-// ---- Admin Users ----
-
-export interface AdminUser {
-  id: string
-  email: string
-  passwordHash: string
-  name: string | null
-  role: 'owner' | 'admin' | 'editor'
-  createdAt: string
-  updatedAt: string
-}
-
-/** Admin user without the password hash — safe for API responses */
-export type AdminUserSafe = Omit<AdminUser, 'passwordHash'>
+import type { PaginationParams, PaginatedResult, Order, Product, Customer, Category, LocalizedField, ProductType } from '@prood/types'
 
 // ---- Generic ----
 
@@ -37,7 +22,7 @@ export interface CreateProductInput {
   compareAtPrice?: number
   currency?: string
   sku?: string
-  productType?: string
+  productType?: ProductType
   status?: 'draft' | 'active' | 'archived'
   inStock?: boolean
   inventoryQuantity?: number
@@ -163,17 +148,6 @@ export interface DashboardStats {
 // ---- Admin API ----
 
 export interface AdminAPI {
-  // Auth
-  auth: {
-    login(email: string, password: string): Promise<AdminUserSafe>
-    changePassword(adminId: string, currentPassword: string, newPassword: string): Promise<void>
-    createAdmin(input: { email: string; password: string; name?: string; role?: 'owner' | 'admin' | 'editor' }): Promise<AdminUserSafe>
-    listAdmins(): Promise<AdminUserSafe[]>
-    getAdmin(id: string): Promise<AdminUserSafe>
-    deleteAdmin(id: string): Promise<void>
-    seedInitialAdmin(): Promise<void>
-  }
-
   // Products
   getProduct(id: string): Promise<Product>
   createProduct(input: CreateProductInput): Promise<Product>

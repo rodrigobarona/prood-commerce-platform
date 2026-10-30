@@ -4653,7 +4653,8 @@ export interface operations {
                     compareAtPrice?: number;
                     currency?: string;
                     sku?: string;
-                    productType?: string;
+                    /** @enum {string} */
+                    productType?: "physical" | "digital" | "service" | "event" | "subscription";
                     /** @enum {string} */
                     status?: "draft" | "active" | "archived";
                     inStock?: boolean;
@@ -5075,7 +5076,8 @@ export interface operations {
                     compareAtPrice?: number;
                     currency?: string;
                     sku?: string;
-                    productType?: string;
+                    /** @enum {string} */
+                    productType?: "physical" | "digital" | "service" | "event" | "subscription";
                     /** @enum {string} */
                     status?: "draft" | "active" | "archived";
                     inStock?: boolean;

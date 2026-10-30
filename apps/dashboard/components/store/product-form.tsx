@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import type { LocalizedField } from "@prood/types"
+import type { LocalizedField, ProductType } from "@prood/types"
 import { Button } from "@prood/ui/components/button"
 import { Input } from "@prood/ui/components/input"
 import { Label } from "@prood/ui/components/label"
@@ -37,7 +37,7 @@ export interface ProductFormValues {
   price: string
   compareAtPrice: string
   sku: string
-  productType: string
+  productType: ProductType
   status: string
   inStock: boolean
   requiresShipping: boolean
@@ -198,7 +198,7 @@ export function ProductForm({
               <Label htmlFor="productType">Type</Label>
               <Select
                 value={values.productType}
-                onValueChange={(value) => set("productType", value)}
+                onValueChange={(value) => set("productType", value as ProductType)}
               >
                 <SelectTrigger id="productType">
                   <SelectValue />

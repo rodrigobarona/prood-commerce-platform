@@ -13235,7 +13235,14 @@
                     "type": "string"
                   },
                   "productType": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                      "physical",
+                      "digital",
+                      "service",
+                      "event",
+                      "subscription"
+                    ]
                   },
                   "status": {
                     "type": "string",
@@ -14372,7 +14379,14 @@
                     "type": "string"
                   },
                   "productType": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                      "physical",
+                      "digital",
+                      "service",
+                      "event",
+                      "subscription"
+                    ]
                   },
                   "status": {
                     "type": "string",

@@ -3,7 +3,6 @@
 // ---------------------------------------------------------------------------
 
 import type { AdminAPI } from './types.js'
-import { createAdminAuthDomain } from './auth.js'
 import { createAdminProductsDomain } from './products.js'
 import { createAdminCategoriesDomain } from './categories.js'
 import { createAdminOrdersDomain } from './orders.js'
@@ -35,7 +34,6 @@ import { normalizeLocalizedField, priceRequired, price, img, parseJsonField } fr
  * ```
  */
 export function createAdminAPI(currency: string): AdminAPI {
-  const auth = createAdminAuthDomain()
   const products = createAdminProductsDomain(currency)
   const categories = createAdminCategoriesDomain()
   const orders = createAdminOrdersDomain(currency)
@@ -45,7 +43,6 @@ export function createAdminAPI(currency: string): AdminAPI {
 
   return {
     // Auth
-    auth,
     // Products
     getProduct: products.getProduct,
     createProduct: products.createProduct,
@@ -164,8 +161,6 @@ export function createAdminAPI(currency: string): AdminAPI {
 // Re-export types
 export type { AdminAPI } from './types.js'
 export type {
-  AdminUser,
-  AdminUserSafe,
   CreateProductInput,
   UpdateProductInput,
   CreateCategoryInput,

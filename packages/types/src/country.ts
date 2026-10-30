@@ -17,7 +17,7 @@ export interface Country {
   flag: Maybe<string>
   /** Phone calling code (e.g., "+966") */
   callingCode: Maybe<string>
-  /** Default currency code (e.g., "SAR") */
+  /** Default currency code (e.g., "EUR") */
   currency: Maybe<string>
   /** Capital city name */
   capital: Maybe<string>

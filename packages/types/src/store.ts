@@ -6,7 +6,7 @@ import type { Maybe, Image, LocalizedString } from './common.js'
 
 /** Supported currency */
 export interface StoreCurrency {
-  /** ISO 4217 code (e.g., "SAR", "AED", "KWD") */
+  /** ISO 4217 code (e.g., "EUR", "USD", "GBP") */
   code: string
   /** Display symbol (e.g., "ر.س", "د.إ") */
   symbol: string

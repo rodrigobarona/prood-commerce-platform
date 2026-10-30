@@ -137,7 +137,7 @@ export interface Product {
   inStock: boolean
   /** Whether the displayed price includes VAT */
   vatIncluded: boolean
-  /** VAT rate as a decimal (e.g., 0.15 for KSA 15%) */
+  /** VAT rate as a decimal (e.g., 0.23 for 23% in Portugal) */
   vatRate: Maybe<number>
   tags: string[]
   createdAt: string

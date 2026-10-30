@@ -59,7 +59,7 @@ export interface CheckoutCustomerInfo {
 export interface CheckoutSessionConfig {
   /** The payment provider to use for this session */
   paymentProvider: PaymentProvider
-  /** Currency code (e.g. 'SAR', 'USD') */
+  /** Currency code (e.g. 'EUR', 'USD') */
   currency: string
   /** Total amount — can be updated before payment */
   amount: number

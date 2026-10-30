@@ -66,13 +66,13 @@ function resolveConfig(config: CheckoutSessionConfig): ResolvedCheckoutConfig {
  * ```ts
  * const session = new CheckoutSession({
  *   paymentProvider: new TapPaymentProvider({ secretKey: 'sk_test_...' }),
- *   currency: 'SAR',
+ *   currency: 'EUR',
  *   amount: 199.99,
  *   returnUrl: 'https://mystore.com/confirm',
  * })
  *
  * session.setCustomerInfo({ email: 'ali@example.com', firstName: 'Ali' })
- * session.setShippingAddress({ street: '...', city: 'Riyadh', ... })
+ * session.setShippingAddress({ street: '...', city: 'Lisbon', ... })
  * session.setShippingMethod('standard')
  * await session.submitPayment({ sourceToken: 'tok_xxx' })
  * ```
@@ -81,7 +81,7 @@ function resolveConfig(config: CheckoutSessionConfig): ResolvedCheckoutConfig {
  * ```ts
  * const session = new CheckoutSession({
  *   paymentProvider: tapProvider,
- *   currency: 'SAR',
+ *   currency: 'EUR',
  *   amount: 45.00,
  *   channel: 'pos',
  *   // fulfillment defaults to 'none' for POS
@@ -95,7 +95,7 @@ function resolveConfig(config: CheckoutSessionConfig): ResolvedCheckoutConfig {
  * ```ts
  * const session = new CheckoutSession({
  *   paymentProvider: tapProvider,
- *   currency: 'SAR',
+ *   currency: 'EUR',
  *   amount: 85.00,
  *   channel: 'link',
  *   fulfillment: 'local_delivery', // needs address, no method selection

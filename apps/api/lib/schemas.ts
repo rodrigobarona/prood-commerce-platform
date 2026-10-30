@@ -118,7 +118,7 @@ export const createProductBody = z.object({
   compareAtPrice: z.number().optional(),
   currency: z.string().optional(),
   sku: z.string().optional(),
-  productType: z.string().optional(),
+  productType: z.enum(["physical", "digital", "service", "event", "subscription"]).optional(),
   status: z.enum(["draft", "active", "archived"]).optional(),
   inStock: z.boolean().optional(),
   inventoryQuantity: z.number().int().optional(),

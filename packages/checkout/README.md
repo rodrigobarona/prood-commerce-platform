@@ -29,7 +29,7 @@ const session = new CheckoutSession({
     publishableKey: process.env.TAP_PUBLISHABLE_KEY!,
   }),
   amount: 250,
-  currency: 'SAR',
+  currency: 'EUR',
   orderId: 'order_123',
 })
 
@@ -48,7 +48,7 @@ session.on('error', ({ error }) => {
 
 // Drive the checkout flow
 session.setCustomerInfo({ email: 'customer@example.com', firstName: 'Ali' })
-session.setShippingAddress({ street: '123 Main St', city: 'Riyadh', country: 'SA' })
+session.setShippingAddress({ street: '123 Main St', city: 'Lisbon', country: 'PT' })
 session.setShippingMethod('standard')
 
 const payment = await session.submitPayment({ sourceToken: 'tok_xxx' })
