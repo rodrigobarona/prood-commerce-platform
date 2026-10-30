@@ -139,6 +139,7 @@ export interface DashboardStats {
   totalProducts: number
   activeProducts: number
   totalOrders: number
+  /** Total of orders whose payment status is `paid`: money received and not refunded */
   totalRevenue: number
   totalCustomers: number
   recentOrders: Order[]

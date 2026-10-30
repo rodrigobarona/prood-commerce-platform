@@ -2,7 +2,7 @@
 // Drizzle: Order queries
 // ---------------------------------------------------------------------------
 
-import { eq, and, desc, inArray } from 'drizzle-orm'
+import { count, eq, and, desc, inArray } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
 import { tenantCondition, requireOrgId } from './tenant-filter.js'
@@ -62,11 +62,11 @@ export async function findOrders(opts: { limit: number; offset: number; customer
 }
 
 export async function countOrdersForCustomer(customerId: string) {
-  const rows = await getDb()
-    .select({ id: schema.orders.id })
+  const [row] = await getDb()
+    .select({ count: count() })
     .from(schema.orders)
     .where(and(eq(schema.orders.customerId, customerId), tenantCondition(schema.orders)))
-  return rows.length
+  return row?.count ?? 0
 }
 
 export async function findOrderItems(orderId: string) {
