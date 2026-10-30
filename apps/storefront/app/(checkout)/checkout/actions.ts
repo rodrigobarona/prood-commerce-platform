@@ -1,7 +1,6 @@
 "use server"
 
 import type { Address, Order } from "@prood/types"
-import { priceToMajorAmount } from "@prood/types"
 import { unwrap } from "@prood/api-client"
 import { headers } from "next/headers"
 import { clearCartId, getCartId } from "@/lib/cart-cookie"
@@ -30,6 +29,18 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
   try {
     const cartId = await getCartId()
     if (!cartId) return { ok: false, error: "No active cart" }
+
+    const checkoutUrl = process.env.CHECKOUT_URL
+    const checkoutSecret = process.env.CHECKOUT_API_SECRET
+    if (!checkoutUrl || !checkoutSecret) {
+      throw new Error("CHECKOUT_URL and CHECKOUT_API_SECRET are required")
+    }
+    const headerList = await headers()
+    const host = headerList.get("x-forwarded-host") ?? headerList.get("host")
+    if (!host) throw new Error("Missing Host header")
+    const proto = headerList.get("x-forwarded-proto") ?? "http"
+    const storefrontOrigin = `${proto}://${host}`
+    const tenantId = await resolveTenantId()
 
     const api = await getCommerceApi()
 
@@ -75,21 +86,11 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
     const order = await unwrap<Order>(
       api.POST("/carts/{id}/place-order", {
         params: { path: { id: cartId } },
-        body: { email: input.email ?? "" },
+        body: { email: input.email ?? "", providerId: input.providerId },
       })
     )
-
-    const checkoutUrl = process.env.CHECKOUT_URL
-    const checkoutSecret = process.env.CHECKOUT_API_SECRET
-    if (!checkoutUrl || !checkoutSecret) {
-      throw new Error("CHECKOUT_URL and CHECKOUT_API_SECRET are required")
-    }
-    const headerList = await headers()
-    const host = headerList.get("x-forwarded-host") ?? headerList.get("host")
-    if (!host) throw new Error("Missing Host header")
-    const proto = headerList.get("x-forwarded-proto") ?? "http"
-    const storefrontOrigin = `${proto}://${host}`
-    const tenantId = await resolveTenantId()
+    // The order consumed the cart, so the cookie must not outlive it.
+    await clearCartId()
 
     let storeName: string | undefined
     try {
@@ -108,7 +109,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
       body: JSON.stringify({
         orderId: order.id,
         customerId: order.customerId,
-        amount: priceToMajorAmount(order.totals.total),
+        amount: order.totals.total.amount,
         currency: order.totals.total.currency,
         customerInfo: input.email
           ? {
@@ -124,15 +125,20 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
         storeName,
         fulfillment: "none",
       }),
+    }).catch((err) => {
+      console.error(`[checkout] session request failed for order ${order.id}`, err)
+      return null
     })
 
-    if (!sessionRes.ok) {
-      const err = (await sessionRes.json().catch(() => ({}))) as { message?: string }
-      return { ok: false, error: err.message ?? "Failed to create checkout session" }
+    if (!sessionRes?.ok) {
+      console.error(`[checkout] no payment session for order ${order.id}: ${sessionRes?.status}`)
+      return {
+        ok: false,
+        error: `We saved order ${order.orderNumber} but couldn't open payment. Contact the store to complete it.`,
+      }
     }
 
     const session = (await sessionRes.json()) as { checkoutUrl: string }
-    await clearCartId()
 
     return { ok: true, orderId: order.id, checkoutUrl: session.checkoutUrl }
   } catch (err) {

@@ -42,7 +42,7 @@ function requireScope(scope: "storefront" | "admin") {
   return caller.orgId
 }
 
-async function placeOrderForCaller(cartId: string, email?: string) {
+async function placeOrderForCaller(cartId: string, email?: string, providerId?: string) {
   const caller = getMcpCaller()
   const orgId = requireScope("storefront")
   let customerId: string | undefined
@@ -65,7 +65,7 @@ async function placeOrderForCaller(cartId: string, email?: string) {
       phone: addr.phone ?? null,
     })
   }
-  return checkout.placeOrder(orgId, cartId, customerId, email)
+  return checkout.placeOrder(orgId, cartId, customerId, email, providerId)
 }
 
 export function registerCommerceMcpTools(server: McpServer) {
@@ -324,8 +324,8 @@ export function registerCommerceMcpTools(server: McpServer) {
       inputSchema: z.object({ cartId: z.string().min(1), ...placeOrderBody.shape }),
     },
     async ({ cartId, ...body }) => {
-      const { email } = placeOrderBody.parse(body)
-      return jsonContent(await placeOrderForCaller(cartId, email))
+      const { email, providerId } = placeOrderBody.parse(body)
+      return jsonContent(await placeOrderForCaller(cartId, email, providerId))
     }
   )
 

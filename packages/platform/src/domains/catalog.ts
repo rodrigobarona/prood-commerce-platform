@@ -128,7 +128,9 @@ export function createCatalogDomain(currency: string) {
           ? await findProductBySlug(params.slug!)
           : null
 
-      if (!row) {
+      // Shopper-facing read: drafts and archived products don't exist here.
+      // Merchant reads go through the admin domain.
+      if (!row || row.status !== 'active') {
         throw new CommerceError(`Product not found: ${params.id ?? params.slug}`, "NOT_FOUND")
       }
 

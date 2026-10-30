@@ -14,16 +14,8 @@ import {
   CardTitle,
 } from "@prood/ui/components/card"
 import { authClient } from "@/lib/auth/client"
+import { createStore } from "@/lib/create-store"
 import { safeRedirectPath } from "@/lib/safe-redirect"
-
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 48)
-}
 
 export function RegisterForm() {
   const router = useRouter()
@@ -57,24 +49,10 @@ export function RegisterForm() {
       return
     }
 
-    // Create the merchant's first store (organization) and make it active.
-    const slug = `${slugify(storeName) || "store"}-${Math.random().toString(36).slice(2, 7)}`
-    const { data: org, error: orgError } = await authClient.organization.create({
-      name: storeName,
-      slug,
-    })
-    if (orgError || !org) {
+    const storeError = await createStore(storeName)
+    if (storeError) {
       setLoading(false)
-      setError(orgError?.message ?? "Could not create your store")
-      return
-    }
-
-    const { error: setActiveError } = await authClient.organization.setActive({
-      organizationId: org.id,
-    })
-    if (setActiveError) {
-      setLoading(false)
-      setError(setActiveError.message ?? "Could not activate your store")
+      setError(storeError)
       return
     }
 

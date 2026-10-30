@@ -1,6 +1,7 @@
 import { headers } from "next/headers"
 import Link from "next/link"
 import { redirect } from "next/navigation"
+import { APIError } from "better-auth/api"
 import {
   Card,
   CardContent,
@@ -17,8 +18,11 @@ export const metadata = { title: "Store invitation" }
 async function loadInvitation(id: string) {
   try {
     return await getAuth().api.getInvitation({ headers: await headers(), query: { id } })
-  } catch {
-    return null
+  } catch (err) {
+    // 4xx means expired, cancelled or for another email. Anything else is an
+    // outage, which must not read as "ask for a new invitation".
+    if (err instanceof APIError && err.statusCode < 500) return null
+    throw err
   }
 }
 

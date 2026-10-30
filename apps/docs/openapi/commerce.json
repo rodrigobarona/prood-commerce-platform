@@ -1780,6 +1780,49 @@
               }
             }
           },
+          "404": {
+            "description": "Product not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "422": {
             "description": "Validation error",
             "content": {
@@ -11268,6 +11311,9 @@
                     "type": "string",
                     "format": "email",
                     "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  "providerId": {
+                    "type": "string"
                   }
                 },
                 "additionalProperties": false
@@ -15453,7 +15499,8 @@
                     }
                   },
                   "image": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uri"
                   },
                   "parentId": {
                     "type": "string"
@@ -15764,7 +15811,8 @@
                     }
                   },
                   "image": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uri"
                   },
                   "parentId": {
                     "type": "string"
@@ -19384,7 +19432,8 @@
                     }
                   },
                   "logo": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "uri"
                   },
                   "favicon": {
                     "type": "string"

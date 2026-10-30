@@ -39,7 +39,7 @@ DATABASE_URL="postgresql://user:password@host/db?sslmode=require"
 | `S3_BUCKET` | — | Bucket name |
 | `S3_ACCESS_KEY_ID` | — | Access key |
 | `S3_SECRET_ACCESS_KEY` | — | Secret key |
-| `S3_PUBLIC_URL` | — | Public CDN URL for uploaded assets |
+| `S3_PUBLIC_URL` | — | Public URL for uploaded assets (required for S3) |
 
 Uploaded files are namespaced per tenant: `org/<orgId>/…` via `uploadForTenant()`.
 

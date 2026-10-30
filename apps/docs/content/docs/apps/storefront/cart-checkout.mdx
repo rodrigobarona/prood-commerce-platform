@@ -85,7 +85,7 @@ Email for payment (Stripe receipt) is collected at the checkout app pay boundary
 body: JSON.stringify({
   orderId: order.id,
   customerId: order.customerId,
-  amount: priceToMajorAmount(order.totals.total),
+  amount: order.totals.total.amount,
   currency: order.totals.total.currency,
   tenantId,
   returnUrl: `${storefrontOrigin}/order-confirmation?orderId=${order.id}`,

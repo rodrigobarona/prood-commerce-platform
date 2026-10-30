@@ -24,6 +24,7 @@ import {
   withTenant,
   getAdapter,
   verifyPaymentWebhook,
+  getTenantPaymentProvider,
   revalidateProducts,
 } from "@prood/commerce"
 import type { PaymentEventInput, PaymentEventResult } from "@prood/types"
@@ -142,7 +143,15 @@ export const checkout = {
     ),
   setShippingMethod: (orgId: string, cartId: string, methodId: string) =>
     setShippingMethod(cartId, methodId, orgId),
-  placeOrder: async (orgId: string, cartId: string, customerId?: string, contactEmail?: string) => {
+  placeOrder: async (
+    orgId: string,
+    cartId: string,
+    customerId?: string,
+    contactEmail?: string,
+    providerId?: string
+  ) => {
+    // Placing an order consumes the cart, so check payment can be taken first.
+    await getTenantPaymentProvider(orgId, providerId)
     const order = await placeOrder(cartId, orgId, customerId, contactEmail)
     try {
       revalidateProducts(orgId)
@@ -260,6 +269,9 @@ export const webhooks = {
       console.error(
         `[webhook] ${provider} amount mismatch for order ${orderId}: ${event.amount} ${event.currency}`
       )
+    }
+    if (result === "order_cancelled") {
+      console.error(`[webhook] ${provider} reported a payment on cancelled order ${orderId}`)
     }
     if (result !== "applied") return result
 

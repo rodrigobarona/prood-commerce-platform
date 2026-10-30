@@ -7,7 +7,7 @@
 export type { Maybe, Id, LocalizedField, LocalizedString, PaginatedResult, PaginationParams, Price, DiscountablePrice, Image, DeepPartial, CommerceErrorCode, TaxStrategy } from './common.js'
 export { DEFAULT_LOCALE, DEFAULT_LOCALES, LOCALE_META } from './locale.js'
 export type { SupportedLocale } from './locale.js'
-export { CommerceError, isCommerceError, priceToMajorAmount } from './common.js'
+export { CommerceError, isCommerceError } from './common.js'
 export type { CommerceErrorBody, CommerceErrorResponse } from './http-errors.js'
 export { toErrorResponse } from './http-errors.js'
 

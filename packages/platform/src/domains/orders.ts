@@ -240,8 +240,21 @@ export function createOrdersDomain(currency: string) {
       const target = next[input.outcome]
       const from = input.outcome === 'authorized' ? ['unpaid'] : ['unpaid', 'authorized']
 
-      const changed = await transitionOrderPayment(orderId, from, target.data)
-      if (!changed) return 'duplicate'
+      // Multibanco references stay payable for days, so money can arrive after
+      // the order was cancelled. Never reopen it; flag the refund instead.
+      const collectsMoney = input.outcome === 'authorized' || input.outcome === 'captured'
+      const changed = await transitionOrderPayment(orderId, from, target.data, collectsMoney ? ['cancelled'] : [])
+      if (!changed) {
+        const current = await findOrderById(orderId)
+        if (!collectsMoney || current?.status !== 'cancelled') return 'duplicate'
+        await createOrderHistory({
+          orderId,
+          fromStatus: current.status,
+          toStatus: current.status,
+          note: `${input.provider} reported a payment on this cancelled order. A refund may be required.`,
+        })
+        return 'order_cancelled'
+      }
 
       await createOrderHistory({
         orderId,

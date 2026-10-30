@@ -15,6 +15,25 @@ export const localizedFieldSchema = z
 
 export const optionalLocalizedFieldSchema = z.record(z.string(), z.string()).optional()
 
+/**
+ * Images must render through next/image, which only serves the hosts in each
+ * app's `images.remotePatterns` and skips that check entirely for SVG.
+ */
+function isServableImageUrl(value: string): boolean {
+  const url = new URL(value)
+  if (url.protocol !== "https:" || /\.svg$/i.test(url.pathname)) return false
+  const s3PublicUrl = process.env.S3_PUBLIC_URL
+  return (
+    url.hostname.endsWith(".public.blob.vercel-storage.com") ||
+    url.hostname === "placehold.co" ||
+    (!!s3PublicUrl && value.startsWith(`${s3PublicUrl.replace(/\/$/, "")}/`))
+  )
+}
+
+const imageUrl = z.url().refine(isServableImageUrl, {
+  message: "Use an image uploaded to Prood. SVG files aren't supported.",
+})
+
 // ---- Storefront ----
 
 export const searchProductsQuery = z.object({
@@ -64,7 +83,7 @@ export const adminListOrdersQuery = z.object({
 })
 
 const productImageInput = z.object({
-  url: z.url(),
+  url: imageUrl,
   altText: z.string().optional(),
   sortOrder: z.number().int().optional(),
   isPrimary: z.boolean().optional(),
@@ -117,7 +136,7 @@ export const createCategoryBody = z.object({
   name: localizedFieldSchema,
   slug: z.string().optional(),
   description: optionalLocalizedFieldSchema,
-  image: z.string().optional(),
+  image: imageUrl.optional(),
   parentId: z.string().optional(),
   sortOrder: z.number().int().optional(),
 })
@@ -134,7 +153,7 @@ export const updateInventoryBody = z.object({
 export const updateStoreBody = z.object({
   name: optionalLocalizedFieldSchema,
   description: optionalLocalizedFieldSchema,
-  logo: z.string().optional(),
+  logo: imageUrl.optional(),
   favicon: z.string().optional(),
   currency: z.string().optional(),
   locale: z.string().optional(),
@@ -177,6 +196,7 @@ export const setShippingMethodBody = z.object({
 
 export const placeOrderBody = z.object({
   email: z.email().optional(),
+  providerId: z.string().optional(),
 })
 
 export const cancelOrderBody = z.object({

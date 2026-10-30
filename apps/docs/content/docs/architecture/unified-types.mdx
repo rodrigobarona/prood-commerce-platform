@@ -140,12 +140,7 @@ All API routes use `toErrorResponse()` for consistent error JSON.
 
 ## Price utilities
 
-Amounts are stored in **minor units** (cents) throughout the system:
-
-```ts
-function priceToMajorAmount(minor: number, currency: string): number
-// 9999 cents → 99.99 EUR
-```
+`Price.amount` is in **major units** everywhere: the database stores `numeric(12,2)`, and payment gateways receive the same value (`99.99` for €99.99).
 
 Display formatting lives in `@prood/ui/lib/commerce` (`formatPrice`, `localized`).
 

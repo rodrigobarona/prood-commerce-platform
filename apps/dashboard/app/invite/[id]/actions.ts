@@ -6,19 +6,23 @@ import { getAuth } from "@/lib/auth"
 
 export async function acceptInvitationAction(invitationId: string): Promise<{ error: string }> {
   const requestHeaders = await headers()
+  let organizationId: string | undefined
   try {
     const result = await getAuth().api.acceptInvitation({
       headers: requestHeaders,
       body: { invitationId },
     })
-    if (result?.invitation.organizationId) {
-      await getAuth().api.setActiveOrganization({
-        headers: requestHeaders,
-        body: { organizationId: result.invitation.organizationId },
-      })
-    }
+    organizationId = result?.invitation.organizationId
   } catch (err) {
     return { error: err instanceof Error ? err.message : "We couldn't accept this invitation." }
+  }
+
+  if (organizationId) {
+    // The invitation is already accepted. If activation fails, the store is
+    // still in the user's store switcher.
+    await getAuth()
+      .api.setActiveOrganization({ headers: requestHeaders, body: { organizationId } })
+      .catch((err) => console.error("[invite] could not activate store", err))
   }
   redirect("/")
 }

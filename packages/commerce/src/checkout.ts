@@ -17,7 +17,6 @@ import { getAdapter, runScoped } from './adapter'
 
 type CheckoutAddress = Omit<Address, 'id' | 'isDefault'>
 
-export { priceToMajorAmount } from '@prood/types'
 
 // ---- Shipping & payment options ----
 

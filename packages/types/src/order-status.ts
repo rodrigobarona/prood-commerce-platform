@@ -62,7 +62,7 @@ export interface PaymentEventInput {
  * - `duplicate` — the order already left `unpaid`/`authorized`; nothing changed
  * - `amount_mismatch` — the gateway amount/currency differs from the order total
  */
-export type PaymentEventResult = 'applied' | 'duplicate' | 'amount_mismatch'
+export type PaymentEventResult = 'applied' | 'duplicate' | 'amount_mismatch' | 'order_cancelled'
 
 /**
  * Input for updating an order's status.

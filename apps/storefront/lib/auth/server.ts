@@ -34,6 +34,12 @@ function sendStoreEmail(
   })
 }
 
+/** Better Auth builds links from the request URL; send shoppers to their store. */
+function onStoreOrigin(url: string, store: { origin: string }) {
+  const { pathname, search } = new URL(url)
+  return `${store.origin}${pathname}${search}`
+}
+
 /**
  * Shopper auth (email/password on Neon via Drizzle). It serves every store
  * origin, so `baseURL` is inferred per request — do not set BETTER_AUTH_URL
@@ -49,7 +55,7 @@ function createAuth() {
     trustedOrigins: async (request) => {
       const origin = request?.headers.get("origin")
       const platformDomain = process.env.NEXT_PUBLIC_PLATFORM_DOMAIN
-      if (!origin || !platformDomain) return []
+      if (!origin || !platformDomain || !URL.canParse(origin)) return []
       const { hostname } = new URL(origin)
       return (await lookupTenantByHost(hostname, platformDomain)) ? [origin] : []
     },
@@ -58,7 +64,11 @@ function createAuth() {
         create: {
           after: async (user) => {
             if (user.email) {
-              await autoLinkGuestCustomers(user.id, user.email)
+              // The account already exists here, so a failed link must not
+              // fail the sign-up. Guest orders can be linked later.
+              await autoLinkGuestCustomers(user.id, user.email).catch((err) =>
+                console.error(`[storefront-auth] guest link for ${user.id} failed`, err)
+              )
               sendStoreEmail(user.email, (store) => ({
                 subject: `Welcome to ${store.name}`,
                 template: "welcome",
@@ -79,7 +89,7 @@ function createAuth() {
         sendStoreEmail(user.email, (store) => ({
           subject: `Reset your ${store.name} password`,
           template: "password-reset",
-          data: { companyName: store.name, url },
+          data: { companyName: store.name, url: onStoreOrigin(url, store) },
         }))
       },
     },
@@ -88,7 +98,7 @@ function createAuth() {
         sendStoreEmail(user.email, (store) => ({
           subject: `Confirm your email for ${store.name}`,
           template: "activation",
-          data: { companyName: store.name, url },
+          data: { companyName: store.name, url: onStoreOrigin(url, store) },
         }))
       },
     },

@@ -32,7 +32,7 @@ export async function POST(
       })
     }
 
-    const order = await checkout.placeOrder(caller.orgId, id, customerId, body.email)
+    const order = await checkout.placeOrder(caller.orgId, id, customerId, body.email, body.providerId)
     return NextResponse.json(order, { status: 201 })
   } catch (err) {
     return errorResponse(err)

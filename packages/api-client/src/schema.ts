@@ -1212,6 +1212,22 @@ export interface operations {
                     };
                 };
             };
+            /** @description Product not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
             /** @description Validation error */
             422: {
                 headers: {
@@ -3939,6 +3955,7 @@ export interface operations {
                 "application/json": {
                     /** Format: email */
                     email?: string;
+                    providerId?: string;
                 };
             };
         };
@@ -5353,6 +5370,7 @@ export interface operations {
                     description?: {
                         [key: string]: string;
                     };
+                    /** Format: uri */
                     image?: string;
                     parentId?: string;
                     sortOrder?: number;
@@ -5530,6 +5548,7 @@ export interface operations {
                     description?: {
                         [key: string]: string;
                     };
+                    /** Format: uri */
                     image?: string;
                     parentId?: string;
                     sortOrder?: number;
@@ -6673,6 +6692,7 @@ export interface operations {
                     description?: {
                         [key: string]: string;
                     };
+                    /** Format: uri */
                     logo?: string;
                     favicon?: string;
                     currency?: string;
