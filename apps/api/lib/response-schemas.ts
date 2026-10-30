@@ -405,6 +405,7 @@ export const adminStoreSettings = z.object({
   currency: z.string(),
   locale: z.string(),
   timezone: z.string(),
+  country: z.string(),
   supportedCurrencies: z.array(z.string()),
   supportedLocales: z.array(z.string()),
   contactEmail: nullableString,

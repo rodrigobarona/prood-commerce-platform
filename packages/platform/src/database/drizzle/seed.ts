@@ -62,6 +62,7 @@ async function seedTenantData(): Promise<void> {
     currency: 'EUR',
     locale: 'en',
     timezone: 'Europe/Lisbon',
+    country: 'PT',
     supportedCurrencies: ['EUR'],
     supportedLocales: ['en', 'pt', 'es'],
   }).onConflictDoNothing()

@@ -102,10 +102,12 @@ export interface UpdateStoreInput {
   currency?: string
   locale?: string
   timezone?: string
+  /** ISO 3166-1 alpha-2 */
+  country?: string
   contactEmail?: string
   contactPhone?: string
   address?: string
-  socialLinks?: string
+  socialLinks?: Record<string, string>
 }
 
 export interface StoreSettings {
@@ -116,6 +118,8 @@ export interface StoreSettings {
   currency: string
   locale: string
   timezone: string
+  /** ISO 3166-1 alpha-2 */
+  country: string
   supportedCurrencies: string[]
   supportedLocales: string[]
   contactEmail: string | null

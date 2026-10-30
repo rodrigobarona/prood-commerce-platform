@@ -38,7 +38,7 @@ export function createStoreDomain() {
           direction: LOCALE_META[l]?.direction ?? 'ltr',
           isDefault: l === row.locale,
         })),
-        country: 'PT',
+        country: row.country,
       }
     },
   }

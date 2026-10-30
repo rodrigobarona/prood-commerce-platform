@@ -12,6 +12,7 @@ const DEFAULT_STORE = {
   currency: 'EUR',
   locale: 'en',
   timezone: 'Europe/Lisbon',
+  country: 'PT',
 } as const
 
 export interface EnsureStoreInfoOptions {
@@ -31,6 +32,7 @@ export async function ensureDefaultStoreInfo(
       currency: DEFAULT_STORE.currency,
       locale: DEFAULT_STORE.locale,
       timezone: DEFAULT_STORE.timezone,
+      country: DEFAULT_STORE.country,
     })
     row = await findStoreInfo('default')
   }
