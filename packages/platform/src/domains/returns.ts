@@ -48,13 +48,11 @@ export function createReturnsDomain() {
     async createReturn(input: CreateReturnInput): Promise<ReturnRequest> {
       // Look up the order to get the order number
       // Simplified — use orderId as order number placeholder
-      const result = await insertReturn({
+      const returnId = await insertReturn({
         orderId: input.orderId,
         orderNumber: input.orderId,
         customerNote: null,
       })
-      // Drizzle returns string id, Prisma returns full row
-      const returnId = typeof result === 'string' ? result : (result as any).id
 
       // Insert return items
       for (const item of input.items) {

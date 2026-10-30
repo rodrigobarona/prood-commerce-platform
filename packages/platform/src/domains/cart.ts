@@ -18,7 +18,7 @@ import {
   findVariantById,
   findPrimaryImage,
 } from '../database/index.js'
-import { normalizeLocalizedField, discountablePrice, priceRequired, img, parseJsonField, toNumber } from './helpers.js'
+import { normalizeLocalizedField, discountablePrice, priceRequired, img, toNumber } from './helpers.js'
 import { listPaymentMethods, listShippingMethods } from './checkout-methods.js'
 
 export function createCartDomain(currency: string) {
@@ -72,8 +72,8 @@ export function createCartDomain(currency: string) {
         discount: null,
         total: priceRequired(subtotal + (shippingMethod?.price.amount ?? 0), currency),
       },
-      shippingAddress: parseJsonField(cartRow.shippingAddress),
-      billingAddress: parseJsonField(cartRow.billingAddress),
+      shippingAddress: cartRow.shippingAddress,
+      billingAddress: cartRow.billingAddress,
       shippingMethod,
       paymentMethod,
       couponCode: cartRow.couponCode ?? null,

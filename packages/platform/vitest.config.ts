@@ -19,14 +19,13 @@ function loadEnvFile(path: string) {
   }
 }
 
-const root = resolve(import.meta.dirname ?? __dirname, '../..')
-loadEnvFile(resolve(import.meta.dirname ?? __dirname, '.env'))
+const root = resolve(import.meta.dirname, '../..')
+loadEnvFile(resolve(import.meta.dirname, '.env'))
 loadEnvFile(resolve(root, '.env.local'))
 
 export default defineConfig({
   test: {
     include: ['src/**/*.test.ts'],
-    exclude: ['src/__tests__/platform.prisma.test.ts'],
     environment: 'node',
     globals: true,
     testTimeout: 60_000,

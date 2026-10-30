@@ -18,7 +18,7 @@ import {
   findCategories,
   findProductIdsByCategory,
 } from '../database/index.js'
-import { normalizeLocalizedField, img } from './helpers.js'
+import { mapCategory } from './category-mapper.js'
 import { mapProduct } from './product-mapper.js'
 
 export function createCatalogDomain() {
@@ -93,15 +93,7 @@ export function createCatalogDomain() {
     async getCategories(params?: GetCategoriesParams): Promise<Category[]> {
       const rows = await findCategories(params?.parentId)
 
-      return rows.map(row => ({
-        id: row.id,
-        name: normalizeLocalizedField(row.name),
-        slug: row.slug,
-        description: row.description ? normalizeLocalizedField(row.description) : null,
-        image: row.image ? img(row.image, null) : null,
-        parentId: row.parentId ?? null,
-        productCount: null,
-      }))
+      return rows.map(mapCategory)
     },
   }
 }
