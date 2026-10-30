@@ -66,7 +66,7 @@ async function StatsCards() {
 
   const cards = [
     {
-      label: "Revenue",
+      label: "Revenue received",
       value: stats ? formatCurrency(stats.totalRevenue, currency) : "—",
     },
     { label: "Orders", value: stats ? String(stats.totalOrders) : "—" },

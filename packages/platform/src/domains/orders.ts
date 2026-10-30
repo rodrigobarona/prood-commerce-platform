@@ -21,6 +21,7 @@ import {
   findOrderById,
   findOrders,
   findOrderItems,
+  countOrdersForCustomer,
   findOrderHistory,
   transitionOrderPayment,
   updateOrder,
@@ -145,15 +146,18 @@ export function createOrdersDomain(currency: string) {
         return { items: [], total: 0, page, perPage, hasMore: false }
       }
 
-      const rows = await findOrders({ limit: perPage, offset, customerId: params.customerId })
+      const [rows, total] = await Promise.all([
+        findOrders({ limit: perPage, offset, customerId: params.customerId }),
+        countOrdersForCustomer(params.customerId),
+      ])
       const orders = await Promise.all(rows.map(mapOrder))
 
       return {
         items: orders,
-        total: orders.length,
+        total,
         page,
         perPage,
-        hasMore: orders.length === perPage,
+        hasMore: offset + perPage < total,
       }
     },
 
