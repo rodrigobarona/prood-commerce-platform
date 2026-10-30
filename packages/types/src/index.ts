@@ -96,6 +96,8 @@ export type {
   GetProductParams,
   GetCategoriesParams,
   AddToCartInput,
+  AddressInput,
+  CustomerOrdersParams,
   AdapterDomain,
 } from './adapter.js'
 
