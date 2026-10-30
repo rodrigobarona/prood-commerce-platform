@@ -22,6 +22,7 @@ import { drizzle } from 'drizzle-orm/neon-serverless'
 import { migrate } from 'drizzle-orm/neon-serverless/migrator'
 import { initDrizzle, closeDrizzle, getDb, withTenant } from '../database/drizzle/client.js'
 import { seedDrizzle, DEMO_ORG_ID } from '../database/drizzle/seed.js'
+import { createPlatformAdapter } from '../adapter.js'
 import { platformTestSuite } from './platform.suite.js'
 
 const SERVER_URL = process.env.DATABASE_URL
@@ -168,6 +169,20 @@ describe('@prood/platform [drizzle]', () => {
       await expect(
         getDb().execute(sql`insert into products (id, name, slug) values ('prod-orphan', '{}', 'orphan')`),
       ).rejects.toMatchObject({ cause: expect.objectContaining({ code: '23502' }) })
+    })
+  })
+
+  describe('product visibility', () => {
+    it('hides drafts from shopper reads by id and slug', async () => {
+      await cleanDatabase()
+      await seedDrizzle()
+      const { adapter } = await createPlatformAdapter()
+      await withTenant(DEMO_ORG_ID, async () => {
+        const product = await adapter.getProduct({ id: 'prod-1' })
+        await getDb().execute(sql`update products set status = 'draft' where id = 'prod-1'`)
+        await expect(adapter.getProduct({ id: 'prod-1' })).rejects.toMatchObject({ code: 'NOT_FOUND' })
+        await expect(adapter.getProduct({ slug: product.slug })).rejects.toMatchObject({ code: 'NOT_FOUND' })
+      })
     })
   })
 
