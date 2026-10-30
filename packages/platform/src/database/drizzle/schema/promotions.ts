@@ -2,12 +2,13 @@
 // Promotions schema
 // ---------------------------------------------------------------------------
 
-import { pgTable, text, integer, boolean, numeric, timestamp, jsonb } from 'drizzle-orm/pg-core'
+import { pgTable, text, integer, boolean, numeric, timestamp, jsonb, index, unique } from 'drizzle-orm/pg-core'
 import type { LocalizedField } from '@prood/types'
+import { organizationId, tenantIsolation } from './tenant.js'
 
 export const promotions = pgTable('promotions', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  organizationId: text('organization_id'),
+  organizationId: organizationId(),
   name: jsonb('name').$type<LocalizedField>().notNull().default({}),
   description: jsonb('description').$type<LocalizedField>(),
   discountType: text('discount_type').notNull().default('percentage'),
@@ -24,14 +25,20 @@ export const promotions = pgTable('promotions', {
   usageLimitTotal: integer('usage_limit_total'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-})
+}, (t) => [
+  index().on(t.organizationId),
+  tenantIsolation(),
+])
 
 export const coupons = pgTable('coupons', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  organizationId: text('organization_id'),
-  code: text('code').notNull().unique(),
+  organizationId: organizationId(),
+  code: text('code').notNull(),
   promotionId: text('promotion_id').notNull().references(() => promotions.id, { onDelete: 'cascade' }),
   isValid: boolean('is_valid').notNull().default(true),
   invalidReason: text('invalid_reason'),
   timesUsed: integer('times_used').notNull().default(0),
-})
+}, (t) => [
+  unique().on(t.organizationId, t.code),
+  tenantIsolation(),
+])

@@ -13,15 +13,15 @@ import type { CommerceAdapter, Address } from '@prood/types'
 /** Helper: create a full Address with all required fields */
 function fullAddress(overrides: Partial<Address> = {}): Omit<Address, 'id' | 'isDefault'> {
   return {
-    firstName: 'Ali',
-    lastName: 'Ahmed',
+    firstName: 'Ana',
+    lastName: 'Silva',
     phone: null,
-    street: '123 King Fahd Road',
+    street: 'Rua Augusta 100',
     street2: null,
-    city: 'Riyadh',
+    city: 'Lisboa',
     state: null,
-    country: 'SA',
-    postalCode: '12345',
+    country: 'PT',
+    postalCode: '1100-053',
     district: null,
     nationalAddress: null,
     additionalNumber: null,
@@ -289,7 +289,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
 
   it('should create an order directly', async () => {
     const order = await adapter.createOrder({
-      items: [{ productId: 'prod-1', quantity: 2, unitPrice: { amount: 100, currency: 'SAR', formatted: '100 SAR' } }],
+      items: [{ productId: 'prod-1', quantity: 2, unitPrice: { amount: 100, currency: 'EUR', formatted: '100 EUR' } }],
       shippingAddress: fullAddress(),
     })
     expect(order.id).toBeTruthy()
@@ -298,7 +298,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
 
   it('should get an order by id', async () => {
     const created = await adapter.createOrder({
-      items: [{ productId: 'prod-1', quantity: 1, unitPrice: { amount: 100, currency: 'SAR', formatted: '100 SAR' } }],
+      items: [{ productId: 'prod-1', quantity: 1, unitPrice: { amount: 100, currency: 'EUR', formatted: '100 EUR' } }],
       shippingAddress: fullAddress(),
     })
     const order = await adapter.getOrder(created.id)
@@ -313,7 +313,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
 
   it('should update order status', async () => {
     const order = await adapter.createOrder({
-      items: [{ productId: 'prod-1', quantity: 1, unitPrice: { amount: 100, currency: 'SAR', formatted: '100 SAR' } }],
+      items: [{ productId: 'prod-1', quantity: 1, unitPrice: { amount: 100, currency: 'EUR', formatted: '100 EUR' } }],
       shippingAddress: fullAddress(),
     })
     await adapter.updateOrderStatus(order.id, { status: 'approved' })
@@ -323,7 +323,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
 
   it('should track order history', async () => {
     const order = await adapter.createOrder({
-      items: [{ productId: 'prod-1', quantity: 1, unitPrice: { amount: 100, currency: 'SAR', formatted: '100 SAR' } }],
+      items: [{ productId: 'prod-1', quantity: 1, unitPrice: { amount: 100, currency: 'EUR', formatted: '100 EUR' } }],
       shippingAddress: fullAddress(),
     })
     await adapter.updateOrderStatus(order.id, { status: 'approved' })
@@ -333,7 +333,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
 
   it('should cancel an order', async () => {
     const order = await adapter.createOrder({
-      items: [{ productId: 'prod-1', quantity: 1, unitPrice: { amount: 100, currency: 'SAR', formatted: '100 SAR' } }],
+      items: [{ productId: 'prod-1', quantity: 1, unitPrice: { amount: 100, currency: 'EUR', formatted: '100 EUR' } }],
       shippingAddress: fullAddress(),
     })
     await adapter.cancelOrder(order.id, 'Changed my mind')
@@ -343,7 +343,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
 
   it('should duplicate an order', async () => {
     const order = await adapter.createOrder({
-      items: [{ productId: 'prod-1', quantity: 2, unitPrice: { amount: 100, currency: 'SAR', formatted: '100 SAR' } }],
+      items: [{ productId: 'prod-1', quantity: 2, unitPrice: { amount: 100, currency: 'EUR', formatted: '100 EUR' } }],
       shippingAddress: fullAddress(),
     })
     const dup = await adapter.duplicateOrder(order.id)
@@ -358,7 +358,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     expect(info.name.en).toBeTruthy()
     expect(info.currencies.length).toBeGreaterThan(0)
     expect(info.locales.length).toBeGreaterThan(0)
-    expect(info.country).toBe('SA')
+    expect(info.country).toBe('PT')
   })
 
   it('should auto-seed default store info when none exists', async () => {
@@ -414,15 +414,15 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     // Add
     const addr = await adapter.addAddress(fullAddress())
     expect(addr.id).toBeTruthy()
-    expect(addr.city).toBe('Riyadh')
+    expect(addr.city).toBe('Lisboa')
 
     // List
     const list = await adapter.getAddresses()
     expect(list.length).toBe(1)
 
     // Update
-    const updated = await adapter.updateAddress(addr.id, { city: 'Jeddah' })
-    expect(updated.city).toBe('Jeddah')
+    const updated = await adapter.updateAddress(addr.id, { city: 'Porto' })
+    expect(updated.city).toBe('Porto')
 
     // Delete
     await adapter.deleteAddress(addr.id)
@@ -523,9 +523,9 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     expect(Array.isArray(countries)).toBe(true)
     expect(countries.length).toBe(6)
     const codes = countries.map((c: any) => c.code)
-    expect(codes).toContain('SA')
-    expect(codes).toContain('AE')
-    expect(codes).toContain('KW')
+    expect(codes).toContain('PT')
+    expect(codes).toContain('ES')
+    expect(codes).toContain('DE')
   })
 
   // ---- Capabilities ----

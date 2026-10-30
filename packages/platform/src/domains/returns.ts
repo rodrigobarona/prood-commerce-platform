@@ -32,7 +32,7 @@ async function buildReturn(row: any): Promise<ReturnRequest> {
       reasonNote: item.reasonNote ?? null,
       evidenceImages: [],
     })),
-    refundAmount: row.refundAmount ? { amount: row.refundAmount, currency: row.refundCurrency ?? 'SAR', formatted: `${row.refundAmount} ${row.refundCurrency ?? 'SAR'}` } : null,
+    refundAmount: row.refundAmount ? { amount: row.refundAmount, currency: row.refundCurrency ?? 'EUR', formatted: `${row.refundAmount} ${row.refundCurrency ?? 'EUR'}` } : null,
     refundMethod: row.refundMethod ?? null,
     returnShippingLabel: row.returnShippingLabel ?? null,
     returnTrackingNumber: row.returnTrackingNumber ?? null,

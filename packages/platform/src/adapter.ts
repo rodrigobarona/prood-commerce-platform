@@ -66,12 +66,12 @@ export interface PlatformAdapterResult {
  * ```ts
  * const { adapter, admin } = await createPlatformAdapter({
  *   connectionString: process.env.DATABASE_URL,
- *   currency: 'SAR',
+ *   currency: 'EUR',
  * })
  * ```
  */
 export async function createPlatformAdapter(config: PlatformConfig = {}): Promise<PlatformAdapterResult> {
-  const currency = config.currency ?? 'SAR'
+  const currency = config.currency ?? 'EUR'
   const connectionString = resolveConnectionString(config)
 
   // Auto-initialize the database

@@ -2,13 +2,14 @@
 // Returns schema
 // ---------------------------------------------------------------------------
 
-import { pgTable, text, integer, numeric, timestamp, jsonb } from 'drizzle-orm/pg-core'
+import { pgTable, text, integer, numeric, timestamp, jsonb, index } from 'drizzle-orm/pg-core'
 import type { LocalizedField } from '@prood/types'
 import { orders } from './orders.js'
+import { organizationId, tenantIsolation } from './tenant.js'
 
 export const returns = pgTable('returns', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  organizationId: text('organization_id'),
+  organizationId: organizationId(),
   orderId: text('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
   orderNumber: text('order_number').notNull(),
   status: text('status').notNull().default('requested'),
@@ -21,11 +22,14 @@ export const returns = pgTable('returns', {
   customerNote: text('customer_note'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-})
+}, (t) => [
+  index().on(t.organizationId),
+  tenantIsolation(),
+])
 
 export const returnItems = pgTable('return_items', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  organizationId: text('organization_id'),
+  organizationId: organizationId(),
   returnId: text('return_id').notNull().references(() => returns.id, { onDelete: 'cascade' }),
   orderItemId: text('order_item_id').notNull(),
   productId: text('product_id').notNull(),
@@ -35,4 +39,7 @@ export const returnItems = pgTable('return_items', {
   quantity: integer('quantity').notNull(),
   reason: text('reason').notNull().default('other'),
   reasonNote: text('reason_note'),
-})
+}, (t) => [
+  index().on(t.organizationId),
+  tenantIsolation(),
+])

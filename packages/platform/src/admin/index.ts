@@ -30,7 +30,7 @@ import { normalizeLocalizedField, priceRequired, price, img, parseJsonField } fr
  *
  * @example
  * ```ts
- * const { adapter, admin } = await createPlatformAdapter({ currency: 'SAR' })
+ * const { adapter, admin } = await createPlatformAdapter({ currency: 'EUR' })
  * const product = await admin.createProduct({ name: 'T-Shirt', price: 99 })
  * ```
  */

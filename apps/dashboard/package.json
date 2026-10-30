@@ -9,9 +9,7 @@
     "start": "next start -p 3002",
     "lint": "eslint --max-warnings 0",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "typecheck": "next typegen && tsc --noEmit",
-    "db:generate": "drizzle-kit generate",
-    "db:push": "drizzle-kit push"
+    "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "@neondatabase/serverless": "catalog:",
@@ -39,7 +37,6 @@
     "@types/react-dom": "catalog:",
     "@prood/eslint-config": "workspace:^",
     "@prood/typescript-config": "workspace:*",
-    "drizzle-kit": "catalog:",
     "eslint": "catalog:",
     "typescript": "catalog:"
   },

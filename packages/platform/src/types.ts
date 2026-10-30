@@ -4,7 +4,7 @@
 
 /** Platform configuration */
 export interface PlatformConfig {
-  /** Default currency for the store (default: 'SAR') */
+  /** Default currency for the store (default: 'EUR') */
   currency?: string
   /** Default locale (default: 'en') */
   locale?: string

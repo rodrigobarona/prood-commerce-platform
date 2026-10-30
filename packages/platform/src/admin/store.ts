@@ -8,7 +8,7 @@ import { updateStoreInfo } from '../database/index.js'
 import { normalizeLocalizedField } from '../domains/helpers.js'
 
 function mapStoreSettings(row: any): StoreSettings {
-  let supportedCurrencies: string[] = ['SAR']
+  let supportedCurrencies: string[] = ['EUR']
   let supportedLocales: string[] = ['en']
   let socialLinks: Record<string, string> | null = null
 

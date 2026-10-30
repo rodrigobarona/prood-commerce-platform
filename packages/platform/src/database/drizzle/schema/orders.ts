@@ -2,14 +2,15 @@
 // Orders schema — orders, line items, and status history
 // ---------------------------------------------------------------------------
 
-import { pgTable, text, integer, boolean, numeric, jsonb, timestamp } from 'drizzle-orm/pg-core'
+import { pgTable, text, integer, boolean, numeric, jsonb, timestamp, index, unique } from 'drizzle-orm/pg-core'
 import type { LocalizedField } from '@prood/types'
 import { customers } from './customers.js'
+import { organizationId, tenantIsolation } from './tenant.js'
 
 export const orders = pgTable('orders', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  organizationId: text('organization_id'),
-  orderNumber: text('order_number').notNull().unique(),
+  organizationId: organizationId(),
+  orderNumber: text('order_number').notNull(),
   customerId: text('customer_id').references(() => customers.id, { onDelete: 'set null' }),
   contactEmail: text('contact_email'),
 
@@ -24,7 +25,7 @@ export const orders = pgTable('orders', {
   tax: numeric('tax', { precision: 12, scale: 2 }),
   discount: numeric('discount', { precision: 12, scale: 2 }),
   total: numeric('total', { precision: 12, scale: 2 }).notNull().default('0'),
-  currency: text('currency').notNull().default('SAR'),
+  currency: text('currency').notNull().default('EUR'),
 
   // Addresses (JSON snapshots)
   shippingAddress: jsonb('shipping_address'),
@@ -47,11 +48,14 @@ export const orders = pgTable('orders', {
 
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-})
+}, (t) => [
+  unique().on(t.organizationId, t.orderNumber),
+  tenantIsolation(),
+])
 
 export const orderItems = pgTable('order_items', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  organizationId: text('organization_id'),
+  organizationId: organizationId(),
   orderId: text('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
   productId: text('product_id').notNull(),
   variantId: text('variant_id'),
@@ -66,14 +70,20 @@ export const orderItems = pgTable('order_items', {
   // Product type info
   productType: text('product_type').notNull().default('physical'),
   fulfillmentStatus: text('fulfillment_status').notNull().default('unfulfilled'),
-})
+}, (t) => [
+  index().on(t.organizationId),
+  tenantIsolation(),
+])
 
 export const orderHistory = pgTable('order_history', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  organizationId: text('organization_id'),
+  organizationId: organizationId(),
   orderId: text('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
   fromStatus: text('from_status'),
   toStatus: text('to_status').notNull(),
   note: text('note'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-})
+}, (t) => [
+  index().on(t.organizationId),
+  tenantIsolation(),
+])
