@@ -1,58 +1,40 @@
-import type { Metadata } from "next"
-import Link from "next/link"
 
-import { SectionContainer, SectionShell } from "@/components/marketing/section"
-import { MarketingPageShell } from "@/components/marketing-page-shell"
+import { LegalPage } from "@/components/marketing/legal-page"
+import { pageMetadata } from "@/lib/metadata"
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Terms",
-  description: "Prood terms of service.",
-}
+  description:
+    "The terms for using Prood.",
+  path: "/terms",
+})
 
 const sections = [
   {
-    title: "Service",
-    body: "Prood provides a multi-tenant commerce platform including storefront, dashboard, checkout, and APIs. Features and limits may change as the product evolves.",
+    title: "The service",
+    body: "Prood is a multi-tenant commerce platform: storefronts, a merchant dashboard, hosted checkout and APIs. Features and limits may change while the product evolves.",
   },
   {
-    title: "Accounts & stores",
-    body: "You are responsible for your store content, payment provider compliance, and activity under your organization. Each store is an isolated tenant.",
+    title: "Accounts and stores",
+    body: "You're responsible for your store's content, for complying with your payment provider's rules and for activity under your organization. Each store is isolated from every other.",
   },
   {
     title: "Fees",
-    body: "Prood does not charge a platform fee on your sales at launch. Subscription plans and limits will apply when billing is enabled. Payment processors bill you directly.",
+    body: "Prood doesn't take a cut of your sales. Plan limits and subscriptions will apply once billing starts, with notice first. Payment providers bill you directly.",
   },
   {
     title: "Contact",
-    body: "For commercial, agency, or enterprise agreements, contact hello@prood.com. Full terms will be published here before general availability.",
+    body: "For agency or custom agreements, email hello@prood.com.",
   },
 ] as const
 
 export default function TermsPage() {
   return (
-    <MarketingPageShell>
-      <SectionShell>
-        <SectionContainer className="py-24 md:py-32">
-          <h1 className="font-display section-title">Terms of service</h1>
-          <p className="section-description mt-4 max-w-2xl">
-            This summary describes our approach today. Formal terms will replace this page before
-            general availability.
-          </p>
-          <div className="mt-12 max-w-2xl space-y-10">
-            {sections.map((section) => (
-              <section key={section.title}>
-                <h2 className="text-[18px] font-semibold tracking-[-0.02em]">{section.title}</h2>
-                <p className="mt-3 text-[15px] leading-7 text-muted-foreground">{section.body}</p>
-              </section>
-            ))}
-          </div>
-          <p className="mt-12 text-[14px] text-muted-foreground">
-            <Link href="/privacy" className="text-foreground underline-offset-4 hover:underline">
-              Privacy policy
-            </Link>
-          </p>
-        </SectionContainer>
-      </SectionShell>
-    </MarketingPageShell>
+    <LegalPage
+      title="Terms of service"
+      summary="This is a plain-language summary of our terms today. Formal terms will replace it before Prood is generally available."
+      sections={sections}
+      related={{ label: "Privacy policy", href: "/privacy" }}
+    />
   )
 }

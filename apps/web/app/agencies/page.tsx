@@ -1,119 +1,133 @@
-import type { Metadata } from "next"
-import Link from "next/link"
-import { ArrowRightIcon } from "@phosphor-icons/react/dist/ssr"
+import {
+  CreditCardIcon,
+  DatabaseIcon,
+  GlobeSimpleIcon,
+  UserPlusIcon,
+} from "@phosphor-icons/react/dist/ssr"
 
-import { CtaSection } from "@/components/marketing/cta-section"
-import { MultiStoreMock } from "@/components/marketing/mocks/multi-store-mock"
-import { PricingCardsGrid } from "@/components/marketing/pricing-cards"
-import { MarketingCard, SectionContainer, SectionHeader, SectionShell } from "@/components/marketing/section"
-import { MarketingPageShell } from "@/components/marketing-page-shell"
-import { Button } from "@/components/ui/button"
-import { getMarketingTier } from "@/lib/pricing"
-import { agencyHighlights, siteConfig } from "@/lib/site"
+import { getMarketingTier } from "@prood/billing"
+import { Button } from "@prood/ui/components/button"
+import { ClosingCta } from "@/components/marketing/closing-cta"
+import { PageHero, Section, SectionHeading } from "@/components/marketing/section"
+import { pageMetadata } from "@/lib/metadata"
+import { contactHref, docsPage, siteConfig } from "@/lib/site"
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "For agencies",
   description:
-    "Launch client stores on Prood—isolated data, per-client domains and payments, and team access without sharing logins.",
-}
+    "Build and run client stores on Prood. Each client gets isolated data, their own payment accounts and their own domain, all from one login.",
+  path: "/agencies",
+})
 
-const agencyWorkflow = [
+const isolation = [
   {
-    title: "Create the client store",
-    description: "One organization per client. Subdomain and catalog ready immediately.",
+    icon: DatabaseIcon,
+    title: "Separate data",
+    body: "Each client is its own organization, with its own catalog, orders and customers.",
   },
   {
-    title: "Wire their stack",
-    description: "Products, the client's Stripe or regional provider, and invites for their team.",
+    icon: CreditCardIcon,
+    title: "Their payment accounts",
+    body: "Connect the client's own Stripe, Easypay or Ifthenpay account. Credentials are encrypted per store.",
   },
   {
-    title: "Ship on their domain",
-    description: `Stage on yourname.${siteConfig.storeDomain}. Point shop.client.com when they sign off.`,
+    icon: GlobeSimpleIcon,
+    title: "Their domain",
+    body: `Build on client.${siteConfig.storeDomain}, then switch to the client's domain when they sign off. HTTPS is set up for you.`,
   },
   {
-    title: "Run the portfolio",
-    description: "Agency plan covers 10+ stores, unlimited catalog, and a direct support line.",
+    icon: UserPlusIcon,
+    title: "Their own logins",
+    body: "Invite the client's team by email. Nobody shares a password, and you keep your access.",
   },
 ] as const
 
+const steps = [
+  { title: "Create the store", body: "One organization per client, live on a prood.app address straight away." },
+  { title: "Set it up", body: "Add products, connect the client's payment account and invite their team." },
+  { title: "Go live", body: "Point the client's domain at Prood. We provision it and turn on HTTPS." },
+  { title: "Hand over or run it", body: "Let the client run the store, or keep running it for them through the dashboard or the API." },
+] as const
+
 export default function AgenciesPage() {
+  const agency = getMarketingTier("agency", "monthly")
+
   return (
-    <MarketingPageShell>
-      <SectionShell variant="glow">
-        <SectionContainer className="pt-24 md:pt-32">
-          <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-            <div>
-              <SectionHeader
-                eyebrow="For agencies"
-                title="Client stores without the rebuild"
-                description="Stop stitching checkout and admin for every engagement. Each client gets isolation, their own payments, and a domain you control from one workflow."
-              />
-              <div className="mt-10 flex flex-wrap gap-3">
-                <Button variant="brand" size="lg" asChild>
-                  <Link href={siteConfig.registerUrl}>
-                    Start a client store
-                    <ArrowRightIcon data-icon="inline-end" aria-hidden />
-                  </Link>
-                </Button>
-                <Button variant="outline" size="lg" asChild>
-                  <Link href={`${siteConfig.docsUrl}/docs/guides/for-agencies`}>Agency guide</Link>
-                </Button>
-              </div>
-            </div>
-            <MultiStoreMock />
-          </div>
-        </SectionContainer>
-      </SectionShell>
+    <>
+      <PageHero
+        eyebrow="For agencies"
+        title="One login. Every client store."
+        lead="Build stores for your clients without rebuilding checkout and admin each time. Every client gets their own data, payment accounts and domain, and you run them all from one place."
+      >
+        <Button variant="brand" size="lg" className="h-11 px-5 text-base" asChild>
+          <a href={siteConfig.registerUrl}>Start a client store</a>
+        </Button>
+        <Button variant="outline" size="lg" className="h-11 px-5 text-base" asChild>
+          <a href={docsPage("guides/for-agencies")}>Read the agency guide</a>
+        </Button>
+      </PageHero>
 
-      <SectionShell>
-        <SectionContainer>
-          <div className="grid gap-6 md:grid-cols-3">
-            {agencyHighlights.map((item) => (
-              <MarketingCard key={item.title} hover>
-                <h3 className="marketing-heading">{item.title}</h3>
-                <p className="marketing-copy mt-3">{item.description}</p>
-              </MarketingCard>
-            ))}
-          </div>
-        </SectionContainer>
-      </SectionShell>
+      <Section labelledBy="isolation-title">
+        <SectionHeading
+          id="isolation-title"
+          eyebrow="Isolation"
+          title="Every client in their own space."
+          description="Client stores never share data, keys or customers. Stores live on prood.app or the client's domain, apart from Prood's own services."
+        />
+        <ul className="mt-14 grid gap-4 sm:grid-cols-2">
+          {isolation.map(({ icon: Icon, title, body }) => (
+            <li key={title} className="rounded-xl border border-border bg-card p-6">
+              <Icon className="size-6 text-brand" aria-hidden />
+              <h3 className="mt-4 text-lg font-semibold">{title}</h3>
+              <p className="mt-2 leading-7 text-muted-foreground">{body}</p>
+            </li>
+          ))}
+        </ul>
+      </Section>
 
-      <SectionShell variant="muted">
-        <SectionContainer>
-          <SectionHeader
-            eyebrow="Workflow"
-            title="From kickoff to live URL"
-            description="A repeatable playbook—documented in our agency guide."
-          />
-          <ol className="mt-12 grid gap-6 sm:grid-cols-2">
-            {agencyWorkflow.map((step, index) => (
-              <li key={step.title} className="marketing-panel p-6">
-                <span className="font-mono text-[11px] text-brand">Step {index + 1}</span>
-                <h3 className="marketing-heading-md mt-3">{step.title}</h3>
-                <p className="marketing-copy mt-2">{step.description}</p>
+      <Section labelledBy="steps-title">
+        <SectionHeading id="steps-title" eyebrow="How it works" title="From kickoff to live store." />
+        <ol className="mt-14 grid gap-8 md:grid-cols-4">
+          {steps.map((step, index) => (
+            <li key={step.title} className="border-t-2 border-foreground pt-5">
+              <p className="font-mono text-sm text-brand tabular-nums">0{index + 1}</p>
+              <h3 className="mt-3 text-lg font-semibold">{step.title}</h3>
+              <p className="mt-2 leading-7 text-muted-foreground">{step.body}</p>
+            </li>
+          ))}
+        </ol>
+      </Section>
+
+      <Section labelledBy="plan-title">
+        <div className="grid items-center gap-12 rounded-2xl border border-border bg-card p-8 md:p-12 lg:grid-cols-[1.2fr_1fr]">
+          <div>
+            <SectionHeading
+              id="plan-title"
+              eyebrow="Agency plan"
+              title={`${agency.price} ${agency.period}, up to 10 stores.`}
+              description={agency.description}
+            />
+            <Button variant="brand" size="lg" className="mt-8 h-11 px-5 text-base" asChild>
+              <a href={contactHref("Agency plan")}>{agency.cta}</a>
+            </Button>
+          </div>
+          <ul className="space-y-3 text-[0.9375rem]">
+            {agency.highlights.map((item) => (
+              <li key={item} className="border-b border-border pb-3">
+                {item}
               </li>
             ))}
-          </ol>
-        </SectionContainer>
-      </SectionShell>
+            <li className="text-muted-foreground">
+              Paid plans aren&apos;t billed yet. Start client stores on Free today.
+            </li>
+          </ul>
+        </div>
+      </Section>
 
-      <SectionShell>
-        <SectionContainer>
-          <SectionHeader
-            align="center"
-            eyebrow="Agency plan"
-            title="Built for many stores"
-            description="Ten or more isolated clients, unlimited products and orders, dedicated support."
-          />
-          <div className="mt-12 flex justify-center">
-            <div className="w-full max-w-md">
-              <PricingCardsGrid tiers={[getMarketingTier("agency", "monthly")]} />
-            </div>
-          </div>
-        </SectionContainer>
-      </SectionShell>
-
-      <CtaSection />
-    </MarketingPageShell>
+      <ClosingCta
+        title="Start your first client store."
+        body="Set it up on Free, show it to the client on prood.app, and move to the Agency plan when you're running several."
+      />
+    </>
   )
 }

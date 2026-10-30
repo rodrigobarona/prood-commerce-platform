@@ -5,21 +5,19 @@
   "tsx": true,
   "tailwind": {
     "config": "",
-    "css": "app/globals.css",
+    "css": "../../packages/ui/src/styles/globals.css",
     "baseColor": "neutral",
-    "cssVariables": true,
-    "prefix": ""
+    "cssVariables": true
   },
   "iconLibrary": "phosphor",
   "rtl": false,
   "aliases": {
     "components": "@/components",
-    "utils": "@/lib/utils",
-    "ui": "@/components/ui",
+    "hooks": "@/hooks",
     "lib": "@/lib",
-    "hooks": "@/hooks"
+    "utils": "@prood/ui/lib/utils",
+    "ui": "@prood/ui/components"
   },
   "menuColor": "default",
-  "menuAccent": "subtle",
-  "registries": {}
+  "menuAccent": "subtle"
 }

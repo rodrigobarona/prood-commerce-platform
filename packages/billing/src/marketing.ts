@@ -1,9 +1,9 @@
 import {
-  annualBillingDiscountPercent,
   formatLimit,
   formatPrice,
   monthlyEquivalentFromAnnual,
   planDefinitions,
+  planIds,
   type PlanId,
 } from "./plans"
 
@@ -14,7 +14,7 @@ export type MarketingTier = {
   name: string
   price: string
   period: string
-  annualNote?: string
+  billingNote?: string
   description: string
   highlighted: boolean
   badge?: string
@@ -23,281 +23,134 @@ export type MarketingTier = {
   highlights: string[]
 }
 
-export type PricingFeatureGroup =
-  | "store"
-  | "catalog"
-  | "brand"
-  | "team"
-  | "ai"
-  | "support"
+export type PricingFeatureGroup = "store" | "brand" | "team" | "ai" | "support"
 
 export type PricingFeatureRow = {
   label: string
   group: PricingFeatureGroup
-  free: string | boolean
-  grow: string | boolean
-  scale: string | boolean
-  agency: string | boolean
-}
+} & Record<PlanId, string | boolean>
 
-const groupLabels: Record<PricingFeatureGroup, string> = {
-  store: "Store",
-  catalog: "Catalog & orders",
-  brand: "Brand & domains",
-  team: "Team",
-  ai: "AI & API",
-  support: "Support",
-}
-
-export function getPricingFeatureGroupLabel(group: PricingFeatureGroup): string {
-  return groupLabels[group]
-}
+export const pricingFeatureGroups: { id: PricingFeatureGroup; label: string }[] = [
+  { id: "store", label: "Store" },
+  { id: "brand", label: "Brand and domains" },
+  { id: "team", label: "Team" },
+  { id: "ai", label: "API and AI agents" },
+  { id: "support", label: "Support" },
+]
 
 function ent(id: PlanId) {
   return planDefinitions[id].entitlements
 }
 
-export const pricingFeatureRows: PricingFeatureRow[] = [
-  {
-    label: "Stores",
-    group: "store",
-    free: formatLimit(ent("free").maxStores!),
-    grow: formatLimit(ent("grow").maxStores!),
-    scale: formatLimit(ent("scale").maxStores!),
-    agency: "10+",
-  },
-  {
-    label: "Products",
-    group: "catalog",
-    free: formatLimit(ent("free").maxProducts),
-    grow: formatLimit(ent("grow").maxProducts),
-    scale: formatLimit(ent("scale").maxProducts),
-    agency: formatLimit(ent("agency").maxProducts),
-  },
-  {
-    label: "Orders / month",
-    group: "catalog",
-    free: formatLimit(ent("free").maxOrdersPerMonth),
-    grow: formatLimit(ent("grow").maxOrdersPerMonth),
-    scale: formatLimit(ent("scale").maxOrdersPerMonth),
-    agency: formatLimit(ent("agency").maxOrdersPerMonth),
-  },
-  {
-    label: "Subdomain store",
-    group: "brand",
-    free: true,
-    grow: true,
-    scale: true,
-    agency: true,
-  },
-  {
-    label: "Custom domains",
-    group: "brand",
-    free: "1",
-    grow: "3",
-    scale: "Unlimited",
-    agency: "Unlimited",
-  },
-  {
-    label: "Team seats",
-    group: "team",
-    free: formatLimit(ent("free").maxTeamSeats!),
-    grow: formatLimit(ent("grow").maxTeamSeats!),
-    scale: formatLimit(ent("scale").maxTeamSeats!),
-    agency: formatLimit(ent("agency").maxTeamSeats),
-  },
-  {
-    label: "REST API & MCP",
-    group: "ai",
-    free: "Read-only",
-    grow: "Full",
-    scale: "Full",
-    agency: "Full",
-  },
-  {
-    label: "Agent Auth",
-    group: "ai",
-    free: false,
-    grow: true,
-    scale: true,
-    agency: true,
-  },
-  {
-    label: "Remove Prood branding",
-    group: "brand",
-    free: false,
-    grow: false,
-    scale: true,
-    agency: true,
-  },
-  {
-    label: "Support",
-    group: "support",
-    free: "Community",
-    grow: "Email",
-    scale: "Priority",
-    agency: "Dedicated",
-  },
-]
-
-export function getTierHighlights(planId: PlanId): string[] {
-  const e = ent(planId)
-  switch (planId) {
-    case "free":
-      return [
-        "1 custom domain",
-        "Subdomain included",
-        "50 products",
-        "100 orders/mo",
-      ]
-    case "grow":
-      return [
-        "Agent Auth",
-        "Full API & MCP",
-        "3 team seats",
-        "1,000 orders/mo",
-      ]
-    case "scale":
-      return [
-        "Unlimited products & orders",
-        "10 team seats",
-        "Remove Prood branding",
-        "Priority support",
-      ]
-    case "agency":
-      return [
-        "10+ client stores",
-        "Unlimited team per store",
-        "Dedicated support",
-        "Client isolation",
-      ]
+function row(
+  label: string,
+  group: PricingFeatureGroup,
+  value: (id: PlanId) => string | boolean
+): PricingFeatureRow {
+  return {
+    label,
+    group,
+    free: value("free"),
+    grow: value("grow"),
+    scale: value("scale"),
+    agency: value("agency"),
   }
 }
 
-export function getMarketingTier(
-  planId: PlanId,
-  interval: BillingInterval
-): MarketingTier {
+const supportLabels = {
+  community: "Community",
+  email: "Email",
+  priority: "Priority",
+  dedicated: "Dedicated",
+} as const
+
+export const pricingFeatureRows: PricingFeatureRow[] = [
+  row("Stores", "store", (id) => formatLimit(ent(id).maxStores)),
+  row("Products", "store", (id) => formatLimit(ent(id).maxProducts)),
+  row("Orders per month", "store", (id) => formatLimit(ent(id).maxOrdersPerMonth)),
+  row("Store on yourname.prood.app", "brand", (id) => ent(id).subdomainIncluded),
+  row("Custom domains", "brand", (id) => formatLimit(ent(id).maxCustomDomains)),
+  row("Remove Prood branding", "brand", (id) => ent(id).removeBranding),
+  row("Team seats", "team", (id) => formatLimit(ent(id).maxTeamSeats)),
+  row("REST API and MCP", "ai", (id) => (ent(id).apiWriteEnabled ? "Read and write" : "Read only")),
+  row("Agent Auth with approvals", "ai", (id) => ent(id).agentAuthEnabled),
+  row("Support", "support", (id) => supportLabels[ent(id).supportTier]),
+]
+
+const tierHighlights: Record<PlanId, string[]> = {
+  free: ["1 store, 50 products", "100 orders a month", "1 custom domain", "Read-only API and MCP"],
+  grow: ["500 products", "1,000 orders a month", "3 team seats, 3 domains", "Agent Auth and write API"],
+  scale: ["Unlimited products and orders", "10 team seats", "Unlimited domains", "Remove Prood branding"],
+  agency: ["10 isolated client stores", "Unlimited seats per store", "Unlimited domains", "Dedicated support"],
+}
+
+export function getMarketingTier(planId: PlanId, interval: BillingInterval): MarketingTier {
   const plan = planDefinitions[planId]
-  const highlights = getTierHighlights(planId)
-
-  if (planId === "agency") {
-    return {
-      id: planId,
-      name: plan.name,
-      price: "Custom",
-      period: "annual billing",
-      description: plan.description,
-      highlighted: plan.highlighted,
-      cta: plan.cta,
-      ctaHref: plan.ctaHref ?? "contact",
-      highlights,
-    }
-  }
-
-  if (planId === "free") {
-    return {
-      id: planId,
-      name: plan.name,
-      price: "$0",
-      period: "forever",
-      description: plan.description,
-      highlighted: plan.highlighted,
-      badge: plan.badge,
-      cta: plan.cta,
-      ctaHref: plan.ctaHref ?? "register",
-      highlights,
-    }
-  }
-
-  if (interval === "annual" && plan.annualPriceCents) {
-    const perMonth = monthlyEquivalentFromAnnual(plan.annualPriceCents)
-    return {
-      id: planId,
-      name: plan.name,
-      price: `$${perMonth}`,
-      period: "/ month, billed annually",
-      annualNote: `Save ${annualBillingDiscountPercent}% vs monthly`,
-      description: plan.description,
-      highlighted: plan.highlighted,
-      badge: plan.badge,
-      cta: plan.cta,
-      ctaHref: plan.ctaHref ?? "register",
-      highlights,
-    }
-  }
-
-  return {
+  const base = {
     id: planId,
     name: plan.name,
-    price: formatPrice(plan.monthlyPriceCents),
-    period: "/ month",
     description: plan.description,
     highlighted: plan.highlighted,
     badge: plan.badge,
     cta: plan.cta,
     ctaHref: plan.ctaHref ?? "register",
-    highlights,
+    highlights: tierHighlights[planId],
+  }
+
+  if (plan.monthlyPriceCents === 0) {
+    return { ...base, price: formatPrice(0), period: "forever" }
+  }
+
+  if (interval === "annual" && plan.annualPriceCents) {
+    return {
+      ...base,
+      price: `$${monthlyEquivalentFromAnnual(plan.annualPriceCents)}`,
+      period: "per month",
+      billingNote: `${formatPrice(plan.annualPriceCents)} billed yearly`,
+    }
+  }
+
+  return {
+    ...base,
+    price: formatPrice(plan.monthlyPriceCents),
+    period: "per month",
+    billingNote: plan.annualPriceCents ? "Billed monthly" : "Billed monthly only",
   }
 }
 
-export function getPaidMarketingTiers(interval: BillingInterval): MarketingTier[] {
-  return (["grow", "scale", "agency"] as const).map((id) =>
-    getMarketingTier(id, interval)
-  )
-}
-
-export function getFreeMarketingTier(): MarketingTier {
-  return getMarketingTier("free", "monthly")
+export function getMarketingTiers(interval: BillingInterval): MarketingTier[] {
+  return planIds.map((id) => getMarketingTier(id, interval))
 }
 
 export const pricingFaqs = [
   {
-    question: "Is Free actually free?",
+    question: "Is the Free plan really free?",
     answer:
-      "Yes. You get a live store, one custom domain, your subdomain, and checkout with your own payment accounts. There is no Prood subscription on Free.",
-  },
-  {
-    question: "Why include a custom domain on Free?",
-    answer:
-      "Your brand should not wait for a paid plan. Free includes one verified custom domain plus your subdomain. Add more domains or higher limits when you upgrade.",
+      "Yes. You get a live store, checkout through your own payment accounts and one custom domain, with no subscription.",
   },
   {
     question: "Does Prood take a cut of my sales?",
     answer:
-      "Not at launch. Stripe, Easypay, Ifthenpay, and other providers charge their own processing fees. Prood does not add a platform surcharge on top.",
+      "No. Stripe, Easypay and Ifthenpay charge their own processing fees. Prood adds nothing on top.",
   },
   {
-    question: "When do paid plans bill?",
+    question: "When will paid plans be billed?",
     answer:
-      "Start on Free now. Subscriptions in the dashboard are coming soon—the limits on this page show what each plan will include. We will give existing stores clear notice before anything is enforced.",
+      "Not yet. Every store starts on Free today, and the limits on this page show what each plan will include. We’ll give you clear notice before billing starts.",
+  },
+  {
+    question: "What happens if I go over a Free limit?",
+    answer:
+      "Nothing changes today. Once limits are enforced, the dashboard will warn you early and show the upgrade. We won’t stop your orders without notice.",
   },
   {
     question: "What is Agent Auth?",
     answer:
-      "A way for AI assistants and automation to use the same API as your dashboard—with your approval before anything sensitive changes. It ships on Grow and above for teams that automate at scale.",
+      "It lets AI agents use the same API as your dashboard. Agents can read on their own, but anything that changes your store needs your approval first. It’s included from Grow.",
   },
   {
-    question: "What if I hit Free limits?",
+    question: "Can I bring my own domain?",
     answer:
-      "Limits are informational until billing launches. When enforcement starts, you will see warnings in the dashboard and a path to upgrade—we will not cut off orders without notice.",
-  },
-] as const
-
-export const pricingTrustPoints = [
-  {
-    title: "Your sales stay yours",
-    description:
-      "At launch you only pay your payment provider. No Prood fee layered on every order.",
-  },
-  {
-    title: "Your payment accounts",
-    description:
-      "Connect Stripe, Easypay, or Ifthenpay per store. Keys are encrypted per organization—ideal for agencies billing client merchants.",
-  },
-  {
-    title: "Pay for growth, not launch",
-    description:
-      "Domain, checkout, and catalog are on Free. Upgrade for volume, seats, and Agent Auth when the store earns it.",
+      "Yes, on every plan. Add the domain in the dashboard, point your DNS and we set up HTTPS for you.",
   },
 ] as const

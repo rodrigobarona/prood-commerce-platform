@@ -48,7 +48,7 @@ export const planDefinitions: Record<PlanId, PlanDefinition> = {
   free: {
     id: "free",
     name: "Free",
-    description: "Everything to sell on your domain. No subscription.",
+    description: "A real store on your own domain, with no subscription.",
     monthlyPriceCents: 0,
     annualPriceCents: 0,
     highlighted: false,
@@ -70,12 +70,12 @@ export const planDefinitions: Record<PlanId, PlanDefinition> = {
   grow: {
     id: "grow",
     name: "Grow",
-    description: "More orders, a small team, and AI that works with your approval.",
+    description: "More orders, a small team and AI agents that ask before they act.",
     monthlyPriceCents: 2900,
     annualPriceCents: 29000,
     highlighted: true,
     badge: "Popular",
-    cta: "Start free, upgrade later",
+    cta: "Start free",
     ctaHref: "register",
     entitlements: {
       maxStores: 1,
@@ -93,11 +93,11 @@ export const planDefinitions: Record<PlanId, PlanDefinition> = {
   scale: {
     id: "scale",
     name: "Scale",
-    description: "Unlimited catalog volume, a larger team, and priority support.",
+    description: "No limits on products or orders, a bigger team and priority support.",
     monthlyPriceCents: 7900,
     annualPriceCents: 79000,
     highlighted: false,
-    cta: "Start free, upgrade later",
+    cta: "Start free",
     ctaHref: "register",
     entitlements: {
       maxStores: 1,
@@ -115,7 +115,7 @@ export const planDefinitions: Record<PlanId, PlanDefinition> = {
   agency: {
     id: "agency",
     name: "Agency",
-    description: "Ten or more client stores, fully isolated, with a direct line to us.",
+    description: "Up to 10 isolated client stores, with a direct line to us.",
     monthlyPriceCents: 19900,
     annualPriceCents: null,
     highlighted: false,
