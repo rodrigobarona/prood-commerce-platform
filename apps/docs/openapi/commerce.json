@@ -2912,24 +2912,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -2990,24 +2972,6 @@
                               "type": "string"
                             },
                             "postalCode": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
                               "type": [
                                 "string",
                                 "null"
@@ -3639,24 +3603,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -3717,24 +3663,6 @@
                               "type": "string"
                             },
                             "postalCode": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
                               "type": [
                                 "string",
                                 "null"
@@ -4366,24 +4294,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -4444,24 +4354,6 @@
                               "type": "string"
                             },
                             "postalCode": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
                               "type": [
                                 "string",
                                 "null"
@@ -5131,24 +5023,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -5209,24 +5083,6 @@
                               "type": "string"
                             },
                             "postalCode": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
                               "type": [
                                 "string",
                                 "null"
@@ -5886,24 +5742,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -5964,24 +5802,6 @@
                               "type": "string"
                             },
                             "postalCode": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
                               "type": [
                                 "string",
                                 "null"
@@ -6613,24 +6433,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -6691,24 +6493,6 @@
                               "type": "string"
                             },
                             "postalCode": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
                               "type": [
                                 "string",
                                 "null"
@@ -7359,24 +7143,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -7437,24 +7203,6 @@
                               "type": "string"
                             },
                             "postalCode": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
                               "type": [
                                 "string",
                                 "null"
@@ -8558,24 +8306,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -8636,24 +8366,6 @@
                               "type": "string"
                             },
                             "postalCode": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
                               "type": [
                                 "string",
                                 "null"
@@ -9016,15 +8728,6 @@
                     "minLength": 1
                   },
                   "postalCode": {
-                    "type": "string"
-                  },
-                  "district": {
-                    "type": "string"
-                  },
-                  "nationalAddress": {
-                    "type": "string"
-                  },
-                  "additionalNumber": {
                     "type": "string"
                   }
                 },
@@ -9347,24 +9050,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -9425,24 +9110,6 @@
                               "type": "string"
                             },
                             "postalCode": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
                               "type": [
                                 "string",
                                 "null"
@@ -9806,15 +9473,6 @@
                   },
                   "postalCode": {
                     "type": "string"
-                  },
-                  "district": {
-                    "type": "string"
-                  },
-                  "nationalAddress": {
-                    "type": "string"
-                  },
-                  "additionalNumber": {
-                    "type": "string"
                   }
                 },
                 "required": [
@@ -10136,24 +9794,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -10214,24 +9854,6 @@
                               "type": "string"
                             },
                             "postalCode": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
                               "type": [
                                 "string",
                                 "null"
@@ -10822,24 +10444,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -10900,24 +10504,6 @@
                               "type": "string"
                             },
                             "postalCode": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
                               "type": [
                                 "string",
                                 "null"
@@ -11545,24 +11131,6 @@
                                       "null"
                                     ]
                                   },
-                                  "district": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "nationalAddress": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "additionalNumber": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
                                   "isDefault": {
                                     "type": "boolean"
                                   }
@@ -11623,24 +11191,6 @@
                                     "type": "string"
                                   },
                                   "postalCode": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "district": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "nationalAddress": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "additionalNumber": {
                                     "type": [
                                       "string",
                                       "null"
@@ -12251,24 +11801,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -12329,24 +11861,6 @@
                               "type": "string"
                             },
                             "postalCode": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
                               "type": [
                                 "string",
                                 "null"
@@ -16256,24 +15770,6 @@
                                       "null"
                                     ]
                                   },
-                                  "district": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "nationalAddress": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "additionalNumber": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
                                   "isDefault": {
                                     "type": "boolean"
                                   }
@@ -16334,24 +15830,6 @@
                                     "type": "string"
                                   },
                                   "postalCode": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "district": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "nationalAddress": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "additionalNumber": {
                                     "type": [
                                       "string",
                                       "null"
@@ -16959,24 +16437,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -17037,24 +16497,6 @@
                               "type": "string"
                             },
                             "postalCode": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
                               "type": [
                                 "string",
                                 "null"
@@ -18358,24 +17800,6 @@
                                     "null"
                                   ]
                                 },
-                                "district": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ]
-                                },
-                                "nationalAddress": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ]
-                                },
-                                "additionalNumber": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ]
-                                },
                                 "isDefault": {
                                   "type": "boolean"
                                 }
@@ -18671,24 +18095,6 @@
                             "type": "string"
                           },
                           "postalCode": {
-                            "type": [
-                              "string",
-                              "null"
-                            ]
-                          },
-                          "district": {
-                            "type": [
-                              "string",
-                              "null"
-                            ]
-                          },
-                          "nationalAddress": {
-                            "type": [
-                              "string",
-                              "null"
-                            ]
-                          },
-                          "additionalNumber": {
                             "type": [
                               "string",
                               "null"
@@ -19905,24 +19311,6 @@
                                       "null"
                                     ]
                                   },
-                                  "district": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "nationalAddress": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "additionalNumber": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
                                   "isDefault": {
                                     "type": "boolean"
                                   }
@@ -19983,24 +19371,6 @@
                                     "type": "string"
                                   },
                                   "postalCode": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "district": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "nationalAddress": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "additionalNumber": {
                                     "type": [
                                       "string",
                                       "null"

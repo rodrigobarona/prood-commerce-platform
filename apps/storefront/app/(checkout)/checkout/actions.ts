@@ -53,9 +53,6 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
         street2: address.street2 ?? undefined,
         state: address.state ?? undefined,
         postalCode: address.postalCode ?? undefined,
-        district: address.district ?? undefined,
-        nationalAddress: address.nationalAddress ?? undefined,
-        additionalNumber: address.additionalNumber ?? undefined,
       }
 
       await unwrap(

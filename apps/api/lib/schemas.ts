@@ -189,9 +189,6 @@ export const checkoutAddressBody = z.object({
   state: z.string().optional(),
   country: z.string().min(1),
   postalCode: z.string().optional(),
-  district: z.string().optional(),
-  nationalAddress: z.string().optional(),
-  additionalNumber: z.string().optional(),
 })
 
 export const setShippingMethodBody = z.object({

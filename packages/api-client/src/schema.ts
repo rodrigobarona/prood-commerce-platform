@@ -1607,9 +1607,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -1625,9 +1622,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -1825,9 +1819,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -1843,9 +1834,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -2051,9 +2039,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -2069,9 +2054,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -2270,9 +2252,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -2288,9 +2267,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -2495,9 +2471,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -2513,9 +2486,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -2719,9 +2689,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -2737,9 +2704,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -2937,9 +2901,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -2955,9 +2916,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -3257,9 +3215,6 @@ export interface operations {
                     state?: string;
                     country: string;
                     postalCode?: string;
-                    district?: string;
-                    nationalAddress?: string;
-                    additionalNumber?: string;
                 };
             };
         };
@@ -3348,9 +3303,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -3366,9 +3318,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -3492,9 +3441,6 @@ export interface operations {
                     state?: string;
                     country: string;
                     postalCode?: string;
-                    district?: string;
-                    nationalAddress?: string;
-                    additionalNumber?: string;
                 };
             };
         };
@@ -3583,9 +3529,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -3601,9 +3544,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -3807,9 +3747,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -3825,9 +3762,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -4014,9 +3948,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -4032,9 +3963,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -4218,9 +4146,6 @@ export interface operations {
                                 state?: string | null;
                                 country: string;
                                 postalCode?: string | null;
-                                district?: string | null;
-                                nationalAddress?: string | null;
-                                additionalNumber?: string | null;
                                 isDefault?: boolean;
                             } & {
                                 [key: string]: unknown;
@@ -4236,9 +4161,6 @@ export interface operations {
                                 state?: string | null;
                                 country: string;
                                 postalCode?: string | null;
-                                district?: string | null;
-                                nationalAddress?: string | null;
-                                additionalNumber?: string | null;
                                 isDefault?: boolean;
                             } & {
                                 [key: string]: unknown;
@@ -4427,9 +4349,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -4445,9 +4364,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -5706,9 +5622,6 @@ export interface operations {
                                 state?: string | null;
                                 country: string;
                                 postalCode?: string | null;
-                                district?: string | null;
-                                nationalAddress?: string | null;
-                                additionalNumber?: string | null;
                                 isDefault?: boolean;
                             } & {
                                 [key: string]: unknown;
@@ -5724,9 +5637,6 @@ export interface operations {
                                 state?: string | null;
                                 country: string;
                                 postalCode?: string | null;
-                                district?: string | null;
-                                nationalAddress?: string | null;
-                                additionalNumber?: string | null;
                                 isDefault?: boolean;
                             } & {
                                 [key: string]: unknown;
@@ -5915,9 +5825,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -5933,9 +5840,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -6397,9 +6301,6 @@ export interface operations {
                                 state?: string | null;
                                 country: string;
                                 postalCode?: string | null;
-                                district?: string | null;
-                                nationalAddress?: string | null;
-                                additionalNumber?: string | null;
                                 isDefault?: boolean;
                             } & {
                                 [key: string]: unknown;
@@ -6503,9 +6404,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -6930,9 +6828,6 @@ export interface operations {
                                 state?: string | null;
                                 country: string;
                                 postalCode?: string | null;
-                                district?: string | null;
-                                nationalAddress?: string | null;
-                                additionalNumber?: string | null;
                                 isDefault?: boolean;
                             } & {
                                 [key: string]: unknown;
@@ -6948,9 +6843,6 @@ export interface operations {
                                 state?: string | null;
                                 country: string;
                                 postalCode?: string | null;
-                                district?: string | null;
-                                nationalAddress?: string | null;
-                                additionalNumber?: string | null;
                                 isDefault?: boolean;
                             } & {
                                 [key: string]: unknown;

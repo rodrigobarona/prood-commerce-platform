@@ -94,7 +94,7 @@ describe('@prood/platform [drizzle]', () => {
     const { rows } = await getDb().execute(
       sql`select count(*)::int as count from drizzle.__drizzle_migrations`,
     )
-    expect(rows[0]?.count).toBe(2)
+    expect(rows[0]?.count).toBe(3)
   })
 
   describe('row-level security', () => {

@@ -53,9 +53,6 @@ const address = {
   state: 'Riyadh',
   country: 'SA',
   postalCode: '12345',
-  district: null,
-  nationalAddress: null,
-  additionalNumber: null,
 }
 
 // ---------------------------------------------------------------------------

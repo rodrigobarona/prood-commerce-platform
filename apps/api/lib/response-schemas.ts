@@ -32,9 +32,6 @@ const address = z
     state: nullableString.optional(),
     country: z.string(),
     postalCode: nullableString.optional(),
-    district: nullableString.optional(),
-    nationalAddress: nullableString.optional(),
-    additionalNumber: nullableString.optional(),
     isDefault: z.boolean().optional(),
   })
   .catchall(z.unknown())
