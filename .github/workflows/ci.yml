@@ -66,9 +66,17 @@ jobs:
       - name: OpenAPI drift check
         run: pnpm openapi:check
 
+      - name: Migration drift check
+        # Fails when a Drizzle schema change was committed without its migration.
+        run: |
+          pnpm db:generate
+          test -z "$(git status --porcelain -- packages/platform/drizzle)"
+
       - name: Unit tests
         run: pnpm --filter @prood/types --filter @prood/checkout --filter @prood/storage-s3 --filter api test
 
+      # Creates, migrates and drops a temporary prood_test_* database on the
+      # CI_DATABASE_URL server (its role needs CREATEDB).
       - name: Platform database tests
         if: env.HAS_CI_DATABASE_URL == 'true'
         run: pnpm --filter @prood/platform test

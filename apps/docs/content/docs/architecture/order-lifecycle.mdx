@@ -206,19 +206,6 @@ CREATE TABLE order_history (
 
 This provides a full audit trail visible in the dashboard order detail page.
 
-## Migration from legacy statuses
-
-Existing orders with legacy single-status values are automatically migrated:
-
-| Legacy status | New `status` | New `paymentStatus` | New `fulfillmentStatus` |
-| --- | --- | --- | --- |
-| `pending` | `placed` | `unpaid` | `unfulfilled` |
-| `processing` | `approved` | `paid` | `unfulfilled` |
-| `shipped` | `fulfilled` | `paid` | `fulfilled` |
-| `delivered` | `fulfilled` | `paid` | `fulfilled` |
-| `refunded` | `cancelled` | `refunded` | `unfulfilled` |
-| `returned` | `cancelled` | `refunded` | `unfulfilled` |
-
 ## Related pages
 
 <Cards>

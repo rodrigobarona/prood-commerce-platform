@@ -91,7 +91,7 @@ Better Auth organization plugin creates:
 | `member` | User ↔ organization membership with role |
 | `invitation` | Pending invitations |
 
-These are pushed via `pnpm db:auth` alongside core auth tables.
+They are defined in `packages/auth/src/schema.ts` and created by `pnpm db:migrate` with the rest of the schema.
 
 ## Related pages
 
