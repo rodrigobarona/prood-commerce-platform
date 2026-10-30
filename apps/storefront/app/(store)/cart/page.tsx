@@ -165,7 +165,7 @@ export default function CartPage() {
               <CouponInput
                 appliedCode={cart.couponCode}
                 loading={couponLoading}
-                error={couponError}
+                error={couponError ?? cart.couponError}
                 onApply={handleApplyCoupon}
                 onRemove={handleRemoveCoupon}
               />

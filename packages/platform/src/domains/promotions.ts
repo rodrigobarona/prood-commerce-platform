@@ -8,41 +8,14 @@ import {
   findCouponByCode,
   findPromotionById,
 } from '../database/index.js'
-import { normalizeLocalizedField } from './helpers.js'
-
-function mapPromotion(row: any): Promotion {
-  const conditions = row.conditionsJson ? JSON.parse(row.conditionsJson) : {
-    minPurchaseAmount: null,
-    minItemCount: null,
-    productIds: null,
-    categoryIds: null,
-    firstOrderOnly: false,
-  }
-
-  return {
-    id: row.id,
-    name: normalizeLocalizedField(row.name),
-    description: row.description ? normalizeLocalizedField(row.description) : null,
-    discountType: row.discountType as any,
-    discountValue: row.discountValue,
-    currency: row.currency ?? null,
-    maxDiscount: row.maxDiscount ? { amount: row.maxDiscount, currency: row.currency ?? 'EUR', formatted: `${row.maxDiscount} ${row.currency ?? 'EUR'}` } : null,
-    target: row.target as any,
-    conditions,
-    startsAt: row.startsAt,
-    endsAt: row.endsAt ?? null,
-    isActive: Boolean(row.isActive),
-    requiresCoupon: Boolean(row.requiresCoupon),
-    usageLimitPerCustomer: row.usageLimitPerCustomer ?? null,
-    usageLimitTotal: row.usageLimitTotal ?? null,
-  }
-}
+import { getStoreCurrency } from '../tenant/store-info.js'
+import { couponStateProblem, mapPromotion } from './coupons.js'
 
 export function createPromotionsDomain() {
   return {
     async getActivePromotions(): Promise<Promotion[]> {
-      const rows = await findActivePromotions()
-      return rows.map(mapPromotion)
+      const [rows, currency] = await Promise.all([findActivePromotions(), getStoreCurrency()])
+      return rows.map(row => mapPromotion(row, currency))
     },
 
     async validateCoupon(code: string): Promise<Coupon | null> {
@@ -52,12 +25,16 @@ export function createPromotionsDomain() {
       const promoRow = await findPromotionById(couponRow.promotionId)
       if (!promoRow) return null
 
+      const currency = await getStoreCurrency()
+      const promotion = mapPromotion(promoRow, currency)
+      const problem = couponStateProblem(couponRow, promotion, currency)
+
       return {
         id: couponRow.id,
         code: couponRow.code,
-        promotion: mapPromotion(promoRow),
-        isValid: Boolean(couponRow.isValid),
-        invalidReason: couponRow.invalidReason ?? null,
+        promotion,
+        isValid: problem === null,
+        invalidReason: problem === 'disabled' ? couponRow.invalidReason ?? problem : problem,
         timesUsed: couponRow.timesUsed,
       }
     },

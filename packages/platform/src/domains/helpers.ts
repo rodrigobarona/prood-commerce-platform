@@ -48,6 +48,11 @@ export function toNumber(value: any): number {
   return value == null ? 0 : Number(value)
 }
 
+/** Round to cents, the precision orders store and gateways charge. */
+export function roundMoney(amount: number): number {
+  return Math.round(amount * 100) / 100
+}
+
 function formatAmount(amount: number, currency: string): string {
   return new Intl.NumberFormat('en-IE', { style: 'currency', currency }).format(amount)
 }

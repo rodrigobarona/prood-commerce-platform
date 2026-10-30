@@ -34,6 +34,8 @@ export const orders = pgTable('orders', {
   // Shipping and payment (JSON snapshots of the methods chosen at checkout)
   shippingMethod: jsonb('shipping_method').$type<ShippingMethod>(),
   paymentMethod: jsonb('payment_method').$type<PaymentMethod>(),
+  paymentTransactionId: text('payment_transaction_id'),
+  couponCode: text('coupon_code'),
   trackingNumber: text('tracking_number'),
   trackingUrl: text('tracking_url'),
 
@@ -62,6 +64,7 @@ export const orderItems = pgTable('order_items', {
 
   // Snapshot at time of purchase
   name: jsonb('name').$type<LocalizedField>().notNull().default({}),
+  variantName: jsonb('variant_name').$type<LocalizedField>(),
   image: text('image'),
   quantity: integer('quantity').notNull(),
   price: numeric('price', { precision: 12, scale: 2 }).notNull(),

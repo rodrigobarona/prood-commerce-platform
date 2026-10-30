@@ -3762,6 +3762,15 @@
                         "null"
                       ]
                     },
+                    "couponError": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "requiresShipping": {
+                      "type": "boolean"
+                    },
                     "customerId": {
                       "type": [
                         "string",
@@ -3787,6 +3796,8 @@
                     "shippingMethod",
                     "paymentMethod",
                     "couponCode",
+                    "couponError",
+                    "requiresShipping",
                     "customerId",
                     "itemCount",
                     "createdAt",
@@ -4516,6 +4527,15 @@
                         "null"
                       ]
                     },
+                    "couponError": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "requiresShipping": {
+                      "type": "boolean"
+                    },
                     "customerId": {
                       "type": [
                         "string",
@@ -4541,6 +4561,8 @@
                     "shippingMethod",
                     "paymentMethod",
                     "couponCode",
+                    "couponError",
+                    "requiresShipping",
                     "customerId",
                     "itemCount",
                     "createdAt",
@@ -5270,6 +5292,15 @@
                         "null"
                       ]
                     },
+                    "couponError": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "requiresShipping": {
+                      "type": "boolean"
+                    },
                     "customerId": {
                       "type": [
                         "string",
@@ -5295,6 +5326,8 @@
                     "shippingMethod",
                     "paymentMethod",
                     "couponCode",
+                    "couponError",
+                    "requiresShipping",
                     "customerId",
                     "itemCount",
                     "createdAt",
@@ -6062,6 +6095,15 @@
                         "null"
                       ]
                     },
+                    "couponError": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "requiresShipping": {
+                      "type": "boolean"
+                    },
                     "customerId": {
                       "type": [
                         "string",
@@ -6087,6 +6129,8 @@
                     "shippingMethod",
                     "paymentMethod",
                     "couponCode",
+                    "couponError",
+                    "requiresShipping",
                     "customerId",
                     "itemCount",
                     "createdAt",
@@ -6844,6 +6888,15 @@
                         "null"
                       ]
                     },
+                    "couponError": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "requiresShipping": {
+                      "type": "boolean"
+                    },
                     "customerId": {
                       "type": [
                         "string",
@@ -6869,6 +6922,8 @@
                     "shippingMethod",
                     "paymentMethod",
                     "couponCode",
+                    "couponError",
+                    "requiresShipping",
                     "customerId",
                     "itemCount",
                     "createdAt",
@@ -7598,6 +7653,15 @@
                         "null"
                       ]
                     },
+                    "couponError": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "requiresShipping": {
+                      "type": "boolean"
+                    },
                     "customerId": {
                       "type": [
                         "string",
@@ -7623,6 +7687,8 @@
                     "shippingMethod",
                     "paymentMethod",
                     "couponCode",
+                    "couponError",
+                    "requiresShipping",
                     "customerId",
                     "itemCount",
                     "createdAt",
@@ -8371,6 +8437,15 @@
                         "null"
                       ]
                     },
+                    "couponError": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "requiresShipping": {
+                      "type": "boolean"
+                    },
                     "customerId": {
                       "type": [
                         "string",
@@ -8396,6 +8471,8 @@
                     "shippingMethod",
                     "paymentMethod",
                     "couponCode",
+                    "couponError",
+                    "requiresShipping",
                     "customerId",
                     "itemCount",
                     "createdAt",
@@ -9617,6 +9694,15 @@
                         "null"
                       ]
                     },
+                    "couponError": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "requiresShipping": {
+                      "type": "boolean"
+                    },
                     "customerId": {
                       "type": [
                         "string",
@@ -9642,6 +9728,8 @@
                     "shippingMethod",
                     "paymentMethod",
                     "couponCode",
+                    "couponError",
+                    "requiresShipping",
                     "customerId",
                     "itemCount",
                     "createdAt",
@@ -10424,6 +10512,15 @@
                         "null"
                       ]
                     },
+                    "couponError": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "requiresShipping": {
+                      "type": "boolean"
+                    },
                     "customerId": {
                       "type": [
                         "string",
@@ -10449,6 +10546,8 @@
                     "shippingMethod",
                     "paymentMethod",
                     "couponCode",
+                    "couponError",
+                    "requiresShipping",
                     "customerId",
                     "itemCount",
                     "createdAt",
@@ -11231,6 +11330,15 @@
                         "null"
                       ]
                     },
+                    "couponError": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "requiresShipping": {
+                      "type": "boolean"
+                    },
                     "customerId": {
                       "type": [
                         "string",
@@ -11256,6 +11364,8 @@
                     "shippingMethod",
                     "paymentMethod",
                     "couponCode",
+                    "couponError",
+                    "requiresShipping",
                     "customerId",
                     "itemCount",
                     "createdAt",
@@ -11521,6 +11631,22 @@
                               "type": "string"
                             }
                           },
+                          "variantName": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
                           "image": {
                             "anyOf": [
                               {
@@ -11622,6 +11748,7 @@
                           "productId",
                           "variantId",
                           "name",
+                          "variantName",
                           "image",
                           "quantity",
                           "price",
@@ -12040,6 +12167,18 @@
                         }
                       ]
                     },
+                    "paymentTransactionId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "couponCode": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "trackingNumber": {
                       "type": [
                         "string",
@@ -12116,6 +12255,8 @@
                     "billingAddress",
                     "shippingMethod",
                     "paymentMethod",
+                    "paymentTransactionId",
+                    "couponCode",
                     "trackingNumber",
                     "trackingUrl",
                     "note",
@@ -12405,6 +12546,22 @@
                                     "type": "string"
                                   }
                                 },
+                                "variantName": {
+                                  "anyOf": [
+                                    {
+                                      "type": "object",
+                                      "propertyNames": {
+                                        "type": "string"
+                                      },
+                                      "additionalProperties": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
                                 "image": {
                                   "anyOf": [
                                     {
@@ -12506,6 +12663,7 @@
                                 "productId",
                                 "variantId",
                                 "name",
+                                "variantName",
                                 "image",
                                 "quantity",
                                 "price",
@@ -12924,6 +13082,18 @@
                               }
                             ]
                           },
+                          "paymentTransactionId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "couponCode": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
                           "trackingNumber": {
                             "type": [
                               "string",
@@ -13000,6 +13170,8 @@
                           "billingAddress",
                           "shippingMethod",
                           "paymentMethod",
+                          "paymentTransactionId",
+                          "couponCode",
                           "trackingNumber",
                           "trackingUrl",
                           "note",
@@ -13275,6 +13447,22 @@
                               "type": "string"
                             }
                           },
+                          "variantName": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
                           "image": {
                             "anyOf": [
                               {
@@ -13376,6 +13564,7 @@
                           "productId",
                           "variantId",
                           "name",
+                          "variantName",
                           "image",
                           "quantity",
                           "price",
@@ -13794,6 +13983,18 @@
                         }
                       ]
                     },
+                    "paymentTransactionId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "couponCode": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "trackingNumber": {
                       "type": [
                         "string",
@@ -13870,6 +14071,8 @@
                     "billingAddress",
                     "shippingMethod",
                     "paymentMethod",
+                    "paymentTransactionId",
+                    "couponCode",
                     "trackingNumber",
                     "trackingUrl",
                     "note",
@@ -18080,6 +18283,22 @@
                                     "type": "string"
                                   }
                                 },
+                                "variantName": {
+                                  "anyOf": [
+                                    {
+                                      "type": "object",
+                                      "propertyNames": {
+                                        "type": "string"
+                                      },
+                                      "additionalProperties": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
                                 "image": {
                                   "anyOf": [
                                     {
@@ -18181,6 +18400,7 @@
                                 "productId",
                                 "variantId",
                                 "name",
+                                "variantName",
                                 "image",
                                 "quantity",
                                 "price",
@@ -18599,6 +18819,18 @@
                               }
                             ]
                           },
+                          "paymentTransactionId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "couponCode": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
                           "trackingNumber": {
                             "type": [
                               "string",
@@ -18675,6 +18907,8 @@
                           "billingAddress",
                           "shippingMethod",
                           "paymentMethod",
+                          "paymentTransactionId",
+                          "couponCode",
                           "trackingNumber",
                           "trackingUrl",
                           "note",
@@ -18947,6 +19181,22 @@
                               "type": "string"
                             }
                           },
+                          "variantName": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "type": "string"
+                                }
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
                           "image": {
                             "anyOf": [
                               {
@@ -19048,6 +19298,7 @@
                           "productId",
                           "variantId",
                           "name",
+                          "variantName",
                           "image",
                           "quantity",
                           "price",
@@ -19466,6 +19717,18 @@
                         }
                       ]
                     },
+                    "paymentTransactionId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "couponCode": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "trackingNumber": {
                       "type": [
                         "string",
@@ -19542,6 +19805,8 @@
                     "billingAddress",
                     "shippingMethod",
                     "paymentMethod",
+                    "paymentTransactionId",
+                    "couponCode",
                     "trackingNumber",
                     "trackingUrl",
                     "note",
@@ -22096,6 +22361,22 @@
                                     "type": "string"
                                   }
                                 },
+                                "variantName": {
+                                  "anyOf": [
+                                    {
+                                      "type": "object",
+                                      "propertyNames": {
+                                        "type": "string"
+                                      },
+                                      "additionalProperties": {
+                                        "type": "string"
+                                      }
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
                                 "image": {
                                   "anyOf": [
                                     {
@@ -22197,6 +22478,7 @@
                                 "productId",
                                 "variantId",
                                 "name",
+                                "variantName",
                                 "image",
                                 "quantity",
                                 "price",
@@ -22615,6 +22897,18 @@
                               }
                             ]
                           },
+                          "paymentTransactionId": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "couponCode": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
                           "trackingNumber": {
                             "type": [
                               "string",
@@ -22691,6 +22985,8 @@
                           "billingAddress",
                           "shippingMethod",
                           "paymentMethod",
+                          "paymentTransactionId",
+                          "couponCode",
                           "trackingNumber",
                           "trackingUrl",
                           "note",

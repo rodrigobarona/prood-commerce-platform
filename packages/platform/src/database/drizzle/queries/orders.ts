@@ -2,7 +2,7 @@
 // Drizzle: Order queries
 // ---------------------------------------------------------------------------
 
-import { count, eq, and, desc, inArray } from 'drizzle-orm'
+import { count, eq, and, desc, inArray, or, sql } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
 import { tenantCondition, requireOrgId } from './tenant-filter.js'
@@ -66,6 +66,30 @@ export async function countOrdersForCustomer(customerId: string) {
     .select({ count: count() })
     .from(schema.orders)
     .where(and(eq(schema.orders.customerId, customerId), tenantCondition(schema.orders)))
+  return row?.count ?? 0
+}
+
+/**
+ * Orders by one shopper, known by customer id or contact email: every guest
+ * checkout makes a new customer, so the email is what repeats.
+ */
+export async function countOrdersByShopper(
+  shopper: { customerId?: string | null; contactEmail?: string | null },
+  couponCode?: string,
+) {
+  const [row] = await getDb()
+    .select({ count: count() })
+    .from(schema.orders)
+    .where(and(
+      or(
+        shopper.customerId ? eq(schema.orders.customerId, shopper.customerId) : undefined,
+        shopper.contactEmail
+          ? sql`lower(${schema.orders.contactEmail}) = lower(${shopper.contactEmail})`
+          : undefined,
+      ),
+      couponCode ? eq(schema.orders.couponCode, couponCode) : undefined,
+      tenantCondition(schema.orders),
+    ))
   return row?.count ?? 0
 }
 

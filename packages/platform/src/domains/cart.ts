@@ -18,9 +18,10 @@ import {
   findVariantById,
   findPrimaryImage,
 } from '../database/index.js'
-import { normalizeLocalizedField, discountablePrice, priceRequired, img, toNumber } from './helpers.js'
+import { normalizeLocalizedField, discountablePrice, priceRequired, img, roundMoney, toNumber } from './helpers.js'
 import { getStoreCurrency } from '../tenant/store-info.js'
 import { requireSellable } from './availability.js'
+import { previewCoupon } from './coupons.js'
 import { listPaymentMethods, listShippingMethods } from './checkout-methods.js'
 
 export function createCartDomain() {
@@ -31,10 +32,12 @@ export function createCartDomain() {
 
     const currency = await getStoreCurrency()
     const items = await findCartItems(cartId)
+    let requiresShipping = false
 
     const cartItems = await Promise.all(items.map(async (item: any) => {
       const product = await findProductById(item.productId)
       const primaryImg = await findPrimaryImage(item.productId)
+      if (product?.requiresShipping !== false) requiresShipping = true
 
       const variant = item.variantId ? await findVariantById(item.variantId) : null
 
@@ -56,13 +59,31 @@ export function createCartDomain() {
         image: primaryImg ? img(primaryImg.url, primaryImg.altText) : null,
         quantity: item.quantity,
         price: discountablePrice(itemPrice, compareAt, currency)!,
-        totalPrice: priceRequired(toNumber(itemPrice) * item.quantity, currency),
+        totalPrice: priceRequired(roundMoney(itemPrice * item.quantity), currency),
       }
     }))
 
-    const subtotal = cartItems.reduce((sum, item) => sum + item.totalPrice.amount, 0)
+    const subtotal = roundMoney(cartItems.reduce((sum, item) => sum + item.totalPrice.amount, 0))
 
-    const shippingMethod = listShippingMethods(currency).find(m => m.id === cartRow.shippingMethodId) ?? null
+    // A method left on a cart whose last shipped item was removed charges nothing.
+    const shippingMethod = requiresShipping
+      ? listShippingMethods(currency).find(m => m.id === cartRow.shippingMethodId) ?? null
+      : null
+    const shipping = shippingMethod?.price.amount ?? 0
+    const coupon = cartRow.couponCode
+      ? await previewCoupon(cartRow.couponCode, {
+          lines: cartItems.map(item => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            totalPrice: item.totalPrice.amount,
+          })),
+          subtotal,
+          shipping,
+          currency,
+          customerId: cartRow.customerId,
+        })
+      : null
+    const discount = coupon?.discount ?? 0
     const paymentMethod = listPaymentMethods().find(m => m.id === cartRow.paymentMethodId) ?? null
 
     return {
@@ -72,14 +93,16 @@ export function createCartDomain() {
         subtotal: priceRequired(subtotal, currency),
         shipping: shippingMethod?.price ?? null,
         tax: null,
-        discount: null,
-        total: priceRequired(subtotal + (shippingMethod?.price.amount ?? 0), currency),
+        discount: discount > 0 ? priceRequired(discount, currency) : null,
+        total: priceRequired(roundMoney(subtotal + shipping - discount), currency),
       },
       shippingAddress: cartRow.shippingAddress,
       billingAddress: cartRow.billingAddress,
       shippingMethod,
       paymentMethod,
       couponCode: cartRow.couponCode ?? null,
+      couponError: coupon?.problem ?? null,
+      requiresShipping,
       customerId: cartRow.customerId ?? null,
       itemCount: cartItems.reduce((sum, item) => sum + item.quantity, 0),
       createdAt: cartRow.createdAt instanceof Date ? cartRow.createdAt.toISOString() : cartRow.createdAt,
@@ -140,7 +163,10 @@ export function createCartDomain() {
 
     async applyCoupon(cartId: string, code: string): Promise<Cart> {
       await updateCart(cartId, { couponCode: code })
-      return buildCart(cartId)
+      const cart = await buildCart(cartId)
+      // Throwing rolls the tenant transaction back, so the cart keeps what it had.
+      if (cart.couponError) throw new CommerceError(cart.couponError, 'VALIDATION', 422)
+      return cart
     },
 
     async removeCoupon(cartId: string): Promise<Cart> {

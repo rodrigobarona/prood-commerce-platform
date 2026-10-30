@@ -14,10 +14,8 @@ export interface OrderItemInput {
   productId: Id
   variantId?: Maybe<Id>
   quantity: number
-  /** Unit price at time of order (for validation) */
+  /** Unit price charged, in the store's currency */
   unitPrice: Price
-  /** Optional notes on the line item */
-  notes?: Maybe<string>
 }
 
 /** Input for creating a new order via the adapter */
@@ -28,7 +26,7 @@ export interface CreateOrderInput {
   /** Customer ID if known (existing customer) */
   customerId?: Maybe<Id>
 
-  /** Receiver info if no customerId (guest checkout) */
+  /** Who receives the order; its email becomes the order's contact email */
   receiver?: Maybe<{
     firstName: string
     lastName: string
@@ -36,13 +34,13 @@ export interface CreateOrderInput {
     phone?: string
   }>
 
-  /** Shipping address */
-  shippingAddress: CheckoutAddress
+  /** Shipping address. Required when any item ships */
+  shippingAddress?: Maybe<CheckoutAddress>
 
   /** Billing address (defaults to shipping if not provided) */
   billingAddress?: Maybe<CheckoutAddress>
 
-  /** Selected shipping method ID */
+  /** Selected shipping method ID. Required when any item ships */
   shippingMethodId?: Maybe<string>
 
   /** Payment method or reference */
@@ -53,12 +51,9 @@ export interface CreateOrderInput {
     transactionId?: string
   }>
 
-  /** Coupon or discount code applied */
+  /** Coupon to redeem on this order */
   couponCode?: Maybe<string>
 
   /** Customer-facing order note */
   note?: Maybe<string>
-
-  /** Custom metadata (adapter-specific extensions) */
-  metadata?: Maybe<Record<string, unknown>>
 }

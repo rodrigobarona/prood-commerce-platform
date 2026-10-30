@@ -58,6 +58,7 @@ export {
   transitionOrderPayment,
   findOrders,
   countOrdersForCustomer,
+  countOrdersByShopper,
   findOrderItems,
   findOrderHistory,
   updateOrder,
@@ -107,6 +108,8 @@ export {
   findCouponByCode,
   findPromotionById,
   insertPromotion,
+  lockCouponByCode,
+  incrementCouponUsage,
 } from './promotions.js'
 
 // Returns

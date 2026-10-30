@@ -7,7 +7,6 @@ import { cn } from "@prood/ui/lib/utils"
 import { useCart } from "@/components/providers/cart-provider"
 import { startCheckout } from "@/app/(checkout)/checkout/actions"
 import { CheckoutSidebar } from "./checkout-sidebar"
-import { ExpressCheckout } from "./express-checkout"
 import { ContactStep } from "./steps/contact-step"
 import { AddressStep } from "./steps/address-step"
 import { ShippingStep } from "./steps/shipping-step"
@@ -121,6 +120,8 @@ export function CheckoutFlow({ geoCountry }: { geoCountry?: string }) {
     )
   }
 
+  const steps = STEPS.filter((step) => cart.requiresShipping || step.id !== "shipping")
+
   function handleContactSubmit(values: ContactValues) {
     setData((prev) => ({ ...prev, contact: values }))
     goTo(1)
@@ -133,7 +134,7 @@ export function CheckoutFlow({ geoCountry }: { geoCountry?: string }) {
       ...prev,
       address: values,
     }))
-    goTo(2)
+    goTo(cart?.requiresShipping ? 2 : 3)
   }
 
   function handleShippingSubmit(values: ShippingMethodValues) {
@@ -200,15 +201,15 @@ export function CheckoutFlow({ geoCountry }: { geoCountry?: string }) {
 
         {/* Left: Steps */}
         <div className="flex flex-col gap-6 lg:col-start-1 lg:row-start-1">
-          <ExpressCheckout />
-          {STEPS.map((step, i) => {
+          {steps.map((step, position) => {
+            const i = STEPS.indexOf(step)
             const completed = i < activeStep
             const active = i === activeStep
 
             return (
               <div key={step.id} className="flex flex-col gap-4">
                 <StepHeader
-                  index={i}
+                  index={position}
                   title={step.title}
                   active={active}
                   completed={completed}
@@ -247,14 +248,14 @@ export function CheckoutFlow({ geoCountry }: { geoCountry?: string }) {
                         address={data.address}
                         shippingMethodName={data.shippingMethodName}
                         onSubmit={handleFinalSubmit}
-                        onBack={() => goTo(2)}
+                        onBack={() => goTo(cart.requiresShipping ? 2 : 1)}
                         onEditStep={goTo}
                       />
                     )}
                   </div>
                 ) : null}
 
-                {i < STEPS.length - 1 ? (
+                {position < steps.length - 1 ? (
                   <div className="ml-3.5 border-l pl-6" />
                 ) : null}
               </div>

@@ -8,9 +8,10 @@ import { sql } from 'drizzle-orm'
 import { createPlatformAdapter } from '../adapter.js'
 import { getDb, withTenant } from '../database/drizzle/client.js'
 import { createCustomer } from '../database/drizzle/queries/customers.js'
+import { coupons, promotions } from '../database/drizzle/schema/promotions.js'
 import { DEMO_ORG_ID } from '../database/drizzle/seed.js'
 import type { PlatformAdapter } from '../adapter.js'
-import type { CheckoutAddress, Order, PaginationParams } from '@prood/types'
+import type { CheckoutAddress, CreateOrderInput, Order, PaginationParams } from '@prood/types'
 
 /** Helper: create a full Address with all required fields */
 function fullAddress(overrides: Partial<CheckoutAddress> = {}): CheckoutAddress {
@@ -61,11 +62,54 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     )
   }
 
-  async function placedOrder(options?: { customerId?: string }) {
+  /** A cart with one earbuds line (79.00), ready for placeOrder. */
+  async function readyCart() {
     const cart = await adapter.createCart()
     await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 1 })
     await adapter.setShippingAddress(cart.id, fullAddress())
-    return adapter.placeOrder(cart.id, options)
+    return adapter.setShippingMethod(cart.id, 'standard')
+  }
+
+  async function placedOrder(options?: { customerId?: string; contactEmail?: string }) {
+    return adapter.placeOrder((await readyCart()).id, options)
+  }
+
+  function directOrder(overrides: Partial<CreateOrderInput> = {}) {
+    return adapter.createOrder({
+      items: [{ productId: 'prod-2', quantity: 2, unitPrice: { amount: 100, currency: 'EUR', formatted: '100 EUR' } }],
+      shippingAddress: fullAddress(),
+      shippingMethodId: 'standard',
+      ...overrides,
+    })
+  }
+
+  function setProducts(assignment: string, ids: string) {
+    return withTenant(DEMO_ORG_ID, () =>
+      getDb().execute(sql`update products set ${sql.raw(assignment)} where id in (${sql.raw(ids)})`),
+    )
+  }
+
+  async function seedCoupon(
+    code: string,
+    promotion: Partial<typeof promotions.$inferInsert> = {},
+    coupon: Partial<typeof coupons.$inferInsert> = {},
+  ) {
+    await withTenant(DEMO_ORG_ID, async () => {
+      const promotionId = crypto.randomUUID()
+      await getDb().insert(promotions).values({
+        id: promotionId,
+        discountType: 'percentage',
+        discountValue: '10',
+        target: 'order',
+        startsAt: new Date(Date.now() - 86_400_000),
+        ...promotion,
+      })
+      await getDb().insert(coupons).values({ code, promotionId, ...coupon })
+    })
+  }
+
+  async function timesUsed(code: string) {
+    return (await adapter.validateCoupon(code))?.timesUsed
   }
 
   async function capture(order: Order) {
@@ -282,11 +326,13 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
   })
 
   it('should apply and remove coupon', async () => {
+    await seedCoupon('SAVE10')
     const cart = await adapter.createCart()
     const withCoupon = await adapter.applyCoupon(cart.id, 'SAVE10')
     expect(withCoupon.couponCode).toBe('SAVE10')
     const noCoupon = await adapter.removeCoupon(cart.id)
     expect(noCoupon.couponCode).toBeNull()
+    expect(noCoupon.totals.discount).toBeNull()
   })
 
   it('should use variant price when variant is specified', async () => {
@@ -404,9 +450,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
   })
 
   it('should place an order from cart', async () => {
-    const cart = await adapter.createCart()
-    await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 1 })
-    await adapter.setShippingAddress(cart.id, fullAddress())
+    const cart = await readyCart()
     const order = await adapter.placeOrder(cart.id)
     expect(order.id).toBeTruthy()
     expect(order.orderNumber).toBeTruthy()
@@ -475,10 +519,329 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       }
     })
 
-    it('invents no method for an order placed without one', async () => {
+    it('invents no payment method for an order placed without one', async () => {
       const order = await adapter.getOrder((await placedOrder()).id)
-      expect(order.shippingMethod).toBeNull()
       expect(order.paymentMethod).toBeNull()
+    })
+
+    it('snapshots what was bought on the order', async () => {
+      const cart = await adapter.createCart()
+      await adapter.addToCart(cart.id, { productId: 'prod-1', variantId: 'var-tshirt-l', quantity: 2 })
+      await adapter.setShippingAddress(cart.id, fullAddress())
+      await adapter.setShippingMethod(cart.id, 'standard')
+      const [item] = (await adapter.placeOrder(cart.id)).items
+      expect(item).toMatchObject({ variantId: 'var-tshirt-l', productType: 'physical', quantity: 2 })
+      expect(item?.name.en).toBe('Premium Cotton T-Shirt')
+      expect(item?.variantName?.en).toBe('Large')
+      expect(item?.image?.url).toContain('T-Shirt')
+      expect(item?.totalPrice.amount).toBe(64)
+    })
+
+    it('keeps amounts exact to the cent', async () => {
+      await setProducts('price = 19.99', `'prod-2'`)
+      const cart = await adapter.createCart()
+      await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 3 })
+      await adapter.setShippingAddress(cart.id, fullAddress())
+      const ready = await adapter.setShippingMethod(cart.id, 'standard')
+      expect(ready.totals.subtotal.amount).toBe(59.97)
+      expect(ready.totals.total.amount).toBe(74.97)
+      const order = await adapter.placeOrder(cart.id)
+      expect(order.totals.total.amount).toBe(74.97)
+    })
+  })
+
+  describe('shipping requirement', () => {
+    it('refuses a physical order without a shipping method, and keeps the cart', async () => {
+      const cart = await adapter.createCart()
+      await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 1 })
+      await adapter.setShippingAddress(cart.id, fullAddress())
+      await expect(adapter.placeOrder(cart.id)).rejects.toMatchObject({
+        code: 'VALIDATION',
+        message: expect.stringContaining('shipping method'),
+      })
+      expect((await adapter.getCart(cart.id)).items).toHaveLength(1)
+    })
+
+    it('refuses a physical order without an address', async () => {
+      const cart = await adapter.createCart()
+      await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 1 })
+      await adapter.setShippingMethod(cart.id, 'standard')
+      await expect(adapter.placeOrder(cart.id)).rejects.toMatchObject({
+        code: 'VALIDATION',
+        message: expect.stringContaining('address'),
+      })
+    })
+
+    it('needs no shipping when nothing ships', async () => {
+      await setProducts(`requires_shipping = false, product_type = 'digital'`, `'prod-3'`)
+      const cart = await adapter.createCart()
+      const updated = await adapter.addToCart(cart.id, { productId: 'prod-3', quantity: 1 })
+      expect(updated.requiresShipping).toBe(false)
+
+      const order = await adapter.placeOrder(cart.id)
+      expect(order.requiresShipping).toBe(false)
+      expect(order.fulfillmentStatus).toBe('not_required')
+      expect(order.shippingMethod).toBeNull()
+      expect(order.items[0]?.productType).toBe('digital')
+      expect(order.totals.total.amount).toBe(149)
+    })
+
+    it('needs shipping as soon as one item ships', async () => {
+      await setProducts(`requires_shipping = false`, `'prod-3'`)
+      const cart = await adapter.createCart()
+      await adapter.addToCart(cart.id, { productId: 'prod-3', quantity: 1 })
+      const mixed = await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 1 })
+      expect(mixed.requiresShipping).toBe(true)
+      await expect(adapter.placeOrder(cart.id)).rejects.toMatchObject({ code: 'VALIDATION' })
+    })
+
+    it('stops charging shipping when the last item that ships leaves the cart', async () => {
+      await setProducts(`requires_shipping = false`, `'prod-3'`)
+      const cart = await readyCart()
+      const mixed = await adapter.addToCart(cart.id, { productId: 'prod-3', quantity: 1 })
+      expect(mixed.totals.shipping?.amount).toBe(15)
+
+      const line = mixed.items.find(item => item.productId === 'prod-2')!
+      const remaining = await adapter.removeFromCart(cart.id, line.id)
+      expect(remaining.shippingMethod).toBeNull()
+      expect(remaining.totals.shipping).toBeNull()
+      expect(remaining.totals.total.amount).toBe(149)
+    })
+  })
+
+  describe('coupons', () => {
+    it('takes a percentage off the cart and the order, and the shopper pays the total', async () => {
+      await seedCoupon('SAVE10')
+      const cart = await readyCart()
+      const applied = await adapter.applyCoupon(cart.id, 'SAVE10')
+
+      expect(applied.couponCode).toBe('SAVE10')
+      expect(applied.couponError).toBeNull()
+      expect(applied.totals.discount?.amount).toBe(7.9)
+      expect(applied.totals.total.amount).toBe(79 + 15 - 7.9)
+
+      const order = await adapter.placeOrder(cart.id)
+      expect(order.couponCode).toBe('SAVE10')
+      expect(order.totals.discount?.amount).toBe(7.9)
+      expect(order.totals.total).toEqual(applied.totals.total)
+      expect(await capture(order)).toBe('applied')
+      expect((await adapter.getOrder(order.id)).paymentStatus).toBe('paid')
+      expect(await timesUsed('SAVE10')).toBe(1)
+    })
+
+    it('never gives a fraction of a cent, so the capture matches the order', async () => {
+      await setProducts('price = 19.99', `'prod-2'`)
+      await seedCoupon('PCT15', { discountValue: '15' })
+      const cart = await readyCart()
+      const applied = await adapter.applyCoupon(cart.id, 'PCT15')
+      expect(applied.totals.discount?.amount).toBe(3)
+      expect(applied.totals.total.amount).toBe(31.99)
+
+      const order = await adapter.placeOrder(cart.id)
+      expect(order.totals.total.amount).toBe(31.99)
+      expect(await capture(order)).toBe('applied')
+    })
+
+    it('caps a percentage at its maximum discount', async () => {
+      await seedCoupon('CAPPED', { discountValue: '50', maxDiscount: '20' })
+      const cart = await readyCart()
+      expect((await adapter.applyCoupon(cart.id, 'CAPPED')).totals.discount?.amount).toBe(20)
+    })
+
+    it('takes a fixed amount off, never more than the goods cost', async () => {
+      await seedCoupon('MINUS5', { discountType: 'fixed_amount', discountValue: '5' })
+      await seedCoupon('MINUS500', { discountType: 'fixed_amount', discountValue: '500' })
+      const cart = await readyCart()
+      expect((await adapter.applyCoupon(cart.id, 'MINUS5')).totals.total.amount).toBe(89)
+
+      const free = await adapter.applyCoupon(cart.id, 'MINUS500')
+      expect(free.totals.discount?.amount).toBe(79)
+      expect(free.totals.total.amount).toBe(15)
+    })
+
+    it('waives shipping with a free shipping coupon', async () => {
+      await seedCoupon('SHIPFREE', { discountType: 'free_shipping', target: 'shipping' })
+      const cart = await adapter.createCart()
+      await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 1 })
+      const noMethod = await adapter.applyCoupon(cart.id, 'SHIPFREE')
+      expect(noMethod.totals.discount).toBeNull()
+
+      await adapter.setShippingAddress(cart.id, fullAddress())
+      const updated = await adapter.setShippingMethod(cart.id, 'express')
+      expect(updated.totals.shipping?.amount).toBe(35)
+      expect(updated.totals.discount?.amount).toBe(35)
+      expect(updated.totals.total.amount).toBe(79)
+      expect((await adapter.placeOrder(cart.id)).totals.total.amount).toBe(79)
+    })
+
+    it('discounts only the products or categories it targets', async () => {
+      await seedCoupon('EARBUDS', {
+        discountValue: '50',
+        target: 'product',
+        conditionsJson: JSON.stringify({ productIds: ['prod-2'] }),
+      })
+      await seedCoupon('BAGS', {
+        discountValue: '50',
+        target: 'category',
+        conditionsJson: JSON.stringify({ categoryIds: ['cat-accessories'] }),
+      })
+      const cart = await adapter.createCart()
+      await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 1 })
+      await adapter.addToCart(cart.id, { productId: 'prod-3', quantity: 1 })
+
+      expect((await adapter.applyCoupon(cart.id, 'EARBUDS')).totals.discount?.amount).toBe(39.5)
+      expect((await adapter.applyCoupon(cart.id, 'BAGS')).totals.discount?.amount).toBe(74.5)
+    })
+
+    it('discounts shipping when shipping is the target', async () => {
+      await seedCoupon('HALFSHIP', { discountValue: '50', target: 'shipping' })
+      const cart = await readyCart()
+      expect((await adapter.applyCoupon(cart.id, 'HALFSHIP')).totals.discount?.amount).toBe(7.5)
+    })
+
+    it('makes a fully discounted order free, with nothing left to pay', async () => {
+      await setProducts('requires_shipping = false', `'prod-3'`)
+      await seedCoupon('ALLFREE', { discountValue: '100' })
+      const cart = await adapter.createCart()
+      await adapter.addToCart(cart.id, { productId: 'prod-3', quantity: 1 })
+      const applied = await adapter.applyCoupon(cart.id, 'ALLFREE')
+      expect(applied.totals.total.amount).toBe(0)
+
+      const order = await adapter.placeOrder(cart.id)
+      expect(order.paymentStatus).toBe('free')
+      expect(order.status).toBe('approved')
+      expect(typeof order.approvedAt).toBe('string')
+    })
+
+    const DAY = 86_400_000
+    const invalid: [string, Parameters<typeof seedCoupon>[1], Parameters<typeof seedCoupon>[2], RegExp][] = [
+      ['not started', { startsAt: new Date(Date.now() + DAY) }, {}, /not active yet/],
+      ['expired', { endsAt: new Date(Date.now() - 1000) }, {}, /expired/],
+      ['inactive', { isActive: false }, {}, /no longer valid/],
+      ['disabled', {}, { isValid: false }, /no longer valid/],
+      ['used up', { usageLimitTotal: 2 }, { timesUsed: 2 }, /fully redeemed/],
+      ['below the minimum', { conditionsJson: JSON.stringify({ minPurchaseAmount: { amount: 80, currency: 'EUR', formatted: '' } }) }, {}, /larger order/],
+      ['below the item count', { conditionsJson: JSON.stringify({ minItemCount: 2 }) }, {}, /larger order/],
+      ['for other items', { target: 'product', conditionsJson: JSON.stringify({ productIds: ['prod-3'] }) }, {}, /does not apply/],
+      ['buy x get y', { discountType: 'buy_x_get_y' }, {}, /cannot be used/],
+      ['a bundle', { discountType: 'bundle' }, {}, /cannot be used/],
+      ['for a customer segment', { target: 'customer' }, {}, /cannot be used/],
+      ['in another currency', { discountType: 'fixed_amount', currency: 'USD' }, {}, /cannot be used/],
+    ]
+
+    it.each(invalid)('refuses a coupon that is %s', async (_name, promotion, coupon, message) => {
+      await seedCoupon('KEPT')
+      await seedCoupon('BAD', promotion, coupon)
+      const cart = await readyCart()
+      await adapter.applyCoupon(cart.id, 'KEPT')
+
+      await expect(adapter.applyCoupon(cart.id, 'BAD')).rejects.toMatchObject({ code: 'VALIDATION', message: expect.stringMatching(message) })
+      expect((await adapter.getCart(cart.id)).couponCode).toBe('KEPT')
+      expect((await adapter.validateCoupon('BAD'))?.isValid).toBe(promotion?.conditionsJson != null)
+    })
+
+    it('refuses a code that does not exist', async () => {
+      const cart = await readyCart()
+      await expect(adapter.applyCoupon(cart.id, 'FAKE')).rejects.toMatchObject({ code: 'VALIDATION' })
+      expect((await adapter.getCart(cart.id)).couponCode).toBeNull()
+    })
+
+    it('reports why a coupon that stopped applying gives nothing, and refuses the order', async () => {
+      await seedCoupon('OVER100', {
+        conditionsJson: JSON.stringify({ minPurchaseAmount: { amount: 100, currency: 'EUR', formatted: '' } }),
+      })
+      const cart = await readyCart()
+      await adapter.updateCartItem(cart.id, cart.items[0]!.id, 2)
+      await adapter.applyCoupon(cart.id, 'OVER100')
+
+      const shrunk = await adapter.updateCartItem(cart.id, cart.items[0]!.id, 1)
+      expect(shrunk.couponCode).toBe('OVER100')
+      expect(shrunk.couponError).toMatch(/larger order/)
+      expect(shrunk.totals.discount).toBeNull()
+      expect(shrunk.totals.total.amount).toBe(94)
+
+      await expect(adapter.placeOrder(cart.id)).rejects.toMatchObject({ code: 'VALIDATION' })
+      expect(await timesUsed('OVER100')).toBe(0)
+      expect((await adapter.getCart(cart.id)).items).toHaveLength(1)
+
+      await adapter.removeCoupon(cart.id)
+      expect((await adapter.placeOrder(cart.id)).totals.total.amount).toBe(94)
+    })
+
+    it('refuses an order when the coupon ran out after it was applied', async () => {
+      await seedCoupon('LAST', { usageLimitTotal: 1 })
+      const first = await readyCart()
+      const second = await readyCart()
+      await adapter.applyCoupon(first.id, 'LAST')
+      await adapter.applyCoupon(second.id, 'LAST')
+
+      await adapter.placeOrder(first.id)
+      await expect(adapter.placeOrder(second.id)).rejects.toMatchObject({ code: 'VALIDATION' })
+      expect(await timesUsed('LAST')).toBe(1)
+    })
+
+    it('lets concurrent orders redeem a limited coupon only as often as the limit', async () => {
+      await seedCoupon('RACE', { usageLimitTotal: 2 })
+      const carts = await Promise.all([readyCart(), readyCart(), readyCart(), readyCart()])
+      for (const cart of carts) await adapter.applyCoupon(cart.id, 'RACE')
+
+      const results = await Promise.allSettled(carts.map(cart => adapter.placeOrder(cart.id)))
+      expect(results.filter(r => r.status === 'fulfilled')).toHaveLength(2)
+      expect(await timesUsed('RACE')).toBe(2)
+    })
+
+    it('limits uses per customer, including guests who share an email', async () => {
+      await seedCoupon('PERCUSTOMER', { usageLimitPerCustomer: 1 })
+      const customerId = await seedCustomer('Once', 'Only')
+      const redeem = async (options: { customerId?: string; contactEmail?: string }) => {
+        const cart = await readyCart()
+        await adapter.applyCoupon(cart.id, 'PERCUSTOMER')
+        return adapter.placeOrder(cart.id, options)
+      }
+
+      await redeem({ customerId })
+      await expect(redeem({ customerId })).rejects.toMatchObject({ code: 'VALIDATION' })
+
+      await redeem({ customerId: await seedCustomer('Guest', 'One'), contactEmail: 'guest@example.com' })
+      await expect(
+        redeem({ customerId: await seedCustomer('Guest', 'Two'), contactEmail: 'GUEST@example.com' }),
+      ).rejects.toMatchObject({ code: 'VALIDATION' })
+
+      await redeem({ customerId: await seedCustomer('Other', 'Person') })
+      expect(await timesUsed('PERCUSTOMER')).toBe(3)
+    })
+
+    it('needs to know the shopper to honour a per-customer limit', async () => {
+      await seedCoupon('WHOAREYOU', { usageLimitPerCustomer: 1 })
+      const cart = await readyCart()
+      await adapter.applyCoupon(cart.id, 'WHOAREYOU')
+      await expect(adapter.placeOrder(cart.id)).rejects.toMatchObject({ code: 'VALIDATION' })
+    })
+
+    it('keeps a first-order coupon to first orders', async () => {
+      await seedCoupon('WELCOME', { conditionsJson: JSON.stringify({ firstOrderOnly: true }) })
+      const customerId = await seedCustomer('First', 'Timer')
+      const redeem = async () => {
+        const cart = await readyCart()
+        await adapter.applyCoupon(cart.id, 'WELCOME')
+        return adapter.placeOrder(cart.id, { customerId })
+      }
+      await redeem()
+      await expect(redeem()).rejects.toMatchObject({ code: 'VALIDATION' })
+    })
+
+    it('reports validity and typed values from validateCoupon', async () => {
+      await seedCoupon('GOOD', { maxDiscount: '20' })
+      await seedCoupon('OLD', { endsAt: new Date(Date.now() - 1000) })
+
+      const good = await adapter.validateCoupon('GOOD')
+      expect(good).toMatchObject({ isValid: true, invalidReason: null, timesUsed: 0 })
+      expect(good?.promotion.discountValue).toBe(10)
+      expect(good?.promotion.maxDiscount?.amount).toBe(20)
+      expect(good?.promotion.maxDiscount?.currency).toBe('EUR')
+      expect(typeof good?.promotion.startsAt).toBe('string')
+
+      expect(await adapter.validateCoupon('OLD')).toMatchObject({ isValid: false, invalidReason: 'expired' })
     })
   })
 
@@ -669,19 +1032,13 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
   // ---- Orders ----
 
   it('should create an order directly', async () => {
-    const order = await adapter.createOrder({
-      items: [{ productId: 'prod-1', quantity: 2, unitPrice: { amount: 100, currency: 'EUR', formatted: '100 EUR' } }],
-      shippingAddress: fullAddress(),
-    })
+    const order = await directOrder()
     expect(order.id).toBeTruthy()
     expect(order.status).toBe('placed')
   })
 
   it('should get an order by id', async () => {
-    const created = await adapter.createOrder({
-      items: [{ productId: 'prod-1', quantity: 1, unitPrice: { amount: 100, currency: 'EUR', formatted: '100 EUR' } }],
-      shippingAddress: fullAddress(),
-    })
+    const created = await directOrder()
     const order = await adapter.getOrder(created.id)
     expect(order.id).toBe(created.id)
   })
@@ -693,43 +1050,129 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
   })
 
   it('should update order status', async () => {
-    const order = await adapter.createOrder({
-      items: [{ productId: 'prod-1', quantity: 1, unitPrice: { amount: 100, currency: 'EUR', formatted: '100 EUR' } }],
-      shippingAddress: fullAddress(),
-    })
+    const order = await directOrder()
     await adapter.updateOrderStatus(order.id, { status: 'approved' })
     const updated = await adapter.getOrder(order.id)
     expect(updated.status).toBe('approved')
   })
 
   it('should track order history', async () => {
-    const order = await adapter.createOrder({
-      items: [{ productId: 'prod-1', quantity: 1, unitPrice: { amount: 100, currency: 'EUR', formatted: '100 EUR' } }],
-      shippingAddress: fullAddress(),
-    })
+    const order = await directOrder()
     await adapter.updateOrderStatus(order.id, { status: 'approved' })
     const history = await adapter.getOrderHistory(order.id)
     expect(history.length).toBeGreaterThanOrEqual(2)
   })
 
   it('should cancel an order', async () => {
-    const order = await adapter.createOrder({
-      items: [{ productId: 'prod-1', quantity: 1, unitPrice: { amount: 100, currency: 'EUR', formatted: '100 EUR' } }],
-      shippingAddress: fullAddress(),
-    })
+    const order = await directOrder()
     await adapter.cancelOrder(order.id, 'Changed my mind')
     const cancelled = await adapter.getOrder(order.id)
     expect(cancelled.status).toBe('cancelled')
   })
 
   it('should duplicate an order', async () => {
-    const order = await adapter.createOrder({
-      items: [{ productId: 'prod-1', quantity: 2, unitPrice: { amount: 100, currency: 'EUR', formatted: '100 EUR' } }],
-      shippingAddress: fullAddress(),
-    })
+    const order = await directOrder()
     const dup = await adapter.duplicateOrder(order.id)
     expect(dup.id).not.toBe(order.id)
     expect(dup.items.length).toBe(order.items.length)
+  })
+
+  describe('recorded orders', () => {
+    it('records real items, shipping, payment, billing and contact on a direct order', async () => {
+      const billing = fullAddress({ city: 'Porto' })
+      const order = await directOrder({
+        items: [{
+          productId: 'prod-1',
+          variantId: 'var-tshirt-l',
+          quantity: 2,
+          unitPrice: { amount: 32, currency: 'EUR', formatted: '32 EUR' },
+        }],
+        billingAddress: billing,
+        shippingMethodId: 'express',
+        payment: { methodId: 'card', transactionId: 'pi_123' },
+        receiver: { firstName: 'Ana', lastName: 'Silva', email: 'ana@example.com' },
+        note: 'Ring twice',
+      })
+      const [express] = (await adapter.getShippingMethods('any')).slice(1)
+      const [item] = order.items
+
+      expect(item?.name.en).toBe('Premium Cotton T-Shirt')
+      expect(item?.variantId).toBe('var-tshirt-l')
+      expect(item?.variantName?.en).toBe('Large')
+      expect(item?.image?.url).toContain('T-Shirt')
+      expect(item?.productType).toBe('physical')
+      expect(order.shippingMethod).toEqual(express)
+      expect(order.totals.subtotal.amount).toBe(64)
+      expect(order.totals.shipping?.amount).toBe(35)
+      expect(order.totals.total.amount).toBe(99)
+      expect(order.paymentMethod?.id).toBe('card')
+      expect(order.paymentTransactionId).toBe('pi_123')
+      expect(order.billingAddress).toEqual(billing)
+      expect(order.contactEmail).toBe('ana@example.com')
+      expect(order.note).toBe('Ring twice')
+    })
+
+    it('bills the shipping address when no billing address is given', async () => {
+      const order = await directOrder()
+      expect(order.billingAddress).toEqual(order.shippingAddress)
+    })
+
+    it('redeems a coupon on a direct order', async () => {
+      await seedCoupon('DIRECT10')
+      const order = await directOrder({ couponCode: 'DIRECT10' })
+      expect(order.couponCode).toBe('DIRECT10')
+      expect(order.totals.discount?.amount).toBe(20)
+      expect(order.totals.total.amount).toBe(200 + 15 - 20)
+      expect(await timesUsed('DIRECT10')).toBe(1)
+    })
+
+    it('refuses what it cannot record truthfully', async () => {
+      await expect(directOrder({ shippingMethodId: 'teleport' })).rejects.toMatchObject({ code: 'VALIDATION' })
+      await expect(directOrder({ shippingMethodId: null })).rejects.toMatchObject({ code: 'VALIDATION' })
+      await expect(directOrder({ shippingAddress: null })).rejects.toMatchObject({ code: 'VALIDATION' })
+      await expect(directOrder({ payment: { methodId: 'iou' } })).rejects.toMatchObject({ code: 'VALIDATION' })
+      await expect(directOrder({ couponCode: 'NOPE' })).rejects.toMatchObject({ code: 'VALIDATION' })
+      await expect(directOrder({
+        items: [{ productId: 'prod-2', quantity: 1, unitPrice: { amount: 100, currency: 'USD', formatted: '100 USD' } }],
+      })).rejects.toMatchObject({ code: 'VALIDATION' })
+      await expect(directOrder({
+        items: [{ productId: 'none', quantity: 1, unitPrice: { amount: 100, currency: 'EUR', formatted: '100 EUR' } }],
+      })).rejects.toMatchObject({ code: 'NOT_FOUND' })
+    })
+
+    it('duplicates goods, delivery and payment, and charges the same', async () => {
+      const original = await directOrder({
+        items: [{
+          productId: 'prod-1',
+          variantId: 'var-tshirt-m',
+          quantity: 1,
+          unitPrice: { amount: 29, currency: 'EUR', formatted: '29 EUR' },
+        }],
+        billingAddress: fullAddress({ city: 'Porto' }),
+        shippingMethodId: 'express',
+        payment: { methodId: 'cod', transactionId: 'first-charge' },
+        receiver: { firstName: 'Ana', lastName: 'Silva', email: 'ana@example.com' },
+      })
+      const dup = await adapter.duplicateOrder(original.id)
+
+      expect(dup.items[0]).toMatchObject({ variantId: 'var-tshirt-m', name: original.items[0]?.name })
+      expect(dup.items[0]?.variantName).toEqual(original.items[0]?.variantName)
+      expect(dup.shippingMethod).toEqual(original.shippingMethod)
+      expect(dup.paymentMethod).toEqual(original.paymentMethod)
+      expect(dup.billingAddress).toEqual(original.billingAddress)
+      expect(dup.contactEmail).toBe('ana@example.com')
+      expect(dup.totals).toEqual(original.totals)
+      expect(dup.paymentTransactionId).toBeNull()
+    })
+
+    it('does not redeem a coupon again when duplicating', async () => {
+      await seedCoupon('ONCE', { usageLimitTotal: 1 })
+      const original = await directOrder({ couponCode: 'ONCE' })
+      const dup = await adapter.duplicateOrder(original.id)
+      expect(dup.couponCode).toBeNull()
+      expect(dup.totals.total.amount).toBe(original.totals.subtotal.amount + 15)
+      expect(await timesUsed('ONCE')).toBe(1)
+    })
   })
 
   // ---- Store ----

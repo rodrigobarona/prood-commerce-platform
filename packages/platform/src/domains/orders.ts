@@ -15,66 +15,80 @@ import type {
   PaymentEventResult,
 } from '@prood/types'
 import {
-  createOrder as dbCreateOrder,
-  createOrderItem,
   createOrderHistory,
   findOrderById,
   findOrders,
+  findPrimaryImage,
+  findProductById,
   countOrdersForCustomer,
   findOrderHistory,
   transitionOrderPayment,
   updateOrder,
 } from '../database/index.js'
 import { getStoreCurrency } from '../tenant/store-info.js'
-import { generateOrderNumber } from './helpers.js'
+import { requireSellable } from './availability.js'
+import { listPaymentMethods, listShippingMethods } from './checkout-methods.js'
+import { normalizeLocalizedField } from './helpers.js'
 import { mapOrder } from './order-mapper.js'
+import { recordOrder, type OrderLine } from './order-recorder.js'
 
 export function createOrdersDomain() {
   return {
     async createOrder(input: CreateOrderInput): Promise<Order> {
-      const id = crypto.randomUUID()
+      const currency = await getStoreCurrency()
 
-      const orderNumber = generateOrderNumber()
-      const subtotal = input.items.reduce((sum, item) => sum + (item.unitPrice.amount * item.quantity), 0)
+      const shippingMethod = input.shippingMethodId
+        ? listShippingMethods(currency).find(m => m.id === input.shippingMethodId)
+        : null
+      if (shippingMethod === undefined) {
+        throw new CommerceError(`Unknown shipping method: ${input.shippingMethodId}`, 'VALIDATION', 422)
+      }
 
-      await dbCreateOrder({
-        id,
-        orderNumber,
-        customerId: input.customerId ?? null,
-        status: 'placed',
-        paymentStatus: subtotal === 0 ? 'free' : 'unpaid',
-        fulfillmentStatus: 'unfulfilled',
-        subtotal,
-        total: subtotal,
-        currency: await getStoreCurrency(),
-        shippingAddress: input.shippingAddress as any ?? null,
-        billingAddress: input.billingAddress as any ?? null,
-        note: input.note ?? null,
-        requiresShipping: true,
-        placedAt: new Date(),
-      })
+      const paymentMethod = input.payment
+        ? listPaymentMethods().find(m => m.id === input.payment?.methodId)
+        : null
+      if (paymentMethod === undefined) {
+        throw new CommerceError(`Unknown payment method: ${input.payment?.methodId}`, 'VALIDATION', 422)
+      }
 
+      const lines: OrderLine[] = []
       for (const item of input.items) {
-        await createOrderItem({
-          orderId: id,
-          productId: item.productId,
-          variantId: item.variantId ?? null,
-          name: { en: 'Product' },
+        if (item.unitPrice.currency !== currency) {
+          throw new CommerceError(`Prices must be in ${currency}.`, 'VALIDATION', 422)
+        }
+        const product = await findProductById(item.productId)
+        if (product?.status !== 'active') {
+          throw new CommerceError(`Product not found: ${item.productId}`, 'NOT_FOUND')
+        }
+        const variant = await requireSellable(product, item.variantId)
+        const image = await findPrimaryImage(product.id)
+
+        lines.push({
+          productId: product.id,
+          variantId: variant?.id ?? null,
+          name: normalizeLocalizedField(product.name),
+          variantName: variant?.name ? normalizeLocalizedField(variant.name) : null,
+          image: image?.url ?? null,
           quantity: item.quantity,
           price: item.unitPrice.amount,
-          totalPrice: item.unitPrice.amount * item.quantity,
+          productType: product.productType,
+          requiresShipping: product.requiresShipping,
         })
       }
 
-      await createOrderHistory({
-        orderId: id,
-        toStatus: 'placed',
-        note: 'Order created',
+      return recordOrder({
+        lines,
+        customerId: input.customerId,
+        contactEmail: input.receiver?.email,
+        shippingAddress: input.shippingAddress,
+        billingAddress: input.billingAddress,
+        shippingMethod,
+        paymentMethod,
+        paymentTransactionId: input.payment?.transactionId,
+        couponCode: input.couponCode,
+        note: input.note,
+        historyNote: 'Order created',
       })
-
-      const row = await findOrderById(id)
-      if (!row) throw new CommerceError(`Order not found after creation: ${id}`, "NOT_FOUND")
-      return mapOrder(row)
     },
 
     async getOrder(orderId: string): Promise<Order> {
@@ -234,16 +248,27 @@ export function createOrdersDomain() {
       return this.updateOrderStatus(orderId, { status: 'cancelled', note: note ?? 'Order cancelled' })
     },
 
+    /** The same goods, delivery and payment method at the same prices; a coupon is not redeemed twice. */
     async duplicateOrder(orderId: string): Promise<Order> {
       const original = await this.getOrder(orderId)
+      const address = original.shippingAddress
       return this.createOrder({
-        customerId: original.customerId ?? undefined,
-        shippingAddress: original.shippingAddress as any ?? {
-          firstName: '', lastName: '', street: '', city: '', country: '',
-        },
+        customerId: original.customerId,
+        receiver: original.contactEmail
+          ? {
+              firstName: address?.firstName ?? '',
+              lastName: address?.lastName ?? '',
+              email: original.contactEmail,
+            }
+          : null,
+        shippingAddress: address,
+        billingAddress: original.billingAddress,
+        shippingMethodId: original.shippingMethod?.id,
+        payment: original.paymentMethod ? { methodId: original.paymentMethod.id } : null,
+        note: original.note,
         items: original.items.map(i => ({
           productId: i.productId,
-          variantId: i.variantId ?? undefined,
+          variantId: i.variantId,
           quantity: i.quantity,
           unitPrice: i.price,
         })),
