@@ -13,6 +13,7 @@ import {
   findCategoryById,
   getReviewSummaryByProduct,
 } from '../database/index.js'
+import { mapCategory } from './category-mapper.js'
 import { normalizeLocalizedField, discountablePrice, img, roundRating } from './helpers.js'
 
 async function fetchProductRelations(productId: string) {
@@ -26,7 +27,7 @@ async function fetchProductRelations(productId: string) {
   ])
 
   const categories = categoryIds.length > 0
-    ? (await Promise.all(categoryIds.map(id => findCategoryById(id)))).filter(Boolean)
+    ? (await Promise.all(categoryIds.map(id => findCategoryById(id)))).filter(c => c !== null)
     : []
 
   return { images, variants, attributes, categories, tags, reviews }
@@ -64,15 +65,7 @@ export async function mapProduct(row: typeof products.$inferSelect): Promise<Pro
       value: normalizeLocalizedField(a.value),
     })),
     quantityLimit: row.quantityLimit,
-    categories: related.categories.map((c: any) => ({
-      id: c.id,
-      name: normalizeLocalizedField(c.name),
-      slug: c.slug,
-      description: c.description ? normalizeLocalizedField(c.description) : null,
-      image: c.image ? img(c.image, null) : null,
-      parentId: c.parentId ?? null,
-      productCount: null,
-    })),
+    categories: related.categories.map(mapCategory),
     inStock: row.inStock,
     vatIncluded: row.vatIncluded,
     vatRate: row.vatRate,

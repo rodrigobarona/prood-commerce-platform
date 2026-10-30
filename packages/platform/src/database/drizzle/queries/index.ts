@@ -2,7 +2,6 @@
 // Drizzle: Query barrel export
 // ---------------------------------------------------------------------------
 // All query functions are exported here. Domains import from this barrel.
-// To switch drivers, change the import path to '../prisma/queries/index.js'.
 
 // Catalog
 export {

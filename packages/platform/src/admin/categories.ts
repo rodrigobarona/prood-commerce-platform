@@ -11,19 +11,8 @@ import {
   deleteCategoryById,
   findCategoryChildren,
 } from '../database/index.js'
-import { normalizeLocalizedField, slugifyLocalized, img } from '../domains/helpers.js'
-
-function mapCategory(row: any): Category {
-  return {
-    id: row.id,
-    name: normalizeLocalizedField(row.name),
-    slug: row.slug,
-    description: row.description ? normalizeLocalizedField(row.description) : null,
-    image: row.image ? img(row.image, null) : null,
-    parentId: row.parentId ?? null,
-    productCount: null,
-  }
-}
+import { slugifyLocalized } from '../domains/helpers.js'
+import { mapCategory } from '../domains/category-mapper.js'
 
 export function createAdminCategoriesDomain() {
   return {
@@ -42,7 +31,7 @@ export function createAdminCategoriesDomain() {
       })
 
       const row = await findCategoryById(id)
-      return mapCategory(row)
+      return mapCategory(row!)
     },
 
     async updateCategory(id: string, input: UpdateCategoryInput): Promise<Category> {
@@ -58,7 +47,7 @@ export function createAdminCategoriesDomain() {
       await updateCategoryById(id, updates)
 
       const row = await findCategoryById(id)
-      return mapCategory(row)
+      return mapCategory(row!)
     },
 
     async deleteCategory(id: string): Promise<void> {

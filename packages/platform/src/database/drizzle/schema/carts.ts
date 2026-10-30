@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import { pgTable, text, integer, jsonb, timestamp, index } from 'drizzle-orm/pg-core'
+import type { CheckoutAddress } from '@prood/types'
 import { products, productVariants } from './products.js'
 import { customers } from './customers.js'
 import { organizationId, tenantIsolation } from './tenant.js'
@@ -14,8 +15,8 @@ export const carts = pgTable('carts', {
   couponCode: text('coupon_code'),
 
   // Addresses (stored as JSONB for flexibility)
-  shippingAddress: jsonb('shipping_address'),
-  billingAddress: jsonb('billing_address'),
+  shippingAddress: jsonb('shipping_address').$type<CheckoutAddress>(),
+  billingAddress: jsonb('billing_address').$type<CheckoutAddress>(),
 
   // Selected methods
   shippingMethodId: text('shipping_method_id'),

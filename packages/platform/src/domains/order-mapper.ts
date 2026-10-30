@@ -5,7 +5,7 @@
 import type { Order, OrderFulfillmentStatus, OrderStatus, PaymentStatus } from '@prood/types'
 import type { orders } from '../database/drizzle/schema/orders.js'
 import { findOrderItems } from '../database/index.js'
-import { isoDate, normalizeLocalizedField, price, priceRequired, img, parseJsonField } from './helpers.js'
+import { isoDate, normalizeLocalizedField, price, priceRequired, img } from './helpers.js'
 
 /** Prices use the order's own currency: it is what the customer was charged. */
 export async function mapOrder(row: typeof orders.$inferSelect): Promise<Order> {
@@ -36,8 +36,8 @@ export async function mapOrder(row: typeof orders.$inferSelect): Promise<Order> 
       discount: price(row.discount, row.currency),
       total: priceRequired(row.total, row.currency),
     },
-    shippingAddress: parseJsonField(row.shippingAddress),
-    billingAddress: parseJsonField(row.billingAddress),
+    shippingAddress: row.shippingAddress,
+    billingAddress: row.billingAddress,
     shippingMethod: row.shippingMethod,
     paymentMethod: row.paymentMethod,
     trackingNumber: row.trackingNumber,
