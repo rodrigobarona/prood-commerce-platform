@@ -260,11 +260,6 @@ export function createCheckoutDomain(currency: string) {
         fulfilledAt: order.fulfilledAt instanceof Date ? order.fulfilledAt.toISOString() : order.fulfilledAt ?? null,
         createdAt: order.createdAt instanceof Date ? order.createdAt.toISOString() : order.createdAt,
         updatedAt: order.updatedAt instanceof Date ? order.updatedAt.toISOString() : order.updatedAt,
-        paymentTerms: null,
-        purchaseOrderNumber: null,
-        companyName: null,
-        giftCardCodesApplied: [],
-        giftCardAmountApplied: null,
       }
     },
   }

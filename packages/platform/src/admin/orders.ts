@@ -80,11 +80,6 @@ function mapOrder(row: any, items: any[], currency: string): Order {
     fulfilledAt: row.fulfilledAt ?? null,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
-    paymentTerms: null,
-    purchaseOrderNumber: null,
-    companyName: null,
-    giftCardCodesApplied: [],
-    giftCardAmountApplied: null,
   }
 }
 

@@ -24,13 +24,8 @@ import type { Review, ReviewInput, ReviewSummary } from './review.js'
 import type { StoreInfo } from './store.js'
 import type { Promotion, Coupon } from './promotion.js'
 import type { ReturnRequest, CreateReturnInput } from './return.js'
-import type { CustomerGroup, QuoteRequest, CreateQuoteInput } from './wholesale.js'
-import type { Bid, PlaceBidInput } from './auction.js'
-import type { RentalBooking, CreateRentalBookingInput, AvailabilitySlot } from './rental.js'
-import type { GiftCard, GiftCardTransaction, PurchaseGiftCardInput, RedeemGiftCardInput } from './gift-card.js'
 import type { Brand } from './brand.js'
 import type { Country } from './country.js'
-import type { StoreLocation } from './location.js'
 import type { CreateOrderInput } from './order-input.js'
 import type { OrderStatusInfo, OrderHistoryEntry, UpdateOrderStatusInput } from './order-status.js'
 
@@ -294,91 +289,6 @@ export interface CountryAdapter {
   getCountries(): Promise<Country[]>
 }
 
-/**
- * Location operations — store branches and pickup points.
- */
-export interface LocationAdapter {
-  /** Get all store locations / branches */
-  getStoreLocations(): Promise<StoreLocation[]>
-}
-
-/**
- * Wholesale / B2B operations — customer groups, quotes, and bulk pricing.
- */
-export interface WholesaleAdapter {
-  /** Get all customer groups (wholesale, retail, VIP, etc.) */
-  getCustomerGroups(): Promise<CustomerGroup[]>
-
-  /** Create a request-for-quote */
-  createQuote(input: CreateQuoteInput): Promise<QuoteRequest>
-
-  /** Get paginated list of customer's quote requests */
-  getQuotes(params?: PaginationParams): Promise<PaginatedResult<QuoteRequest>>
-
-  /** Get a single quote by ID */
-  getQuote(quoteId: string): Promise<QuoteRequest>
-
-  /** Accept a quoted price (converts to order) */
-  acceptQuote(quoteId: string): Promise<QuoteRequest>
-
-  /** Reject a quote */
-  rejectQuote(quoteId: string): Promise<QuoteRequest>
-}
-
-/**
- * Auction operations — bidding on products.
- */
-export interface AuctionAdapter {
-  /** Place a bid on an auction product */
-  placeBid(input: PlaceBidInput): Promise<Bid>
-
-  /** Get bid history for a product */
-  getBids(productId: string, params?: PaginationParams): Promise<PaginatedResult<Bid>>
-
-  /** Get the current winning bid for a product */
-  getWinningBid(productId: string): Promise<Bid | null>
-}
-
-/**
- * Rental / booking operations.
- */
-export interface RentalAdapter {
-  /** Check availability for a product in a date range */
-  checkAvailability(productId: string, startDate: string, endDate: string): Promise<AvailabilitySlot[]>
-
-  /** Create a rental booking */
-  createBooking(input: CreateRentalBookingInput): Promise<RentalBooking>
-
-  /** Get customer's bookings */
-  getBookings(params?: PaginationParams): Promise<PaginatedResult<RentalBooking>>
-
-  /** Get a single booking by ID */
-  getBooking(bookingId: string): Promise<RentalBooking>
-
-  /** Cancel a booking */
-  cancelBooking(bookingId: string): Promise<RentalBooking>
-}
-
-/**
- * Gift card operations.
- */
-export interface GiftCardAdapter {
-  /** Purchase a new gift card */
-  purchaseGiftCard(input: PurchaseGiftCardInput): Promise<GiftCard>
-
-  /** Check a gift card balance by code */
-  getGiftCardBalance(code: string): Promise<GiftCard>
-
-  /** Redeem a gift card at checkout (apply to cart) */
-  redeemGiftCard(input: RedeemGiftCardInput): Promise<GiftCard>
-
-  /** Get customer's gift cards */
-  getMyGiftCards(): Promise<GiftCard[]>
-
-  /** Get transaction history for a gift card */
-  getGiftCardTransactions(giftCardId: string): Promise<GiftCardTransaction[]>
-}
-
 // ---- Adapter Capabilities ----
 
 /** Well-known capability domain names */
@@ -393,13 +303,8 @@ export type AdapterDomain =
   | 'store'
   | 'promotions'
   | 'returns'
-  | 'wholesale'
-  | 'auctions'
-  | 'rentals'
-  | 'gift-cards'
   | 'brands'
   | 'countries'
-  | 'locations'
 
 // ---- Three-Tier Domain Model ----
 
@@ -438,7 +343,6 @@ export interface CommonDomains<
   promotions?: PromotionAdapter
   brands?: BrandAdapter
   countries?: CountryAdapter
-  locations?: LocationAdapter
 }
 
 /**
@@ -448,10 +352,6 @@ export interface CommonDomains<
  */
 export interface SpecializedDomains {
   returns?: ReturnAdapter
-  wholesale?: WholesaleAdapter
-  auctions?: AuctionAdapter
-  rentals?: RentalAdapter
-  giftCards?: GiftCardAdapter
 }
 
 /** Union of all optional domain keys (Tier 2 + Tier 3) */
@@ -470,7 +370,7 @@ export type DomainMap<
 /**
  * CommerceOrchestrator — the evolution of CommerceAdapter.
  *
- * Unlike `CommerceAdapter` which requires all 16 sub-interfaces,
+ * Unlike `CommerceAdapter` which requires all 12 sub-interfaces,
  * the orchestrator has only `CatalogAdapter` and `StoreAdapter` as
  * required (Tier 1). All other domains live in `domains` and are
  * accessed via the `supports()` type guard or `domain()` accessor.
@@ -579,13 +479,8 @@ export interface CommerceAdapter<
   StoreAdapter<TStoreInfo>,
   PromotionAdapter,
   ReturnAdapter,
-  WholesaleAdapter,
-  AuctionAdapter,
-  RentalAdapter,
-  GiftCardAdapter,
   BrandAdapter,
-  CountryAdapter,
-  LocationAdapter
+  CountryAdapter
 {
   /** Unique adapter identifier (for this repo, "prood" / platform). */
   readonly name: string

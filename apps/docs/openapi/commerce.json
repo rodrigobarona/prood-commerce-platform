@@ -3070,9 +3070,6 @@
                               ],
                               "additionalProperties": {}
                             },
-                            "estimatedMinutes": {
-                              "type": "number"
-                            },
                             "price": {
                               "type": "object",
                               "properties": {
@@ -3800,9 +3797,6 @@
                               ],
                               "additionalProperties": {}
                             },
-                            "estimatedMinutes": {
-                              "type": "number"
-                            },
                             "price": {
                               "type": "object",
                               "properties": {
@@ -4529,9 +4523,6 @@
                                 "max"
                               ],
                               "additionalProperties": {}
-                            },
-                            "estimatedMinutes": {
-                              "type": "number"
                             },
                             "price": {
                               "type": "object",
@@ -5298,9 +5289,6 @@
                               ],
                               "additionalProperties": {}
                             },
-                            "estimatedMinutes": {
-                              "type": "number"
-                            },
                             "price": {
                               "type": "object",
                               "properties": {
@@ -6056,9 +6044,6 @@
                               ],
                               "additionalProperties": {}
                             },
-                            "estimatedMinutes": {
-                              "type": "number"
-                            },
                             "price": {
                               "type": "object",
                               "properties": {
@@ -6785,9 +6770,6 @@
                                 "max"
                               ],
                               "additionalProperties": {}
-                            },
-                            "estimatedMinutes": {
-                              "type": "number"
                             },
                             "price": {
                               "type": "object",
@@ -7535,9 +7517,6 @@
                               ],
                               "additionalProperties": {}
                             },
-                            "estimatedMinutes": {
-                              "type": "number"
-                            },
                             "price": {
                               "type": "object",
                               "properties": {
@@ -7877,9 +7856,6 @@
                           "max"
                         ],
                         "additionalProperties": {}
-                      },
-                      "estimatedMinutes": {
-                        "type": "number"
                       },
                       "price": {
                         "type": "object",
@@ -8740,9 +8716,6 @@
                               ],
                               "additionalProperties": {}
                             },
-                            "estimatedMinutes": {
-                              "type": "number"
-                            },
                             "price": {
                               "type": "object",
                               "properties": {
@@ -9531,9 +9504,6 @@
                                 "max"
                               ],
                               "additionalProperties": {}
-                            },
-                            "estimatedMinutes": {
-                              "type": "number"
                             },
                             "price": {
                               "type": "object",
@@ -10324,9 +10294,6 @@
                               ],
                               "additionalProperties": {}
                             },
-                            "estimatedMinutes": {
-                              "type": "number"
-                            },
                             "price": {
                               "type": "object",
                               "properties": {
@@ -11012,9 +10979,6 @@
                                 "max"
                               ],
                               "additionalProperties": {}
-                            },
-                            "estimatedMinutes": {
-                              "type": "number"
                             },
                             "price": {
                               "type": "object",
@@ -11739,9 +11703,6 @@
                                     ],
                                     "additionalProperties": {}
                                   },
-                                  "estimatedMinutes": {
-                                    "type": "number"
-                                  },
                                   "price": {
                                     "type": "object",
                                     "properties": {
@@ -12447,9 +12408,6 @@
                                 "max"
                               ],
                               "additionalProperties": {}
-                            },
-                            "estimatedMinutes": {
-                              "type": "number"
                             },
                             "price": {
                               "type": "object",
@@ -16456,9 +16414,6 @@
                                     ],
                                     "additionalProperties": {}
                                   },
-                                  "estimatedMinutes": {
-                                    "type": "number"
-                                  },
                                   "price": {
                                     "type": "object",
                                     "properties": {
@@ -17161,9 +17116,6 @@
                                 "max"
                               ],
                               "additionalProperties": {}
-                            },
-                            "estimatedMinutes": {
-                              "type": "number"
                             },
                             "price": {
                               "type": "object",
@@ -20110,9 +20062,6 @@
                                       "max"
                                     ],
                                     "additionalProperties": {}
-                                  },
-                                  "estimatedMinutes": {
-                                    "type": "number"
                                   },
                                   "price": {
                                     "type": "object",

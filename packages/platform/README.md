@@ -48,7 +48,6 @@ Commerce buyers are referenced by **internal UUID** (`customers.id`). Better Aut
 | Catalog, cart, checkout, orders | ✅ |
 | Customers (addresses; auth via Better Auth) | ✅ |
 | Store, brands, countries, wishlist, reviews, promotions, returns | ✅ |
-| Wholesale, auctions, rentals, gift-cards, locations | Not supported (`NOT_SUPPORTED`) |
 
 ## Scripts
 

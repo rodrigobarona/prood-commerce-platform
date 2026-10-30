@@ -649,8 +649,7 @@ carts, orders, customers, adapters, and all provider interfaces.
 | `common.ts`            | Pagination, SortOptions                       |
 | `http-errors.ts`       | CommerceError, error codes, toErrorResponse   |
 
-Also includes type stubs for future features: wholesale, auctions, rentals,
-gift cards, locations, analytics, tax, and delivery providers.
+Also includes type stubs for future features: analytics and tax.
 
 ---
 

@@ -144,7 +144,6 @@ export const shippingMethod = z
     provider: z.string(),
     fulfillmentType: z.string(),
     estimatedDays: z.object({ min: z.number(), max: z.number() }).catchall(z.unknown()),
-    estimatedMinutes: z.number().optional(),
     price,
     cashOnDelivery: z.boolean(),
   })

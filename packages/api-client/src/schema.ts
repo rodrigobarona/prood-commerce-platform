@@ -1645,7 +1645,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -1864,7 +1863,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -2091,7 +2089,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -2311,7 +2308,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -2537,7 +2533,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -2762,7 +2757,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -2981,7 +2975,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -3097,7 +3090,6 @@ export interface operations {
                         } & {
                             [key: string]: unknown;
                         };
-                        estimatedMinutes?: number;
                         price: {
                             amount: number;
                             currency: string;
@@ -3394,7 +3386,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -3630,7 +3621,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -3855,7 +3845,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -4063,7 +4052,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -4268,7 +4256,6 @@ export interface operations {
                                 } & {
                                     [key: string]: unknown;
                                 };
-                                estimatedMinutes?: number;
                                 price: {
                                     amount: number;
                                     currency: string;
@@ -4478,7 +4465,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -5758,7 +5744,6 @@ export interface operations {
                                 } & {
                                     [key: string]: unknown;
                                 };
-                                estimatedMinutes?: number;
                                 price: {
                                     amount: number;
                                     currency: string;
@@ -5968,7 +5953,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -6984,7 +6968,6 @@ export interface operations {
                                 } & {
                                     [key: string]: unknown;
                                 };
-                                estimatedMinutes?: number;
                                 price: {
                                     amount: number;
                                     currency: string;

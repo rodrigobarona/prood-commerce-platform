@@ -35,11 +35,7 @@ npm install @prood/types
 | **Review** | `Review`, `ReviewInput`, `ReviewSummary` |
 | **Promotion** | `Promotion`, `Coupon`, `DiscountType` |
 | **Return** | `ReturnRequest`, `ReturnItem`, `ReturnReason` |
-| **Wholesale** | `PriceTier`, `CustomerGroup`, `QuoteRequest` |
-| **Auction** | `AuctionProductMeta`, `Bid`, `PlaceBidInput` |
-| **Rental** | `RentalProductMeta`, `RentalBooking` |
-| **Gift Card** | `GiftCard`, `GiftCardTransaction` |
-| **Store** | `StoreInfo`, `Country`, `StoreLocation` |
+| **Store** | `StoreInfo`, `Country` |
 
 ### Adapter Interface
 

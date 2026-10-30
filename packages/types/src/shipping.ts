@@ -20,7 +20,7 @@ export type ShippingProvider =
 /** How the order will be fulfilled */
 export type FulfillmentType =
   | 'shipping'        // Traditional courier (Aramex, DHL, etc.)
-  | 'local_delivery'  // Last-mile on-demand (Armada, Parcel, etc.)
+  | 'local_delivery'  // Merchant-arranged local delivery
   | 'pickup'          // Customer collects from store/branch
 
 /** Shipping method option */
@@ -34,8 +34,6 @@ export interface ShippingMethod {
     min: number
     max: number
   }
-  /** Estimated delivery time in minutes — used for local_delivery */
-  estimatedMinutes?: number
   price: Price
   /** Whether this method supports cash on delivery */
   cashOnDelivery: boolean
