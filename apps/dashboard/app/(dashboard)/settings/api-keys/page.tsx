@@ -7,13 +7,13 @@ import { Button } from "@prood/ui/components/button"
 import { listActiveOrgApiKeys } from "@/lib/api-keys"
 import { ApiKeyCreateForm } from "./api-key-create-form"
 import { revokeApiKeyAction } from "./actions"
+import { requiredEnv } from "@prood/types"
 
 export const metadata = { title: "API keys" }
 
 export default async function ApiKeysPage() {
-  const apiBase = process.env.COMMERCE_API_URL ?? "http://localhost:3005/v1"
-  const docsBase = process.env.NEXT_PUBLIC_DOCS_URL?.replace(/\/$/, "")
-  const docsHref = docsBase ? `${docsBase}/docs/api` : "/docs/api"
+  const apiBase = requiredEnv(process.env.COMMERCE_API_URL, "COMMERCE_API_URL")
+  const docsHref = `${requiredEnv(process.env.NEXT_PUBLIC_DOCS_URL, "NEXT_PUBLIC_DOCS_URL").replace(/\/$/, "")}/docs/api`
   let keys: Awaited<ReturnType<typeof listActiveOrgApiKeys>> = []
   let keysError: string | null = null
 

@@ -5,8 +5,9 @@ import { Receipt } from "@phosphor-icons/react/dist/ssr"
 import { getPlanLimitsSummary, getActiveOrganizationPlan } from "@/lib/billing"
 import { DashboardEmpty } from "@/components/dashboard-empty"
 import { BillingSkeleton } from "@/components/skeletons"
+import { requiredEnv } from "@prood/types"
 
-const webUrl = process.env.NEXT_PUBLIC_WEB_URL ?? "http://localhost:3001"
+const webUrl = requiredEnv(process.env.NEXT_PUBLIC_WEB_URL, "NEXT_PUBLIC_WEB_URL")
 
 export const metadata = { title: "Billing" }
 

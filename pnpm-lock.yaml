@@ -244,6 +244,9 @@ importers:
       '@prood/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@prood/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       '@prood/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -789,6 +792,9 @@ importers:
       '@neondatabase/serverless':
         specifier: 'catalog:'
         version: 1.2.0
+      '@prood/types':
+        specifier: workspace:*
+        version: link:../types
       better-auth:
         specifier: 'catalog:'
         version: 1.7.14(drizzle-kit@0.31.11)(drizzle-orm@0.45.4(@neondatabase/serverless@1.2.0)(@upstash/redis@1.40.0)(kysely@0.28.17))(next@16.4.3(@types/node@24.12.4)(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vitest@5.0.5(@types/node@24.12.4)(vite@8.3.5(@types/node@24.12.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))
@@ -798,6 +804,9 @@ importers:
       next:
         specifier: 'catalog:'
         version: 16.4.3(@types/node@24.12.4)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      server-only:
+        specifier: 'catalog:'
+        version: 0.0.1
     devDependencies:
       '@prood/typescript-config':
         specifier: workspace:*

@@ -1,39 +1,22 @@
 import { createFromOpenAPI } from "@better-auth/agent-auth/openapi"
+import { requiredEnv } from "@prood/types"
 import { buildOpenApiDocument } from "../openapi"
+import { resolveOrgForAgent } from "../agent-org"
 
 let cachedProxyKeysByOrg: Record<string, string> | null = null
 
+/** `AGENT_PROXY_API_KEYS_BY_ORG`: JSON object of organization id → API key. */
 function parseProxyKeysByOrg(): Record<string, string> {
   if (cachedProxyKeysByOrg) return cachedProxyKeysByOrg
-
-  const raw = process.env.AGENT_PROXY_API_KEYS_BY_ORG
-  if (!raw) {
-    cachedProxyKeysByOrg = {}
-    return cachedProxyKeysByOrg
-  }
-
-  let parsed: unknown
-  try {
-    parsed = JSON.parse(raw) as unknown
-  } catch (error) {
-    console.error(
-      "[agent-config] AGENT_PROXY_API_KEYS_BY_ORG must be valid JSON:",
-      error instanceof Error ? error.message : String(error)
-    )
-    cachedProxyKeysByOrg = {}
-    return cachedProxyKeysByOrg
-  }
-
+  const parsed: unknown = JSON.parse(
+    requiredEnv(process.env.AGENT_PROXY_API_KEYS_BY_ORG, "AGENT_PROXY_API_KEYS_BY_ORG")
+  )
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-    console.error("[agent-config] AGENT_PROXY_API_KEYS_BY_ORG must be a JSON object")
-    cachedProxyKeysByOrg = {}
-    return cachedProxyKeysByOrg
+    throw new Error("AGENT_PROXY_API_KEYS_BY_ORG must be a JSON object")
   }
-
   cachedProxyKeysByOrg = Object.fromEntries(
     Object.entries(parsed).filter(
-      (entry): entry is [string, string] =>
-        typeof entry[0] === "string" && typeof entry[1] === "string"
+      (entry): entry is [string, string] => typeof entry[1] === "string"
     )
   )
   return cachedProxyKeysByOrg
@@ -41,10 +24,7 @@ function parseProxyKeysByOrg(): Record<string, string> {
 
 /** Public base URL for REST + agent OpenAPI proxy (must include `/v1`). */
 export function getApiPublicBaseUrl(): string {
-  const root =
-    process.env.API_PUBLIC_URL ??
-    process.env.BETTER_AUTH_URL ??
-    "http://localhost:3005"
+  const root = requiredEnv(process.env.API_PUBLIC_URL, "API_PUBLIC_URL")
   return `${root.replace(/\/$/, "")}/v1`
 }
 
@@ -56,7 +36,9 @@ export function getAgentAuthOpenAPIOptions() {
   const spec = buildOpenApiDocument()
   return createFromOpenAPI(spec, {
     baseUrl: getApiPublicBaseUrl(),
-    defaultHostCapabilities: ["GET", "HEAD"],
+    // Granted without merchant approval, so only public storefront reads.
+    defaultHostCapabilities: (cap) =>
+      (cap.method === "GET" || cap.method === "HEAD") && !cap.name.startsWith("admin"),
     approvalStrength: {
       GET: "session",
       HEAD: "session",
@@ -66,12 +48,9 @@ export function getAgentAuthOpenAPIOptions() {
       DELETE: "session",
     },
     async resolveHeaders({ agentSession }) {
-      const metadata = agentSession.agent.metadata as { organizationId?: string } | null
-      const orgId = metadata?.organizationId
+      const orgId = await resolveOrgForAgent(agentSession)
       if (!orgId) {
-        throw new Error(
-          "Agent metadata must include organizationId for OpenAPI capability proxy execution"
-        )
+        throw new Error("Agent is not bound to a store its user belongs to")
       }
 
       const proxyKey = parseProxyKeysByOrg()[orgId]

@@ -1,14 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getSessionCookie } from "better-auth/cookies"
-
-const PLATFORM_DOMAIN = process.env.NEXT_PUBLIC_PLATFORM_DOMAIN
-const MARKETING_URL = process.env.NEXT_PUBLIC_WEB_URL ?? "http://localhost:3001"
+import { requiredEnv } from "@prood/types"
 
 export function proxy(request: NextRequest) {
   const host = request.headers.get("host")?.split(":")[0]?.toLowerCase()
 
-  if (PLATFORM_DOMAIN && host === PLATFORM_DOMAIN) {
-    return NextResponse.redirect(MARKETING_URL)
+  // The bare store domain (prood.app) is not a store — send it to marketing.
+  if (host === process.env.NEXT_PUBLIC_PLATFORM_DOMAIN) {
+    return NextResponse.redirect(requiredEnv(process.env.NEXT_PUBLIC_WEB_URL, "NEXT_PUBLIC_WEB_URL"))
   }
 
   // Optimistic, DB-free session check for authenticated routes. Authorization

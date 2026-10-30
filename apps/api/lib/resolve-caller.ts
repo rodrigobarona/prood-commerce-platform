@@ -1,12 +1,10 @@
 import type { AgentSession } from "@better-auth/agent-auth"
 import { assertFeature } from "@prood/commerce"
 import { CommerceError } from "@prood/types"
-import { eq } from "drizzle-orm"
 import { getAuth, getSession, resolveActiveOrganizationId } from "@/lib/auth"
-import { authDb } from "@/lib/auth/db"
-import { member } from "@/lib/auth/schema"
 import { getOrganizationLimits } from "@/lib/org-plan"
 import { lookupTenantByHost } from "@prood/platform"
+import { resolveOrgForAgent } from "@/lib/agent-org"
 import type { ApiCaller, ApiScope } from "@/lib/auth-tenant"
 
 interface ApiKeyMetadata {
@@ -32,21 +30,6 @@ function scopesFromAgentSession(session: AgentSession): ApiScope[] {
   return scopes
 }
 
-async function resolveOrgForAgent(session: AgentSession): Promise<string | null> {
-  const meta = session.agent.metadata as { organizationId?: string } | null
-  if (meta?.organizationId) return meta.organizationId
-
-  const userId = session.user?.id
-  if (!userId) return null
-
-  const rows = await authDb
-    .select({ organizationId: member.organizationId })
-    .from(member)
-    .where(eq(member.userId, userId))
-    .limit(1)
-
-  return rows[0]?.organizationId ?? null
-}
 
 /** Resolve tenant + scopes from raw request headers (REST, MCP, etc.). */
 export async function resolveCallerFromHeaders(
