@@ -54,17 +54,20 @@ export function toNumber(value: any): number {
   return Number(value)
 }
 
+function formatAmount(amount: number, currency: string): string {
+  return new Intl.NumberFormat('en-IE', { style: 'currency', currency }).format(amount)
+}
+
 /** Create a Price from a numeric/Decimal value + currency */
 export function price(amount: any, currency: string): Maybe<Price> {
   if (amount == null) return null
-  const n = toNumber(amount)
-  return { amount: n, currency, formatted: `${n} ${currency}` }
+  return priceRequired(amount, currency)
 }
 
 /** Create a non-null Price (for required fields) */
 export function priceRequired(amount: any, currency: string): Price {
   const n = toNumber(amount)
-  return { amount: n, currency, formatted: `${n} ${currency}` }
+  return { amount: n, currency, formatted: formatAmount(n, currency) }
 }
 
 /** Create a DiscountablePrice from price + compareAt */

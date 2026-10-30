@@ -98,6 +98,11 @@ export function createCartDomain(currency: string) {
     },
 
     async addToCart(cartId: string, item: AddToCartInput): Promise<Cart> {
+      const product = await findProductById(item.productId)
+      if (product?.status !== 'active') {
+        throw new CommerceError(`Product not found: ${item.productId}`, 'NOT_FOUND')
+      }
+
       const existing = await findExistingCartItem(cartId, item.productId, item.variantId)
 
       if (existing) {

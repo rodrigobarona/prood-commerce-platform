@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@prood/ui/components/card"
+import { authClient } from "@/lib/auth/client"
 import { createStore } from "@/lib/create-store"
 
 export function NewStoreForm() {
@@ -33,6 +34,12 @@ export function NewStoreForm() {
     }
 
     router.push("/")
+    router.refresh()
+  }
+
+  async function signOut() {
+    await authClient.signOut()
+    router.push("/login")
     router.refresh()
   }
 
@@ -60,6 +67,9 @@ export function NewStoreForm() {
           ) : null}
           <Button type="submit" disabled={loading}>
             {loading ? "Creating your store…" : "Create store"}
+          </Button>
+          <Button type="button" variant="ghost" onClick={signOut}>
+            Use a different account
           </Button>
         </form>
       </CardContent>

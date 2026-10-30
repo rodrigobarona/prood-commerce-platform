@@ -21,6 +21,7 @@ export interface CheckoutResult {
 export interface StartCheckoutInput {
   email?: string
   address?: Partial<CheckoutAddress>
+  shippingMethodId?: string
   providerId?: string
   expressPayment?: "apple" | "google"
 }
@@ -74,11 +75,12 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
     const methods = await unwrap<{ id: string }[]>(
       api.GET("/carts/{id}/shipping-methods", { params: { path: { id: cartId } } })
     )
-    if (methods[0]) {
+    const methodId = input.shippingMethodId ?? methods[0]?.id
+    if (methodId) {
       await unwrap(
         api.PATCH("/carts/{id}/shipping-method", {
           params: { path: { id: cartId } },
-          body: { methodId: methods[0].id },
+          body: { methodId },
         })
       )
     }
@@ -86,11 +88,16 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
     const order = await unwrap<Order>(
       api.POST("/carts/{id}/place-order", {
         params: { path: { id: cartId } },
-        body: { email: input.email ?? "", providerId: input.providerId },
+        body: { email: input.email || undefined, providerId: input.providerId },
       })
     )
     // The order consumed the cart, so the cookie must not outlive it.
     await clearCartId()
+
+    const confirmationUrl = `${storefrontOrigin}/order-confirmation?orderId=${order.id}${input.email ? `&email=${encodeURIComponent(input.email)}` : ""}`
+    if (order.totals.total.amount === 0) {
+      return { ok: true, orderId: order.id, checkoutUrl: confirmationUrl }
+    }
 
     let storeName: string | undefined
     try {
@@ -119,7 +126,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
               phone: input.address?.phone || undefined,
             }
           : undefined,
-        returnUrl: `${storefrontOrigin}/order-confirmation?orderId=${order.id}${input.email ? `&email=${encodeURIComponent(input.email)}` : ""}`,
+        returnUrl: confirmationUrl,
         providerId: input.providerId,
         tenantId,
         storeName,
@@ -130,15 +137,15 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
       return null
     })
 
-    if (!sessionRes?.ok) {
+    const session = sessionRes?.ok
+      ? ((await sessionRes.json().catch(() => null)) as { checkoutUrl?: string } | null)
+      : null
+    if (!session?.checkoutUrl) {
       console.error(`[checkout] no payment session for order ${order.id}: ${sessionRes?.status}`)
-      return {
-        ok: false,
-        error: `We saved order ${order.orderNumber} but couldn't open payment. Contact the store to complete it.`,
-      }
+      // The cart is gone, so the confirmation page is where the shopper can
+      // still see their order number.
+      return { ok: true, orderId: order.id, checkoutUrl: `${confirmationUrl}&payment=failed` }
     }
-
-    const session = (await sessionRes.json()) as { checkoutUrl: string }
 
     return { ok: true, orderId: order.id, checkoutUrl: session.checkoutUrl }
   } catch (err) {

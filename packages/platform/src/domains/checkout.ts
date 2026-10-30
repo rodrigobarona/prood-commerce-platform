@@ -2,6 +2,7 @@
 // Checkout domain — shipping, addresses, and order placement
 // ---------------------------------------------------------------------------
 
+import { CommerceError } from '@prood/types'
 import type {
   Cart,
   Order,
@@ -129,6 +130,15 @@ export function createCheckoutDomain(currency: string) {
 
       if (cart.items.length === 0) {
         throw new Error('Cannot place order with empty cart')
+      }
+
+      // A product can be archived while it sits in a cart.
+      for (const item of cart.items) {
+        const product = await findProductById(item.productId)
+        if (product?.status !== 'active') {
+          const name = normalizeLocalizedField(item.name).en ?? item.productId
+          throw new CommerceError(`${name} is no longer available.`, 'VALIDATION', 422)
+        }
       }
 
       const orderStatus = options?.status ?? 'placed'

@@ -15,7 +15,7 @@ import {
 } from "@prood/ui/components/card"
 import { authClient } from "@/lib/auth/client"
 import { createStore } from "@/lib/create-store"
-import { safeRedirectPath } from "@/lib/safe-redirect"
+import { safeRedirectPath } from "@prood/types"
 
 export function RegisterForm() {
   const router = useRouter()

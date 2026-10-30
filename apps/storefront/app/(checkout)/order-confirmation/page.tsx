@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { CheckCircleIcon } from "@phosphor-icons/react/dist/ssr"
+import { CheckCircleIcon, WarningCircleIcon } from "@phosphor-icons/react/dist/ssr"
 import type { Order } from "@prood/types"
 import { Button } from "@prood/ui/components/button"
 import { EmptyState } from "@prood/ui/components/empty-state"
@@ -14,7 +14,7 @@ export const metadata = { title: "Order confirmation" }
 export default async function OrderConfirmationPage({
   searchParams,
 }: {
-  searchParams: Promise<{ orderId?: string; id?: string; email?: string }>
+  searchParams: Promise<{ orderId?: string; id?: string; email?: string; payment?: string }>
 }) {
   const sp = await searchParams
   const orderId = sp.orderId ?? sp.id
@@ -43,6 +43,7 @@ export default async function OrderConfirmationPage({
 
   const session = await getSession()
   const isGuest = !session?.user
+  const paymentFailed = sp.payment === "failed"
   const customerEmail = sp.email ?? undefined
   const customerName = [order.shippingAddress?.firstName, order.shippingAddress?.lastName]
     .filter(Boolean)
@@ -51,9 +52,20 @@ export default async function OrderConfirmationPage({
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-12">
       <div className="flex flex-col items-center gap-2 text-center">
-        <CheckCircleIcon size={48} weight="fill" className="text-emerald-500" />
-        <h1 className="text-2xl font-bold">Thank you for your order!</h1>
+        {paymentFailed ? (
+          <WarningCircleIcon size={48} weight="fill" className="text-amber-500" />
+        ) : (
+          <CheckCircleIcon size={48} weight="fill" className="text-emerald-500" />
+        )}
+        <h1 className="text-2xl font-bold">
+          {paymentFailed ? "Your order is saved, but not paid" : "Thank you for your order!"}
+        </h1>
         <p className="text-muted-foreground">Order #{order.orderNumber}</p>
+        {paymentFailed ? (
+          <p className="text-muted-foreground">
+            We couldn&apos;t open payment. Contact the store with this order number to complete it.
+          </p>
+        ) : null}
       </div>
 
       <div className="flex flex-col gap-3 rounded-2xl border p-5">

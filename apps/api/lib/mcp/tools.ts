@@ -45,6 +45,7 @@ function requireScope(scope: "storefront" | "admin") {
 async function placeOrderForCaller(cartId: string, email?: string, providerId?: string) {
   const caller = getMcpCaller()
   const orgId = requireScope("storefront")
+  await checkout.assertPayable(orgId, cartId, providerId)
   let customerId: string | undefined
   if (caller.userId) {
     customerId = await ensureCustomer(orgId, caller.userId)
@@ -65,7 +66,7 @@ async function placeOrderForCaller(cartId: string, email?: string, providerId?: 
       phone: addr.phone ?? null,
     })
   }
-  return checkout.placeOrder(orgId, cartId, customerId, email, providerId)
+  return checkout.placeOrder(orgId, cartId, customerId, email)
 }
 
 export function registerCommerceMcpTools(server: McpServer) {

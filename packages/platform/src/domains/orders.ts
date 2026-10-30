@@ -230,36 +230,56 @@ export function createOrdersDomain(currency: string) {
         }
       }
 
+      // Multibanco references stay payable for days, so money can arrive after
+      // the order was cancelled. Keep it cancelled and record that it was paid.
+      if (order.status === 'cancelled') {
+        if (input.outcome === 'authorized') return 'duplicate'
+        if (input.outcome === 'captured') {
+          const paid = await transitionOrderPayment(orderId, ['unpaid', 'authorized', 'voided'], 'cancelled', { paymentStatus: 'paid' })
+          if (!paid) return 'duplicate'
+          await createOrderHistory({
+            orderId,
+            fromStatus: 'cancelled',
+            toStatus: 'cancelled',
+            note: `${input.provider} captured a payment on this cancelled order. Refund it.`,
+          })
+          return 'order_cancelled'
+        }
+      }
+
+      // Payment follows the order lifecycle; it never moves a shipped order.
       const now = new Date()
-      const next: Record<PaymentEventInput['outcome'], { status: string; note: string; data: Record<string, unknown> }> = {
-        authorized: { status: order.status, note: 'Payment authorized', data: { paymentStatus: 'authorized' } },
-        captured: { status: 'approved', note: 'Payment captured', data: { status: 'approved', paymentStatus: 'paid', approvedAt: order.approvedAt ?? now } },
-        failed: { status: 'cancelled', note: 'Payment failed', data: { status: 'cancelled', paymentStatus: 'voided', cancelledAt: order.cancelledAt ?? now } },
-        cancelled: { status: 'cancelled', note: 'Payment cancelled', data: { status: 'cancelled', paymentStatus: 'voided', cancelledAt: order.cancelledAt ?? now } },
+      const advances = order.status === 'placed'
+      const cancels = order.status === 'placed' || order.status === 'approved'
+      const voided = {
+        paymentStatus: 'voided',
+        ...(cancels && { status: 'cancelled', cancelledAt: order.cancelledAt ?? now }),
+      }
+      const next: Record<PaymentEventInput['outcome'], { note: string; data: Record<string, unknown> }> = {
+        authorized: { note: 'Payment authorized', data: { paymentStatus: 'authorized' } },
+        captured: {
+          note: 'Payment captured',
+          data: {
+            paymentStatus: 'paid',
+            ...(advances && { status: 'approved', approvedAt: order.approvedAt ?? now }),
+          },
+        },
+        failed: { note: 'Payment failed', data: voided },
+        cancelled: { note: 'Payment cancelled', data: voided },
       }
       const target = next[input.outcome]
       const from = input.outcome === 'authorized' ? ['unpaid'] : ['unpaid', 'authorized']
 
-      // Multibanco references stay payable for days, so money can arrive after
-      // the order was cancelled. Never reopen it; flag the refund instead.
-      const collectsMoney = input.outcome === 'authorized' || input.outcome === 'captured'
-      const changed = await transitionOrderPayment(orderId, from, target.data, collectsMoney ? ['cancelled'] : [])
-      if (!changed) {
+      if (!(await transitionOrderPayment(orderId, from, order.status, target.data))) {
+        // The order moved since it was read: decide again from its new status.
         const current = await findOrderById(orderId)
-        if (!collectsMoney || current?.status !== 'cancelled') return 'duplicate'
-        await createOrderHistory({
-          orderId,
-          fromStatus: current.status,
-          toStatus: current.status,
-          note: `${input.provider} reported a payment on this cancelled order. A refund may be required.`,
-        })
-        return 'order_cancelled'
+        return current?.status === order.status ? 'duplicate' : this.applyPaymentEvent(orderId, input)
       }
 
       await createOrderHistory({
         orderId,
         fromStatus: order.status,
-        toStatus: target.status,
+        toStatus: (target.data.status as string | undefined) ?? order.status,
         note: `${target.note} (${input.provider})`,
       })
       return 'applied'

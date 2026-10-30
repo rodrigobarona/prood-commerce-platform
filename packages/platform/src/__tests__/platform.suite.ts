@@ -244,14 +244,39 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       expect((await adapter.getOrder(order.id)).status).toBe('placed')
     })
 
-    it('does not reopen a cancelled order when a late payment arrives', async () => {
+    it('keeps a cancelled order cancelled when a late payment arrives, once', async () => {
       const order = await placedOrder()
       const { amount, currency } = order.totals.total
+      const event = { outcome: 'captured' as const, amount, currency, provider }
+      await adapter.cancelOrder(order.id)
+      expect(await adapter.applyPaymentEvent(order.id, event)).toBe('order_cancelled')
+      expect(await adapter.applyPaymentEvent(order.id, event)).toBe('duplicate')
+      const after = await adapter.getOrder(order.id)
+      expect(after.status).toBe('cancelled')
+      expect(after.paymentStatus).toBe('paid')
+    })
+
+    it('ignores an authorization on a cancelled order', async () => {
+      const order = await placedOrder()
       await adapter.cancelOrder(order.id)
       expect(
-        await adapter.applyPaymentEvent(order.id, { outcome: 'captured', amount, currency, provider }),
-      ).toBe('order_cancelled')
-      expect((await adapter.getOrder(order.id)).status).toBe('cancelled')
+        await adapter.applyPaymentEvent(order.id, { outcome: 'authorized', amount: null, currency: null, provider }),
+      ).toBe('duplicate')
+    })
+
+    it('never moves a shipped order', async () => {
+      const paid = await placedOrder()
+      const { amount, currency } = paid.totals.total
+      await adapter.updateOrderStatus(paid.id, { status: 'fulfilled' })
+      expect(
+        await adapter.applyPaymentEvent(paid.id, { outcome: 'captured', amount, currency, provider }),
+      ).toBe('applied')
+      expect((await adapter.getOrder(paid.id)).status).toBe('fulfilled')
+
+      const failed = await placedOrder()
+      await adapter.updateOrderStatus(failed.id, { status: 'fulfilled' })
+      await adapter.applyPaymentEvent(failed.id, { outcome: 'failed', amount: null, currency: null, provider })
+      expect((await adapter.getOrder(failed.id)).status).toBe('fulfilled')
     })
   })
 

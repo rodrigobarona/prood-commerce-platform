@@ -143,15 +143,12 @@ export const checkout = {
     ),
   setShippingMethod: (orgId: string, cartId: string, methodId: string) =>
     setShippingMethod(cartId, methodId, orgId),
-  placeOrder: async (
-    orgId: string,
-    cartId: string,
-    customerId?: string,
-    contactEmail?: string,
-    providerId?: string
-  ) => {
-    // Placing an order consumes the cart, so check payment can be taken first.
-    await getTenantPaymentProvider(orgId, providerId)
+  /** Placing an order consumes the cart, so check payment can be taken first. */
+  assertPayable: async (orgId: string, cartId: string, providerId?: string) => {
+    const cart = await getCart(cartId, orgId)
+    if (cart.totals.total.amount > 0) await getTenantPaymentProvider(orgId, providerId)
+  },
+  placeOrder: async (orgId: string, cartId: string, customerId?: string, contactEmail?: string) => {
     const order = await placeOrder(cartId, orgId, customerId, contactEmail)
     try {
       revalidateProducts(orgId)

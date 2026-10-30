@@ -2,7 +2,7 @@
 // Drizzle: Order queries
 // ---------------------------------------------------------------------------
 
-import { eq, and, desc, inArray, notInArray } from 'drizzle-orm'
+import { eq, and, desc, inArray } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
 import { tenantCondition, requireOrgId } from './tenant-filter.js'
@@ -36,15 +36,15 @@ export async function findOrderById(orderId: string) {
 export async function transitionOrderPayment(
   orderId: string,
   fromPaymentStatuses: string[],
+  expectedStatus: string,
   data: Record<string, any>,
-  excludedStatuses: string[] = [],
 ): Promise<boolean> {
   const rows = await getDb().update(schema.orders).set(data as any)
     .where(and(
       eq(schema.orders.id, orderId),
       tenantCondition(schema.orders),
       inArray(schema.orders.paymentStatus, fromPaymentStatuses),
-      excludedStatuses.length ? notInArray(schema.orders.status, excludedStatuses) : undefined,
+      eq(schema.orders.status, expectedStatus),
     ))
     .returning({ id: schema.orders.id })
   return rows.length > 0

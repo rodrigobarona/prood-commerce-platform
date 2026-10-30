@@ -5370,8 +5370,7 @@ export interface operations {
                     description?: {
                         [key: string]: string;
                     };
-                    /** Format: uri */
-                    image?: string;
+                    image?: string | "";
                     parentId?: string;
                     sortOrder?: number;
                 };
@@ -5548,8 +5547,7 @@ export interface operations {
                     description?: {
                         [key: string]: string;
                     };
-                    /** Format: uri */
-                    image?: string;
+                    image?: string | "";
                     parentId?: string;
                     sortOrder?: number;
                 };
@@ -6692,8 +6690,7 @@ export interface operations {
                     description?: {
                         [key: string]: string;
                     };
-                    /** Format: uri */
-                    logo?: string;
+                    logo?: string | "";
                     favicon?: string;
                     currency?: string;
                     locale?: string;

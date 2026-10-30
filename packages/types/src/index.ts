@@ -163,3 +163,4 @@ export type {
 
 // Security helpers
 export { safeEqual } from './security.js'
+export { safeRedirectPath } from './redirect.js'

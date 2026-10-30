@@ -38,7 +38,7 @@ export interface Price {
   amount: number
   /** ISO 4217 currency code (e.g., "EUR", "USD") */
   currency: string
-  /** Human-readable formatted string (e.g., "49.9 EUR") */
+  /** Human-readable formatted string (e.g., "€49.90") */
   formatted: string
 }
 

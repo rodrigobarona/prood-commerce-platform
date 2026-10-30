@@ -42,21 +42,20 @@ interface ExpressCheckoutProps {
 
 export function ExpressCheckout({ className }: ExpressCheckoutProps) {
   const [loading, setLoading] = useState<"apple" | "google" | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const handleExpressPayment = useCallback(
     async (method: "apple" | "google") => {
       setLoading(method)
-      try {
-        const res = await startCheckout({
-          expressPayment: method,
-        })
-        if (res.ok && res.checkoutUrl) {
-          window.location.href = res.checkoutUrl
-        }
-      } catch {
-        // fall through — user can continue with standard checkout
-      } finally {
-        setLoading(null)
+      setError(null)
+      const res = await startCheckout({
+        expressPayment: method,
+      })
+      setLoading(null)
+      if (res.ok && res.checkoutUrl) {
+        window.location.href = res.checkoutUrl
+      } else {
+        setError(res.error ?? "Express checkout isn't available. Continue below.")
       }
     },
     [],
@@ -65,6 +64,11 @@ export function ExpressCheckout({ className }: ExpressCheckoutProps) {
   return (
     <div className={cn("flex flex-col gap-4", className)}>
       <p className="text-center text-sm text-muted-foreground">Express checkout</p>
+      {error ? (
+        <p role="alert" className="text-center text-sm text-destructive">
+          {error}
+        </p>
+      ) : null}
       <div className="grid grid-cols-2 gap-3">
         <Button
           type="button"

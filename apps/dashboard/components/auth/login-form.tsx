@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "@prood/ui/components/card"
 import { authClient } from "@/lib/auth/client"
-import { safeRedirectPath } from "@/lib/safe-redirect"
+import { safeRedirectPath } from "@prood/types"
 
 export function LoginForm() {
   const router = useRouter()

@@ -15499,8 +15499,16 @@
                     }
                   },
                   "image": {
-                    "type": "string",
-                    "format": "uri"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uri"
+                      },
+                      {
+                        "type": "string",
+                        "const": ""
+                      }
+                    ]
                   },
                   "parentId": {
                     "type": "string"
@@ -15811,8 +15819,16 @@
                     }
                   },
                   "image": {
-                    "type": "string",
-                    "format": "uri"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uri"
+                      },
+                      {
+                        "type": "string",
+                        "const": ""
+                      }
+                    ]
                   },
                   "parentId": {
                     "type": "string"
@@ -19432,8 +19448,16 @@
                     }
                   },
                   "logo": {
-                    "type": "string",
-                    "format": "uri"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uri"
+                      },
+                      {
+                        "type": "string",
+                        "const": ""
+                      }
+                    ]
                   },
                   "favicon": {
                     "type": "string"

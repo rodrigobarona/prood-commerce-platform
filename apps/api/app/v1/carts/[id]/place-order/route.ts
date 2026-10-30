@@ -17,6 +17,7 @@ export async function POST(
     await assertCanPlaceOrder(caller.orgId)
 
     const body = await readBody(req, placeOrderBody)
+    await checkout.assertPayable(caller.orgId, id, body.providerId)
 
     let customerId: string
     if (caller.userId) {
@@ -32,7 +33,7 @@ export async function POST(
       })
     }
 
-    const order = await checkout.placeOrder(caller.orgId, id, customerId, body.email, body.providerId)
+    const order = await checkout.placeOrder(caller.orgId, id, customerId, body.email)
     return NextResponse.json(order, { status: 201 })
   } catch (err) {
     return errorResponse(err)
