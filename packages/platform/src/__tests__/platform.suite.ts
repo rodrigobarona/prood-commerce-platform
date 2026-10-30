@@ -253,7 +253,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
 
   it('should add item to cart', async () => {
     const cart = await adapter.createCart()
-    const updatedCart = await adapter.addToCart(cart.id, { productId: 'prod-1', quantity: 2 })
+    const updatedCart = await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 2 })
     expect(updatedCart.items).toHaveLength(1)
     expect(updatedCart.items[0].quantity).toBe(2)
     expect(updatedCart.totals.subtotal.amount).toBeGreaterThan(0)
@@ -261,22 +261,22 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
 
   it('should deduplicate items on add', async () => {
     const cart = await adapter.createCart()
-    await adapter.addToCart(cart.id, { productId: 'prod-1', quantity: 1 })
-    const updatedCart = await adapter.addToCart(cart.id, { productId: 'prod-1', quantity: 3 })
+    await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 1 })
+    const updatedCart = await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 3 })
     expect(updatedCart.items).toHaveLength(1)
     expect(updatedCart.items[0].quantity).toBe(4)
   })
 
   it('should update cart item quantity', async () => {
     const cart = await adapter.createCart()
-    const added = await adapter.addToCart(cart.id, { productId: 'prod-1', quantity: 1 })
+    const added = await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 1 })
     const updatedCart = await adapter.updateCartItem(cart.id, added.items[0].id, 5)
     expect(updatedCart.items[0].quantity).toBe(5)
   })
 
   it('should remove cart item', async () => {
     const cart = await adapter.createCart()
-    const added = await adapter.addToCart(cart.id, { productId: 'prod-1', quantity: 1 })
+    const added = await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 1 })
     const updatedCart = await adapter.removeFromCart(cart.id, added.items[0].id)
     expect(updatedCart.items).toHaveLength(0)
   })
@@ -300,6 +300,89 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       quantity: 1,
     })
     expect(updatedCart.items[0].price.amount).toBe(variant!.price!.amount)
+  })
+
+  describe('variants', () => {
+    async function setVariant(id: string, values: 'in_stock = false' | 'inventory_quantity = 0' | 'price = null') {
+      await withTenant(DEMO_ORG_ID, () =>
+        getDb().execute(sql`update product_variants set ${sql.raw(values)} where id = ${id}`),
+      )
+    }
+
+    it('names the chosen variant on the cart line', async () => {
+      const cart = await adapter.createCart()
+      const updated = await adapter.addToCart(cart.id, { productId: 'prod-1', variantId: 'var-tshirt-l', quantity: 1 })
+      expect(updated.items[0]?.variantName?.en).toBe('Large')
+      expect(updated.totals.subtotal.amount).toBe(32)
+    })
+
+    it('keeps different variants of a product on separate lines', async () => {
+      const cart = await adapter.createCart()
+      await adapter.addToCart(cart.id, { productId: 'prod-1', variantId: 'var-tshirt-s', quantity: 1 })
+      const updated = await adapter.addToCart(cart.id, { productId: 'prod-1', variantId: 'var-tshirt-l', quantity: 1 })
+      expect(updated.items).toHaveLength(2)
+      expect(updated.totals.subtotal.amount).toBe(29 + 32)
+    })
+
+    it('sells a variant without a price at the base price', async () => {
+      await setVariant('var-tshirt-m', 'price = null')
+      const cart = await adapter.createCart()
+      const updated = await adapter.addToCart(cart.id, { productId: 'prod-1', variantId: 'var-tshirt-m', quantity: 2 })
+      expect(updated.totals.subtotal.amount).toBe(58)
+    })
+
+    it('refuses a variant of another product', async () => {
+      const cart = await adapter.createCart()
+      await expect(
+        adapter.addToCart(cart.id, { productId: 'prod-2', variantId: 'var-tshirt-l', quantity: 1 }),
+      ).rejects.toMatchObject({ code: 'VALIDATION' })
+      await expect(
+        adapter.addToCart(cart.id, { productId: 'prod-1', variantId: 'var-none', quantity: 1 }),
+      ).rejects.toMatchObject({ code: 'VALIDATION' })
+      expect((await adapter.getCart(cart.id)).items).toHaveLength(0)
+    })
+
+    it('refuses a product with variants when none is chosen', async () => {
+      const cart = await adapter.createCart()
+      await expect(
+        adapter.addToCart(cart.id, { productId: 'prod-1', quantity: 1 }),
+      ).rejects.toMatchObject({ code: 'VALIDATION' })
+    })
+
+    it('refuses a sold out variant, however stock is tracked', async () => {
+      await setVariant('var-tshirt-s', 'in_stock = false')
+      await setVariant('var-tshirt-m', 'inventory_quantity = 0')
+      const cart = await adapter.createCart()
+      for (const variantId of ['var-tshirt-s', 'var-tshirt-m']) {
+        await expect(
+          adapter.addToCart(cart.id, { productId: 'prod-1', variantId, quantity: 1 }),
+        ).rejects.toMatchObject({ code: 'VALIDATION' })
+      }
+      const product = await adapter.getProduct({ id: 'prod-1' })
+      expect(product.variants.map(v => v.inStock)).toEqual([false, false, true])
+    })
+
+    it('refuses a product without stock or a price', async () => {
+      await withTenant(DEMO_ORG_ID, () =>
+        getDb().execute(sql`update products set in_stock = false where id = 'prod-2'`),
+      )
+      await withTenant(DEMO_ORG_ID, () =>
+        getDb().execute(sql`update products set price = null where id = 'prod-3'`),
+      )
+      const cart = await adapter.createCart()
+      for (const productId of ['prod-2', 'prod-3']) {
+        await expect(adapter.addToCart(cart.id, { productId, quantity: 1 })).rejects.toMatchObject({ code: 'VALIDATION' })
+      }
+    })
+
+    it('does not place an order for a variant that sold out in the cart', async () => {
+      const cart = await adapter.createCart()
+      await adapter.addToCart(cart.id, { productId: 'prod-1', variantId: 'var-tshirt-l', quantity: 1 })
+      await adapter.setShippingAddress(cart.id, fullAddress())
+      await adapter.setShippingMethod(cart.id, 'standard')
+      await setVariant('var-tshirt-l', 'in_stock = false')
+      await expect(adapter.placeOrder(cart.id)).rejects.toMatchObject({ code: 'VALIDATION' })
+    })
   })
 
   // ---- Checkout ----

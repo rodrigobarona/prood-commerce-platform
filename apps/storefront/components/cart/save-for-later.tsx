@@ -17,6 +17,7 @@ export interface SavedItem {
   id: string
   productId: string
   productSlug?: string
+  variantId?: string
   name: string
   variantName?: string
   image?: { url: string; alt?: string }
@@ -82,6 +83,7 @@ export function cartItemToSaved(item: CartItem, locale: Locale = "en"): SavedIte
     id: item.id,
     productId: item.productId,
     productSlug: item.productSlug,
+    variantId: item.variantId ?? undefined,
     name: localized(item.name, locale),
     variantName: item.variantName ? localized(item.variantName, locale) : undefined,
     image: item.image ? { url: item.image.url, alt: item.image.alt ?? undefined } : undefined,

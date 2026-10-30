@@ -7,11 +7,17 @@ import { Button } from "@prood/ui/components/button"
 import { QuantitySelector } from "@prood/ui/components/quantity-selector"
 import { useCart } from "@/components/providers/cart-provider"
 
-export function AddToCart({ product }: { product: Product }) {
+export function AddToCart({
+  product,
+  variantId,
+  available,
+}: {
+  product: Product
+  variantId?: string
+  available: boolean
+}) {
   const { addItem, loading } = useCart()
   const [quantity, setQuantity] = useState(1)
-  // Nothing lets a shopper choose between several variants yet.
-  const variantId = product.variants.length === 1 ? product.variants[0]?.id : undefined
 
   return (
     <div className="flex flex-col gap-4">
@@ -20,15 +26,15 @@ export function AddToCart({ product }: { product: Product }) {
           value={quantity}
           onChange={setQuantity}
           max={product.quantityLimit ?? 99}
-          disabled={!product.inStock}
+          disabled={!available}
         />
         <Button
           className="flex-1"
-          disabled={loading || !product.inStock}
+          disabled={loading || !available}
           onClick={() => addItem({ productId: product.id, variantId, quantity })}
         >
           <ShoppingCartIcon />
-          {product.inStock ? "Add to cart" : "Out of stock"}
+          {available ? "Add to cart" : "Out of stock"}
         </Button>
       </div>
     </div>

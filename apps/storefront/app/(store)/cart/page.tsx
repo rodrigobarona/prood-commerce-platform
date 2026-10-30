@@ -55,7 +55,7 @@ export default function CartPage() {
   }
 
   function handleMoveToCart(saved: SavedItem) {
-    void addItem({ productId: saved.productId, quantity: 1 })
+    void addItem({ productId: saved.productId, variantId: saved.variantId, quantity: 1 })
     removeSaved(saved.productId)
   }
 
