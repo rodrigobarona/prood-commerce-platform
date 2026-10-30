@@ -64,7 +64,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
   it('should list seeded products', async () => {
     const result = await adapter.getProducts({ page: 1, perPage: 10 })
     expect(result.products.items.length).toBe(3)
-    expect(Number(result.products.total)).toBe(3)
+    expect(result.products.total).toBe(3)
   })
 
   it('should get a product by id', async () => {
@@ -211,6 +211,33 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     expect(order.status).toBe('placed')
     expect(order.items.length).toBe(1)
     expect(order.totals.total.amount).toBeGreaterThan(0)
+  })
+
+  describe('admin aggregates', () => {
+    // Postgres returns bigint and numeric aggregates as strings, so the API
+    // would send "3" where the contract promises a number.
+    it('returns counts and revenue as numbers', async () => {
+      const { admin } = await createPlatformAdapter()
+      const cart = await adapter.createCart()
+      await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 1 })
+      await adapter.setShippingAddress(cart.id, fullAddress())
+      const order = await adapter.placeOrder(cart.id)
+
+      const { stats, products, orders } = await withTenant(DEMO_ORG_ID, async () => ({
+        stats: await admin.getDashboardStats(),
+        products: await admin.listProducts({}),
+        orders: await admin.listOrders({}),
+      }))
+
+      expect(products.total).toBe(3)
+      expect(orders.total).toBe(1)
+      expect(stats.totalProducts).toBe(3)
+      expect(stats.activeProducts).toBe(3)
+      expect(stats.totalOrders).toBe(1)
+      expect(stats.totalCustomers).toBe(0)
+      expect(stats.totalRevenue).toBe(order.totals.total.amount)
+      expect(stats.ordersByStatus).toEqual({ placed: 1 })
+    })
   })
 
   describe('payment events', () => {

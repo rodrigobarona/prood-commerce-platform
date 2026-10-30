@@ -2,7 +2,7 @@
 // Drizzle: Catalog queries
 // ---------------------------------------------------------------------------
 
-import { eq, sql, and, or, asc, desc } from 'drizzle-orm'
+import { count, eq, sql, and, or, asc, desc } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
 import { tenantCondition } from './tenant-filter.js'
@@ -58,7 +58,7 @@ export async function findProducts(opts: {
     .limit(opts.limit)
     .offset(opts.offset)
 
-  const countResult = await db.select({ count: sql<number>`count(*)` })
+  const countResult = await db.select({ count: count() })
     .from(schema.products)
     .where(where)
 

@@ -2,7 +2,7 @@
 // Drizzle: Admin customer queries
 // ---------------------------------------------------------------------------
 
-import { eq, and, sql } from 'drizzle-orm'
+import { count, eq, and, sql } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
 import { tenantCondition, requireOrgId } from './tenant-filter.js'
@@ -83,7 +83,7 @@ export async function adminDeleteCustomer(id: string) {
 }
 
 export async function countCustomers() {
-  const [result] = await getDb().select({ count: sql<number>`count(*)` }).from(schema.customers)
+  const [result] = await getDb().select({ count: count() }).from(schema.customers)
     .where(tenantCondition(schema.customers))
   return result?.count ?? 0
 }
