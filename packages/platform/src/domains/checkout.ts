@@ -6,14 +6,11 @@ import { CommerceError } from '@prood/types'
 import type {
   Cart,
   Order,
-  PaymentStatus,
-  OrderFulfillmentStatus,
   ShippingMethod,
   PaymentMethod,
   CheckoutAddress,
 } from '@prood/types'
 import {
-  findCart,
   updateCart,
   deleteCart,
   findProductById,
@@ -21,60 +18,18 @@ import {
   createOrderItem,
   createOrderHistory,
   findOrderById,
-  findOrderItems,
 } from '../database/index.js'
-import { generateOrderNumber, normalizeLocalizedField, price, priceRequired, img, parseJsonField, toNumber } from './helpers.js'
+import { generateOrderNumber, normalizeLocalizedField } from './helpers.js'
 import { createCartDomain } from './cart.js'
-
-const STANDARD_SHIPPING = {
-  en: 'Standard Shipping',
-  pt: 'Envio padrão',
-  es: 'Envío estándar',
-}
-
-const EXPRESS_SHIPPING = {
-  en: 'Express Shipping',
-  pt: 'Envio expresso',
-  es: 'Envío express',
-}
-
-const CARD_PAYMENT = {
-  en: 'Credit / Debit Card',
-  pt: 'Cartão de crédito / débito',
-  es: 'Tarjeta de crédito / débito',
-}
-
-const COD_PAYMENT = {
-  en: 'Cash on Delivery',
-  pt: 'Pagamento na entrega',
-  es: 'Pago contra reembolso',
-}
+import { listPaymentMethods, listShippingMethods } from './checkout-methods.js'
+import { mapOrder } from './order-mapper.js'
 
 export function createCheckoutDomain(currency: string) {
   const cartDomain = createCartDomain(currency)
 
   return {
     async getShippingMethods(_cartId: string): Promise<ShippingMethod[]> {
-      return [
-        {
-          id: 'standard',
-          name: STANDARD_SHIPPING,
-          provider: 'custom',
-          fulfillmentType: 'shipping' as const,
-          price: priceRequired(15, currency),
-          estimatedDays: { min: 5, max: 7 },
-          cashOnDelivery: false,
-        },
-        {
-          id: 'express',
-          name: EXPRESS_SHIPPING,
-          provider: 'custom',
-          fulfillmentType: 'shipping' as const,
-          price: priceRequired(35, currency),
-          estimatedDays: { min: 1, max: 2 },
-          cashOnDelivery: false,
-        },
-      ]
+      return listShippingMethods(currency)
     },
 
     async setShippingAddress(cartId: string, address: CheckoutAddress): Promise<Cart> {
@@ -88,32 +43,21 @@ export function createCheckoutDomain(currency: string) {
     },
 
     async setShippingMethod(cartId: string, methodId: string): Promise<Cart> {
+      if (!listShippingMethods(currency).some(m => m.id === methodId)) {
+        throw new CommerceError(`Unknown shipping method: ${methodId}`, 'VALIDATION', 422)
+      }
       await updateCart(cartId, { shippingMethodId: methodId })
       return cartDomain.getCart(cartId)
     },
 
     async getPaymentMethods(_cartId: string): Promise<PaymentMethod[]> {
-      return [
-        {
-          id: 'card',
-          type: 'card',
-          name: CARD_PAYMENT,
-          provider: 'platform',
-          installments: null,
-          icon: null,
-        },
-        {
-          id: 'cod',
-          type: 'cash_on_delivery',
-          name: COD_PAYMENT,
-          provider: 'platform',
-          installments: null,
-          icon: null,
-        },
-      ]
+      return listPaymentMethods()
     },
 
     async setPaymentMethod(cartId: string, methodId: string): Promise<Cart> {
+      if (!listPaymentMethods().some(m => m.id === methodId)) {
+        throw new CommerceError(`Unknown payment method: ${methodId}`, 'VALIDATION', 422)
+      }
       await updateCart(cartId, { paymentMethodId: methodId })
       return cartDomain.getCart(cartId)
     },
@@ -145,17 +89,11 @@ export function createCheckoutDomain(currency: string) {
       const hasPhysicalItems = true
       const fulfillmentStatus = hasPhysicalItems ? 'unfulfilled' : 'not_required'
 
-      const cartRow = await findCart(cartId)
-      const shippingMethods = await this.getShippingMethods(cartId)
-      const paymentMethods = await this.getPaymentMethods(cartId)
-      const selectedShipping = shippingMethods.find(m => m.id === cartRow?.shippingMethodId) ?? null
-      const selectedPayment = paymentMethods.find(m => m.id === cartRow?.paymentMethodId) ?? null
-
       const orderId = crypto.randomUUID()
       const orderNumber = generateOrderNumber()
 
       const subtotal = cart.totals.subtotal.amount
-      const shippingCost = selectedShipping?.price.amount ?? cart.totals.shipping?.amount ?? 0
+      const shippingCost = cart.totals.shipping?.amount ?? 0
       const tax = cart.totals.tax?.amount ?? 0
       const discount = cart.totals.discount?.amount ?? 0
       const total = subtotal + shippingCost + tax - discount
@@ -178,8 +116,8 @@ export function createCheckoutDomain(currency: string) {
         currency,
         shippingAddress: cart.shippingAddress as any,
         billingAddress: cart.billingAddress as any,
-        shippingMethod: selectedShipping?.name ? JSON.stringify(selectedShipping.name) : null,
-        paymentMethod: selectedPayment?.name ? JSON.stringify(selectedPayment.name) : null,
+        shippingMethod: cart.shippingMethod,
+        paymentMethod: cart.paymentMethod,
         requiresShipping: true,
         placedAt: now,
       })
@@ -211,56 +149,7 @@ export function createCheckoutDomain(currency: string) {
 
       const order = await findOrderById(orderId)
       if (!order) throw new Error(`Order not found after creation: ${orderId}`)
-      const items = await findOrderItems(orderId)
-
-      return {
-        id: order.id,
-        orderNumber: order.orderNumber,
-        status: order.status as any,
-        items: items.map((i: any) => ({
-          id: i.id,
-          productId: i.productId,
-          variantId: i.variantId ?? null,
-          name: normalizeLocalizedField(i.name),
-          image: i.image ? img(i.image, null) : null,
-          quantity: i.quantity,
-          price: priceRequired(toNumber(i.price), currency),
-          totalPrice: priceRequired(toNumber(i.totalPrice), currency),
-          fulfillmentStatus: i.fulfillmentStatus as any,
-          productType: i.productType as any,
-          digital: null,
-          event: null,
-        })),
-        totals: {
-          subtotal: priceRequired(order.subtotal, currency),
-          shipping: price(order.shippingCost, currency),
-          tax: price(order.tax, currency),
-          discount: price(order.discount, currency),
-          total: priceRequired(order.total, currency),
-        },
-        shippingAddress: parseJsonField(order.shippingAddress),
-        billingAddress: parseJsonField(order.billingAddress),
-        shippingMethod: order.shippingMethod
-          ? (() => { const n = parseJsonField(order.shippingMethod); return { id: 'default', name: normalizeLocalizedField(n), provider: 'custom', fulfillmentType: 'shipping' as const, price: priceRequired(0, currency), estimatedDays: { min: 1, max: 7 }, cashOnDelivery: false } })()
-          : null,
-        paymentMethod: order.paymentMethod
-          ? (() => { const n = parseJsonField(order.paymentMethod); return { id: 'default', type: 'card', name: normalizeLocalizedField(n), provider: 'platform', installments: null, icon: null } })()
-          : null,
-        trackingNumber: order.trackingNumber ?? null,
-        trackingUrl: order.trackingUrl ?? null,
-        note: order.note ?? null,
-        customerId: order.customerId ?? null,
-        contactEmail: order.contactEmail ?? null,
-        requiresShipping: Boolean(order.requiresShipping),
-        paymentStatus: (order.paymentStatus ?? 'unpaid') as PaymentStatus,
-        fulfillmentStatus: (order.fulfillmentStatus ?? 'unfulfilled') as OrderFulfillmentStatus,
-        placedAt: order.placedAt instanceof Date ? order.placedAt.toISOString() : order.placedAt ?? null,
-        approvedAt: order.approvedAt instanceof Date ? order.approvedAt.toISOString() : order.approvedAt ?? null,
-        cancelledAt: order.cancelledAt instanceof Date ? order.cancelledAt.toISOString() : order.cancelledAt ?? null,
-        fulfilledAt: order.fulfilledAt instanceof Date ? order.fulfilledAt.toISOString() : order.fulfilledAt ?? null,
-        createdAt: order.createdAt instanceof Date ? order.createdAt.toISOString() : order.createdAt,
-        updatedAt: order.updatedAt instanceof Date ? order.updatedAt.toISOString() : order.updatedAt,
-      }
+      return mapOrder(order)
     },
   }
 }

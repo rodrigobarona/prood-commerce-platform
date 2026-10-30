@@ -20,6 +20,8 @@ export const storeInfo = pgTable('store_info', {
   // building @prood/types; the migration snapshots this value either way.
   supportedLocales: jsonb('supported_locales').$type<string[]>().default(['en', 'pt', 'es']),
   timezone: text('timezone').notNull().default('Europe/Lisbon'),
+  // ISO 3166-1 alpha-2
+  country: text('country').notNull().default('PT'),
   contactEmail: text('contact_email'),
   contactPhone: text('contact_phone'),
   address: text('address'),
