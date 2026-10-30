@@ -9,6 +9,7 @@ import {
   getReviewDistribution,
   insertReview,
 } from '../database/index.js'
+import { roundRating } from './helpers.js'
 
 export function createReviewsDomain() {
   return {
@@ -46,7 +47,7 @@ export function createReviewsDomain() {
       ])
       return {
         productId,
-        averageRating: Math.round(summary.averageRating * 10) / 10,
+        averageRating: roundRating(summary.averageRating),
         totalCount: summary.totalReviews,
         distribution,
       }

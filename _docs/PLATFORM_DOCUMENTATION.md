@@ -625,7 +625,7 @@ carts, orders, customers, adapters, and all provider interfaces.
 
 | Module                 | Domain                                        |
 | ---------------------- | --------------------------------------------- |
-| `product.ts`           | Product, ProductImage, ProductVariant, ProductOption |
+| `product.ts`           | Product, ProductImage, ProductVariant |
 | `category.ts`          | Category (tree with parent)                   |
 | `cart.ts`              | Cart, CartItem                                |
 | `order.ts`             | Order, OrderItem, OrderHistory                |
@@ -667,8 +667,6 @@ and row-level security. Implements the `CommerceAdapter` interface from
 - `products` — pricing, status, product_type, inventory, VAT, slug
 - `product_images` — ordered images per product
 - `product_variants` — SKU-level size/color variants
-- `product_options` — option groups (Size, Color)
-- `product_option_values` — individual option values (S, M, L)
 - `product_attributes` — key-value metadata
 - `product_tags` — freeform tags
 - `product_categories` — many-to-many junction

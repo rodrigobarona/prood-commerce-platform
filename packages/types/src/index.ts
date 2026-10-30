@@ -12,7 +12,7 @@ export type { CommerceErrorBody, CommerceErrorResponse } from './http-errors.js'
 export { toErrorResponse } from './http-errors.js'
 
 // Product
-export type { Product, ProductVariant, ProductOption, Attribute, ProductType, DigitalProductMeta, ServiceProductMeta, EventProductMeta, SubscriptionProductMeta, PreOrderMeta } from './product.js'
+export type { Product, ProductVariant, Attribute, ProductType } from './product.js'
 
 // Category
 export type { Category } from './category.js'
