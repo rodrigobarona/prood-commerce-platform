@@ -20,6 +20,7 @@ import {
 } from '../database/index.js'
 import { normalizeLocalizedField, discountablePrice, priceRequired, img, toNumber } from './helpers.js'
 import { getStoreCurrency } from '../tenant/store-info.js'
+import { requireSellable } from './availability.js'
 import { listPaymentMethods, listShippingMethods } from './checkout-methods.js'
 
 export function createCartDomain() {
@@ -35,15 +36,14 @@ export function createCartDomain() {
       const product = await findProductById(item.productId)
       const primaryImg = await findPrimaryImage(item.productId)
 
+      const variant = item.variantId ? await findVariantById(item.variantId) : null
+
       let itemPrice = toNumber(product?.price)
       let compareAt = product?.compareAtPrice
 
-      if (item.variantId) {
-        const variant = await findVariantById(item.variantId)
-        if (variant?.price != null) {
-          itemPrice = toNumber(variant.price)
-          compareAt = variant.compareAtPrice
-        }
+      if (variant?.price != null) {
+        itemPrice = toNumber(variant.price)
+        compareAt = variant.compareAtPrice
       }
 
       return {
@@ -52,6 +52,7 @@ export function createCartDomain() {
         productSlug: product?.slug ?? undefined,
         variantId: item.variantId ?? null,
         name: product ? normalizeLocalizedField(product.name) : { en: 'Unknown' },
+        variantName: variant?.name ? normalizeLocalizedField(variant.name) : undefined,
         image: primaryImg ? img(primaryImg.url, primaryImg.altText) : null,
         quantity: item.quantity,
         price: discountablePrice(itemPrice, compareAt, currency)!,
@@ -102,6 +103,7 @@ export function createCartDomain() {
       if (product?.status !== 'active') {
         throw new CommerceError(`Product not found: ${item.productId}`, 'NOT_FOUND')
       }
+      await requireSellable(product, item.variantId)
 
       const existing = await findExistingCartItem(cartId, item.productId, item.variantId)
 

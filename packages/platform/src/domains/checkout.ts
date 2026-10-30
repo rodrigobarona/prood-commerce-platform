@@ -21,6 +21,7 @@ import {
 } from '../database/index.js'
 import { generateOrderNumber, normalizeLocalizedField } from './helpers.js'
 import { getStoreCurrency } from '../tenant/store-info.js'
+import { requireSellable } from './availability.js'
 import { createCartDomain } from './cart.js'
 import { listPaymentMethods, listShippingMethods } from './checkout-methods.js'
 import { mapOrder } from './order-mapper.js'
@@ -84,6 +85,7 @@ export function createCheckoutDomain() {
           const name = normalizeLocalizedField(item.name).en ?? item.productId
           throw new CommerceError(`${name} is no longer available.`, 'VALIDATION', 422)
         }
+        await requireSellable(product, item.variantId)
       }
 
       const orderStatus = options?.status ?? 'placed'

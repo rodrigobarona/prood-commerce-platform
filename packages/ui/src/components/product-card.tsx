@@ -3,7 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { ShoppingCartIcon } from "@phosphor-icons/react"
-import type { Product } from "@prood/types"
+import { canQuickAdd, type Product } from "@prood/types"
 import { Badge } from "@prood/ui/components/badge"
 import { Button } from "@prood/ui/components/button"
 import { ProductPrice } from "@prood/ui/components/product-price"
@@ -64,7 +64,7 @@ export function ProductCard({
             Out of stock
           </div>
         ) : null}
-        {showQuickAdd && onAddToCart && product.inStock ? (
+        {showQuickAdd && onAddToCart && canQuickAdd(product) ? (
           <div className="absolute inset-x-2 bottom-2 translate-y-2 opacity-0 transition-all duration-200 group-hover/card:translate-y-0 group-hover/card:opacity-100">
             <Button
               type="button"

@@ -87,6 +87,11 @@ export function discountablePrice(
   return base
 }
 
+/** Whether a product or variant can be sold: a tracked quantity of 0 means no. */
+export function isInStock(row: { inStock: boolean; inventoryQuantity: number | null }): boolean {
+  return row.inStock && row.inventoryQuantity !== 0
+}
+
 /** Round an average star rating to one decimal, as shown to shoppers. */
 export function roundRating(average: number): number {
   return Math.round(average * 10) / 10

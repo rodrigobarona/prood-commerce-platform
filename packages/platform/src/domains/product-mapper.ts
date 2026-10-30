@@ -14,7 +14,7 @@ import {
   getReviewSummaryByProduct,
 } from '../database/index.js'
 import { mapCategory } from './category-mapper.js'
-import { normalizeLocalizedField, discountablePrice, img, roundRating } from './helpers.js'
+import { normalizeLocalizedField, discountablePrice, img, isInStock, roundRating } from './helpers.js'
 
 async function fetchProductRelations(productId: string) {
   const [images, variants, attributes, categoryIds, tags, reviews] = await Promise.all([
@@ -56,7 +56,7 @@ export async function mapProduct(row: typeof products.$inferSelect, currency: st
       sku: v.sku ?? null,
       name: v.name ? normalizeLocalizedField(v.name) : null,
       price: discountablePrice(v.price, v.compareAtPrice, currency),
-      inStock: Boolean(v.inStock),
+      inStock: isInStock(v),
       inventoryQuantity: v.inventoryQuantity ?? null,
     })),
     attributes: related.attributes.map((a: any) => ({
@@ -66,7 +66,7 @@ export async function mapProduct(row: typeof products.$inferSelect, currency: st
     })),
     quantityLimit: row.quantityLimit,
     categories: related.categories.map(mapCategory),
-    inStock: row.inStock,
+    inStock: isInStock(row),
     vatIncluded: row.vatIncluded,
     vatRate: row.vatRate,
     tags: related.tags,

@@ -177,7 +177,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   )
 
   const addProduct = useCallback(
-    (product: Product, quantity = 1) => addItem({ productId: product.id, quantity }),
+    (product: Product, quantity = 1) =>
+      addItem({ productId: product.id, variantId: product.variants[0]?.id, quantity }),
     [addItem],
   )
 
