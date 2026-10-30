@@ -9,9 +9,7 @@
     "start": "next start",
     "lint": "eslint --max-warnings 0",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "typecheck": "next typegen && tsc --noEmit",
-    "db:generate": "drizzle-kit generate",
-    "db:push": "drizzle-kit push"
+    "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
     "@geoapify/geocoder-autocomplete": "^3.1.0",
@@ -20,6 +18,7 @@
     "@neondatabase/serverless": "catalog:",
     "@phosphor-icons/react": "catalog:",
     "@prood/api-client": "workspace:*",
+    "@prood/auth": "workspace:*",
     "@prood/notification-resend": "workspace:*",
     "@prood/platform": "workspace:*",
     "@prood/types": "workspace:*",
@@ -43,7 +42,6 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "drizzle-kit": "catalog:",
     "eslint": "catalog:",
     "typescript": "catalog:"
   },

@@ -5,7 +5,7 @@ import { nextCookies } from "better-auth/next-js"
 import { autoLinkGuestCustomers, getStorefrontIdentity, lookupTenantByHost } from "@prood/platform"
 import { resolveTenantId } from "../tenant"
 import { authDb } from "./db"
-import * as schema from "./schema"
+import * as schema from "@prood/auth/schema"
 import { getMailer } from "../mailer"
 
 /** Name and origin of the store serving the current request. */

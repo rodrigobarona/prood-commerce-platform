@@ -1,6 +1,6 @@
 import { neon } from "@neondatabase/serverless"
 import { drizzle } from "drizzle-orm/neon-http"
-import * as schema from "./schema"
+import * as schema from "@prood/auth/schema"
 
 // A placeholder keeps module evaluation safe during build when DATABASE_URL is
 // not present; the real connection string is used at runtime on Vercel.

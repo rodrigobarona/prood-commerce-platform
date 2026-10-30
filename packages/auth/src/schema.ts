@@ -1,11 +1,14 @@
 // Better Auth schema (Drizzle / Postgres) shared across apps.
 //
 // Core tables (user/session/account/verification), organization plugin tables,
-// apiKey plugin table, and Agent Auth plugin tables. All apps share the same
-// Neon database; property keys are camelCase, column names snake_case.
+// apiKey plugin table, Agent Auth plugin tables, and the per-organization
+// tenant_domain / integration_config tables. All apps share the same Neon
+// database; property keys are camelCase, column names snake_case. Migrations
+// for these tables are generated in packages/platform/drizzle.
 import {
   boolean,
   integer,
+  jsonb,
   pgTable,
   text,
   timestamp,
@@ -216,3 +219,42 @@ export const approvalRequest = pgTable("approvalRequest", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 })
+
+export const tenantDomain = pgTable("tenant_domain", {
+  id: text("id").primaryKey(),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organization.id, { onDelete: "cascade" }),
+  domain: text("domain").notNull().unique(),
+  verified: boolean("verified").notNull().default(false),
+  isPrimary: boolean("is_primary").notNull().default(false),
+  dnsRecords: jsonb("dns_records")
+    .$type<{ type: string; host: string; value: string }[]>()
+    .notNull()
+    .default([]),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+})
+
+export const integrationConfig = pgTable(
+  "integration_config",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    provider: text("provider").notNull(),
+    config: jsonb("config")
+      .$type<Record<string, string>>()
+      .notNull()
+      .default({}),
+    enabled: boolean("enabled").notNull().default(false),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("integration_config_org_provider_idx").on(
+      table.organizationId,
+      table.provider
+    ),
+  ]
+)
