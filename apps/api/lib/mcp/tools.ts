@@ -4,6 +4,7 @@ import { CommerceError } from "@prood/types"
 import { z } from "zod"
 import { admin, carts, catalog, orders } from "@/lib/commerce-service"
 import { checkout } from "@/lib/commerce-service"
+import { assertCapability } from "@/lib/agent-capability"
 import { getMcpCaller } from "@/lib/mcp/context"
 import {
   addToCartBody,
@@ -69,7 +70,20 @@ async function placeOrderForCaller(cartId: string, email?: string, providerId?: 
   return checkout.placeOrder(orgId, cartId, customerId, email)
 }
 
+/** Tool names are the agent capability names, so check the grant in one place. */
+function enforceAgentCapabilities(server: McpServer) {
+  const registerTool = server.registerTool.bind(server)
+  server.registerTool = ((name: string, config: never, handler: (...args: never[]) => unknown) =>
+    registerTool(name, config, ((...args: never[]) => {
+      const { capabilities } = getMcpCaller()
+      if (capabilities) assertCapability(capabilities, name)
+      return handler(...args)
+    }) as never)) as typeof server.registerTool
+}
+
 export function registerCommerceMcpTools(server: McpServer) {
+  enforceAgentCapabilities(server)
+
   server.registerTool(
     "listProducts",
     {

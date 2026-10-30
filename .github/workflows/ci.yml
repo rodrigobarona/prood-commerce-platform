@@ -67,7 +67,7 @@ jobs:
         run: pnpm openapi:check
 
       - name: Unit tests
-        run: pnpm --filter @prood/types --filter @prood/checkout --filter @prood/storage-s3 test
+        run: pnpm --filter @prood/types --filter @prood/checkout --filter @prood/storage-s3 --filter api test
 
       - name: Platform database tests
         if: env.HAS_CI_DATABASE_URL == 'true'

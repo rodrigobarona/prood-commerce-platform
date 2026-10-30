@@ -1,24 +1,26 @@
 import type { AgentSession } from "@better-auth/agent-auth"
-import { and, eq } from "drizzle-orm"
+import { eq } from "drizzle-orm"
 import { authDb } from "@/lib/auth/db"
-import { member } from "@/lib/auth/schema"
+import { member } from "@prood/auth/schema"
 
 /**
- * The store an agent acts for. Agents declare it in their metadata at
- * registration, which is client-controlled, so it is only honoured when the
- * agent's user is a member of that organization.
+ * The store an agent acts for: the one it was approved for in the dashboard,
+ * or the user's only store. Metadata is re-checked against membership on every
+ * request, so losing access to a store also cuts off the agent.
  */
 export async function resolveOrgForAgent(session: AgentSession): Promise<string | null> {
-  const meta = session.agent.metadata as { organizationId?: unknown } | null
-  const orgId = typeof meta?.organizationId === "string" ? meta.organizationId : null
   const userId = session.user?.id
-  if (!orgId || !userId) return null
+  if (!userId) return null
 
-  const rows = await authDb
-    .select({ id: member.id })
+  const memberships = await authDb
+    .select({ organizationId: member.organizationId })
     .from(member)
-    .where(and(eq(member.userId, userId), eq(member.organizationId, orgId)))
-    .limit(1)
+    .where(eq(member.userId, userId))
+  const stores = memberships.map((m) => m.organizationId)
 
-  return rows[0] ? orgId : null
+  const meta = session.agent.metadata as { organizationId?: unknown } | null
+  if (typeof meta?.organizationId === "string") {
+    return stores.includes(meta.organizationId) ? meta.organizationId : null
+  }
+  return stores.length === 1 ? (stores[0] ?? null) : null
 }

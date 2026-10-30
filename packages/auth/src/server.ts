@@ -17,6 +17,13 @@ export interface CreateAuthOptions {
 }
 
 /** Shared secret + issuer URL (apps/api) for every Better Auth instance. */
+/**
+ * API keys belong to a store: the plugin checks membership at creation and
+ * stores the organization as `referenceId`, which is the only tenant binding
+ * to trust. Metadata is client-supplied and only carries the requested scopes.
+ */
+export const storeApiKey = () => apiKey({ references: "organization", enableMetadata: true })
+
 export function resolveBetterAuthEnv() {
   return {
     secret: requiredEnv(process.env.BETTER_AUTH_SECRET, "BETTER_AUTH_SECRET"),
@@ -48,7 +55,7 @@ export function createAuth(options: CreateAuthOptions = {}) {
       : undefined,
     plugins: [
       organization(),
-      apiKey(),
+      storeApiKey(),
       admin({
         defaultRole: "user",
       }),

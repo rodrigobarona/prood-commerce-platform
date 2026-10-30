@@ -3,6 +3,16 @@ import { requiredEnv } from "@prood/types"
 import { buildOpenApiDocument } from "../openapi"
 import { resolveOrgForAgent } from "../agent-org"
 
+/** Granted without merchant approval, so only data any shopper can already see. */
+const DEFAULT_CAPABILITIES = new Set([
+  "listProducts",
+  "getProduct",
+  "getProductBySlug",
+  "listCategories",
+  "getStore",
+  "listCountries",
+])
+
 let cachedProxyKeysByOrg: Record<string, string> | null = null
 
 /** `AGENT_PROXY_API_KEYS_BY_ORG`: JSON object of organization id → API key. */
@@ -36,9 +46,7 @@ export function getAgentAuthOpenAPIOptions() {
   const spec = buildOpenApiDocument()
   return createFromOpenAPI(spec, {
     baseUrl: getApiPublicBaseUrl(),
-    // Granted without merchant approval, so only public storefront reads.
-    defaultHostCapabilities: (cap) =>
-      (cap.method === "GET" || cap.method === "HEAD") && !cap.name.startsWith("admin"),
+    defaultHostCapabilities: (cap) => DEFAULT_CAPABILITIES.has(cap.name),
     approvalStrength: {
       GET: "session",
       HEAD: "session",

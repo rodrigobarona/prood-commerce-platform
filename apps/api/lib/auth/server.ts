@@ -2,11 +2,11 @@ import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { nextCookies } from "better-auth/next-js"
 import { admin, organization } from "better-auth/plugins"
-import { apiKey } from "@better-auth/api-key"
 import { agentAuth } from "@better-auth/agent-auth"
 import {
   resolveBetterAuthEnv,
   resolveBetterAuthTrustedOrigins,
+  storeApiKey,
 } from "@prood/auth/server"
 import { authDb } from "@prood/auth/db"
 import * as schema from "@prood/auth/schema"
@@ -96,7 +96,7 @@ function createAuth() {
           })
         },
       }),
-      apiKey(),
+      storeApiKey(),
       admin({ defaultRole: "user" }),
       agentAuth({
         modes: ["delegated", "autonomous"],

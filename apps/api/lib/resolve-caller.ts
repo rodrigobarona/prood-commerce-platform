@@ -1,16 +1,15 @@
-import type { AgentSession } from "@better-auth/agent-auth"
 import { assertFeature } from "@prood/commerce"
 import { CommerceError } from "@prood/types"
 import { getAuth, getSession, resolveActiveOrganizationId } from "@/lib/auth"
 import { getOrganizationLimits } from "@/lib/org-plan"
 import { lookupTenantByHost } from "@prood/platform"
 import { resolveOrgForAgent } from "@/lib/agent-org"
+import {
+  assertCapability,
+  operationForRequest,
+  REQUEST_TARGET_HEADER,
+} from "@/lib/agent-capability"
 import type { ApiCaller, ApiScope } from "@/lib/auth-tenant"
-
-interface ApiKeyMetadata {
-  organizationId?: string
-  scopes?: ApiScope[]
-}
 
 const API_KEY_HEADER = "x-api-key"
 
@@ -20,16 +19,18 @@ function platformDomain(): string {
   return domain
 }
 
-function scopesFromAgentSession(session: AgentSession): ApiScope[] {
-  const active = session.agent.capabilityGrants
-    .filter((g) => g.status === "active")
-    .map((g) => g.capability)
-  const scopes: ApiScope[] = []
-  if (active.some((c) => c.startsWith("admin"))) scopes.push("admin")
-  if (active.some((c) => !c.startsWith("admin"))) scopes.push("storefront")
-  return scopes
+function parseApiKeyScopes(metadata: unknown): ApiScope[] {
+  const scopes = (metadata as { scopes?: unknown } | null)?.scopes
+  if (!Array.isArray(scopes)) return ["storefront"]
+  return scopes.filter((s): s is ApiScope => s === "storefront" || s === "admin")
 }
 
+function scopesFromCapabilities(capabilities: string[]): ApiScope[] {
+  const scopes: ApiScope[] = []
+  if (capabilities.some((c) => c.startsWith("admin"))) scopes.push("admin")
+  if (capabilities.some((c) => !c.startsWith("admin"))) scopes.push("storefront")
+  return scopes
+}
 
 /** Resolve tenant + scopes from raw request headers (REST, MCP, etc.). */
 export async function resolveCallerFromHeaders(
@@ -44,7 +45,7 @@ export async function resolveCallerFromHeaders(
       const orgId = await resolveOrgForAgent(agentSession)
       if (!orgId) {
         throw new CommerceError(
-          "Agent session is not bound to an organization",
+          "This agent isn't bound to a store. Approve it in your dashboard.",
           "FORBIDDEN"
         )
       }
@@ -53,11 +54,14 @@ export async function resolveCallerFromHeaders(
         limits.agentAuthEnabled,
         "Agent Auth requires a Grow plan or higher",
       )
-      const scopes = scopesFromAgentSession(agentSession)
+      const capabilities = agentSession.agent.capabilityGrants
+        .filter((grant) => grant.status === "active")
+        .map((grant) => grant.capability)
+      const scopes = scopesFromCapabilities(capabilities)
       if (scopes.length === 0) {
         throw new CommerceError("Agent has no active capability grants", "FORBIDDEN")
       }
-      return { orgId, scopes, via: "agent" }
+      return { orgId, scopes, via: "agent", capabilities }
     }
   }
 
@@ -67,26 +71,16 @@ export async function resolveCallerFromHeaders(
     if (!result.valid || !result.key) {
       throw new CommerceError("Invalid API key", "UNAUTHORIZED")
     }
-    const metadata = (result.key.metadata ?? {}) as ApiKeyMetadata
-    if (!metadata.organizationId) {
-      throw new CommerceError(
-        "API key is not bound to an organization",
-        "FORBIDDEN"
-      )
-    }
-    const scopes = metadata.scopes ?? ["storefront"]
-    const limits = await getOrganizationLimits(metadata.organizationId)
+    const orgId = result.key.referenceId
+    const scopes = parseApiKeyScopes(result.key.metadata)
+    const limits = await getOrganizationLimits(orgId)
     if (scopes.includes("admin") && !limits.apiWriteEnabled) {
       throw new CommerceError(
         "Write access requires a Grow plan or higher",
         "FORBIDDEN",
       )
     }
-    return {
-      orgId: metadata.organizationId,
-      scopes,
-      via: "api-key",
-    }
+    return { orgId, scopes, via: "api-key" }
   }
 
   const session = await getSession(headerList)
@@ -139,6 +133,12 @@ export async function requireCallerFromHeaders(
   }
   if (!caller.scopes.includes(scope)) {
     throw new CommerceError("Insufficient scope for this resource", "FORBIDDEN")
+  }
+  if (caller.capabilities) {
+    assertCapability(
+      caller.capabilities,
+      operationForRequest(headerList.get(REQUEST_TARGET_HEADER))
+    )
   }
   return caller
 }

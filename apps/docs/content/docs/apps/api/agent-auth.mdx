@@ -60,9 +60,9 @@ flowchart LR
 When an agent calls `/v1/*` with an `Authorization: Bearer` agent JWT:
 
 1. API validates the JWT signature and expiry
-2. Maps granted capabilities to `storefront` / `admin` scopes
-3. Resolves tenant from the delegated user's organization membership (or `organizationId` in agent metadata)
-4. Executes the operation scoped to that tenant
+2. Resolves the store: the one the agent was approved for, or the user's only store. A user with several stores must approve the agent for one
+3. Checks the agent holds the capability for this exact operation. Holding one `admin*` capability doesn't unlock other admin routes
+4. Executes the operation scoped to that store
 
 ```bash
 curl -H "Authorization: Bearer eyJ..." \
