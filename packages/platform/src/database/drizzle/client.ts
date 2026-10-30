@@ -37,6 +37,9 @@ export function initDrizzle(connectionString: string): DrizzleDatabase {
   if (_db) return _db
 
   _pool = new Pool({ connectionString })
+  // Without a listener, one dropped idle connection (Neon suspending, a network
+  // blip) is an uncaught error that kills the process. The pool replaces it.
+  _pool.on('error', (err: Error) => console.error('[db] idle connection lost', err))
   _db = drizzle({ client: _pool, schema })
   return _db
 }
