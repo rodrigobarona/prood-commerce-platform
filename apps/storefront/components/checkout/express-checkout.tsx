@@ -36,6 +36,8 @@ function GooglePayIcon({ className }: { className?: string }) {
   )
 }
 
+const EXPRESS_UNAVAILABLE = "Express checkout isn't available. Continue below."
+
 interface ExpressCheckoutProps {
   className?: string
 }
@@ -48,15 +50,20 @@ export function ExpressCheckout({ className }: ExpressCheckoutProps) {
     async (method: "apple" | "google") => {
       setLoading(method)
       setError(null)
-      const res = await startCheckout({
-        expressPayment: method,
-      })
-      setLoading(null)
-      if (res.ok && res.checkoutUrl) {
-        window.location.href = res.checkoutUrl
-      } else {
-        setError(res.error ?? "Express checkout isn't available. Continue below.")
+      try {
+        const res = await startCheckout({
+          expressPayment: method,
+        })
+        if (res.ok && res.checkoutUrl) {
+          // Stay in the loading state while the browser navigates.
+          window.location.href = res.checkoutUrl
+          return
+        }
+        setError(res.error ?? EXPRESS_UNAVAILABLE)
+      } catch {
+        setError(EXPRESS_UNAVAILABLE)
       }
+      setLoading(null)
     },
     [],
   )

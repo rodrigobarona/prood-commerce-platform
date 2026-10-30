@@ -23,7 +23,7 @@ export type PaymentType =
 /** Buy Now Pay Later installment details */
 export interface Installment {
   count: number
-  /** Amount per installment in smallest currency unit */
+  /** Amount per installment in major currency units */
   amount: number
   currency: string
 }

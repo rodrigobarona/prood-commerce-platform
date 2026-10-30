@@ -27,7 +27,7 @@ The package contains **interfaces only** — no runtime code, no database depend
 | --- | --- |
 | `Cart` | Active cart with items, totals, shipping/payment method selections |
 | `CartItem` | Line item with product reference, quantity, unit price |
-| `CartTotals` | Subtotal, tax, shipping, discount, grand total (minor units) |
+| `CartTotals` | Subtotal, tax, shipping, discount, grand total (major units) |
 | `ShippingMethod` | Available shipping option with price and ETA |
 | `PaymentMethod` | Available payment option (card, Multibanco, etc.) |
 | `Address` | Structured address — street, city, country, postal code |
@@ -140,7 +140,7 @@ All API routes use `toErrorResponse()` for consistent error JSON.
 
 ## Price utilities
 
-`Price.amount` is in **major units** everywhere: the database stores `numeric(12,2)`, and payment gateways receive the same value (`99.99` for €99.99).
+`Price.amount` is in **major units** everywhere in Prood: the database stores `numeric(12,2)`, and `PaymentProvider` receives the same value (`99.99` for €99.99). Each provider converts at its own boundary if the gateway needs something else. Stripe, for example, takes minor units.
 
 Display formatting lives in `@prood/ui/lib/commerce` (`formatPrice`, `localized`).
 

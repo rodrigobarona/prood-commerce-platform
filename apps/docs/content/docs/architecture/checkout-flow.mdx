@@ -92,7 +92,7 @@ const provider = new StripePaymentProvider({
 
 const session = new CheckoutSession({
   provider,
-  amount: 9999,        // minor units (cents)
+  amount: 99.99,       // major units
   currency: 'EUR',
   orderId: 'ord_123',
   returnUrl: 'https://store.example.com/order-confirmation',

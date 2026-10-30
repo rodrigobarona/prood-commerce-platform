@@ -81,7 +81,7 @@ export function discountablePrice(
   const base: DiscountablePrice = {
     amount: a,
     currency,
-    formatted: `${a} ${currency}`,
+    formatted: formatAmount(a, currency),
   }
   if (compareAt != null) {
     const c = toNumber(compareAt)
