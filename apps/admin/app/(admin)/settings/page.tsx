@@ -23,10 +23,6 @@ export default function SettingsPage() {
       key: "DATABASE_URL",
       value: process.env.DATABASE_URL ? "(set)" : "(not set)",
     },
-    {
-      key: "ADMIN_USER_IDS",
-      value: process.env.ADMIN_USER_IDS ?? "(not set)",
-    },
   ]
 
   return (
@@ -65,8 +61,7 @@ export default function SettingsPage() {
           <CardTitle>Admin Users</CardTitle>
           <CardDescription>
             Users with the &ldquo;admin&rdquo; role can access this console.
-            Set <code className="font-mono text-xs">ADMIN_USER_IDS</code> for
-            ID-based bypass or use the Users page to assign the admin role.
+            Assign the role from the Users page.
           </CardDescription>
         </CardHeader>
       </Card>

@@ -79,14 +79,16 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
       })
     )
 
-    const providerId = input.providerId ?? process.env.DEFAULT_PAYMENT_PROVIDER ?? "stripe"
-    const checkoutUrl = process.env.CHECKOUT_URL ?? "http://localhost:3004"
+    const checkoutUrl = process.env.CHECKOUT_URL
+    const checkoutSecret = process.env.CHECKOUT_API_SECRET
+    if (!checkoutUrl || !checkoutSecret) {
+      throw new Error("CHECKOUT_URL and CHECKOUT_API_SECRET are required")
+    }
     const headerList = await headers()
     const host = headerList.get("x-forwarded-host") ?? headerList.get("host")
+    if (!host) throw new Error("Missing Host header")
     const proto = headerList.get("x-forwarded-proto") ?? "http"
-    const storefrontOrigin = host
-      ? `${proto}://${host.split(":")[0]}`
-      : (process.env.BETTER_AUTH_URL ?? "http://localhost:3000")
+    const storefrontOrigin = `${proto}://${host}`
     const tenantId = await resolveTenantId()
 
     let storeName: string | undefined
@@ -101,9 +103,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(process.env.CHECKOUT_API_SECRET
-          ? { "x-checkout-secret": process.env.CHECKOUT_API_SECRET }
-          : {}),
+        "x-checkout-secret": checkoutSecret,
       },
       body: JSON.stringify({
         orderId: order.id,
@@ -119,7 +119,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
             }
           : undefined,
         returnUrl: `${storefrontOrigin}/order-confirmation?orderId=${order.id}${input.email ? `&email=${encodeURIComponent(input.email)}` : ""}`,
-        providerId,
+        providerId: input.providerId,
         tenantId,
         storeName,
         fulfillment: "none",

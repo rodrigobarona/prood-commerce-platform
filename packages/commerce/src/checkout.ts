@@ -4,21 +4,16 @@ import type {
   Cart,
   Coupon,
   Country,
-  CreatePaymentSessionInput,
   Order,
   PaginatedResult,
   PaginationParams,
   PaymentMethod,
-  PaymentSession,
   Promotion,
   Review,
   ReviewSummary,
   ShippingMethod,
 } from '@prood/types'
 import { getAdapter, runScoped } from './adapter'
-import { getPaymentProvider } from './payments'
-import { getTenantPaymentConfig } from './integrations'
-import { findOrderOrgId } from '@prood/platform'
 
 type CheckoutAddress = Omit<Address, 'id' | 'isDefault'>
 
@@ -138,38 +133,3 @@ export async function getReviewSummary(
   return runScoped(tenantId, async () => (await getAdapter()).getReviewSummary(productId))
 }
 
-// ---- Payment session (gateway-agnostic) ----
-
-/**
- * Create a payment session with the selected provider.
- * `amount` is in major currency units (see {@link priceToMajorAmount}).
- */
-export async function createPaymentSession(
-  input: CreatePaymentSessionInput & { providerId?: string; tenantId?: string },
-): Promise<PaymentSession> {
-  const { providerId, tenantId, ...rest } = input
-  const resolvedId = providerId ?? process.env.DEFAULT_PAYMENT_PROVIDER ?? 'stripe'
-  const config = tenantId
-    ? await getTenantPaymentConfig(tenantId, resolvedId)
-    : undefined
-  return getPaymentProvider(resolvedId, config).createSession(rest)
-}
-
-/** Read a payment session's current status from the provider. */
-export async function getPaymentSession(
-  sessionId: string,
-  providerId?: string,
-  tenantId?: string,
-): Promise<PaymentSession> {
-  const resolvedId = providerId ?? process.env.DEFAULT_PAYMENT_PROVIDER ?? 'stripe'
-  const config = tenantId
-    ? await getTenantPaymentConfig(tenantId, resolvedId)
-    : undefined
-  return getPaymentProvider(resolvedId, config).getSession(sessionId)
-}
-
-/**
- * Look up the organization that owns an order (cross-tenant, unscoped).
- * Used by the webhook handler to resolve tenant when ?org is missing.
- */
-export { findOrderOrgId as resolveOrderOrgId }

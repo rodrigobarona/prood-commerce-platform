@@ -15,6 +15,7 @@ import type { Category } from './category.js'
 import type { Cart } from './cart.js'
 import type { Customer, Address, RegisterInput, UpdateCustomerInput } from './customer.js'
 import type { Order } from './order.js'
+import type { PaymentEventInput, PaymentEventResult } from './order-status.js'
 import type { ShippingMethod } from './shipping.js'
 import type { PaymentMethod } from './payment.js'
 import type { SearchParams, SearchResult } from './search.js'
@@ -198,6 +199,13 @@ export interface OrderAdapter<TOrder extends Order = Order> {
 
   /** Cancel an order (convenience — calls updateOrderStatus with 'canceled') */
   cancelOrder(orderId: string, note?: string): Promise<void>
+
+  /**
+   * Apply a verified payment gateway event. Idempotent and race-safe: only an
+   * order still awaiting payment transitions, and captures must match the
+   * order total and currency exactly.
+   */
+  applyPaymentEvent(orderId: string, input: PaymentEventInput): Promise<PaymentEventResult>
 
   /** Duplicate an existing order (reorder) */
   duplicateOrder(orderId: string): Promise<TOrder>

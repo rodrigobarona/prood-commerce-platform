@@ -2,6 +2,7 @@
 // Admin: Product CRUD
 // ---------------------------------------------------------------------------
 
+import { CommerceError } from '@prood/types'
 import type { Product } from '@prood/types'
 import type { AdminListParams, CreateProductInput, UpdateProductInput } from './types.js'
 import {
@@ -117,7 +118,7 @@ async function fetchProductRelations(productId: string) {
 export function createAdminProductsDomain(currency: string) {
   async function fullProduct(id: string): Promise<Product> {
     const row = await findProductById(id)
-    if (!row) throw new Error(`Product not found: ${id}`)
+    if (!row) throw new CommerceError(`Product not found: ${id}`, "NOT_FOUND")
     const related = await fetchProductRelations(row.id)
     return mapProduct(row, related, currency)
   }

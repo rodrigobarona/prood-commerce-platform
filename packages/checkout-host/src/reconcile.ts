@@ -3,27 +3,22 @@ import 'server-only'
 type WebhookMethod = 'GET' | 'POST'
 
 /**
- * Forward a payment provider webhook to the Commerce API for verification and
- * order reconciliation (tenant-scoped via `org` query param).
+ * Forward a payment provider webhook to the Commerce API, which verifies it
+ * against the store's own credentials and reconciles the order.
  */
 export async function forwardPaymentWebhook(
   provider: string,
   payload: string,
   signature: string,
-  orgId?: string,
+  orgId: string,
   method: WebhookMethod = 'POST',
 ): Promise<void> {
-  const base = (process.env.COMMERCE_API_URL ?? 'http://localhost:3005/v1').replace(
-    /\/$/,
-    '',
-  )
+  const base = process.env.COMMERCE_API_URL?.replace(/\/$/, '')
+  if (!base) throw new Error('COMMERCE_API_URL is required to forward payment webhooks')
   const secret = process.env.CHECKOUT_API_SECRET?.trim()
-  if (!secret) {
-    throw new Error('CHECKOUT_API_SECRET is required to forward payment webhooks')
-  }
+  if (!secret) throw new Error('CHECKOUT_API_SECRET is required to forward payment webhooks')
 
-  const org = orgId ?? '_'
-  const params = new URLSearchParams({ org })
+  const params = new URLSearchParams({ org: orgId })
   if (method === 'GET' && payload) {
     for (const [key, value] of new URLSearchParams(payload)) {
       params.set(key, value)
@@ -48,14 +43,4 @@ export async function forwardPaymentWebhook(
       `Commerce API webhook failed (${res.status})${text ? `: ${text}` : ''}`,
     )
   }
-}
-
-/** @deprecated Use {@link forwardPaymentWebhook}. */
-export async function reconcilePayment(
-  _event: unknown,
-  _orgId?: string,
-): Promise<void> {
-  throw new Error(
-    'reconcilePayment is deprecated — call forwardPaymentWebhook from the checkout webhook route',
-  )
 }

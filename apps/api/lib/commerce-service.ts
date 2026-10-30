@@ -25,9 +25,10 @@ import {
   getAdapter,
   verifyPaymentWebhook,
   revalidateProducts,
-  resolveOrderOrgId,
 } from "@prood/commerce"
-import type { PaymentWebhookEvent, Order } from "@prood/types"
+import type { PaymentEventInput, PaymentEventResult } from "@prood/types"
+import { getStorefrontIdentity } from "@prood/platform"
+import { after } from "next/server"
 import { getMailer } from "./mailer"
 import type { PaginationParams } from "@prood/commerce"
 import type { z } from "zod"
@@ -152,106 +153,120 @@ export const checkout = {
   },
 }
 
-async function resolveOrderEmail(orgId: string, orderId: string): Promise<{ email: string; name: string; order: Order } | null> {
-  try {
-    const adminApi = await getAdmin()
-    const order = await withTenant(orgId, () => adminApi.getOrder(orderId))
-    if (!order) return null
+type PaymentOutcome = PaymentEventInput["outcome"]
 
-    if (order.customerId) {
-      const customer = await withTenant(orgId, () => adminApi.getCustomer(order.customerId!))
-      if (customer?.email) {
-        const name = [customer.firstName, customer.lastName].filter(Boolean).join(" ") || "Customer"
-        return { email: customer.email, name, order }
-      }
-    }
-
-    return null
-  } catch {
-    return null
-  }
+const OUTCOME_BY_EVENT: Record<string, PaymentOutcome> = {
+  "payment.authorized": "authorized",
+  "payment.captured": "captured",
+  "payment.failed": "failed",
+  "payment.cancelled": "cancelled",
 }
 
-function resolveOrderIdFromWebhook(event: PaymentWebhookEvent): string | null {
-  const data = event.data as Record<string, unknown>
-  const object = (data?.data as { object?: Record<string, unknown> })?.object
-  const metadata = object?.metadata as Record<string, string> | undefined
-  if (metadata?.orderId) return metadata.orderId
-  if (typeof data?.orderId === "string") return data.orderId
-  if (typeof data?.key === "string") return data.key
-  return null
+function formatMoney(amount: number, currency: string): string {
+  return new Intl.NumberFormat("en-IE", { style: "currency", currency }).format(amount)
+}
+
+type OrderEmail = "confirmed" | "payment_failed" | "shipped" | "refunded"
+
+/** Email the shopper about their order, branded as the store. Run via `after()`. */
+async function sendOrderEmail(orgId: string, orderId: string, kind: OrderEmail) {
+  const storefrontUrl = process.env.NEXT_PUBLIC_STOREFRONT_URL
+  if (!storefrontUrl) throw new Error("NEXT_PUBLIC_STOREFRONT_URL is required")
+
+  const adminApi = await getAdmin()
+  const order = await withTenant(orgId, () => adminApi.getOrder(orderId))
+  const customer = order.customerId
+    ? await withTenant(orgId, () => adminApi.getCustomer(order.customerId!))
+    : null
+  if (!customer?.email) return
+
+  const store = await getStorefrontIdentity(orgId, storefrontUrl)
+  const base = {
+    companyName: store.name,
+    customerName: [customer.firstName, customer.lastName].filter(Boolean).join(" ") || "there",
+    orderNumber: order.orderNumber,
+  }
+  const total = formatMoney(order.totals.total.amount, order.totals.total.currency)
+  const ordersUrl = `${store.origin}/account/orders`
+
+  const messages: Record<OrderEmail, { subject: string; template: string; data: Record<string, unknown> }> = {
+    confirmed: {
+      subject: `${store.name}: order #${order.orderNumber} confirmed`,
+      template: "order-confirmation",
+      data: { ...base, orderTotal: total, orderUrl: ordersUrl },
+    },
+    payment_failed: {
+      subject: `${store.name}: payment for order #${order.orderNumber} didn't go through`,
+      template: "payment-failed",
+      data: { ...base, orderTotal: total, retryUrl: `${store.origin}/products` },
+    },
+    shipped: {
+      subject: `${store.name}: order #${order.orderNumber} is on its way`,
+      template: "order-shipped",
+      data: {
+        ...base,
+        trackingNumber: order.trackingNumber ?? undefined,
+        trackingUrl: order.trackingUrl ?? undefined,
+        orderUrl: ordersUrl,
+      },
+    },
+    refunded: {
+      subject: `${store.name}: refund for order #${order.orderNumber}`,
+      template: "order-refunded",
+      data: { ...base, refundAmount: total, orderUrl: ordersUrl },
+    },
+  }
+
+  const message = messages[kind]
+  await getMailer().send("email", { to: customer.email, ...message })
+}
+
+/** Queue an order email to send after the response, logging failures. */
+function queueOrderEmail(orgId: string, orderId: string, kind: OrderEmail) {
+  after(() =>
+    sendOrderEmail(orgId, orderId, kind).catch((err) =>
+      console.error(`[email] ${kind} email for order ${orderId} failed`, err)
+    )
+  )
 }
 
 export const webhooks = {
+  /**
+   * Verify a gateway webhook with the store's own credentials and apply it to
+   * the order. Replays and out-of-order events are no-ops; captures whose
+   * amount or currency differs from the order total are recorded, not applied.
+   */
   async reconcilePayment(
     provider: string,
     payload: string,
     signature: string,
-    orgId?: string
-  ): Promise<void> {
+    orgId: string
+  ): Promise<PaymentEventResult | "ignored"> {
     const event = await verifyPaymentWebhook(payload, signature, provider, orgId)
-    const orderId = resolveOrderIdFromWebhook(event)
-    if (!orderId) return
+    const outcome = OUTCOME_BY_EVENT[event.type]
+    if (!outcome || !event.orderId) return "ignored"
+    const orderId = event.orderId
 
-    const resolvedOrg = orgId ?? (await resolveOrderOrgId(orderId)) ?? undefined
-    if (!resolvedOrg) {
-      console.error(`[webhook] Cannot resolve org for order ${orderId} — skipping`)
-      return
+    const result = await withTenant(orgId, async () =>
+      (await getAdapter()).applyPaymentEvent(orderId, {
+        outcome,
+        amount: event.amount,
+        currency: event.currency,
+        provider,
+      })
+    )
+
+    if (result === "amount_mismatch") {
+      console.error(
+        `[webhook] ${provider} amount mismatch for order ${orderId}: ${event.amount} ${event.currency}`
+      )
     }
+    if (result !== "applied") return result
 
-    const apply = async () => {
-      const adapter = await getAdapter()
-      if (event.type === "payment.captured") {
-        await adapter.updateOrderStatus(orderId, {
-          status: "approved",
-          paymentStatus: "paid",
-          note: "Payment captured",
-        })
-        try { revalidateProducts(resolvedOrg) } catch { /* best-effort */ }
-
-        void resolveOrderEmail(resolvedOrg, orderId).then((resolved) => {
-          if (!resolved) return
-          const { email, name, order } = resolved
-          void getMailer().send("email", {
-            to: email,
-            subject: `Order #${order.orderNumber} confirmed`,
-            template: "order-confirmation",
-            data: {
-              companyName: "Prood",
-              customerName: name,
-              orderNumber: order.orderNumber,
-              orderTotal: `${order.totals.total.currency} ${order.totals.total.amount}`,
-              orderUrl: `${process.env.NEXT_PUBLIC_STOREFRONT_URL ?? "http://localhost:3000"}/account/orders`,
-            },
-          })
-        })
-      } else if (event.type === "payment.failed" || event.type === "payment.cancelled") {
-        await adapter.updateOrderStatus(orderId, {
-          status: "cancelled",
-          paymentStatus: "voided",
-          note: event.type === "payment.failed" ? "Payment failed" : "Payment cancelled",
-        })
-
-        void resolveOrderEmail(resolvedOrg, orderId).then((resolved) => {
-          if (!resolved) return
-          const { email, name, order } = resolved
-          void getMailer().send("email", {
-            to: email,
-            subject: `Payment failed for order #${order.orderNumber}`,
-            template: "payment-failed",
-            data: {
-              companyName: "Prood",
-              customerName: name,
-              orderNumber: order.orderNumber,
-              orderTotal: `${order.totals.total.currency} ${order.totals.total.amount}`,
-              retryUrl: `${process.env.NEXT_PUBLIC_STOREFRONT_URL ?? "http://localhost:3000"}/products`,
-            },
-          })
-        })
-      }
-    }
-
-    await withTenant(resolvedOrg, apply)
+    revalidateProducts(orgId)
+    if (outcome === "captured") queueOrderEmail(orgId, orderId, "confirmed")
+    if (outcome === "failed") queueOrderEmail(orgId, orderId, "payment_failed")
+    return result
   },
 }
 
@@ -303,43 +318,12 @@ export const admin = {
   fulfillOrder: async (orgId: string, id: string, input: FulfillOrderInput) => {
     await withTenant(orgId, async () => (await getAdmin()).fulfillOrder(id, input))
 
-    void resolveOrderEmail(orgId, id).then((resolved) => {
-      if (!resolved) return
-      const { email, name, order } = resolved
-      void getMailer().send("email", {
-        to: email,
-        subject: `Order #${order.orderNumber} has shipped`,
-        template: "order-shipped",
-        data: {
-          companyName: "Prood",
-          customerName: name,
-          orderNumber: order.orderNumber,
-          trackingNumber: order.trackingNumber ?? undefined,
-          trackingUrl: order.trackingUrl ?? undefined,
-          orderUrl: `${process.env.NEXT_PUBLIC_STOREFRONT_URL ?? "http://localhost:3000"}/account/orders`,
-        },
-      })
-    })
+    queueOrderEmail(orgId, id, "shipped")
   },
   refundOrder: async (orgId: string, id: string, note?: string) => {
     await withTenant(orgId, async () => (await getAdmin()).refundOrder(id, note))
 
-    void resolveOrderEmail(orgId, id).then((resolved) => {
-      if (!resolved) return
-      const { email, name, order } = resolved
-      void getMailer().send("email", {
-        to: email,
-        subject: `Refund for order #${order.orderNumber}`,
-        template: "order-refunded",
-        data: {
-          companyName: "Prood",
-          customerName: name,
-          orderNumber: order.orderNumber,
-          refundAmount: `${order.totals.total.currency} ${order.totals.total.amount}`,
-          orderUrl: `${process.env.NEXT_PUBLIC_STOREFRONT_URL ?? "http://localhost:3000"}/account/orders`,
-        },
-      })
-    })
+    queueOrderEmail(orgId, id, "refunded")
   },
   cancelOrder: async (orgId: string, id: string, note?: string) => {
     await withTenant(orgId, async () => {

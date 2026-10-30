@@ -6,7 +6,7 @@ import { getAuth, getSession, resolveActiveOrganizationId } from "@/lib/auth"
 import { authDb } from "@/lib/auth/db"
 import { member } from "@/lib/auth/schema"
 import { getOrganizationLimits } from "@/lib/org-plan"
-import { lookupTenantByHost } from "@/lib/tenant-db"
+import { lookupTenantByHost } from "@prood/platform"
 import type { ApiCaller, ApiScope } from "@/lib/auth-tenant"
 
 interface ApiKeyMetadata {
@@ -15,8 +15,12 @@ interface ApiKeyMetadata {
 }
 
 const API_KEY_HEADER = "x-api-key"
-const PLATFORM_DOMAIN = process.env.NEXT_PUBLIC_PLATFORM_DOMAIN
-const DEFAULT_TENANT_ORG_ID = process.env.DEFAULT_TENANT_ORG_ID
+
+function platformDomain(): string {
+  const domain = process.env.NEXT_PUBLIC_PLATFORM_DOMAIN
+  if (!domain) throw new Error("NEXT_PUBLIC_PLATFORM_DOMAIN is required")
+  return domain
+}
 
 function scopesFromAgentSession(session: AgentSession): ApiScope[] {
   const active = session.agent.capabilityGrants
@@ -121,7 +125,7 @@ export async function resolveCallerFromHeaders(
     ?.split(":")[0]
     ?.toLowerCase()
   if (storefrontHost) {
-    const hostOrgId = await lookupTenantByHost(storefrontHost, PLATFORM_DOMAIN)
+    const hostOrgId = await lookupTenantByHost(storefrontHost, platformDomain())
     if (hostOrgId) {
       return {
         orgId: hostOrgId,
@@ -132,26 +136,11 @@ export async function resolveCallerFromHeaders(
     }
   }
 
-  if (session?.user && !DEFAULT_TENANT_ORG_ID) {
+  if (session?.user) {
     throw new CommerceError(
       "Session is not bound to a store organization",
       "FORBIDDEN",
     )
-  }
-
-  // Only fall back to the default org for non-platform hosts (local dev,
-  // Vercel previews). Platform subdomains with unknown slugs must fail so
-  // the storefront can redirect to the marketing site.
-  const isPlatformSubdomain =
-    PLATFORM_DOMAIN &&
-    storefrontHost?.endsWith(`.${PLATFORM_DOMAIN}`)
-  if (DEFAULT_TENANT_ORG_ID && !isPlatformSubdomain) {
-    return {
-      orgId: DEFAULT_TENANT_ORG_ID,
-      scopes: ["storefront"],
-      via: "host",
-      userId: session?.user?.id,
-    }
   }
 
   return null

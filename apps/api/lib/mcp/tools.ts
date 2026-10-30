@@ -96,6 +96,19 @@ export function registerCommerceMcpTools(server: McpServer) {
   )
 
   server.registerTool(
+    "getProductBySlug",
+    {
+      title: "Get product by slug",
+      description: "Fetch a single product by its storefront URL slug.",
+      inputSchema: z.object({ slug: z.string().min(1) }),
+    },
+    async ({ slug }) => {
+      const orgId = requireScope("storefront")
+      return jsonContent(await catalog.getProductBySlug(orgId, slug))
+    }
+  )
+
+  server.registerTool(
     "listCategories",
     {
       title: "List categories",

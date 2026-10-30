@@ -89,11 +89,6 @@ export function getCurrentOrganizationId(): string | undefined {
   return tenantStore.getStore()?.organizationId
 }
 
-/** @deprecated Prefer getCurrentOrganizationId() */
-export function currentTenantScope(): boolean {
-  return tenantStore.getStore() !== undefined
-}
-
 /** Reset the database singleton without closing the pool (for tests). */
 export function resetDb(): void {
   _pool = null

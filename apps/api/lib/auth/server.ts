@@ -87,7 +87,7 @@ function createAuth() {
         organizationHooks,
         async sendInvitationEmail(data) {
           const inviteLink = `${dashboardUrl}/invite/${data.id}`
-          void getMailer().send("email", {
+          await getMailer().send("email", {
             to: data.email,
             subject: `Join ${data.organization.name} on Prood`,
             template: "team-invite",
@@ -101,17 +101,11 @@ function createAuth() {
         },
       }),
       apiKey(),
-      admin({
-        defaultRole: "user",
-        adminUserIds: (process.env.ADMIN_USER_IDS ?? "")
-          .split(",")
-          .map((id) => id.trim())
-          .filter(Boolean),
-      }),
+      admin({ defaultRole: "user" }),
       agentAuth({
         modes: ["delegated", "autonomous"],
-        deviceAuthorizationPage:
-          process.env.AGENT_DEVICE_AUTH_PAGE ?? "/device/capabilities",
+        // The approval UI lives in the dashboard, not on the API origin.
+        deviceAuthorizationPage: `${dashboardUrl}/device/capabilities`,
         trustProxy: process.env.TRUST_PROXY === "true",
         ...getAgentAuthOpenAPIOptions(),
       }),

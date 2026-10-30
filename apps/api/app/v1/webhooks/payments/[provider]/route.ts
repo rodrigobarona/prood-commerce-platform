@@ -1,19 +1,21 @@
 import { NextResponse } from "next/server"
+import { CommerceError } from "@prood/types"
 import { webhooks } from "@/lib/commerce-service"
 import { requireCheckoutSecret } from "@/lib/require-checkout-secret"
 import { errorResponse } from "@/lib/api"
 
 type Ctx = { params: Promise<{ provider: string }> }
 
-function tenantFromOrgParam(org: string | null): string | undefined {
-  if (!org || org === "_") return undefined
-  return decodeURIComponent(org)
+function requireOrg(request: Request): string {
+  const org = new URL(request.url).searchParams.get("org")
+  if (!org) throw new CommerceError("Missing org query parameter", "VALIDATION", 400)
+  return org
 }
 
 /**
- * Stripe provides its own signature for webhook verification, so direct
- * calls from Stripe (without x-checkout-secret) are safe. Other providers
- * still require the checkout secret.
+ * Stripe signs its payloads, so Stripe may call this endpoint directly. Other
+ * gateways are only accepted when forwarded by apps/checkout with the shared
+ * checkout secret (they are re-verified per provider either way).
  */
 function requireAuth(request: Request, provider: string): void {
   const hasStripeSignature =
@@ -23,36 +25,32 @@ function requireAuth(request: Request, provider: string): void {
   }
 }
 
-/** POST — Stripe (signed body), EasyPay, and other providers with a raw payload. */
+/** POST — Stripe (signed body), Easypay, and other providers with a raw payload. */
 export async function POST(request: Request, { params }: Ctx) {
   try {
     const { provider } = await params
     requireAuth(request, provider)
-    const org = new URL(request.url).searchParams.get("org")
     const signature =
       provider === "stripe" ? (request.headers.get("stripe-signature") ?? "") : ""
     const payload = await request.text()
-    await webhooks.reconcilePayment(
-      provider,
-      payload,
-      signature,
-      tenantFromOrgParam(org)
-    )
-    return NextResponse.json({ received: true })
+    const result = await webhooks.reconcilePayment(provider, payload, signature, requireOrg(request))
+    return NextResponse.json({ received: true, result })
   } catch (err) {
     return errorResponse(err)
   }
 }
 
-/** GET — IfThenPay delivers callbacks as query-string GETs. */
+/** GET — Ifthenpay delivers callbacks as query-string GETs. */
 export async function GET(request: Request, { params }: Ctx) {
   try {
     const { provider } = await params
     requireAuth(request, provider)
-    const org = new URL(request.url).searchParams.get("org")
-    const query = new URL(request.url).search.replace(/^\?/, "")
-    await webhooks.reconcilePayment(provider, query, "", tenantFromOrgParam(org))
-    return NextResponse.json({ received: true })
+    const url = new URL(request.url)
+    const org = requireOrg(request)
+    url.searchParams.delete("org")
+    const query = url.search.replace(/^\?/, "")
+    const result = await webhooks.reconcilePayment(provider, query, "", org)
+    return NextResponse.json({ received: true, result })
   } catch (err) {
     return errorResponse(err)
   }

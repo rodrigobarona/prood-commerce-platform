@@ -2,6 +2,7 @@
 // Cart domain — cart CRUD and item management
 // ---------------------------------------------------------------------------
 
+import { CommerceError } from '@prood/types'
 import type { Cart, AddToCartInput } from '@prood/types'
 import {
   createCart as dbCreateCart,
@@ -23,7 +24,7 @@ export function createCartDomain(currency: string) {
   /** Build a full Cart object from cart row + items + product data */
   async function buildCart(cartId: string): Promise<Cart> {
     const cartRow = await findCart(cartId)
-    if (!cartRow) throw new Error(`Cart not found: ${cartId}`)
+    if (!cartRow) throw new CommerceError(`Cart not found: ${cartId}`, "NOT_FOUND")
 
     const items = await findCartItems(cartId)
 

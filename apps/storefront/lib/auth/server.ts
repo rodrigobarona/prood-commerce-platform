@@ -1,58 +1,73 @@
+import { after } from "next/server"
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { nextCookies } from "better-auth/next-js"
-import { autoLinkGuestCustomers } from "@prood/platform"
+import { autoLinkGuestCustomers, getStorefrontIdentity, lookupTenantByHost } from "@prood/platform"
+import { resolveTenantId } from "../tenant"
 import { authDb } from "./db"
 import * as schema from "./schema"
 import { getMailer } from "../mailer"
 
-function resolveBetterAuthEnv(defaultBaseUrl: string) {
-  const secret = process.env.BETTER_AUTH_SECRET?.trim()
-  const baseURL = process.env.BETTER_AUTH_URL?.trim()
+/** Name and origin of the store serving the current request. */
+async function currentStore() {
+  const storefrontUrl = process.env.NEXT_PUBLIC_STOREFRONT_URL
+  if (!storefrontUrl) throw new Error("NEXT_PUBLIC_STOREFRONT_URL is required")
+  return getStorefrontIdentity(await resolveTenantId(), storefrontUrl)
+}
 
-  return { baseURL: baseURL ?? defaultBaseUrl, secret }
+/** Send a shopper email branded as the current store, after the response. */
+function sendStoreEmail(
+  to: string,
+  build: (store: { name: string; origin: string }) => {
+    subject: string
+    template: string
+    data: Record<string, unknown>
+  },
+) {
+  after(async () => {
+    try {
+      const store = await currentStore()
+      await getMailer().send("email", { to, ...build(store) })
+    } catch (err) {
+      console.error(`[storefront-auth] email to ${to} failed`, err)
+    }
+  })
 }
 
 /**
- * Better Auth instance — email/password on Neon Postgres via Drizzle.
+ * Shopper auth (email/password on Neon via Drizzle). It serves every store
+ * origin, so `baseURL` is inferred per request — do not set BETTER_AUTH_URL
+ * for the storefront.
  */
 function createAuth() {
-  const { baseURL, secret } = resolveBetterAuthEnv("http://localhost:3000")
+  const secret = process.env.BETTER_AUTH_SECRET?.trim()
+  if (!secret) throw new Error("BETTER_AUTH_SECRET is required")
   return betterAuth({
     database: drizzleAdapter(authDb, { provider: "pg", schema }),
-    trustedOrigins: (request) => {
+    // Trust an Origin only when it resolves to a store (slug subdomain or
+    // verified custom domain).
+    trustedOrigins: async (request) => {
       const origin = request?.headers.get("origin")
-      if (!origin) return []
-      try {
-        const { hostname } = new URL(origin)
-        if (hostname === "localhost") return [origin]
-        if (hostname.endsWith(".prood.app")) return [origin]
-        if (hostname.endsWith(".vercel.app")) return [origin]
-        return []
-      } catch {
-        return []
-      }
+      const platformDomain = process.env.NEXT_PUBLIC_PLATFORM_DOMAIN
+      if (!origin || !platformDomain) return []
+      const { hostname } = new URL(origin)
+      return (await lookupTenantByHost(hostname, platformDomain)) ? [origin] : []
     },
     databaseHooks: {
       user: {
         create: {
           after: async (user) => {
             if (user.email) {
-              try {
-                await autoLinkGuestCustomers(user.id, user.email)
-              } catch {
-                // non-critical — linking can be retried on next login
-              }
-              void getMailer().send("email", {
-                to: user.email,
-                subject: "Welcome!",
+              await autoLinkGuestCustomers(user.id, user.email)
+              sendStoreEmail(user.email, (store) => ({
+                subject: `Welcome to ${store.name}`,
                 template: "welcome",
                 data: {
-                  companyName: "Prood",
+                  companyName: store.name,
                   name: user.name ?? user.email.split("@")[0],
-                  dashboardUrl: `${baseURL}/account`,
+                  dashboardUrl: `${store.origin}/account`,
                 },
-              })
+              }))
             }
           },
         },
@@ -61,25 +76,22 @@ function createAuth() {
     emailAndPassword: {
       enabled: true,
       sendResetPassword: async ({ user, url }) => {
-        void getMailer().send("email", {
-          to: user.email,
-          subject: "Reset your password",
+        sendStoreEmail(user.email, (store) => ({
+          subject: `Reset your ${store.name} password`,
           template: "password-reset",
-          data: { companyName: "Prood", url },
-        })
+          data: { companyName: store.name, url },
+        }))
       },
     },
     emailVerification: {
       sendVerificationEmail: async ({ user, url }) => {
-        void getMailer().send("email", {
-          to: user.email,
-          subject: "Confirm your email address",
+        sendStoreEmail(user.email, (store) => ({
+          subject: `Confirm your email for ${store.name}`,
           template: "activation",
-          data: { companyName: "Prood", url },
-        })
+          data: { companyName: store.name, url },
+        }))
       },
     },
-    baseURL,
     secret,
     plugins: [nextCookies()],
   })

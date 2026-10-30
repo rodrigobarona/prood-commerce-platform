@@ -2,6 +2,7 @@
 // Admin: Customer management
 // ---------------------------------------------------------------------------
 
+import { CommerceError } from '@prood/types'
 import type { Customer, Address, PaginatedResult } from '@prood/types'
 import type { AdminListParams } from './types.js'
 import {
@@ -80,13 +81,13 @@ export function createAdminCustomersDomain() {
 
     async getCustomer(id: string): Promise<Customer> {
       const row = await adminFindCustomerById(id)
-      if (!row) throw new Error(`Customer not found: ${id}`)
+      if (!row) throw new CommerceError(`Customer not found: ${id}`, "NOT_FOUND")
       return mapCustomer(row)
     },
 
     async deleteCustomer(id: string): Promise<void> {
       const row = await adminFindCustomerById(id)
-      if (!row) throw new Error(`Customer not found: ${id}`)
+      if (!row) throw new CommerceError(`Customer not found: ${id}`, "NOT_FOUND")
       await adminDeleteCustomer(id)
     },
   }

@@ -2,6 +2,7 @@
 // Orders domain — order CRUD and status management
 // ---------------------------------------------------------------------------
 
+import { CommerceError } from '@prood/types'
 import type {
   Order,
   CreateOrderInput,
@@ -10,6 +11,8 @@ import type {
   OrderStatusInfo,
   OrderHistoryEntry,
   UpdateOrderStatusInput,
+  PaymentEventInput,
+  PaymentEventResult,
 } from '@prood/types'
 import {
   createOrder as dbCreateOrder,
@@ -19,6 +22,7 @@ import {
   findOrders,
   findOrderItems,
   findOrderHistory,
+  transitionOrderPayment,
   updateOrder,
 } from '../database/index.js'
 import { generateOrderNumber, normalizeLocalizedField, price, priceRequired, img, parseJsonField, toNumber } from './helpers.js'
@@ -131,7 +135,7 @@ export function createOrdersDomain(currency: string) {
 
     async getOrder(orderId: string): Promise<Order> {
       const row = await findOrderById(orderId)
-      if (!row) throw new Error(`Order not found: ${orderId}`)
+      if (!row) throw new CommerceError(`Order not found: ${orderId}`, "NOT_FOUND")
       return mapOrder(row)
     },
 
@@ -184,7 +188,7 @@ export function createOrdersDomain(currency: string) {
 
     async updateOrderStatus(orderId: string, input: UpdateOrderStatusInput): Promise<void> {
       const order = await findOrderById(orderId)
-      if (!order) throw new Error(`Order not found: ${orderId}`)
+      if (!order) throw new CommerceError(`Order not found: ${orderId}`, "NOT_FOUND")
 
       const updates: Record<string, any> = { status: input.status }
       if (input.paymentStatus) updates.paymentStatus = input.paymentStatus
@@ -203,6 +207,49 @@ export function createOrdersDomain(currency: string) {
         toStatus: input.status,
         note: input.note ?? null,
       })
+    },
+
+    async applyPaymentEvent(orderId: string, input: PaymentEventInput): Promise<PaymentEventResult> {
+      const order = await findOrderById(orderId)
+      if (!order) throw new CommerceError(`Order not found: ${orderId}`, "NOT_FOUND")
+
+      if (input.outcome === 'captured') {
+        const expectedCents = Math.round(Number(order.total) * 100)
+        const receivedCents = input.amount === null ? null : Math.round(input.amount * 100)
+        const currencyMatches = input.currency?.toUpperCase() === String(order.currency).toUpperCase()
+        if (receivedCents !== expectedCents || !currencyMatches) {
+          await createOrderHistory({
+            orderId,
+            fromStatus: order.status,
+            toStatus: order.status,
+            note:
+              `${input.provider} reported ${input.amount ?? 'no amount'} ${input.currency ?? ''} ` +
+              `but the order total is ${order.total} ${order.currency}. Payment not applied.`,
+          })
+          return 'amount_mismatch'
+        }
+      }
+
+      const now = new Date()
+      const next: Record<PaymentEventInput['outcome'], { status: string; note: string; data: Record<string, unknown> }> = {
+        authorized: { status: order.status, note: 'Payment authorized', data: { paymentStatus: 'authorized' } },
+        captured: { status: 'approved', note: 'Payment captured', data: { status: 'approved', paymentStatus: 'paid', approvedAt: order.approvedAt ?? now } },
+        failed: { status: 'cancelled', note: 'Payment failed', data: { status: 'cancelled', paymentStatus: 'voided', cancelledAt: order.cancelledAt ?? now } },
+        cancelled: { status: 'cancelled', note: 'Payment cancelled', data: { status: 'cancelled', paymentStatus: 'voided', cancelledAt: order.cancelledAt ?? now } },
+      }
+      const target = next[input.outcome]
+      const from = input.outcome === 'authorized' ? ['unpaid'] : ['unpaid', 'authorized']
+
+      const changed = await transitionOrderPayment(orderId, from, target.data)
+      if (!changed) return 'duplicate'
+
+      await createOrderHistory({
+        orderId,
+        fromStatus: order.status,
+        toStatus: target.status,
+        note: `${target.note} (${input.provider})`,
+      })
+      return 'applied'
     },
 
     async cancelOrder(orderId: string, note?: string): Promise<void> {

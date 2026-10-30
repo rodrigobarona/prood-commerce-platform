@@ -8,7 +8,6 @@ export interface CommerceConfig {
   currency: string
   databaseUrl: string
   storageProvider: StorageProviderId
-  defaultPaymentProvider: string
 }
 
 /** Read the commerce configuration from environment variables. */
@@ -17,6 +16,5 @@ export function getCommerceConfig(): CommerceConfig {
     currency: process.env.COMMERCE_CURRENCY ?? 'EUR',
     databaseUrl: process.env.DATABASE_URL ?? '',
     storageProvider: (process.env.STORAGE_PROVIDER as StorageProviderId) ?? 'vercel-blob',
-    defaultPaymentProvider: process.env.DEFAULT_PAYMENT_PROVIDER ?? 'stripe',
   }
 }

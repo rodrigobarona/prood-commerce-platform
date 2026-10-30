@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server"
-import { toErrorResponse } from "@prood/types"
+import { CommerceError, safeEqual, toErrorResponse } from "@prood/types"
 
 export function errorResponse(err: unknown): NextResponse {
   const { status, body } = toErrorResponse(err)
   return NextResponse.json(body, { status })
 }
 
+/** Authenticate server-to-server calls from the storefront and API. */
 export function requireApiSecret(request: Request): void {
-  const secret = process.env.CHECKOUT_API_SECRET
-  if (!secret) return
-  const header = request.headers.get("x-checkout-secret")
-  if (header !== secret) {
-    throw Object.assign(new Error("Unauthorized"), { status: 401 })
+  const expected = process.env.CHECKOUT_API_SECRET?.trim()
+  const provided = request.headers.get("x-checkout-secret")?.trim()
+  if (!expected || !provided || !safeEqual(provided, expected)) {
+    throw new CommerceError("Invalid checkout secret", "UNAUTHORIZED", 401)
   }
 }

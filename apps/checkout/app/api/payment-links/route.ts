@@ -4,6 +4,7 @@ import { createPaymentLink } from "@prood/checkout-host"
 import { errorResponse, requireApiSecret } from "@/lib/api"
 
 const linkSchema = z.object({
+  tenantId: z.string().min(1),
   amount: z.number().positive(),
   currency: z.string().min(3).max(3),
   orderId: z.string().optional(),

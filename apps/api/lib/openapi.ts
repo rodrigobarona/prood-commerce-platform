@@ -229,6 +229,11 @@ export function buildOpenApiDocument() {
         scope: "storefront",
         response: responses.product,
       }),
+      "/products/by-slug/{slug}": pathItem("GET", "Get product by URL slug", "getProductBySlug", {
+        pathTemplate: "/products/by-slug/{slug}",
+        scope: "storefront",
+        response: responses.product,
+      }),
       "/categories": pathItem("GET", "List categories", "listCategories", {
         scope: "storefront",
         query: categoriesQuery,

@@ -2,6 +2,7 @@
 // Admin: Inventory management
 // ---------------------------------------------------------------------------
 
+import { CommerceError } from '@prood/types'
 import type { Product } from '@prood/types'
 import type { UpdateInventoryInput } from './types.js'
 import {
@@ -118,7 +119,7 @@ export function createAdminInventoryDomain(currency: string) {
         } else {
           const variants = await findProductVariants(input.productId)
           const variant = variants.find((v: any) => v.id === input.variantId)
-          if (!variant) throw new Error(`Variant not found: ${input.variantId}`)
+          if (!variant) throw new CommerceError(`Variant not found: ${input.variantId}`, "NOT_FOUND")
 
           const current = variant.inventoryQuantity ?? 0
           const newQty = adjustment === 'increment' ? current + input.quantity : current - input.quantity
@@ -136,7 +137,7 @@ export function createAdminInventoryDomain(currency: string) {
           })
         } else {
           const product = await findProductById(input.productId)
-          if (!product) throw new Error(`Product not found: ${input.productId}`)
+          if (!product) throw new CommerceError(`Product not found: ${input.productId}`, "NOT_FOUND")
 
           const current = (product as any).inventoryQuantity ?? 0
           const newQty = adjustment === 'increment' ? current + input.quantity : current - input.quantity

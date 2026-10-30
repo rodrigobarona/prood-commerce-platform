@@ -12,7 +12,7 @@ export interface SessionMeta {
   returnUrl: string | null
   cancelUrl: string | null
   webhookUrl: string | null
-  tenantId?: string | null
+  tenantId: string
   orderId?: string | null
   customerId?: string | null
   storeName?: string | null
@@ -28,16 +28,13 @@ let redis: Redis | null = null
 
 function getRedis(): Redis {
   if (!redis) {
-    const url =
-      process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL
-    const token =
-      process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN
+    // Provisioned by the Vercel Marketplace Upstash integration.
+    const url = process.env.KV_REST_API_URL
+    const token = process.env.KV_REST_API_TOKEN
     if (!url || !token) {
-      throw new Error(
-        "Redis REST credentials are required. Set UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN (Upstash) or KV_REST_API_URL + KV_REST_API_TOKEN (Vercel Marketplace Redis/KV).",
-      )
+      throw new Error('KV_REST_API_URL and KV_REST_API_TOKEN are required for checkout sessions')
     }
-    redis = Redis.fromEnv()
+    redis = new Redis({ url, token })
   }
   return redis
 }

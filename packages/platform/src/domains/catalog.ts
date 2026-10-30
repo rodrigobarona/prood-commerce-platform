@@ -2,6 +2,7 @@
 // Catalog domain — product and category retrieval
 // ---------------------------------------------------------------------------
 
+import { CommerceError } from '@prood/types'
 import type {
   Product,
   Category,
@@ -128,7 +129,7 @@ export function createCatalogDomain(currency: string) {
           : null
 
       if (!row) {
-        throw new Error(`Product not found: ${params.id ?? params.slug}`)
+        throw new CommerceError(`Product not found: ${params.id ?? params.slug}`, "NOT_FOUND")
       }
 
       const related = await fetchProductRelations(row.id)
