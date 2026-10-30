@@ -14,12 +14,11 @@ import {
   sumOrderRevenue,
   findRecentOrders,
   countCustomers,
-  findOrderItems,
   countProducts,
   countActiveProducts,
   countOrders,
 } from '../database/index.js'
-import { normalizeLocalizedField, priceRequired, price, img, parseJsonField } from '../domains/helpers.js'
+import { mapOrder } from '../domains/order-mapper.js'
 
 /**
  * Create an AdminAPI — the merchant-facing management interface.
@@ -36,7 +35,7 @@ import { normalizeLocalizedField, priceRequired, price, img, parseJsonField } fr
 export function createAdminAPI(currency: string): AdminAPI {
   const products = createAdminProductsDomain(currency)
   const categories = createAdminCategoriesDomain()
-  const orders = createAdminOrdersDomain(currency)
+  const orders = createAdminOrdersDomain()
   const customers = createAdminCustomersDomain()
   const store = createAdminStoreDomain()
   const inventory = createAdminInventoryDomain()
@@ -94,56 +93,7 @@ export function createAdminAPI(currency: string): AdminAPI {
         findRecentOrders(5),
       ])
 
-      // Map recent orders to full Order type
-      const recentOrders = await Promise.all(
-        recentOrderRows.map(async (row: any) => {
-          const items = await findOrderItems(row.id)
-          return {
-            id: row.id,
-            orderNumber: row.orderNumber,
-            status: row.status,
-            items: items.map((i: any) => ({
-              id: i.id,
-              productId: i.productId,
-              variantId: i.variantId ?? null,
-              name: normalizeLocalizedField(i.name),
-              image: i.image ? img(i.image, null) : null,
-              quantity: i.quantity,
-              price: priceRequired(i.price, currency),
-              totalPrice: priceRequired(i.totalPrice, currency),
-              fulfillmentStatus: i.fulfillmentStatus as any,
-              productType: i.productType as any,
-              digital: null,
-              event: null,
-            })),
-            totals: {
-              subtotal: priceRequired(row.subtotal, currency),
-              shipping: price(row.shippingCost, currency),
-              tax: price(row.tax, currency),
-              discount: price(row.discount, currency),
-              total: priceRequired(row.total, currency),
-            },
-            shippingAddress: parseJsonField(row.shippingAddress),
-            billingAddress: parseJsonField(row.billingAddress),
-            shippingMethod: null,
-            paymentMethod: null,
-            trackingNumber: row.trackingNumber ?? null,
-            trackingUrl: row.trackingUrl ?? null,
-            note: row.note ?? null,
-            customerId: row.customerId ?? null,
-            contactEmail: row.contactEmail ?? null,
-            requiresShipping: Boolean(row.requiresShipping),
-            paymentStatus: row.paymentStatus ?? 'unpaid',
-            fulfillmentStatus: row.fulfillmentStatus ?? 'unfulfilled',
-            placedAt: row.placedAt ?? null,
-            approvedAt: row.approvedAt ?? null,
-            cancelledAt: row.cancelledAt ?? null,
-            fulfilledAt: row.fulfilledAt ?? null,
-            createdAt: row.createdAt,
-            updatedAt: row.updatedAt,
-          }
-        }),
-      )
+      const recentOrders = await Promise.all(recentOrderRows.map(mapOrder))
 
       return {
         totalProducts,

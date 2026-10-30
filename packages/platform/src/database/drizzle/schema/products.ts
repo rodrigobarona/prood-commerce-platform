@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Products schema — products, variants, images, options, attributes
+// Products schema — products, variants, images, attributes
 // ---------------------------------------------------------------------------
 
 import { pgTable, text, integer, boolean, numeric, doublePrecision, timestamp, jsonb, index, primaryKey, unique } from 'drizzle-orm/pg-core'
@@ -75,32 +75,6 @@ export const productVariants = pgTable('product_variants', {
   compareAtPrice: numeric('compare_at_price', { precision: 12, scale: 2 }),
   inStock: boolean('in_stock').notNull().default(true),
   inventoryQuantity: integer('inventory_quantity'),
-  sortOrder: integer('sort_order').notNull().default(0),
-}, (t) => [
-  index().on(t.organizationId),
-  tenantIsolation(),
-])
-
-// ---- Product Options (e.g., Size, Color) ----
-
-export const productOptions = pgTable('product_options', {
-  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  organizationId: organizationId(),
-  productId: text('product_id').notNull().references(() => products.id, { onDelete: 'cascade' }),
-  name: jsonb('name').$type<LocalizedField>().notNull().default({}),
-  sortOrder: integer('sort_order').notNull().default(0),
-}, (t) => [
-  index().on(t.organizationId),
-  tenantIsolation(),
-])
-
-// ---- Product Option Values (e.g., S, M, L, XL) ----
-
-export const productOptionValues = pgTable('product_option_values', {
-  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  organizationId: organizationId(),
-  optionId: text('option_id').notNull().references(() => productOptions.id, { onDelete: 'cascade' }),
-  name: jsonb('name').$type<LocalizedField>().notNull().default({}),
   sortOrder: integer('sort_order').notNull().default(0),
 }, (t) => [
   index().on(t.organizationId),

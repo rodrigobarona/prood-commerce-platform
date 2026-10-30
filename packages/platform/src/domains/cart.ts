@@ -19,6 +19,7 @@ import {
   findPrimaryImage,
 } from '../database/index.js'
 import { normalizeLocalizedField, discountablePrice, priceRequired, img, parseJsonField, toNumber } from './helpers.js'
+import { listPaymentMethods, listShippingMethods } from './checkout-methods.js'
 
 export function createCartDomain(currency: string) {
   /** Build a full Cart object from cart row + items + product data */
@@ -58,26 +59,23 @@ export function createCartDomain(currency: string) {
 
     const subtotal = cartItems.reduce((sum, item) => sum + item.totalPrice.amount, 0)
 
-    // Look up stored shipping method price
-    // Shipping rates are defined here to keep cart domain self-contained
-    const shippingRates: Record<string, number> = { standard: 15, express: 35 }
-    const shippingMethodId = cartRow.shippingMethodId ?? null
-    const shippingAmount = shippingMethodId ? (shippingRates[shippingMethodId] ?? 0) : 0
+    const shippingMethod = listShippingMethods(currency).find(m => m.id === cartRow.shippingMethodId) ?? null
+    const paymentMethod = listPaymentMethods().find(m => m.id === cartRow.paymentMethodId) ?? null
 
     return {
       id: cartRow.id,
       items: cartItems,
       totals: {
         subtotal: priceRequired(subtotal, currency),
-        shipping: shippingMethodId ? priceRequired(shippingAmount, currency) : null,
+        shipping: shippingMethod?.price ?? null,
         tax: null,
         discount: null,
-        total: priceRequired(subtotal + shippingAmount, currency),
+        total: priceRequired(subtotal + (shippingMethod?.price.amount ?? 0), currency),
       },
       shippingAddress: parseJsonField(cartRow.shippingAddress),
       billingAddress: parseJsonField(cartRow.billingAddress),
-      shippingMethod: null,
-      paymentMethod: null,
+      shippingMethod,
+      paymentMethod,
       couponCode: cartRow.couponCode ?? null,
       customerId: cartRow.customerId ?? null,
       itemCount: cartItems.reduce((sum, item) => sum + item.quantity, 0),
