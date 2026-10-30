@@ -1,7 +1,24 @@
 @import 'tailwindcss';
-@import 'fumadocs-ui/css/neutral.css';
+@import 'fumadocs-ui/css/shadcn.css';
 @import 'fumadocs-ui/css/preset.css';
 @import 'fumadocs-openapi/css/preset.css';
+@import '@prood/ui/themes/prood.css';
+
+@theme inline {
+  --font-sans: var(--font-family-sans);
+  --font-mono: var(--font-family-mono);
+}
+
+/* Telha marks the active page and links; ink stays the reading colour. */
+:root,
+.dark {
+  --color-fd-primary: var(--brand);
+  --color-fd-primary-foreground: var(--brand-foreground);
+}
+
+:is(h1, h2, h3) {
+  font-family: var(--font-family-heading);
+}
 
 html {
   scrollbar-gutter: stable;

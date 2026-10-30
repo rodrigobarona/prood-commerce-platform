@@ -3,13 +3,13 @@
 import { buttonVariants } from 'fumadocs-ui/components/ui/button';
 import { cn } from '@/lib/cn';
 import {
-  Maximize2,
-  Minimize2,
-  Move,
-  RotateCcw,
-  ZoomIn,
-  ZoomOut,
-} from 'lucide-react';
+  ArrowCounterClockwiseIcon,
+  ArrowsInIcon,
+  ArrowsOutCardinalIcon,
+  ArrowsOutIcon,
+  MagnifyingGlassMinusIcon,
+  MagnifyingGlassPlusIcon,
+} from '@phosphor-icons/react';
 import {
   useCallback,
   useEffect,
@@ -123,7 +123,7 @@ export function MermaidViewer({ svg }: MermaidViewerProps) {
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-fd-border px-3 py-2">
         <p className="flex items-center gap-1.5 text-xs text-fd-muted-foreground">
-          <Move className="size-3.5 shrink-0" aria-hidden />
+          <ArrowsOutCardinalIcon className="size-3.5 shrink-0" aria-hidden />
           Drag to pan · Scroll to zoom
         </p>
         <div
@@ -137,7 +137,7 @@ export function MermaidViewer({ svg }: MermaidViewerProps) {
             aria-label="Zoom out"
             onClick={() => zoomBy(-ZOOM_STEP)}
           >
-            <ZoomOut className="size-4" aria-hidden />
+            <MagnifyingGlassMinusIcon className="size-4" aria-hidden />
           </button>
           <button
             type="button"
@@ -145,7 +145,7 @@ export function MermaidViewer({ svg }: MermaidViewerProps) {
             aria-label="Zoom in"
             onClick={() => zoomBy(ZOOM_STEP)}
           >
-            <ZoomIn className="size-4" aria-hidden />
+            <MagnifyingGlassPlusIcon className="size-4" aria-hidden />
           </button>
           <button
             type="button"
@@ -153,7 +153,7 @@ export function MermaidViewer({ svg }: MermaidViewerProps) {
             aria-label="Reset zoom and position"
             onClick={resetView}
           >
-            <RotateCcw className="size-4" aria-hidden />
+            <ArrowCounterClockwiseIcon className="size-4" aria-hidden />
           </button>
           <button
             type="button"
@@ -162,9 +162,9 @@ export function MermaidViewer({ svg }: MermaidViewerProps) {
             onClick={() => void toggleFullscreen()}
           >
             {isFullscreen ? (
-              <Minimize2 className="size-4" aria-hidden />
+              <ArrowsInIcon className="size-4" aria-hidden />
             ) : (
-              <Maximize2 className="size-4" aria-hidden />
+              <ArrowsOutIcon className="size-4" aria-hidden />
             )}
           </button>
         </div>

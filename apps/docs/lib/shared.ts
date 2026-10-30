@@ -1,4 +1,3 @@
-export const appName = "Prood"
 export const docsRoute = "/docs"
 /** Interactive API reference (Fumadocs OpenAPI). */
 export const docsApiRoute = `${docsRoute}/api`

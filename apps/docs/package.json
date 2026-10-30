@@ -21,7 +21,7 @@
     "fumadocs-openapi": "catalog:",
     "fumadocs-ui": "catalog:",
     "@phosphor-icons/react": "catalog:",
-    "lucide-react": "catalog:",
+    "@prood/ui": "workspace:*",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
