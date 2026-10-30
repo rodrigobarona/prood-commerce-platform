@@ -184,6 +184,22 @@ describe('@prood/platform [drizzle]', () => {
         await expect(adapter.getProduct({ slug: product.slug })).rejects.toMatchObject({ code: 'NOT_FOUND' })
       })
     })
+
+    it('does not sell a product that left the catalog', async () => {
+      await cleanDatabase()
+      await seedDrizzle()
+      const { adapter } = await createPlatformAdapter()
+      await withTenant(DEMO_ORG_ID, async () => {
+        const cart = await adapter.createCart()
+        await adapter.addToCart(cart.id, { productId: 'prod-1', quantity: 1 })
+        await getDb().execute(sql`update products set status = 'archived' where id = 'prod-1'`)
+        await expect(adapter.placeOrder(cart.id)).rejects.toMatchObject({ code: 'VALIDATION' })
+        const another = await adapter.createCart()
+        await expect(
+          adapter.addToCart(another.id, { productId: 'prod-1', quantity: 1 }),
+        ).rejects.toMatchObject({ code: 'NOT_FOUND' })
+      })
+    })
   })
 
   describe('adapter', () => {
