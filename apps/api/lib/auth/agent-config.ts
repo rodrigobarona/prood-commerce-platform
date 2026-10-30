@@ -18,9 +18,13 @@ let cachedProxyKeysByOrg: Record<string, string> | null = null
 /** `AGENT_PROXY_API_KEYS_BY_ORG`: JSON object of organization id → API key. */
 function parseProxyKeysByOrg(): Record<string, string> {
   if (cachedProxyKeysByOrg) return cachedProxyKeysByOrg
-  const parsed: unknown = JSON.parse(
-    requiredEnv(process.env.AGENT_PROXY_API_KEYS_BY_ORG, "AGENT_PROXY_API_KEYS_BY_ORG")
-  )
+  const raw = requiredEnv(process.env.AGENT_PROXY_API_KEYS_BY_ORG, "AGENT_PROXY_API_KEYS_BY_ORG")
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(raw)
+  } catch {
+    throw new Error("AGENT_PROXY_API_KEYS_BY_ORG must be valid JSON")
+  }
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
     throw new Error("AGENT_PROXY_API_KEYS_BY_ORG must be a JSON object")
   }

@@ -42,7 +42,7 @@ Every REST operation with an `operationId` in the OpenAPI spec becomes an agent 
 | `adminCreateProduct` | POST | `admin` (requires approval) |
 | `adminRefundOrder` | POST | `admin` (requires approval) |
 
-Read-only methods (`GET`) can be auto-granted to new agent hosts. Mutating methods (`POST`, `PATCH`, `DELETE`) require user approval via device authorization or CIBA.
+Only public catalog reads (`listProducts`, `getProduct`, `getProductBySlug`, `listCategories`, `getStore`, `listCountries`) are auto-granted to new agent hosts. Everything else, including other `GET` operations and every `admin*` operation, requires user approval via device authorization or CIBA. Approving also binds the agent to the active store.
 
 ## Agent registration flow
 

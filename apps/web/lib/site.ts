@@ -15,7 +15,7 @@ export const siteConfig = {
   },
   url: process.env.NEXT_PUBLIC_WEB_URL ?? "http://localhost:3001",
   docsUrl: process.env.NEXT_PUBLIC_DOCS_URL ?? "http://localhost:3003",
-  storefrontUrl: process.env.NEXT_PUBLIC_STOREFRONT_URL ?? "http://localhost:3000",
+  storefrontUrl: process.env.NEXT_PUBLIC_DEMO_STORE_URL ?? "http://localhost:3000",
   dashboardUrl: process.env.NEXT_PUBLIC_DASHBOARD_URL ?? "http://localhost:3002",
   apiUrl: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3005",
   registerUrl:

@@ -11,8 +11,8 @@ The API checks authentication methods in this order:
 
 | Priority | Method | Header / Cookie | Tenant source | Scopes |
 | --- | --- | --- | --- | --- |
-| 1 | Agent JWT | `Authorization: Bearer {jwt}` | Agent metadata or user's first org membership | From capability grants |
-| 2 | API key | `x-api-key: {key}` | Key metadata `organizationId` | Key metadata `scopes` |
+| 1 | Agent JWT | `Authorization: Bearer {jwt}` | The store it was approved for, or the user's only store | Per operation, from capability grants |
+| 2 | API key | `x-api-key: {key}` | The organization that owns the key | Key metadata `scopes` |
 | 3 | Session cookie | `Cookie: better-auth.session=...` | `session.activeOrganizationId` | `admin`, `storefront` |
 | 4 | Host header | `Host: merchant.example.com` | Tenant domain / subdomain lookup | `storefront` only |
 
@@ -93,10 +93,8 @@ API keys are created in the dashboard (Settings → API Keys) and stored by Bett
 await auth.api.createApiKey({
   body: {
     name: 'Integration key',
-    metadata: {
-      organizationId: activeOrgId,
-      scopes: ['admin'],
-    },
+    organizationId: activeOrgId,
+    metadata: { scopes: ['admin'] },
   },
 })
 ```
@@ -116,7 +114,7 @@ Briefly:
 1. Agent discovers config at `/.well-known/agent-configuration`
 2. Agent registers and receives capability grants
 3. Agent calls API with `Authorization: Bearer {jwt}`
-4. API validates JWT, maps grants to scopes, resolves org from agent metadata
+4. API validates JWT, resolves the store, and checks the agent holds the capability for that operation
 
 ## Webhook authentication
 
