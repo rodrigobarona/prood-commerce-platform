@@ -26,7 +26,8 @@ cd prood-commerce-platform
 pnpm install
 cp .env.example .env.local
 pnpm env:link
-pnpm db:setup
+pnpm db:migrate
+pnpm db:seed
 pnpm dev
 ```
 
@@ -41,15 +42,12 @@ After `pnpm dev`, Turbo starts all apps:
 | Checkout | [http://localhost:3004](http://localhost:3004) |
 | API | [http://localhost:3005](http://localhost:3005) |
 
-## What `db:setup` does
+## Database scripts
 
-The root script runs three steps:
+1. **`pnpm db:migrate`** — Applies the versioned migrations in `packages/platform/drizzle` with `drizzle-kit migrate`: the commerce tables, the Better Auth tables (user, session, account, organization, agent auth, `tenant_domain`, `integration_config`), the `prood_app` role and the row-level-security policies. Already-applied migrations are skipped, so re-running it is a no-op.
+2. **`pnpm db:seed`** — Seeds the demo store: the `org_demo` organization (slug `prood-demo`), European countries, the demo catalog in EUR, and an admin user from `ADMIN_EMAIL` / `ADMIN_PASSWORD` when those env vars are set. Idempotent.
 
-1. **`pnpm db:migrate`** — Applies the `@prood/platform` Drizzle schema, enables row-level security (`applyTenantIsolation`), and seeds a demo store tagged with `org_demo`.
-2. **`pnpm db:auth`** — Creates Better Auth tables (user, session, account, organization, etc.) used by storefront, dashboard, and API.
-3. **`pnpm db:seed-auth`** — Seeds the `org_demo` organization and an admin user from `ADMIN_EMAIL` / `ADMIN_PASSWORD` when those env vars are set.
-
-Set `DEFAULT_TENANT_ORG_ID=org_demo` in `.env.local` (the default in `.env.example`) so the storefront resolves the seeded catalog on localhost.
+The storefront resolves the demo store from its host: open [http://prood-demo.localhost:3000](http://prood-demo.localhost:3000).
 
 ## Shared environment
 
@@ -67,4 +65,4 @@ All apps read from a **single root** `.env.local`. Run `pnpm env:link` once to s
 
 After seeding, the platform creates an admin user if `ADMIN_EMAIL` and `ADMIN_PASSWORD` are set in `.env.local`. Use these to sign in to the dashboard at `:3002`.
 
-The seeded catalog is scoped to `DEFAULT_TENANT_ORG_ID` (default `org_demo`). The storefront serves this store when no custom domain is configured.
+The seeded catalog belongs to the `org_demo` organization. The storefront serves it at `prood-demo.localhost:3000` (the `{slug}.{NEXT_PUBLIC_PLATFORM_DOMAIN}` host).

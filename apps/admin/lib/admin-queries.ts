@@ -4,7 +4,7 @@ import { connection } from "next/server"
 import { neon } from "@neondatabase/serverless"
 import { drizzle } from "drizzle-orm/neon-http"
 import { count, eq, gt, gte, sql, desc, asc } from "drizzle-orm"
-import * as schema from "@/lib/auth/schema"
+import * as schema from "@prood/auth/schema"
 
 const connectionString =
   process.env.DATABASE_URL ??

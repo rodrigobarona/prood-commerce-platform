@@ -9,9 +9,9 @@ This guide walks through the **end-to-end customer flow** using the default loca
 
 Ensure you have completed [Installation](/docs/getting-started/installation):
 
-- `pnpm db:setup` completed successfully
+- `pnpm db:migrate` and `pnpm db:seed` completed successfully
 - `pnpm dev` running (or at least storefront `:3000`, checkout `:3004`, api `:3005`)
-- `DEFAULT_TENANT_ORG_ID=org_demo` in `.env.local`
+- `NEXT_PUBLIC_PLATFORM_DOMAIN=localhost` in `.env.local`, so the demo store is served at `prood-demo.localhost:3000`
 
 For live payments, also configure Stripe (or another provider) and Upstash Redis. Without Redis, checkout session creation will fail.
 
@@ -99,8 +99,8 @@ You can also interact with the API directly:
 # Health check
 curl http://localhost:3005/v1/health
 
-# List products (tenant from Host header or DEFAULT_TENANT_ORG_ID)
-curl -H "Host: localhost:3000" http://localhost:3005/v1/products
+# List the demo store's products (tenant from the storefront host)
+curl -H "x-storefront-host: prood-demo.localhost" http://localhost:3005/v1/products
 
 # OpenAPI spec
 curl http://localhost:3005/v1/openapi.json

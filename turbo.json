@@ -65,19 +65,10 @@
         "^build"
       ]
     },
-    "db:generate": {
-      "cache": false
-    },
-    "db:migrate": {
+    "db:seed": {
       "cache": false,
       "dependsOn": [
-        "^build"
-      ]
-    },
-    "db:migrate:seed": {
-      "cache": false,
-      "dependsOn": [
-        "^build"
+        "build"
       ]
     },
     "dev": {

@@ -7,7 +7,7 @@ import {
   type PlanId,
 } from "@prood/billing"
 import { authDb } from "@/lib/auth/db"
-import { organization } from "@/lib/auth/schema"
+import { organization } from "@prood/auth/schema"
 
 export async function getOrganizationPlanId(orgId: string): Promise<PlanId> {
   const [row] = await authDb

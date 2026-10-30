@@ -45,36 +45,41 @@ At minimum, set:
 ```bash
 DATABASE_URL="postgresql://user:password@host/db?sslmode=require"
 BETTER_AUTH_SECRET="<openssl rand -base64 32>"
-DEFAULT_TENANT_ORG_ID="org_demo"
+NEXT_PUBLIC_PLATFORM_DOMAIN="localhost"
 ```
 
 See [Environment variables](/docs/getting-started/environment) for the complete reference.
 
 ## Step 3 — Database setup
 
-Run the combined setup script:
+Apply the migrations, then seed the demo store:
 
 ```bash
-pnpm db:setup
+pnpm db:migrate
+pnpm db:seed
 ```
-
-This executes:
 
 | Script | What it does |
 | --- | --- |
-| `pnpm db:migrate` | Runs `@prood/platform` migrations, applies RLS policies, seeds demo catalog |
-| `pnpm db:auth` | Pushes Better Auth schema via Drizzle (`pnpm --filter storefront db:push`) |
+| `pnpm db:migrate` | Applies pending migrations from `packages/platform/drizzle` (commerce + Better Auth tables, `prood_app` role, RLS policies). Re-running it is a no-op. |
+| `pnpm db:seed` | Seeds `org_demo`, European countries, the demo catalog and (with `ADMIN_EMAIL` / `ADMIN_PASSWORD`) an admin user. Idempotent. |
+| `pnpm db:generate` | Generates the next migration after a schema change. |
 
 ### Verify the seed
 
-Connect to your database and confirm products exist:
+Connect to your database and query the demo products as the tenant role, the
+same way `withTenant()` does:
 
 ```sql
-SELECT set_config('app.current_org_id', 'org_demo', false);
-SELECT id, name FROM products LIMIT 5;
+BEGIN;
+SELECT set_config('app.current_org_id', 'org_demo', true);
+SET LOCAL ROLE prood_app;
+SELECT id, slug FROM products;
+COMMIT;
 ```
 
-RLS requires `app.current_org_id` to be set — this is what `@prood/commerce` `withTenant()` does automatically.
+The connecting role (for example `neondb_owner` on Neon) has `BYPASSRLS` and
+sees every tenant's rows; `prood_app` only sees the tenant in `app.current_org_id`.
 
 ## Step 4 — Start development
 
@@ -152,10 +157,10 @@ Every app that touches auth or commerce requires `DATABASE_URL`. Ensure `.env.lo
 
 `apps/checkout` requires Upstash Redis. Set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` in `.env.local`. Without Redis, session creation returns 500.
 
-### Storefront shows 404 in production
+### Storefront redirects to the marketing site
 
-If no tenant matches the request host and `DEFAULT_TENANT_ORG_ID` is unset, the storefront calls `notFound()`. In development, it falls back to the demo org.
+The storefront resolves the store from the request host (a verified custom domain or `{slug}.{NEXT_PUBLIC_PLATFORM_DOMAIN}`). Unknown hosts redirect to `NEXT_PUBLIC_WEB_URL`. Locally, open `http://prood-demo.localhost:3000` after `pnpm db:seed`.
 
 ### Auth tables missing
 
-Run `pnpm db:auth` or the full `pnpm db:setup`. Auth tables are separate from the commerce schema and must be pushed via Drizzle.
+Run `pnpm db:migrate`. Better Auth tables are part of the same versioned migrations as the commerce schema.

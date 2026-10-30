@@ -19,7 +19,6 @@ DATABASE_URL="postgresql://user:password@host/db?sslmode=require"
 
 | Variable | Required | Used by | Description |
 | --- | --- | --- | --- |
-| `DEFAULT_TENANT_ORG_ID` | Dev | Storefront, API | Fallback org when host-based tenant resolution fails. Set to seeded org id after `pnpm db:setup`. Unset in production → unmatched hosts return 404. |
 | `NEXT_PUBLIC_PLATFORM_DOMAIN` | Prod | Storefront, Dashboard, API | Apex for merchant storefront subdomains only (`{slug}.prood.app`). Platform services run on `prood.com`. Example: `prood.app`. |
 
 ## Commerce engine
@@ -59,7 +58,7 @@ Uploaded files are namespaced per tenant: `org/<orgId>/…` via `uploadForTenant
 
 | Variable | Description |
 | --- | --- |
-| `ADMIN_EMAIL` | Initial platform admin email (used during `db:migrate` seed) |
+| `ADMIN_EMAIL` | Initial platform admin email (used by `pnpm db:seed`) |
 | `ADMIN_PASSWORD` | Initial platform admin password |
 
 ## Payments
@@ -149,20 +148,19 @@ Optional for local dev; required for custom domain provisioning in production:
 
 | App | Critical vars |
 | --- | --- |
-| **storefront** | `DATABASE_URL`, `COMMERCE_API_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `CHECKOUT_URL`, `CHECKOUT_API_SECRET`, `DEFAULT_TENANT_ORG_ID` |
+| **storefront** | `DATABASE_URL`, `COMMERCE_API_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `CHECKOUT_URL`, `CHECKOUT_API_SECRET` |
 | **dashboard** | `DATABASE_URL`, `COMMERCE_API_URL`, `BETTER_AUTH_SECRET`, `NEXT_PUBLIC_AUTH_URL`, `INTEGRATION_ENCRYPTION_KEY` |
 | **checkout** | `UPSTASH_REDIS_*`, `CHECKOUT_API_SECRET`, `COMMERCE_API_URL`, payment provider keys |
 | **api** | `DATABASE_URL`, `BETTER_AUTH_*`, `AUTH_COOKIE_DOMAIN`, `COMMERCE_CURRENCY`, payment/storage provider keys, `CHECKOUT_API_SECRET`, `RESEND_*` |
-| **admin** | `DATABASE_URL`, `BETTER_AUTH_SECRET`, `NEXT_PUBLIC_ADMIN_URL`, `ADMIN_USER_IDS` |
+| **admin** | `DATABASE_URL`, `BETTER_AUTH_SECRET`, `NEXT_PUBLIC_ADMIN_URL` |
 | **docs** | None (static site; OpenAPI synced at build time) |
 
 ## Production checklist
 
 1. Generate strong secrets: `BETTER_AUTH_SECRET`, `CHECKOUT_API_SECRET`, `INTEGRATION_ENCRYPTION_KEY`
-2. Set `DEFAULT_TENANT_ORG_ID` only for single-tenant deployments; otherwise rely on host resolution
-3. Configure `NEXT_PUBLIC_PLATFORM_DOMAIN` for subdomain tenants
-4. Provision Upstash Redis for checkout
-5. Set `RESEND_API_KEY` and a verified-domain `RESEND_FROM_EMAIL`
-6. Set production payment keys (or configure per-tenant in dashboard)
-7. Point webhook URLs to checkout: `/api/webhooks/{stripe\|easypay\|ifthenpay}/{orgId}`
-8. Run `pnpm db:setup` against the production database once
+2. Configure `NEXT_PUBLIC_PLATFORM_DOMAIN` for subdomain tenants
+3. Provision Upstash Redis for checkout
+4. Set `RESEND_API_KEY` and a verified-domain `RESEND_FROM_EMAIL`
+5. Set production payment keys (or configure per-tenant in dashboard)
+6. Point webhook URLs to checkout: `/api/webhooks/{stripe\|easypay\|ifthenpay}/{orgId}`
+7. Run `pnpm db:migrate` against the production database on every deploy that adds migrations

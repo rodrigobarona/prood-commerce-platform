@@ -9,9 +9,9 @@ import {
 } from '../database/drizzle/queries/store.js'
 
 const DEFAULT_STORE = {
-  currency: 'SAR',
+  currency: 'EUR',
   locale: 'en',
-  timezone: 'Asia/Riyadh',
+  timezone: 'Europe/Lisbon',
 } as const
 
 export interface EnsureStoreInfoOptions {

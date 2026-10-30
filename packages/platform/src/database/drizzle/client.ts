@@ -4,9 +4,10 @@
 //
 // Uses the WebSocket-based Pool driver (not neon-http) because multi-tenant
 // row-level security needs a *session-bound* connection: each tenant-scoped
-// request runs inside a transaction that sets `app.current_org_id`, and every
-// query in that request must execute on the same connection. neon-http is
-// stateless per query and cannot carry that session variable.
+// request runs inside a transaction that sets `app.current_org_id` and
+// switches to the `prood_app` role, and every query in that request must
+// execute on the same connection. neon-http is stateless per query and cannot
+// carry that state.
 
 import { AsyncLocalStorage } from 'node:async_hooks'
 import { Pool } from '@neondatabase/serverless'
@@ -24,7 +25,7 @@ let _pool: Pool | null = null
 let _db: DrizzleDatabase | null = null
 
 // Per-request tenant context. When set, getDb() returns the transaction handle
-// bound to the tenant connection so RLS policies see `app.current_org_id`.
+// bound to the tenant connection, where RLS policies apply.
 const tenantStore = new AsyncLocalStorage<{ db: DrizzleTx; organizationId: string }>()
 
 /**
@@ -54,8 +55,8 @@ function getBaseDb(): DrizzleDatabase {
  * Get the database for the current execution context.
  *
  * Inside `withTenant()`, this returns the tenant-bound transaction handle so
- * every query runs on the connection that has `app.current_org_id` set (RLS).
- * Outside a tenant scope, it returns the base pool database.
+ * every query runs through RLS as `prood_app`. Outside a tenant scope, it
+ * returns the base pool database (connecting role, cross-tenant).
  */
 export function getDb(): DrizzleDatabase {
   const scoped = tenantStore.getStore()
@@ -66,10 +67,12 @@ export function getDb(): DrizzleDatabase {
 /**
  * Run `fn` with all queries scoped to a tenant (organization).
  *
- * Opens a transaction, sets the `app.current_org_id` session variable (local to
- * the transaction) so RLS policies filter rows by organization, and exposes the
+ * Opens a transaction, sets the `app.current_org_id` setting and switches to
+ * the `prood_app` role (both local to the transaction), and exposes the
  * transaction handle to `getDb()` via AsyncLocalStorage. Every query issued
- * inside `fn` automatically runs on that connection.
+ * inside `fn` runs on that connection as `prood_app`, which has DML grants but
+ * no BYPASSRLS, so the `tenant_isolation` policies filter every read and
+ * reject writes for any other organization.
  */
 export async function withTenant<T>(
   organizationId: string,
@@ -80,6 +83,7 @@ export async function withTenant<T>(
     await tx.execute(
       sql`select set_config('app.current_org_id', ${organizationId}, true)`,
     )
+    await tx.execute(sql`set local role prood_app`)
     return tenantStore.run({ db: tx, organizationId }, fn)
   })
 }

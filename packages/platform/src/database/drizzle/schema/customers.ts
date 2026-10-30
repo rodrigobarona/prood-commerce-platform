@@ -5,11 +5,12 @@
 // Commerce references buyers by customers.id (internal UUID) everywhere else.
 // ---------------------------------------------------------------------------
 
-import { boolean, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { boolean, pgTable, text, timestamp, index, unique } from 'drizzle-orm/pg-core'
+import { organizationId, tenantIsolation } from './tenant.js'
 
 export const customers = pgTable('customers', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  organizationId: text('organization_id'),
+  organizationId: organizationId(),
   authUserId: text('auth_user_id'),
   email: text('email'),
   firstName: text('first_name'),
@@ -18,11 +19,14 @@ export const customers = pgTable('customers', {
   defaultAddressId: text('default_address_id'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-})
+}, (t) => [
+  unique().on(t.organizationId, t.authUserId),
+  tenantIsolation(),
+])
 
 export const customerAddresses = pgTable('customer_addresses', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  organizationId: text('organization_id'),
+  organizationId: organizationId(),
   customerId: text('customer_id').notNull().references(() => customers.id, { onDelete: 'cascade' }),
   firstName: text('first_name').notNull(),
   lastName: text('last_name').notNull(),
@@ -37,4 +41,7 @@ export const customerAddresses = pgTable('customer_addresses', {
   nationalAddress: text('national_address'),
   additionalNumber: text('additional_number'),
   isDefault: boolean('is_default').notNull().default(false),
-})
+}, (t) => [
+  index().on(t.organizationId),
+  tenantIsolation(),
+])

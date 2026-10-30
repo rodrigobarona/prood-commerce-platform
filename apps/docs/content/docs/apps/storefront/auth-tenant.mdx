@@ -51,10 +51,9 @@ Better Auth handler at `/api/auth/[...all]` handles sign-up, sign-in, sign-out, 
 
 1. Custom domain lookup (`tenant_domain`, verified)
 2. Subdomain `{slug}.{NEXT_PUBLIC_PLATFORM_DOMAIN}` → organization by slug
-3. `DEFAULT_TENANT_ORG_ID` (local dev only)
-4. Otherwise `notFound()` in production
+3. Otherwise redirect to the marketing site (`NEXT_PUBLIC_WEB_URL`)
 
-There is **no hardcoded `org_demo` fallback** — set `DEFAULT_TENANT_ORG_ID` explicitly after `pnpm db:setup` seed.
+There is no fallback tenant.
 
 ### Resolution priority
 
@@ -62,8 +61,7 @@ There is **no hardcoded `org_demo` fallback** — set `DEFAULT_TENANT_ORG_ID` ex
 | --- | --- | --- |
 | 1 | Custom domain (verified) | `shop.merchant.com` |
 | 2 | Platform subdomain | `merchant.prood.app` |
-| 3 | `DEFAULT_TENANT_ORG_ID` | Local dev only |
-| 4 | Not found | 404 |
+| 3 | Unknown host | Redirect to marketing site |
 
 ### Database lookup
 
@@ -75,11 +73,8 @@ The storefront API client forwards the `Host` header and session cookie to the C
 
 ## Development setup
 
-1. Run `pnpm db:setup` and note the seeded organization id
-2. Set `DEFAULT_TENANT_ORG_ID=<seeded-org-id>` in `.env.local`
-3. Access [http://localhost:3000](http://localhost:3000)
-
-For subdomain testing, add `/etc/hosts` entries and set `NEXT_PUBLIC_PLATFORM_DOMAIN`.
+1. Run `pnpm db:migrate` and `pnpm db:seed`
+2. With `NEXT_PUBLIC_PLATFORM_DOMAIN=localhost`, open [http://prood-demo.localhost:3000](http://prood-demo.localhost:3000) (the seeded `org_demo` store, slug `prood-demo`)
 
 ## Related pages
 

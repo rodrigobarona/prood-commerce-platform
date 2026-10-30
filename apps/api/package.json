@@ -10,9 +10,7 @@
     "lint": "eslint --max-warnings 0",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "vitest run",
-    "db:generate": "drizzle-kit generate",
-    "db:push": "drizzle-kit push"
+    "test": "vitest run"
   },
   "dependencies": {
     "@better-auth/agent-auth": "catalog:",
@@ -41,7 +39,6 @@
     "vitest": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "drizzle-kit": "catalog:",
     "eslint": "catalog:",
     "typescript": "catalog:"
   },

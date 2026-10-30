@@ -34,7 +34,7 @@ flowchart TB
     ENG["CommerceAdapter · AdminAPI · RLS · migrate"]
   end
 
-  NEON[(Neon Postgres<br/>forced RLS per organization_id)]
+  NEON[(Neon Postgres<br/>RLS per organization_id)]
 
   SF -->|@prood/api-client| api
   DB -->|@prood/api-client + commerce*| api

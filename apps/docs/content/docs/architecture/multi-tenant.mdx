@@ -24,8 +24,8 @@ Prood runs as a **white-label, multi-tenant commerce platform**: one deployment 
 flowchart TB
   ORG["Better Auth organization (tenant)"]
   WT["withTenant(orgId)"]
-  SET["SET app.current_org_id<br/>(per-request transaction)"]
-  RLS["Forced RLS filters every row<br/>by organization_id"]
+  SET["set app.current_org_id + SET LOCAL ROLE prood_app<br/>(per-request transaction)"]
+  RLS["RLS policy filters every row<br/>by organization_id"]
 
   ORG --> WT --> SET --> RLS
 ```
@@ -43,9 +43,7 @@ The storefront resolves the active tenant in `apps/storefront/lib/tenant.ts`:
 
 1. **Custom domain** — lookup verified row in `tenant_domain` table
 2. **Subdomain** — `{slug}.{NEXT_PUBLIC_PLATFORM_DOMAIN}` → `organization.slug`
-3. **Fallback** — `DEFAULT_TENANT_ORG_ID` (local dev only; set explicitly after seed)
-
-In **production**, an unmatched host returns `notFound()`. In **development**, set `DEFAULT_TENANT_ORG_ID` to your seeded organization id.
+Unmatched hosts redirect to the marketing site. Locally, the seeded demo store is served at `prood-demo.localhost:3000`.
 
 ### Per-tenant caching
 
@@ -53,40 +51,53 @@ Catalog reads are cached **per tenant** with tags like `products-{orgId}`, `cate
 
 ## Row-level security
 
-`applyTenantIsolation()` (in `packages/platform/src/database/drizzle/migrate.ts`):
+RLS is defined in the Drizzle schema and shipped as versioned migrations in `packages/platform/drizzle`:
 
-1. Adds `organization_id` column to every tenant table (defaulting to `current_setting('app.current_org_id')`)
-2. Enables and **forces** RLS with a `tenant_isolation` policy on each table
+1. `0000_app_role.sql` creates the `prood_app` role (`NOLOGIN NOBYPASSRLS`), lets the connecting role `SET ROLE` to it, and grants it `SELECT, INSERT, UPDATE, DELETE` on the `public` schema, including default privileges for tables created by later migrations.
+2. Every tenant table uses the helpers in `packages/platform/src/database/drizzle/schema/tenant.ts`: a `NOT NULL organization_id` column that defaults to `app.current_org_id`, and a `tenant_isolation` `pgPolicy` for `prood_app` (`USING` and `WITH CHECK` on `organization_id`). Drizzle enables RLS on every table with a policy.
 
-Every commerce query must run inside `withTenant(orgId)`, which sets the Postgres session variable within a transaction:
+The app connects with a role that has `BYPASSRLS` (on Neon, the database owner), so RLS is enforced by switching roles, not with `FORCE ROW LEVEL SECURITY`. Every commerce query runs inside `withTenant(orgId)`:
 
 ```ts
-// packages/platform
+// packages/platform/src/database/drizzle/client.ts
 export async function withTenant<T>(orgId: string, fn: () => Promise<T>): Promise<T> {
-  return getDb().transaction(async (tx) => {
-    await tx.execute(sql`SELECT set_config('app.current_org_id', ${orgId}, true)`)
-    return fn()
+  return getBaseDb().transaction(async (tx) => {
+    await tx.execute(sql`select set_config('app.current_org_id', ${orgId}, true)`)
+    await tx.execute(sql`set local role prood_app`)
+    return tenantStore.run({ db: tx, organizationId: orgId }, fn)
   })
 }
 ```
 
+Both settings are transaction-local, so a pooled connection returns to the connecting role afterwards. Queries also add `tenantCondition()` (`organization_id = <active org>`) as defense in depth.
+
+Paths that must read across tenants stay outside `withTenant()` and run as the connecting role: migrations and the seed, host → tenant resolution (`organization`, `tenant_domain`), Better Auth, and linking a new account to its guest customers in every store.
+
+Unique keys that repeat across stores include `organization_id`: product, category and brand slugs, order numbers, coupon codes, customer ↔ auth-user links, and the `store_info` primary key.
+
 ### Verifying isolation
 
-Test against a real database with two organizations:
+Run the same statements `withTenant()` runs, against a database with two organizations:
 
 ```sql
--- Set tenant A
-SELECT set_config('app.current_org_id', '<org A id>', false);
-SELECT id, name, organization_id FROM products;   -- only A's rows
+BEGIN;
+SELECT set_config('app.current_org_id', '<org A id>', true);
+SET LOCAL ROLE prood_app;
+SELECT id, organization_id FROM products;                      -- only A's rows
+SELECT id FROM products WHERE organization_id = '<org B id>';  -- 0 rows
+INSERT INTO products (id, organization_id, name, slug)
+VALUES ('x', '<org B id>', '{}', 'x');
+-- ERROR: new row violates row-level security policy for table "products"
+ROLLBACK;
 
--- Switch to tenant B
-SELECT set_config('app.current_org_id', '<org B id>', false);
-SELECT id, name, organization_id FROM products;   -- only B's rows
-
--- No setting → zero rows (writes blocked too)
-RESET app.current_org_id;
-SELECT id, name FROM products;   -- empty
+-- prood_app without a tenant sees nothing
+BEGIN;
+SET LOCAL ROLE prood_app;
+SELECT count(*) FROM products;  -- 0
+ROLLBACK;
 ```
+
+`packages/platform/src/__tests__/platform.drizzle.test.ts` covers the same cases.
 
 ## Onboarding a new merchant
 
@@ -129,7 +140,7 @@ Merchants cannot collide with or read each other's assets. Vercel Blob uploads u
 
 | Package | Touches tenant data? | Isolation |
 | --- | --- | --- |
-| `platform` | Yes — owns schema | Forced RLS + `withTenant()` |
+| `platform` | Yes — owns schema | RLS as `prood_app` + `withTenant()` |
 | `commerce` | Yes — wraps platform | Tenant threaded; per-tenant cache tags |
 | `checkout-host` | Yes — sessions | `tenantId` on session; provider rebuilt per tenant |
 | `checkout` | Per-session state | New instance per session; no module-level mutable state |
@@ -141,7 +152,6 @@ Merchants cannot collide with or read each other's assets. Vercel Blob uploads u
 
 | Variable | Purpose |
 | --- | --- |
-| `DEFAULT_TENANT_ORG_ID` | Explicit fallback tenant (single-tenant / dev) |
 | `NEXT_PUBLIC_PLATFORM_DOMAIN` | Apex for `{slug}.prood.app` **storefront** subdomains only — not platform hosts on `prood.com` |
 | `INTEGRATION_ENCRYPTION_KEY` | Encrypt stored provider credentials |
 | `VERCEL_TOKEN`, `STOREFRONT_VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID` | Custom domain provisioning (optional in dev) |
@@ -150,9 +160,10 @@ Merchants cannot collide with or read each other's assets. Vercel Blob uploads u
 
 When adding a new tenant-owned table:
 
-1. Add it to `TENANT_TABLES` in `packages/platform/src/database/drizzle/migrate.ts`
-2. If the natural key repeats across tenants, include `organization_id` in the primary key (see `store_info` and `integrations`)
-3. Re-run migrations and verify RLS policies apply
+1. Define it in `packages/platform/src/database/drizzle/schema/` with `organizationId: organizationId()` and `tenantIsolation()` in the table's extra config (see `tenant.ts`), plus an index on `organization_id` or a unique key that starts with it
+2. If a natural key repeats across tenants, make it unique per tenant (`unique().on(t.organizationId, t.slug)`) or include `organization_id` in the primary key (see `store_info`)
+3. Run `pnpm db:generate` and commit the generated migration, then `pnpm db:migrate`
+4. Make sure its queries run inside `withTenant()` and add `tenantCondition()`
 
 ## Custom domains (two products)
 

@@ -26,7 +26,7 @@ function mapPromotion(row: any): Promotion {
     discountType: row.discountType as any,
     discountValue: row.discountValue,
     currency: row.currency ?? null,
-    maxDiscount: row.maxDiscount ? { amount: row.maxDiscount, currency: row.currency ?? 'SAR', formatted: `${row.maxDiscount} ${row.currency ?? 'SAR'}` } : null,
+    maxDiscount: row.maxDiscount ? { amount: row.maxDiscount, currency: row.currency ?? 'EUR', formatted: `${row.maxDiscount} ${row.currency ?? 'EUR'}` } : null,
     target: row.target as any,
     conditions,
     startsAt: row.startsAt,

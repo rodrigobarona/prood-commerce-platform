@@ -1,9 +1,9 @@
 // ---------------------------------------------------------------------------
-// Shared application-level tenant filter (defense-in-depth)
+// Shared application-level tenant filter (defense in depth)
 //
-// Neon's default database role has BYPASSRLS, which silently skips all
-// row-level-security policies. This helper adds an explicit WHERE clause
-// for organization_id so queries are always scoped to the active tenant.
+// Row-level security already scopes every query inside `withTenant()` (it runs
+// as the `prood_app` role). This helper adds an explicit WHERE clause for
+// organization_id as well, so a policy mistake cannot leak rows on its own.
 // ---------------------------------------------------------------------------
 
 import { eq } from 'drizzle-orm'

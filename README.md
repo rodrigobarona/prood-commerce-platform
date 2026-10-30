@@ -38,8 +38,8 @@ packages/
   `integration_config` rows.
 - **Auth:** dashboard merchant auth is issued by `apps/api`; storefront has its
   own customer auth handler per store origin; `apps/admin` validates shared
-  Better Auth sessions directly from the database and is gated by
-  `ADMIN_USER_IDS`.
+  Better Auth sessions directly from the database and is limited to the
+  `admin` role.
 
 ## Getting Started
 
@@ -47,25 +47,44 @@ packages/
 pnpm install
 cp .env.example .env.local
 pnpm env:link
-pnpm db:setup
+pnpm db:migrate
+pnpm db:seed
 pnpm dev
 ```
 
 `pnpm env:link` generates ignored `apps/*/.env.local` files from the root
-`.env.local`, with local `BETTER_AUTH_URL` overrides per app. Requires Node 24
-and pnpm 10.33.4.
+`.env.local`, with local `BETTER_AUTH_URL` overrides per app. `pnpm db:migrate`
+applies the versioned migrations in `packages/platform/drizzle` (commerce and
+Better Auth tables, the `prood_app` role and the RLS policies) and is a no-op
+when the database is up to date. `pnpm db:seed` seeds the demo store
+(`org_demo`, served at `prood-demo.localhost:3000`) and, when `ADMIN_EMAIL` /
+`ADMIN_PASSWORD` are set, an admin user. Requires Node 24 and pnpm 10.34.9.
 
 ## Scripts
 
 - `pnpm dev` — run all apps through Turbo.
 - `pnpm lint` / `pnpm typecheck` / `pnpm test` / `pnpm build` — quality gates.
 - `pnpm verify` — lint, typecheck, test, and build.
-- `pnpm db:migrate` — migrate and seed the platform commerce schema.
-- `pnpm db:auth` — apply Better Auth/admin/agent auth SQL migrations.
-- `pnpm db:setup` — full local database bootstrap.
+- `pnpm db:migrate` — apply pending database migrations (`drizzle-kit migrate`).
+- `pnpm db:seed` — seed the demo store (idempotent).
+- `pnpm db:generate` — after editing a Drizzle schema
+  (`packages/platform/src/database/drizzle/schema/*` or
+  `packages/auth/src/schema.ts`), generate the next migration. Use
+  `pnpm db:generate --custom --name=<name>` for hand-written SQL.
 
-`@prood/platform` tests run real database migrations and require `DATABASE_URL`
-pointing at a disposable test database.
+`@prood/platform` tests need `DATABASE_URL` for a role that can create
+databases: they create a temporary `prood_test_*` database on that server, run
+the migrations and tests there, and drop it afterwards.
+
+### Tenant isolation
+
+Commerce tables carry `organization_id` and a `tenant_isolation` RLS policy.
+`withTenant(orgId, fn)` opens a transaction, sets `app.current_org_id` and runs
+`SET LOCAL ROLE prood_app` (NOLOGIN, NOBYPASSRLS, DML grants only), so queries
+on those tables are filtered by the policy even though the connecting role
+bypasses RLS. Auth-owned tables such as `member` and `integration_config` have
+no policy, so always filter them by organization. Code outside `withTenant()` (migrations, seed, tenant resolution
+from the host, Better Auth) runs as the connecting role.
 
 ## Deployment
 
@@ -79,7 +98,7 @@ Deploy each app as a separate Vercel project sharing the same Neon database:
 | `apps/checkout` | `https://checkout.prood.com` | Hosted checkout + payment webhooks |
 | `apps/docs` | `https://docs.prood.com` | Documentation |
 | `apps/storefront` | `https://{slug}.prood.app` | Wildcard tenant storefront |
-| `apps/admin` | `https://admin.prood.com` | Platform ops, restrict via `ADMIN_USER_IDS` |
+| `apps/admin` | `https://admin.prood.com` | Platform ops, `admin` role only |
 
 Production must provide strong values for `BETTER_AUTH_SECRET`,
 `CHECKOUT_API_SECRET`, and `INTEGRATION_ENCRYPTION_KEY`; verified sender
