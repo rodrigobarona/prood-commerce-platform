@@ -29,6 +29,13 @@
       "when": 1793346427022,
       "tag": "0003_order_method_snapshots",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793347965207,
+      "tag": "0004_store_currency",
+      "breakpoints": true
     }
   ]
 }

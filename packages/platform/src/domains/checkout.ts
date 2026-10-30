@@ -20,16 +20,17 @@ import {
   findOrderById,
 } from '../database/index.js'
 import { generateOrderNumber, normalizeLocalizedField } from './helpers.js'
+import { getStoreCurrency } from '../tenant/store-info.js'
 import { createCartDomain } from './cart.js'
 import { listPaymentMethods, listShippingMethods } from './checkout-methods.js'
 import { mapOrder } from './order-mapper.js'
 
-export function createCheckoutDomain(currency: string) {
-  const cartDomain = createCartDomain(currency)
+export function createCheckoutDomain() {
+  const cartDomain = createCartDomain()
 
   return {
     async getShippingMethods(_cartId: string): Promise<ShippingMethod[]> {
-      return listShippingMethods(currency)
+      return listShippingMethods(await getStoreCurrency())
     },
 
     async setShippingAddress(cartId: string, address: CheckoutAddress): Promise<Cart> {
@@ -43,7 +44,7 @@ export function createCheckoutDomain(currency: string) {
     },
 
     async setShippingMethod(cartId: string, methodId: string): Promise<Cart> {
-      if (!listShippingMethods(currency).some(m => m.id === methodId)) {
+      if (!listShippingMethods(await getStoreCurrency()).some(m => m.id === methodId)) {
         throw new CommerceError(`Unknown shipping method: ${methodId}`, 'VALIDATION', 422)
       }
       await updateCart(cartId, { shippingMethodId: methodId })
@@ -113,7 +114,7 @@ export function createCheckoutDomain(currency: string) {
         tax,
         discount,
         total,
-        currency,
+        currency: await getStoreCurrency(),
         shippingAddress: cart.shippingAddress as any,
         billingAddress: cart.billingAddress as any,
         shippingMethod: cart.shippingMethod,

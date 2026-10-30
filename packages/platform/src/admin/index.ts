@@ -28,12 +28,12 @@ import { mapOrder } from '../domains/order-mapper.js'
  *
  * @example
  * ```ts
- * const { adapter, admin } = await createPlatformAdapter({ currency: 'EUR' })
+ * const { adapter, admin } = await createPlatformAdapter()
  * const product = await admin.createProduct({ name: 'T-Shirt', price: 99 })
  * ```
  */
-export function createAdminAPI(currency: string): AdminAPI {
-  const products = createAdminProductsDomain(currency)
+export function createAdminAPI(): AdminAPI {
+  const products = createAdminProductsDomain()
   const categories = createAdminCategoriesDomain()
   const orders = createAdminOrdersDomain()
   const customers = createAdminCustomersDomain()

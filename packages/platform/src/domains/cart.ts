@@ -19,14 +19,16 @@ import {
   findPrimaryImage,
 } from '../database/index.js'
 import { normalizeLocalizedField, discountablePrice, priceRequired, img, toNumber } from './helpers.js'
+import { getStoreCurrency } from '../tenant/store-info.js'
 import { listPaymentMethods, listShippingMethods } from './checkout-methods.js'
 
-export function createCartDomain(currency: string) {
+export function createCartDomain() {
   /** Build a full Cart object from cart row + items + product data */
   async function buildCart(cartId: string): Promise<Cart> {
     const cartRow = await findCart(cartId)
     if (!cartRow) throw new CommerceError(`Cart not found: ${cartId}`, "NOT_FOUND")
 
+    const currency = await getStoreCurrency()
     const items = await findCartItems(cartId)
 
     const cartItems = await Promise.all(items.map(async (item: any) => {

@@ -20,7 +20,6 @@ export interface CreateProductInput {
   shortDescription?: LocalizedField
   price?: number
   compareAtPrice?: number
-  currency?: string
   sku?: string
   productType?: ProductType
   status?: 'draft' | 'active' | 'archived'

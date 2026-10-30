@@ -18,6 +18,7 @@ import {
   findCategories,
   findProductIdsByCategory,
 } from '../database/index.js'
+import { getStoreCurrency } from '../tenant/store-info.js'
 import { mapCategory } from './category-mapper.js'
 import { mapProduct } from './product-mapper.js'
 
@@ -36,7 +37,7 @@ export function createCatalogDomain() {
         throw new CommerceError(`Product not found: ${params.id ?? params.slug}`, "NOT_FOUND")
       }
 
-      return mapProduct(row)
+      return mapProduct(row, await getStoreCurrency())
     },
 
     async getProducts(params: SearchParams): Promise<SearchResult> {
@@ -75,7 +76,8 @@ export function createCatalogDomain() {
         offset,
       })
 
-      const products = await Promise.all(rows.map(mapProduct))
+      const currency = await getStoreCurrency()
+      const products = await Promise.all(rows.map(row => mapProduct(row, currency)))
 
       return {
         products: {

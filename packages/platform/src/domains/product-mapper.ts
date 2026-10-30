@@ -33,8 +33,8 @@ async function fetchProductRelations(productId: string) {
   return { images, variants, attributes, categories, tags, reviews }
 }
 
-/** Prices use the product's own currency, whoever reads it. */
-export async function mapProduct(row: typeof products.$inferSelect): Promise<Product> {
+/** Prices are in `currency`, the store's: a product has none of its own. */
+export async function mapProduct(row: typeof products.$inferSelect, currency: string): Promise<Product> {
   const related = await fetchProductRelations(row.id)
   const primaryImg = related.images.find((i: any) => i.isPrimary) ?? related.images[0]
 
@@ -45,7 +45,7 @@ export async function mapProduct(row: typeof products.$inferSelect): Promise<Pro
     slug: row.slug,
     description: normalizeLocalizedField(row.description),
     shortDescription: normalizeLocalizedField(row.shortDescription),
-    price: discountablePrice(row.price, row.compareAtPrice, row.currency),
+    price: discountablePrice(row.price, row.compareAtPrice, currency),
     primaryImage: primaryImg ? img(primaryImg.url, primaryImg.altText) : null,
     gallery: related.images.map((i: any) => img(i.url, i.altText)),
     rating: related.reviews.totalReviews > 0
@@ -55,7 +55,7 @@ export async function mapProduct(row: typeof products.$inferSelect): Promise<Pro
       id: v.id,
       sku: v.sku ?? null,
       name: v.name ? normalizeLocalizedField(v.name) : null,
-      price: discountablePrice(v.price, v.compareAtPrice, row.currency),
+      price: discountablePrice(v.price, v.compareAtPrice, currency),
       inStock: Boolean(v.inStock),
       inventoryQuantity: v.inventoryQuantity ?? null,
     })),

@@ -25,10 +25,11 @@ import {
   transitionOrderPayment,
   updateOrder,
 } from '../database/index.js'
+import { getStoreCurrency } from '../tenant/store-info.js'
 import { generateOrderNumber } from './helpers.js'
 import { mapOrder } from './order-mapper.js'
 
-export function createOrdersDomain(currency: string) {
+export function createOrdersDomain() {
   return {
     async createOrder(input: CreateOrderInput): Promise<Order> {
       const id = crypto.randomUUID()
@@ -45,7 +46,7 @@ export function createOrdersDomain(currency: string) {
         fulfillmentStatus: 'unfulfilled',
         subtotal,
         total: subtotal,
-        currency,
+        currency: await getStoreCurrency(),
         shippingAddress: input.shippingAddress as any ?? null,
         billingAddress: input.billingAddress as any ?? null,
         note: input.note ?? null,

@@ -24,12 +24,13 @@ import {
 } from '../database/index.js'
 import { slugifyLocalized } from '../domains/helpers.js'
 import { mapProduct } from '../domains/product-mapper.js'
+import { getStoreCurrency } from '../tenant/store-info.js'
 
-export function createAdminProductsDomain(currency: string) {
+export function createAdminProductsDomain() {
   async function fullProduct(id: string): Promise<Product> {
     const row = await findProductById(id)
     if (!row) throw new CommerceError(`Product not found: ${id}`, "NOT_FOUND")
-    return mapProduct(row)
+    return mapProduct(row, await getStoreCurrency())
   }
 
   return {
@@ -50,7 +51,6 @@ export function createAdminProductsDomain(currency: string) {
         shortDescription: input.shortDescription ?? null,
         price: input.price ?? null,
         compareAtPrice: input.compareAtPrice ?? null,
-        currency: input.currency ?? currency,
         sku: input.sku ?? null,
         productType: input.productType ?? 'physical',
         status: input.status ?? 'draft',
@@ -128,7 +128,6 @@ export function createAdminProductsDomain(currency: string) {
       if (input.shortDescription !== undefined) updates.shortDescription = input.shortDescription
       if (input.price !== undefined) updates.price = input.price
       if (input.compareAtPrice !== undefined) updates.compareAtPrice = input.compareAtPrice
-      if (input.currency != null) updates.currency = input.currency
       if (input.sku !== undefined) updates.sku = input.sku
       if (input.productType != null) updates.productType = input.productType
       if (input.status != null) updates.status = input.status
@@ -218,7 +217,8 @@ export function createAdminProductsDomain(currency: string) {
         offset,
       })
 
-      const products = await Promise.all(rows.map(mapProduct))
+      const currency = await getStoreCurrency()
+      const products = await Promise.all(rows.map(row => mapProduct(row, currency)))
 
       return {
         items: products,

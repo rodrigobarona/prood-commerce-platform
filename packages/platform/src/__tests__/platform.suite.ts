@@ -158,13 +158,58 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     expect(admin.lowStock.find(p => p.id === 'prod-1')).toEqual(product)
   })
 
-  it('prices a product in its own currency', async () => {
-    await withTenant(DEMO_ORG_ID, () =>
-      getDb().execute(sql`update products set currency = 'USD' where id = 'prod-1'`),
-    )
-    const product = await adapter.getProduct({ id: 'prod-1' })
-    expect(product.price?.currency).toBe('USD')
-    expect(product.variants[0]?.price?.currency).toBe('USD')
+  describe('store currency', () => {
+    it('prices products, carts, shipping and orders in the store currency', async () => {
+      await asTenant((admin) => admin.updateStoreSettings({ currency: 'USD' }))
+
+      const product = await adapter.getProduct({ id: 'prod-1' })
+      expect(product.price?.currency).toBe('USD')
+      expect(product.variants[0]?.price?.currency).toBe('USD')
+      const listed = await adapter.getProducts({ page: 1, perPage: 10 })
+      expect(listed.products.items.every(p => p.price?.currency === 'USD')).toBe(true)
+      expect((await asTenant((admin) => admin.getProduct('prod-1'))).price?.currency).toBe('USD')
+
+      const cart = await adapter.createCart()
+      await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 1 })
+      const [method] = await adapter.getShippingMethods(cart.id)
+      expect(method?.price.currency).toBe('USD')
+      await adapter.setShippingAddress(cart.id, fullAddress())
+      const withShipping = await adapter.setShippingMethod(cart.id, method!.id)
+      for (const amount of [
+        withShipping.items[0]?.price,
+        withShipping.items[0]?.totalPrice,
+        withShipping.totals.subtotal,
+        withShipping.totals.shipping,
+        withShipping.totals.total,
+      ]) {
+        expect(amount?.currency).toBe('USD')
+      }
+
+      const order = await adapter.placeOrder(cart.id)
+      expect(order.totals.total.currency).toBe('USD')
+      expect(await capture(order)).toBe('applied')
+    })
+
+    it('keeps the currency once the store has sold, so revenue is never mixed', async () => {
+      await asTenant((admin) => admin.updateStoreSettings({ currency: 'USD' }))
+      await placedOrder()
+
+      await expect(
+        asTenant((admin) => admin.updateStoreSettings({ currency: 'EUR' })),
+      ).rejects.toMatchObject({ code: 'VALIDATION' })
+      const settings = await asTenant((admin) => admin.updateStoreSettings({ currency: 'USD', country: 'US' }))
+      expect(settings).toMatchObject({ currency: 'USD', country: 'US' })
+    })
+
+    it('leaves no product-level currency to diverge', async () => {
+      const { rows } = await withTenant(DEMO_ORG_ID, () =>
+        getDb().execute(sql`
+          select column_name from information_schema.columns
+          where table_name = 'products' and column_name = 'currency'
+        `),
+      )
+      expect(rows).toHaveLength(0)
+    })
   })
 
   it('rates a product from its reviews', async () => {
@@ -457,6 +502,14 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       expect(await revenue()).toBe(expected + refunded.totals.total.amount)
       await asTenant((admin) => admin.refundOrder(refunded.id))
       expect(await revenue()).toBe(expected)
+    })
+
+    it('keeps a partly refunded order in revenue', async () => {
+      const order = await placedOrder()
+      await capture(order)
+      await adapter.updateOrderStatus(order.id, { status: 'approved', paymentStatus: 'partially_refunded' })
+      const { totalRevenue } = await asTenant((admin) => admin.getDashboardStats())
+      expect(totalRevenue).toBe(order.totals.total.amount)
     })
 
     it('counts a late payment on a cancelled order until it is refunded', async () => {
