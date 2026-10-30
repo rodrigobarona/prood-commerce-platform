@@ -1,14 +1,9 @@
+import type { CommerceErrorBody } from "@prood/types"
 import createClient, { type Client, type Middleware } from "openapi-fetch"
 import type { paths } from "./schema.js"
 
 export type { paths }
 export type CommerceApiClient = Client<paths>
-
-export interface CommerceErrorBody {
-  code: string
-  message: string
-  errors?: { path: string; message: string }[]
-}
 
 interface ApiResponse {
   data?: unknown
