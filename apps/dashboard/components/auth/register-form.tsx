@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@prood/ui/components/button"
 import { Input } from "@prood/ui/components/input"
 import { Label } from "@prood/ui/components/label"
@@ -14,18 +14,15 @@ import {
   CardTitle,
 } from "@prood/ui/components/card"
 import { authClient } from "@/lib/auth/client"
-
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 48)
-}
+import { createStore } from "@/lib/create-store"
+import { safeRedirectPath } from "@prood/types"
 
 export function RegisterForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = safeRedirectPath(searchParams.get("redirect"))
+  // Invited teammates join an existing store instead of creating one.
+  const joiningStore = redirect.startsWith("/invite/")
 
   const [name, setName] = useState("")
   const [storeName, setStoreName] = useState("")
@@ -46,24 +43,16 @@ export function RegisterForm() {
       return
     }
 
-    // Create the merchant's first store (organization) and make it active.
-    const slug = `${slugify(storeName) || "store"}-${Math.random().toString(36).slice(2, 7)}`
-    const { data: org, error: orgError } = await authClient.organization.create({
-      name: storeName,
-      slug,
-    })
-    if (orgError || !org) {
-      setLoading(false)
-      setError(orgError?.message ?? "Could not create your store")
+    if (joiningStore) {
+      router.push(redirect)
+      router.refresh()
       return
     }
 
-    const { error: setActiveError } = await authClient.organization.setActive({
-      organizationId: org.id,
-    })
-    if (setActiveError) {
+    const storeError = await createStore(storeName)
+    if (storeError) {
       setLoading(false)
-      setError(setActiveError.message ?? "Could not activate your store")
+      setError(storeError)
       return
     }
 
@@ -75,9 +64,11 @@ export function RegisterForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl">Create your store</CardTitle>
+        <CardTitle className="text-xl">{joiningStore ? "Create your account" : "Create your store"}</CardTitle>
         <CardDescription>
-          Set up your account and your first store to get started.
+          {joiningStore
+            ? "Create an account to accept your invitation."
+            : "Set up your account and your first store to get started."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -91,15 +82,17 @@ export function RegisterForm() {
               onChange={(event) => setName(event.target.value)}
             />
           </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="storeName">Store name</Label>
-            <Input
-              id="storeName"
-              required
-              value={storeName}
-              onChange={(event) => setStoreName(event.target.value)}
-            />
-          </div>
+          {joiningStore ? null : (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="storeName">Store name</Label>
+              <Input
+                id="storeName"
+                required
+                value={storeName}
+                onChange={(event) => setStoreName(event.target.value)}
+              />
+            </div>
+          )}
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -127,7 +120,10 @@ export function RegisterForm() {
           </Button>
           <p className="text-center text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link href="/login" className="text-foreground hover:underline">
+            <Link
+              href={redirect === "/" ? "/login" : `/login?redirect=${encodeURIComponent(redirect)}`}
+              className="text-foreground hover:underline"
+            >
               Sign in
             </Link>
           </p>

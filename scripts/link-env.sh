@@ -23,7 +23,9 @@ write_app_env() {
     echo
     awk '!/^(BETTER_AUTH_URL|NEXT_PUBLIC_AUTH_URL|NEXT_PUBLIC_ADMIN_URL)=/' "$SOURCE_ENV"
     echo
-    echo "BETTER_AUTH_URL=\"$better_auth_url\""
+    if [[ -n "$better_auth_url" ]]; then
+      echo "BETTER_AUTH_URL=\"$better_auth_url\""
+    fi
     if [[ -n "$public_auth_url" ]]; then
       echo "NEXT_PUBLIC_AUTH_URL=\"$public_auth_url\""
     fi
@@ -36,7 +38,8 @@ write_app_env() {
 }
 
 write_app_env "api" "http://localhost:3005" "http://localhost:3005"
-write_app_env "storefront" "http://localhost:3000" "http://localhost:3005"
+# Storefront auth infers its base URL per store origin — no BETTER_AUTH_URL.
+write_app_env "storefront" "" "http://localhost:3005"
 write_app_env "dashboard" "http://localhost:3005" "http://localhost:3005"
 write_app_env "checkout" "http://localhost:3004" "http://localhost:3005"
 write_app_env "admin" "http://localhost:3005" "http://localhost:3005" "http://localhost:3006"

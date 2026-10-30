@@ -300,9 +300,20 @@ export class StripePaymentProvider implements PaymentProvider {
     const body = typeof payload === 'string' ? payload : Buffer.from(payload)
     const event = await this.stripe.webhooks.constructEventAsync(body, signature, this.webhookSecret)
 
+    const object = event.data.object as unknown as Record<string, unknown>
+    const currency = typeof object.currency === 'string' ? object.currency.toUpperCase() : null
+    const minorAmount =
+      typeof object.amount_total === 'number' ? object.amount_total
+        : typeof object.amount === 'number' ? object.amount
+          : null
+    const metadata = object.metadata as Record<string, string> | null | undefined
+
     return {
       type: mapEventType(event),
       sessionId: extractSessionId(event),
+      orderId: metadata?.orderId ?? null,
+      amount: minorAmount !== null && currency ? fromMinorUnits(minorAmount, currency) : null,
+      currency,
       data: event as unknown as Record<string, unknown>,
     }
   }

@@ -1,50 +1,53 @@
 import 'server-only'
-import { neon } from '@neondatabase/serverless'
+import { neon, type NeonQueryFunction } from '@neondatabase/serverless'
 import { decryptConfig } from './crypto'
 
-// The integration_config table is owned by the dashboard (auth schema) and is
-// not RLS-protected, so a plain read is correct here. A placeholder keeps
-// module evaluation safe during build without DATABASE_URL.
-const sql = neon(
-  process.env.DATABASE_URL ??
-    'postgresql://placeholder:placeholder@localhost:5432/placeholder',
-)
+// The integration_config table is owned by the auth schema and is not
+// RLS-protected; every query below filters by organization_id explicitly.
+let sql: NeonQueryFunction<false, false> | null = null
 
-export interface TenantIntegration {
-  enabled: boolean
-  config: Record<string, string>
+function db(): NeonQueryFunction<false, false> {
+  if (sql) return sql
+  const url = process.env.DATABASE_URL
+  if (!url) throw new Error('DATABASE_URL is required')
+  sql = neon(url)
+  return sql
 }
 
-/**
- * Load an organization's enabled credentials for a provider, or null when the
- * provider isn't configured/enabled for that tenant. Used by the provider
- * factories to bind a merchant's own Stripe/EasyPay/etc. account.
- */
-export async function getTenantIntegration(
-  organizationId: string,
-  provider: string,
-): Promise<TenantIntegration | null> {
-  try {
-    const rows = (await sql`
-      SELECT enabled, config FROM integration_config
-      WHERE organization_id = ${organizationId}
-        AND provider = ${provider}
-        AND enabled = true
-      LIMIT 1
-    `) as { enabled: boolean; config: Record<string, string> | null }[]
-    const row = rows[0]
-    if (!row) return null
-    return { enabled: row.enabled, config: decryptConfig(row.config ?? {}) }
-  } catch {
-    return null
-  }
+/** Payment gateways a store can connect, in checkout preference order. */
+export const PAYMENT_PROVIDER_IDS = ['stripe', 'easypay', 'ifthenpay'] as const
+export type PaymentProviderId = (typeof PAYMENT_PROVIDER_IDS)[number]
+
+export function isPaymentProviderId(id: string): id is PaymentProviderId {
+  return (PAYMENT_PROVIDER_IDS as readonly string[]).includes(id)
 }
 
-/** A provider's tenant credentials as a flat config object (empty if none). */
-export async function getTenantPaymentConfig(
+/** A store's decrypted credentials for one enabled provider, or null. */
+export async function getTenantIntegrationConfig(
   organizationId: string,
   provider: string,
-): Promise<Record<string, string>> {
-  const integration = await getTenantIntegration(organizationId, provider)
-  return integration?.config ?? {}
+): Promise<Record<string, string> | null> {
+  const rows = (await db()`
+    SELECT config FROM integration_config
+    WHERE organization_id = ${organizationId}
+      AND provider = ${provider}
+      AND enabled = true
+    LIMIT 1
+  `) as { config: Record<string, string> | null }[]
+  const row = rows[0]
+  return row ? decryptConfig(row.config ?? {}) : null
+}
+
+/** Payment providers the store has connected and enabled, in preference order. */
+export async function listTenantPaymentProviders(
+  organizationId: string,
+): Promise<PaymentProviderId[]> {
+  const rows = (await db()`
+    SELECT provider FROM integration_config
+    WHERE organization_id = ${organizationId}
+      AND enabled = true
+      AND provider = ANY(${[...PAYMENT_PROVIDER_IDS]})
+  `) as { provider: string }[]
+  const connected = new Set(rows.map((r) => r.provider))
+  return PAYMENT_PROVIDER_IDS.filter((id) => connected.has(id))
 }

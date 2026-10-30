@@ -14,11 +14,12 @@ import {
   CardTitle,
 } from "@prood/ui/components/card"
 import { authClient } from "@/lib/auth/client"
+import { safeRedirectPath } from "@prood/types"
 
 export function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirect = searchParams.get("redirect") || "/"
+  const redirect = safeRedirectPath(searchParams.get("redirect"))
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -75,7 +76,10 @@ export function LoginForm() {
           </Button>
           <p className="text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="text-foreground hover:underline">
+            <Link
+              href={redirect === "/" ? "/register" : `/register?redirect=${encodeURIComponent(redirect)}`}
+              className="text-foreground hover:underline"
+            >
               Create one
             </Link>
           </p>

@@ -42,9 +42,10 @@ function requireScope(scope: "storefront" | "admin") {
   return caller.orgId
 }
 
-async function placeOrderForCaller(cartId: string, email?: string) {
+async function placeOrderForCaller(cartId: string, email?: string, providerId?: string) {
   const caller = getMcpCaller()
   const orgId = requireScope("storefront")
+  await checkout.assertPayable(orgId, cartId, providerId)
   let customerId: string | undefined
   if (caller.userId) {
     customerId = await ensureCustomer(orgId, caller.userId)
@@ -92,6 +93,19 @@ export function registerCommerceMcpTools(server: McpServer) {
     async ({ id }) => {
       const orgId = requireScope("storefront")
       return jsonContent(await catalog.getProduct(orgId, id))
+    }
+  )
+
+  server.registerTool(
+    "getProductBySlug",
+    {
+      title: "Get product by slug",
+      description: "Fetch a single product by its storefront URL slug.",
+      inputSchema: z.object({ slug: z.string().min(1) }),
+    },
+    async ({ slug }) => {
+      const orgId = requireScope("storefront")
+      return jsonContent(await catalog.getProductBySlug(orgId, slug))
     }
   )
 
@@ -311,8 +325,8 @@ export function registerCommerceMcpTools(server: McpServer) {
       inputSchema: z.object({ cartId: z.string().min(1), ...placeOrderBody.shape }),
     },
     async ({ cartId, ...body }) => {
-      const { email } = placeOrderBody.parse(body)
-      return jsonContent(await placeOrderForCaller(cartId, email))
+      const { email, providerId } = placeOrderBody.parse(body)
+      return jsonContent(await placeOrderForCaller(cartId, email, providerId))
     }
   )
 

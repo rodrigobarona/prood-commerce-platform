@@ -1,7 +1,6 @@
 "use server"
 
 import type { Address, Order } from "@prood/types"
-import { priceToMajorAmount } from "@prood/types"
 import { unwrap } from "@prood/api-client"
 import { headers } from "next/headers"
 import { clearCartId, getCartId } from "@/lib/cart-cookie"
@@ -22,6 +21,7 @@ export interface CheckoutResult {
 export interface StartCheckoutInput {
   email?: string
   address?: Partial<CheckoutAddress>
+  shippingMethodId?: string
   providerId?: string
   expressPayment?: "apple" | "google"
 }
@@ -30,6 +30,18 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
   try {
     const cartId = await getCartId()
     if (!cartId) return { ok: false, error: "No active cart" }
+
+    const checkoutUrl = process.env.CHECKOUT_URL
+    const checkoutSecret = process.env.CHECKOUT_API_SECRET
+    if (!checkoutUrl || !checkoutSecret) {
+      throw new Error("CHECKOUT_URL and CHECKOUT_API_SECRET are required")
+    }
+    const headerList = await headers()
+    const host = headerList.get("x-forwarded-host") ?? headerList.get("host")
+    if (!host) throw new Error("Missing Host header")
+    const proto = headerList.get("x-forwarded-proto") ?? "http"
+    const storefrontOrigin = `${proto}://${host}`
+    const tenantId = await resolveTenantId()
 
     const api = await getCommerceApi()
 
@@ -63,11 +75,12 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
     const methods = await unwrap<{ id: string }[]>(
       api.GET("/carts/{id}/shipping-methods", { params: { path: { id: cartId } } })
     )
-    if (methods[0]) {
+    const methodId = input.shippingMethodId ?? methods[0]?.id
+    if (methodId) {
       await unwrap(
         api.PATCH("/carts/{id}/shipping-method", {
           params: { path: { id: cartId } },
-          body: { methodId: methods[0].id },
+          body: { methodId },
         })
       )
     }
@@ -75,19 +88,16 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
     const order = await unwrap<Order>(
       api.POST("/carts/{id}/place-order", {
         params: { path: { id: cartId } },
-        body: { email: input.email ?? "" },
+        body: { email: input.email || undefined, providerId: input.providerId },
       })
     )
+    // The order consumed the cart, so the cookie must not outlive it.
+    await clearCartId()
 
-    const providerId = input.providerId ?? process.env.DEFAULT_PAYMENT_PROVIDER ?? "stripe"
-    const checkoutUrl = process.env.CHECKOUT_URL ?? "http://localhost:3004"
-    const headerList = await headers()
-    const host = headerList.get("x-forwarded-host") ?? headerList.get("host")
-    const proto = headerList.get("x-forwarded-proto") ?? "http"
-    const storefrontOrigin = host
-      ? `${proto}://${host.split(":")[0]}`
-      : (process.env.BETTER_AUTH_URL ?? "http://localhost:3000")
-    const tenantId = await resolveTenantId()
+    const confirmationUrl = `${storefrontOrigin}/order-confirmation?orderId=${order.id}${input.email ? `&email=${encodeURIComponent(input.email)}` : ""}`
+    if (order.totals.total.amount === 0) {
+      return { ok: true, orderId: order.id, checkoutUrl: confirmationUrl }
+    }
 
     let storeName: string | undefined
     try {
@@ -101,14 +111,12 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(process.env.CHECKOUT_API_SECRET
-          ? { "x-checkout-secret": process.env.CHECKOUT_API_SECRET }
-          : {}),
+        "x-checkout-secret": checkoutSecret,
       },
       body: JSON.stringify({
         orderId: order.id,
         customerId: order.customerId,
-        amount: priceToMajorAmount(order.totals.total),
+        amount: order.totals.total.amount,
         currency: order.totals.total.currency,
         customerInfo: input.email
           ? {
@@ -118,21 +126,26 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
               phone: input.address?.phone || undefined,
             }
           : undefined,
-        returnUrl: `${storefrontOrigin}/order-confirmation?orderId=${order.id}${input.email ? `&email=${encodeURIComponent(input.email)}` : ""}`,
-        providerId,
+        returnUrl: confirmationUrl,
+        providerId: input.providerId,
         tenantId,
         storeName,
         fulfillment: "none",
       }),
+    }).catch((err) => {
+      console.error(`[checkout] session request failed for order ${order.id}`, err)
+      return null
     })
 
-    if (!sessionRes.ok) {
-      const err = (await sessionRes.json().catch(() => ({}))) as { message?: string }
-      return { ok: false, error: err.message ?? "Failed to create checkout session" }
+    const session = sessionRes?.ok
+      ? ((await sessionRes.json().catch(() => null)) as { checkoutUrl?: string } | null)
+      : null
+    if (!session?.checkoutUrl) {
+      console.error(`[checkout] no payment session for order ${order.id}: ${sessionRes?.status}`)
+      // The cart is gone, so the confirmation page is where the shopper can
+      // still see their order number.
+      return { ok: true, orderId: order.id, checkoutUrl: `${confirmationUrl}&payment=failed` }
     }
-
-    const session = (await sessionRes.json()) as { checkoutUrl: string }
-    await clearCartId()
 
     return { ok: true, orderId: order.id, checkoutUrl: session.checkoutUrl }
   } catch (err) {

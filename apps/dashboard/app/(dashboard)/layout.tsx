@@ -27,8 +27,12 @@ export default async function DashboardLayout({
 
   const [activeOrgId, orgResults] = await Promise.all([
     getActiveOrganizationId(),
-    listOrganizations().catch(() => [] as Awaited<ReturnType<typeof listOrganizations>>),
+    listOrganizations(),
   ])
+
+  // An account can end up with no store, e.g. after signing up through an
+  // invitation that had expired.
+  if (orgResults.length === 0) redirect("/new-store")
 
   const orgs: OrgSummary[] = orgResults.map((org) => ({
     id: org.id,

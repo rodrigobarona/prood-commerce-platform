@@ -160,6 +160,7 @@ export function CheckoutFlow({ geoCountry }: { geoCountry?: string }) {
         postalCode: data.address.postalCode || undefined,
         country: data.address.country,
       },
+      shippingMethodId: data.shippingMethod?.methodId,
     })
 
     if (!res.ok) {

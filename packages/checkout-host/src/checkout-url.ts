@@ -10,5 +10,7 @@ export function buildCheckoutSessionUrl(
 }
 
 export function resolveCheckoutBaseUrl(): string {
-  return process.env.CHECKOUT_URL ?? 'http://localhost:3004'
+  const url = process.env.CHECKOUT_URL
+  if (!url) throw new Error('CHECKOUT_URL is required')
+  return url.replace(/\/$/, '')
 }

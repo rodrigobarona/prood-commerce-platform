@@ -3,10 +3,6 @@ import { forwardPaymentWebhook } from "@prood/checkout-host/reconcile"
 
 type Ctx = { params: Promise<{ provider: string; org: string }> }
 
-function tenantFrom(org: string): string | undefined {
-  return org && org !== "_" ? decodeURIComponent(org) : undefined
-}
-
 export async function POST(request: Request, { params }: Ctx) {
   const { provider, org } = await params
   const signature =
@@ -14,7 +10,7 @@ export async function POST(request: Request, { params }: Ctx) {
   const payload = await request.text()
 
   try {
-    await forwardPaymentWebhook(provider, payload, signature, tenantFrom(org))
+    await forwardPaymentWebhook(provider, payload, signature, decodeURIComponent(org))
     return NextResponse.json({ received: true })
   } catch (err) {
     console.error(`[webhooks/${provider}]`, err)
@@ -27,7 +23,7 @@ export async function GET(request: Request, { params }: Ctx) {
   const query = new URL(request.url).search.replace(/^\?/, "")
 
   try {
-    await forwardPaymentWebhook(provider, query, "", tenantFrom(org), "GET")
+    await forwardPaymentWebhook(provider, query, "", decodeURIComponent(org), "GET")
     return NextResponse.json({ received: true })
   } catch (err) {
     console.error(`[webhooks/${provider}]`, err)

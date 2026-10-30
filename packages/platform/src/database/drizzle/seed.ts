@@ -167,9 +167,9 @@ async function seedTenantData(): Promise<void> {
 
   // ---- Product Images ----
   const images = [
-    { productId: 'prod-1', url: 'https://placehold.co/600x600/f0f0f0/333?text=T-Shirt', altText: 'Cotton T-Shirt', isPrimary: true, sortOrder: 1 },
-    { productId: 'prod-2', url: 'https://placehold.co/600x600/1a1a2e/e0e0e0?text=Earbuds', altText: 'Wireless Earbuds', isPrimary: true, sortOrder: 1 },
-    { productId: 'prod-3', url: 'https://placehold.co/600x600/8b4513/fff?text=Bag', altText: 'Leather Bag', isPrimary: true, sortOrder: 1 },
+    { productId: 'prod-1', url: 'https://placehold.co/600x600/f0f0f0/333/png?text=T-Shirt', altText: 'Cotton T-Shirt', isPrimary: true, sortOrder: 1 },
+    { productId: 'prod-2', url: 'https://placehold.co/600x600/1a1a2e/e0e0e0/png?text=Earbuds', altText: 'Wireless Earbuds', isPrimary: true, sortOrder: 1 },
+    { productId: 'prod-3', url: 'https://placehold.co/600x600/8b4513/fff/png?text=Bag', altText: 'Leather Bag', isPrimary: true, sortOrder: 1 },
   ]
 
   for (const image of images) {

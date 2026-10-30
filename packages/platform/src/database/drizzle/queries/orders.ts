@@ -2,7 +2,7 @@
 // Drizzle: Order queries
 // ---------------------------------------------------------------------------
 
-import { eq, and, desc } from 'drizzle-orm'
+import { eq, and, desc, inArray } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
 import { tenantCondition, requireOrgId } from './tenant-filter.js'
@@ -29,15 +29,25 @@ export async function findOrderById(orderId: string) {
 }
 
 /**
- * Look up the organization that owns an order (cross-tenant, unscoped).
- * Used by the webhook handler to resolve tenant when ?org is missing.
+ * Update an order only while its payment status is one of `fromPaymentStatuses`.
+ * A single conditional UPDATE, so concurrent webhook deliveries cannot both win.
+ * Returns whether a row changed.
  */
-export async function findOrderOrgId(orderId: string): Promise<string | null> {
-  const [row] = await getDb()
-    .select({ organizationId: schema.orders.organizationId })
-    .from(schema.orders)
-    .where(eq(schema.orders.id, orderId))
-  return row?.organizationId ?? null
+export async function transitionOrderPayment(
+  orderId: string,
+  fromPaymentStatuses: string[],
+  expectedStatus: string,
+  data: Record<string, any>,
+): Promise<boolean> {
+  const rows = await getDb().update(schema.orders).set(data as any)
+    .where(and(
+      eq(schema.orders.id, orderId),
+      tenantCondition(schema.orders),
+      inArray(schema.orders.paymentStatus, fromPaymentStatuses),
+      eq(schema.orders.status, expectedStatus),
+    ))
+    .returning({ id: schema.orders.id })
+  return rows.length > 0
 }
 
 export async function findOrders(opts: { limit: number; offset: number; customerId?: string }) {

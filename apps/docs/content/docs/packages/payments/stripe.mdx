@@ -63,7 +63,7 @@ Webhook URL: `https://checkout.example.com/api/webhooks/stripe/{orgId}`
 ```ts
 const result = await provider.refund({
   sessionId: 'pi_xxx',
-  amount: 5000, // partial refund in minor units
+  amount: 50, // partial refund in major units
   reason: 'Customer request',
 })
 ```

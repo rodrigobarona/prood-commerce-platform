@@ -94,16 +94,13 @@ import type {
 ## Error handling
 
 ```ts
-import { CommerceError, toErrorResponse, priceToMajorAmount } from '@prood/types'
+import { CommerceError, toErrorResponse } from '@prood/types'
 
 // Throw structured errors
 throw new CommerceError('Product not found', 'NOT_FOUND', 404)
 
 // Convert to HTTP response
 const { error, code, status } = toErrorResponse(err)
-
-// Price formatting
-priceToMajorAmount(9999, 'EUR') // → 99.99
 ```
 
 ## Admin types

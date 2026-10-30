@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 // All adapter tests. Each driver test file calls this with its own setup.
 
-import { it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { createPlatformAdapter } from '../adapter.js'
 import { withTenant } from '../database/drizzle/client.js'
 import { createCustomer } from '../database/drizzle/queries/customers.js'
@@ -214,6 +214,70 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     expect(order.status).toBe('placed')
     expect(order.items.length).toBe(1)
     expect(order.totals.total.amount).toBeGreaterThan(0)
+  })
+
+  describe('payment events', () => {
+    const provider = 'test'
+
+    async function placedOrder() {
+      const cart = await adapter.createCart()
+      await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 1 })
+      await adapter.setShippingAddress(cart.id, fullAddress())
+      return adapter.placeOrder(cart.id)
+    }
+
+    it('captures a payment of the order total, once', async () => {
+      const order = await placedOrder()
+      const { amount, currency } = order.totals.total
+      const event = { outcome: 'captured' as const, amount, currency, provider }
+      expect(await adapter.applyPaymentEvent(order.id, event)).toBe('applied')
+      expect(await adapter.applyPaymentEvent(order.id, event)).toBe('duplicate')
+      expect((await adapter.getOrder(order.id)).status).toBe('approved')
+    })
+
+    it('refuses a payment for a fraction of the total', async () => {
+      const order = await placedOrder()
+      const { amount, currency } = order.totals.total
+      expect(
+        await adapter.applyPaymentEvent(order.id, { outcome: 'captured', amount: amount / 100, currency, provider }),
+      ).toBe('amount_mismatch')
+      expect((await adapter.getOrder(order.id)).status).toBe('placed')
+    })
+
+    it('keeps a cancelled order cancelled when a late payment arrives, once', async () => {
+      const order = await placedOrder()
+      const { amount, currency } = order.totals.total
+      const event = { outcome: 'captured' as const, amount, currency, provider }
+      await adapter.cancelOrder(order.id)
+      expect(await adapter.applyPaymentEvent(order.id, event)).toBe('order_cancelled')
+      expect(await adapter.applyPaymentEvent(order.id, event)).toBe('duplicate')
+      const after = await adapter.getOrder(order.id)
+      expect(after.status).toBe('cancelled')
+      expect(after.paymentStatus).toBe('paid')
+    })
+
+    it('ignores an authorization on a cancelled order', async () => {
+      const order = await placedOrder()
+      await adapter.cancelOrder(order.id)
+      expect(
+        await adapter.applyPaymentEvent(order.id, { outcome: 'authorized', amount: null, currency: null, provider }),
+      ).toBe('duplicate')
+    })
+
+    it('never moves a shipped order', async () => {
+      const paid = await placedOrder()
+      const { amount, currency } = paid.totals.total
+      await adapter.updateOrderStatus(paid.id, { status: 'fulfilled' })
+      expect(
+        await adapter.applyPaymentEvent(paid.id, { outcome: 'captured', amount, currency, provider }),
+      ).toBe('applied')
+      expect((await adapter.getOrder(paid.id)).status).toBe('fulfilled')
+
+      const failed = await placedOrder()
+      await adapter.updateOrderStatus(failed.id, { status: 'fulfilled' })
+      await adapter.applyPaymentEvent(failed.id, { outcome: 'failed', amount: null, currency: null, provider })
+      expect((await adapter.getOrder(failed.id)).status).toBe('fulfilled')
+    })
   })
 
   it('should reject placing order with empty cart', async () => {

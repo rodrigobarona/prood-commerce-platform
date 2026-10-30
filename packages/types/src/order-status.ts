@@ -45,6 +45,25 @@ export interface OrderHistoryEntry {
   createdAt: string
 }
 
+/** A verified payment gateway outcome to apply to an order. */
+export interface PaymentEventInput {
+  outcome: 'authorized' | 'captured' | 'failed' | 'cancelled'
+  /** Amount reported by the gateway, in major units */
+  amount: number | null
+  /** ISO 4217 currency reported by the gateway */
+  currency: string | null
+  /** Gateway id (e.g. 'stripe') — recorded in the order history */
+  provider: string
+}
+
+/**
+ * Result of applying a payment event:
+ * - `applied` — the order moved to the new payment state
+ * - `duplicate` — the order already left `unpaid`/`authorized`; nothing changed
+ * - `amount_mismatch` — the gateway amount/currency differs from the order total
+ */
+export type PaymentEventResult = 'applied' | 'duplicate' | 'amount_mismatch' | 'order_cancelled'
+
 /**
  * Input for updating an order's status.
  */

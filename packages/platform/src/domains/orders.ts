@@ -2,6 +2,7 @@
 // Orders domain — order CRUD and status management
 // ---------------------------------------------------------------------------
 
+import { CommerceError } from '@prood/types'
 import type {
   Order,
   CreateOrderInput,
@@ -10,6 +11,8 @@ import type {
   OrderStatusInfo,
   OrderHistoryEntry,
   UpdateOrderStatusInput,
+  PaymentEventInput,
+  PaymentEventResult,
 } from '@prood/types'
 import {
   createOrder as dbCreateOrder,
@@ -19,6 +22,7 @@ import {
   findOrders,
   findOrderItems,
   findOrderHistory,
+  transitionOrderPayment,
   updateOrder,
 } from '../database/index.js'
 import { generateOrderNumber, normalizeLocalizedField, price, priceRequired, img, parseJsonField, toNumber } from './helpers.js'
@@ -131,7 +135,7 @@ export function createOrdersDomain(currency: string) {
 
     async getOrder(orderId: string): Promise<Order> {
       const row = await findOrderById(orderId)
-      if (!row) throw new Error(`Order not found: ${orderId}`)
+      if (!row) throw new CommerceError(`Order not found: ${orderId}`, "NOT_FOUND")
       return mapOrder(row)
     },
 
@@ -184,7 +188,7 @@ export function createOrdersDomain(currency: string) {
 
     async updateOrderStatus(orderId: string, input: UpdateOrderStatusInput): Promise<void> {
       const order = await findOrderById(orderId)
-      if (!order) throw new Error(`Order not found: ${orderId}`)
+      if (!order) throw new CommerceError(`Order not found: ${orderId}`, "NOT_FOUND")
 
       const updates: Record<string, any> = { status: input.status }
       if (input.paymentStatus) updates.paymentStatus = input.paymentStatus
@@ -203,6 +207,82 @@ export function createOrdersDomain(currency: string) {
         toStatus: input.status,
         note: input.note ?? null,
       })
+    },
+
+    async applyPaymentEvent(orderId: string, input: PaymentEventInput): Promise<PaymentEventResult> {
+      const order = await findOrderById(orderId)
+      if (!order) throw new CommerceError(`Order not found: ${orderId}`, "NOT_FOUND")
+
+      if (input.outcome === 'captured') {
+        const expectedCents = Math.round(Number(order.total) * 100)
+        const receivedCents = input.amount === null ? null : Math.round(input.amount * 100)
+        const currencyMatches = input.currency?.toUpperCase() === String(order.currency).toUpperCase()
+        if (receivedCents !== expectedCents || !currencyMatches) {
+          await createOrderHistory({
+            orderId,
+            fromStatus: order.status,
+            toStatus: order.status,
+            note:
+              `${input.provider} reported ${input.amount ?? 'no amount'} ${input.currency ?? ''} ` +
+              `but the order total is ${order.total} ${order.currency}. Payment not applied.`,
+          })
+          return 'amount_mismatch'
+        }
+      }
+
+      // Multibanco references stay payable for days, so money can arrive after
+      // the order was cancelled. Keep it cancelled and record that it was paid.
+      if (order.status === 'cancelled') {
+        if (input.outcome === 'authorized') return 'duplicate'
+        if (input.outcome === 'captured') {
+          const paid = await transitionOrderPayment(orderId, ['unpaid', 'authorized', 'voided'], 'cancelled', { paymentStatus: 'paid' })
+          if (!paid) return 'duplicate'
+          await createOrderHistory({
+            orderId,
+            fromStatus: 'cancelled',
+            toStatus: 'cancelled',
+            note: `${input.provider} captured a payment on this cancelled order. Refund it.`,
+          })
+          return 'order_cancelled'
+        }
+      }
+
+      // Payment follows the order lifecycle; it never moves a shipped order.
+      const now = new Date()
+      const advances = order.status === 'placed'
+      const cancels = order.status === 'placed' || order.status === 'approved'
+      const voided = {
+        paymentStatus: 'voided',
+        ...(cancels && { status: 'cancelled', cancelledAt: order.cancelledAt ?? now }),
+      }
+      const next: Record<PaymentEventInput['outcome'], { note: string; data: Record<string, unknown> }> = {
+        authorized: { note: 'Payment authorized', data: { paymentStatus: 'authorized' } },
+        captured: {
+          note: 'Payment captured',
+          data: {
+            paymentStatus: 'paid',
+            ...(advances && { status: 'approved', approvedAt: order.approvedAt ?? now }),
+          },
+        },
+        failed: { note: 'Payment failed', data: voided },
+        cancelled: { note: 'Payment cancelled', data: voided },
+      }
+      const target = next[input.outcome]
+      const from = input.outcome === 'authorized' ? ['unpaid'] : ['unpaid', 'authorized']
+
+      if (!(await transitionOrderPayment(orderId, from, order.status, target.data))) {
+        // The order moved since it was read: decide again from its new status.
+        const current = await findOrderById(orderId)
+        return current?.status === order.status ? 'duplicate' : this.applyPaymentEvent(orderId, input)
+      }
+
+      await createOrderHistory({
+        orderId,
+        fromStatus: order.status,
+        toStatus: (target.data.status as string | undefined) ?? order.status,
+        note: `${target.note} (${input.provider})`,
+      })
+      return 'applied'
     },
 
     async cancelOrder(orderId: string, note?: string): Promise<void> {

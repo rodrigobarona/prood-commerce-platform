@@ -10,6 +10,7 @@ import type {
   SearchResult,
   StoreInfo,
 } from '@prood/types'
+import { CommerceError } from '@prood/types'
 import { getAdapter, runScoped } from './adapter'
 
 /** Maps Nuxt routeRules SWR: /products/** and /categories/** → 600s. */
@@ -72,14 +73,30 @@ export async function getProducts(
 }
 
 /** Fetch a single product by id or slug. */
+async function getProductOrNull(
+  params: GetProductParams,
+  tenantId?: string,
+): Promise<Product | null> {
+  'use cache'
+  cacheTag(scoped('products', tenantId), scoped(productTag(params), tenantId))
+  cacheLife(catalogLife)
+  try {
+    return await runScoped(tenantId, async () => (await getAdapter()).getProduct(params))
+  } catch (err) {
+    // Error classes don't survive the cache boundary, so "not found" is
+    // returned as null and rethrown as a typed error below.
+    if (err instanceof CommerceError && err.code === 'NOT_FOUND') return null
+    throw err
+  }
+}
+
 export async function getProduct(
   params: GetProductParams,
   tenantId?: string,
 ): Promise<Product> {
-  'use cache'
-  cacheTag(scoped('products', tenantId), scoped(productTag(params), tenantId))
-  cacheLife(catalogLife)
-  return runScoped(tenantId, async () => (await getAdapter()).getProduct(params))
+  const product = await getProductOrNull(params, tenantId)
+  if (!product) throw new CommerceError('Product not found', 'NOT_FOUND')
+  return product
 }
 
 /** Fetch the category tree. */

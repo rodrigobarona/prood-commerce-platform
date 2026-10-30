@@ -1,6 +1,6 @@
 import "server-only"
 import type { Cart, Category, Order, Product, StoreInfo } from "@prood/types"
-import { unwrap } from "@prood/api-client"
+import { isCommerceApiError, unwrap } from "@prood/api-client"
 
 type ProductListResult = {
   products: { items: Product[]; total: number }
@@ -16,10 +16,14 @@ export async function fetchProductList(
 
 export async function fetchProductBySlug(slug: string): Promise<Product | null> {
   const api = await getCommerceApi()
-  const list = await unwrap<ProductListResult>(
-    api.GET("/products", { params: { query: { query: slug, perPage: 1 } } })
-  )
-  return list.products.items[0] ?? null
+  try {
+    return await unwrap<Product>(
+      api.GET("/products/by-slug/{slug}", { params: { path: { slug } } })
+    )
+  } catch (err) {
+    if (isCommerceApiError(err) && err.code === "NOT_FOUND") return null
+    throw err
+  }
 }
 
 export async function fetchCategories(

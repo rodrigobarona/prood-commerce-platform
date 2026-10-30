@@ -33,7 +33,7 @@ export function getStorage(): StorageProvider {
       bucket: required('S3_BUCKET'),
       accessKeyId: required('S3_ACCESS_KEY_ID'),
       secretAccessKey: required('S3_SECRET_ACCESS_KEY'),
-      publicUrl: process.env.S3_PUBLIC_URL,
+      publicUrl: required('S3_PUBLIC_URL'),
     })
   } else {
     // addRandomSuffix makes public blob URLs unguessable (defense-in-depth on

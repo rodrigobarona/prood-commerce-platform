@@ -7,7 +7,7 @@
 export type { Maybe, Id, LocalizedField, LocalizedString, PaginatedResult, PaginationParams, Price, DiscountablePrice, Image, DeepPartial, CommerceErrorCode, TaxStrategy } from './common.js'
 export { DEFAULT_LOCALE, DEFAULT_LOCALES, LOCALE_META } from './locale.js'
 export type { SupportedLocale } from './locale.js'
-export { CommerceError, isCommerceError, priceToMajorAmount } from './common.js'
+export { CommerceError, isCommerceError } from './common.js'
 export type { CommerceErrorBody, CommerceErrorResponse } from './http-errors.js'
 export { toErrorResponse } from './http-errors.js'
 
@@ -33,7 +33,7 @@ export type { Order, OrderItem, OrderStatus, PaymentStatus, OrderFulfillmentStat
 export type { CreateOrderInput, OrderItemInput } from './order-input.js'
 
 // Order Status & History (for OrderAdapter status/timeline methods)
-export type { OrderStatusInfo, OrderHistoryEntry, UpdateOrderStatusInput } from './order-status.js'
+export type { OrderStatusInfo, OrderHistoryEntry, UpdateOrderStatusInput, PaymentEventInput, PaymentEventResult } from './order-status.js'
 
 // Shipping
 export type { ShippingMethod, ShippingProvider, FulfillmentType } from './shipping.js'
@@ -160,3 +160,7 @@ export type {
   PresignedUrlOptions,
   PresignedUrlResult,
 } from './storage-provider.js'
+
+// Security helpers
+export { safeEqual } from './security.js'
+export { safeRedirectPath } from './redirect.js'

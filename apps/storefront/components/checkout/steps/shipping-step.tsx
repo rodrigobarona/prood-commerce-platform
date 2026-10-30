@@ -163,7 +163,7 @@ export function ShippingStep({
                       <span className="shrink-0 text-sm font-medium">
                         {method.price.amount === 0
                           ? "Free"
-                          : method.price.formatted ?? `${method.price.currency} ${(method.price.amount / 100).toFixed(2)}`}
+                          : method.price.formatted}
                       </span>
                     ) : null}
                   </Field>

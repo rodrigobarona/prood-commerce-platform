@@ -6,12 +6,13 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@prood/ui/components/button"
 import { Input } from "@prood/ui/components/input"
 import { Label } from "@prood/ui/components/label"
+import { safeRedirectPath } from "@prood/types"
 import { signIn } from "@/lib/auth/client"
 
 export function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const redirect = searchParams.get("redirect") || "/account"
+  const redirect = safeRedirectPath(searchParams.get("redirect"), "/account")
 
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")

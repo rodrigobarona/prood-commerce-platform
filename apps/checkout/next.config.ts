@@ -9,7 +9,13 @@ const nextConfig: NextConfig = {
     "@prood/checkout-host",
   ],
   images: {
-    remotePatterns: [{ protocol: "https", hostname: "**" }],
+    // Product media lives in Vercel Blob or the configured S3 bucket; the demo
+    // seed uses placehold.co PNGs.
+    remotePatterns: [
+      { protocol: "https", hostname: "*.public.blob.vercel-storage.com" },
+      { protocol: "https", hostname: "placehold.co" },
+      ...(process.env.S3_PUBLIC_URL ? [new URL(`${process.env.S3_PUBLIC_URL.replace(/\/$/, "")}/**`)] : []),
+    ],
   },
 }
 

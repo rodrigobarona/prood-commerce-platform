@@ -2,6 +2,7 @@
 // Customer identity — GDPR-minimal linking to Better Auth
 // ---------------------------------------------------------------------------
 
+import { CommerceError } from '@prood/types'
 import {
   createCustomer,
   findCustomerByAuthUserId,
@@ -51,7 +52,7 @@ export async function resolveCustomerIdForAuthUser(authUserId: string): Promise<
 /** Attach Better Auth user to an existing guest customer after sign-up / login. */
 export async function linkAuthUserToCustomer(customerId: string, authUserId: string): Promise<void> {
   const customer = await findCustomerById(customerId)
-  if (!customer) throw new Error(`Customer not found: ${customerId}`)
+  if (!customer) throw new CommerceError(`Customer not found: ${customerId}`, "NOT_FOUND")
   if (customer.authUserId && customer.authUserId !== authUserId) {
     throw new Error('Customer is already linked to another account')
   }

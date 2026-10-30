@@ -37,7 +37,6 @@ export {
   getDb,
   withTenant,
   getCurrentOrganizationId,
-  currentTenantScope,
   migrateDrizzle,
   applyTenantIsolation,
   seedDrizzle,
@@ -50,12 +49,12 @@ export {
   linkAuthUserToCustomer,
   autoLinkGuestCustomers,
 } from './customers/identity.js'
-export { lookupTenantByHost } from './tenant/lookup.js'
+export { lookupTenantByHost, getStorefrontIdentity, RESERVED_STORE_SLUGS, type StorefrontIdentity } from './tenant/lookup.js'
 export {
   ensureDefaultStoreInfo,
   provisionOrganizationStore,
 } from './tenant/store-info.js'
-export { countProducts, countOrdersThisMonth, findOrderOrgId } from './database/index.js'
+export { countProducts, countOrdersThisMonth } from './database/index.js'
 export type { DrizzleDatabase } from './database/drizzle/client.js'
 
 // Drizzle schema (for raw queries)

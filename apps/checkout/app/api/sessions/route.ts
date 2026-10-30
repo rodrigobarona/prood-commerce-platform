@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
-import { buildCheckoutSessionUrl, createCheckoutSession, resolveCheckoutBaseUrl } from "@prood/checkout-host"
+import { createCheckoutSession } from "@prood/checkout-host"
 import { errorResponse, requireApiSecret } from "@/lib/api"
 
 const createSchema = z.object({
@@ -22,7 +22,7 @@ const createSchema = z.object({
   channel: z.enum(["web", "pos", "agent", "link"]).optional(),
   fulfillment: z.enum(["shipping", "local_delivery", "pickup", "none"]).optional(),
   expiresIn: z.number().positive().optional(),
-  tenantId: z.string().optional(),
+  tenantId: z.string().min(1),
   storeName: z.string().optional(),
 })
 
@@ -32,10 +32,7 @@ export async function POST(request: Request) {
     const body = createSchema.parse(await request.json())
     const result = await createCheckoutSession(body)
 
-    return NextResponse.json({
-      ...result,
-      checkoutUrl: buildCheckoutSessionUrl(resolveCheckoutBaseUrl(), result.sessionId),
-    })
+    return NextResponse.json({ ...result, checkoutUrl: result.url })
   } catch (err) {
     return errorResponse(err)
   }

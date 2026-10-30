@@ -17,6 +17,7 @@ export async function POST(
     await assertCanPlaceOrder(caller.orgId)
 
     const body = await readBody(req, placeOrderBody)
+    await checkout.assertPayable(caller.orgId, id, body.providerId)
 
     let customerId: string
     if (caller.userId) {

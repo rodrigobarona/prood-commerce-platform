@@ -31,6 +31,8 @@ export interface EasypayMethodBlock {
 /** Shape of an Easypay single-payment response (partial). */
 export interface EasypaySinglePayment {
   id?: string
+  /** Merchant reference — Prood sets this to the order id. */
+  key?: string
   method?: EasypayMethodBlock
   status?: string | string[]
   payment_status?: string

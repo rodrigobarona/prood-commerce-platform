@@ -5,80 +5,80 @@
     "NODE_ENV",
     "NEXT_PHASE",
     "DATABASE_URL",
-    "DATABASE_URL_UNPOOLED",
-    "POSTGRES_*",
-    "PG*",
-    "NEON_*",
-    "VITE_NEON_AUTH_URL",
     "ADMIN_EMAIL",
     "ADMIN_PASSWORD",
-    "DEFAULT_TENANT_ORG_ID",
     "VERCEL_TOKEN",
     "STOREFRONT_VERCEL_PROJECT_ID",
     "VERCEL_TEAM_ID",
     "COMMERCE_CURRENCY",
     "STORAGE_PROVIDER",
-    "DEFAULT_PAYMENT_PROVIDER",
     "AUTH_COOKIE_DOMAIN",
     "BETTER_AUTH_URL",
     "BETTER_AUTH_SECRET",
     "API_PUBLIC_URL",
     "COMMERCE_API_URL",
     "CHECKOUT_URL",
+    "CHECKOUT_API_SECRET",
     "AGENT_PROXY_API_KEYS_BY_ORG",
-    "AGENT_DEVICE_AUTH_PAGE",
     "TRUST_PROXY",
     "INTEGRATION_ENCRYPTION_KEY",
     "BLOB_READ_WRITE_TOKEN",
-    "STRIPE_*",
-    "NEXT_PUBLIC_STRIPE_*",
-    "EASYPAY_*",
-    "IFTHENPAY_*",
     "S3_*",
-    "NEXT_PUBLIC_*",
-    "CHECKOUT_URL",
-    "STOREFRONT_URL",
-    "CHECKOUT_API_SECRET",
-    "UPSTASH_REDIS_REST_URL",
-    "UPSTASH_REDIS_REST_TOKEN",
     "KV_REST_API_URL",
     "KV_REST_API_TOKEN",
-    "KV_REST_API_READ_ONLY_TOKEN",
-    "KV_URL",
-    "REDIS_URL",
     "RESEND_API_KEY",
     "RESEND_FROM_EMAIL",
-    "ADMIN_USER_IDS",
-    "NEXT_PUBLIC_ADMIN_URL"
+    "NEXT_PUBLIC_*"
   ],
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**"
+      ]
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": [
+        "^lint"
+      ]
     },
     "format": {
-      "dependsOn": ["^format"]
+      "dependsOn": [
+        "^format"
+      ]
     },
     "typecheck": {
-      "dependsOn": ["^build"]
+      "dependsOn": [
+        "^build"
+      ]
     },
     "test": {
-      "dependsOn": ["^build"]
+      "dependsOn": [
+        "^build"
+      ]
     },
     "db:generate": {
       "cache": false
     },
     "db:migrate": {
       "cache": false,
-      "dependsOn": ["^build"]
+      "dependsOn": [
+        "^build"
+      ]
     },
     "db:migrate:seed": {
       "cache": false,
-      "dependsOn": ["^build"]
+      "dependsOn": [
+        "^build"
+      ]
     },
     "dev": {
       "cache": false,

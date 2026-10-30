@@ -177,18 +177,26 @@ export class EasypayPaymentProvider implements PaymentProvider {
     payload: string | Uint8Array,
     _signature: string,
   ): Promise<PaymentWebhookEvent> {
-    // Easypay notifications do not carry an HMAC signature; the documented
-    // pattern is to treat the notification as a trigger and re-fetch the
-    // payment via the API (done by the caller through getSession) as the
-    // source of truth.
+    // Easypay notifications are unsigned, so the body is only a trigger: the
+    // payment is re-fetched from the API and that response is the source of truth.
     const bodyStr = typeof payload === 'string' ? payload : new TextDecoder().decode(payload)
-    const event = JSON.parse(bodyStr) as EasypaySinglePayment & { id?: string }
-    const statusStr = readStatus(event)
+    const notification = JSON.parse(bodyStr) as { id?: unknown }
+    if (typeof notification.id !== 'string' || notification.id.length === 0) {
+      throw new Error('Easypay: notification is missing the payment id')
+    }
+
+    const payment = await this.request<EasypaySinglePayment>(
+      'GET',
+      `/2.0/single/${encodeURIComponent(notification.id)}`,
+    )
 
     return {
-      type: statusToEventType(mapEasypayStatus(statusStr)),
-      sessionId: String(event.id ?? ''),
-      data: event as unknown as Record<string, unknown>,
+      type: statusToEventType(mapEasypayStatus(readStatus(payment))),
+      sessionId: notification.id,
+      orderId: payment.key ?? null,
+      amount: typeof payment.value === 'number' ? payment.value : null,
+      currency: payment.currency ? payment.currency.toUpperCase() : null,
+      data: payment as unknown as Record<string, unknown>,
     }
   }
 

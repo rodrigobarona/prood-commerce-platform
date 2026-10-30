@@ -7,8 +7,17 @@
     "moduleResolution": "NodeNext",
     "declaration": true,
     "declarationMap": true,
-    "emitDeclarationOnly": false
+    "emitDeclarationOnly": false,
+    "lib": [
+      "ES2022",
+      "DOM"
+    ]
   },
-  "include": ["src"],
-  "exclude": ["src/__tests__/**", "**/*.test.ts"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "src/__tests__/**",
+    "**/*.test.ts"
+  ]
 }

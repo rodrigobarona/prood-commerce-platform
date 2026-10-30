@@ -19,6 +19,7 @@ import type {
   RefundInput,
   PaymentWebhookEvent,
 } from '@prood/types'
+import { safeEqual } from '@prood/types'
 
 import type {
   IfthenpayConfig,
@@ -191,14 +192,18 @@ export class IfthenpayPaymentProvider implements PaymentProvider {
     const params = parsePayload(bodyStr)
 
     const key = params.key ?? params.chave ?? params.antiPhishingKey
-    if (!key || key !== this.cfg.antiPhishingKey) {
+    if (!key || !safeEqual(key, this.cfg.antiPhishingKey)) {
       throw new Error('Ifthenpay: invalid anti-phishing key on callback')
     }
 
     // A valid callback from Ifthenpay signals a completed payment.
+    const amount = Number.parseFloat(params.amount ?? params.valor ?? '')
     return {
       type: 'payment.captured',
       sessionId: String(params.requestId ?? params.orderId ?? params.id ?? ''),
+      orderId: params.orderId ?? params.id ?? null,
+      amount: Number.isFinite(amount) ? amount : null,
+      currency: 'EUR',
       data: params,
     }
   }

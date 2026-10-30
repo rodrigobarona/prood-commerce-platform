@@ -103,6 +103,12 @@ export interface PaymentWebhookEvent {
   type: string
   /** Related payment session ID */
   sessionId: string
+  /** Commerce order the payment belongs to, as reported by the gateway */
+  orderId: string | null
+  /** Amount the gateway reports for this event, in major units (e.g. 49.90) */
+  amount: number | null
+  /** ISO 4217 currency of `amount`, uppercase */
+  currency: string | null
   /** Raw event data from the provider */
   data: Record<string, unknown>
 }

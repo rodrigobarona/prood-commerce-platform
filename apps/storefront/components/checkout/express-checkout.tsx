@@ -36,28 +36,34 @@ function GooglePayIcon({ className }: { className?: string }) {
   )
 }
 
+const EXPRESS_UNAVAILABLE = "Express checkout isn't available. Continue below."
+
 interface ExpressCheckoutProps {
   className?: string
 }
 
 export function ExpressCheckout({ className }: ExpressCheckoutProps) {
   const [loading, setLoading] = useState<"apple" | "google" | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const handleExpressPayment = useCallback(
     async (method: "apple" | "google") => {
       setLoading(method)
+      setError(null)
       try {
         const res = await startCheckout({
           expressPayment: method,
         })
         if (res.ok && res.checkoutUrl) {
+          // Stay in the loading state while the browser navigates.
           window.location.href = res.checkoutUrl
+          return
         }
+        setError(res.error ?? EXPRESS_UNAVAILABLE)
       } catch {
-        // fall through — user can continue with standard checkout
-      } finally {
-        setLoading(null)
+        setError(EXPRESS_UNAVAILABLE)
       }
+      setLoading(null)
     },
     [],
   )
@@ -65,6 +71,11 @@ export function ExpressCheckout({ className }: ExpressCheckoutProps) {
   return (
     <div className={cn("flex flex-col gap-4", className)}>
       <p className="text-center text-sm text-muted-foreground">Express checkout</p>
+      {error ? (
+        <p role="alert" className="text-center text-sm text-destructive">
+          {error}
+        </p>
+      ) : null}
       <div className="grid grid-cols-2 gap-3">
         <Button
           type="button"

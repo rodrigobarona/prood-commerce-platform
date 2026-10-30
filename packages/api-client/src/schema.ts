@@ -72,6 +72,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/products/by-slug/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get product by URL slug */
+        get: operations["getProductBySlug"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/categories": {
         parameters: {
             query?: never;
@@ -1033,6 +1050,170 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Validation error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+        };
+    };
+    getProductBySlug: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        id: string;
+                        sku?: string | null;
+                        name: {
+                            [key: string]: string;
+                        };
+                        slug: string;
+                        description?: {
+                            [key: string]: string;
+                        } | null;
+                        shortDescription?: {
+                            [key: string]: string;
+                        } | null;
+                        price?: ({
+                            amount: number;
+                            currency: string;
+                            formatted: string;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        primaryImage?: ({
+                            url: string;
+                            alt: string;
+                            width?: number;
+                            height?: number;
+                        } & {
+                            [key: string]: unknown;
+                        }) | null;
+                        gallery?: ({
+                            url: string;
+                            alt: string;
+                            width?: number;
+                            height?: number;
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        variants?: {
+                            [key: string]: unknown;
+                        }[];
+                        options?: {
+                            [key: string]: unknown;
+                        }[];
+                        attributes?: {
+                            [key: string]: unknown;
+                        }[];
+                        categories?: ({
+                            id: string;
+                            name: {
+                                [key: string]: string;
+                            };
+                            slug: string;
+                            description?: {
+                                [key: string]: string;
+                            } | null;
+                            image?: ({
+                                url: string;
+                                alt: string;
+                                width?: number;
+                                height?: number;
+                            } & {
+                                [key: string]: unknown;
+                            }) | null;
+                            parentId?: string | null;
+                            children?: {
+                                [key: string]: unknown;
+                            }[];
+                            productCount?: number | null;
+                        } & {
+                            [key: string]: unknown;
+                        })[];
+                        inStock: boolean;
+                        tags?: string[];
+                        createdAt?: string;
+                        updatedAt?: string;
+                        productType?: string;
+                        status?: string | null;
+                    } & {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Product not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3774,6 +3955,7 @@ export interface operations {
                 "application/json": {
                     /** Format: email */
                     email?: string;
+                    providerId?: string;
                 };
             };
         };
@@ -5188,7 +5370,7 @@ export interface operations {
                     description?: {
                         [key: string]: string;
                     };
-                    image?: string;
+                    image?: string | "";
                     parentId?: string;
                     sortOrder?: number;
                 };
@@ -5365,7 +5547,7 @@ export interface operations {
                     description?: {
                         [key: string]: string;
                     };
-                    image?: string;
+                    image?: string | "";
                     parentId?: string;
                     sortOrder?: number;
                 };
@@ -6508,7 +6690,7 @@ export interface operations {
                     description?: {
                         [key: string]: string;
                     };
-                    logo?: string;
+                    logo?: string | "";
                     favicon?: string;
                     currency?: string;
                     locale?: string;

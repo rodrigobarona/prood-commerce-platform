@@ -2,6 +2,7 @@
 // Admin: Order management
 // ---------------------------------------------------------------------------
 
+import { CommerceError } from '@prood/types'
 import type { Order, PaginatedResult } from '@prood/types'
 import type { AdminListOrdersParams, FulfillOrderInput } from './types.js'
 import {
@@ -90,7 +91,7 @@ function mapOrder(row: any, items: any[], currency: string): Order {
 export function createAdminOrdersDomain(currency: string) {
   async function fullOrder(id: string): Promise<Order> {
     const row = await findOrderById(id)
-    if (!row) throw new Error(`Order not found: ${id}`)
+    if (!row) throw new CommerceError(`Order not found: ${id}`, "NOT_FOUND")
     const items = await findOrderItems(id)
     return mapOrder(row, items, currency)
   }
@@ -131,7 +132,7 @@ export function createAdminOrdersDomain(currency: string) {
 
     async fulfillOrder(id: string, input: FulfillOrderInput): Promise<void> {
       const order = await findOrderById(id)
-      if (!order) throw new Error(`Order not found: ${id}`)
+      if (!order) throw new CommerceError(`Order not found: ${id}`, "NOT_FOUND")
 
       await updateOrderTracking(id, {
         trackingNumber: input.trackingNumber ?? null,
@@ -154,7 +155,7 @@ export function createAdminOrdersDomain(currency: string) {
 
     async refundOrder(id: string, note?: string): Promise<void> {
       const order = await findOrderById(id)
-      if (!order) throw new Error(`Order not found: ${id}`)
+      if (!order) throw new CommerceError(`Order not found: ${id}`, "NOT_FOUND")
 
       await updateOrder(id, {
         status: 'cancelled',

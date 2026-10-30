@@ -34,41 +34,12 @@ export interface PaginationParams {
 
 /** Monetary amount */
 export interface Price {
-  /** Amount in the smallest currency unit (e.g., halalat for SAR) */
+  /** Amount in major currency units, as stored (e.g., 49.9 for €49.90) */
   amount: number
-  /** ISO 4217 currency code (e.g., "SAR", "AED", "USD") */
+  /** ISO 4217 currency code (e.g., "EUR", "USD") */
   currency: string
-  /** Human-readable formatted string (e.g., "١٢٫٩٩ ر.س" or "SAR 12.99") */
+  /** Human-readable formatted string (e.g., "€49.90") */
   formatted: string
-}
-
-const ZERO_DECIMAL_CURRENCIES = new Set([
-  'BIF',
-  'CLP',
-  'DJF',
-  'GNF',
-  'JPY',
-  'KMF',
-  'KRW',
-  'MGA',
-  'PYG',
-  'RWF',
-  'UGX',
-  'VND',
-  'VUV',
-  'XAF',
-  'XOF',
-  'XPF',
-])
-
-/**
- * Convert a {@link Price} (amount in the smallest currency unit) to the major
- * unit expected by payment gateways (e.g. 4990 → 49.90).
- */
-export function priceToMajorAmount(price: Price): number {
-  return ZERO_DECIMAL_CURRENCIES.has(price.currency.toUpperCase())
-    ? price.amount
-    : price.amount / 100
 }
 
 /** Price that may have a discount applied */

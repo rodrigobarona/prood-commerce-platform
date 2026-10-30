@@ -2,6 +2,7 @@
 // Catalog domain — product and category retrieval
 // ---------------------------------------------------------------------------
 
+import { CommerceError } from '@prood/types'
 import type {
   Product,
   Category,
@@ -127,8 +128,10 @@ export function createCatalogDomain(currency: string) {
           ? await findProductBySlug(params.slug!)
           : null
 
-      if (!row) {
-        throw new Error(`Product not found: ${params.id ?? params.slug}`)
+      // Shopper-facing read: drafts and archived products don't exist here.
+      // Merchant reads go through the admin domain.
+      if (!row || row.status !== 'active') {
+        throw new CommerceError(`Product not found: ${params.id ?? params.slug}`, "NOT_FOUND")
       }
 
       const related = await fetchProductRelations(row.id)

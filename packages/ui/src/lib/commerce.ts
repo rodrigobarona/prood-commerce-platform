@@ -20,30 +20,20 @@ export function localized(
   return value[locale] || value[DEFAULT_LOCALE] || Object.values(value)[0] || ""
 }
 
-const ZERO_DECIMAL = new Set([
-  "BIF", "CLP", "DJF", "GNF", "JPY", "KMF", "KRW", "MGA",
-  "PYG", "RWF", "UGX", "VND", "VUV", "XAF", "XOF", "XPF",
-])
-
-function toMajor(amount: number, currency: string): number {
-  return ZERO_DECIMAL.has(currency.toUpperCase()) ? amount : amount / 100
-}
-
-/** Format a Price, preferring the platform-provided `formatted` string. */
+/** Format a Price for the given locale. `amount` is in major units. */
 export function formatPrice(
   price: Maybe<Price> | undefined,
   locale: Locale = DEFAULT_LOCALE,
 ): string {
   if (!price) return ""
-  if (price.formatted) return price.formatted
   try {
     const intlLocale = locale === "pt" ? "pt-PT" : locale === "es" ? "es-ES" : "en"
     return new Intl.NumberFormat(intlLocale, {
       style: "currency",
       currency: price.currency,
-    }).format(toMajor(price.amount, price.currency))
+    }).format(price.amount)
   } catch {
-    return `${toMajor(price.amount, price.currency)} ${price.currency}`
+    return `${price.amount} ${price.currency}`
   }
 }
 
