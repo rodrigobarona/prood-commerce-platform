@@ -25,7 +25,6 @@ DATABASE_URL="postgresql://user:password@host/db?sslmode=require"
 
 | Variable | Default | Description |
 | --- | --- | --- |
-| `COMMERCE_CURRENCY` | `EUR` | Default store currency (ISO 4217). |
 
 ## Storage
 
@@ -150,7 +149,7 @@ Optional for local dev; required for custom domain provisioning in production:
 | **storefront** | `DATABASE_URL`, `COMMERCE_API_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `CHECKOUT_URL`, `CHECKOUT_API_SECRET` |
 | **dashboard** | `DATABASE_URL`, `COMMERCE_API_URL`, `BETTER_AUTH_SECRET`, `NEXT_PUBLIC_AUTH_URL`, `INTEGRATION_ENCRYPTION_KEY` |
 | **checkout** | `UPSTASH_REDIS_*`, `CHECKOUT_API_SECRET`, `COMMERCE_API_URL`, payment provider keys |
-| **api** | `DATABASE_URL`, `BETTER_AUTH_*`, `AUTH_COOKIE_DOMAIN`, `COMMERCE_CURRENCY`, payment/storage provider keys, `CHECKOUT_API_SECRET`, `RESEND_*` |
+| **api** | `DATABASE_URL`, `BETTER_AUTH_*`, `AUTH_COOKIE_DOMAIN`, payment/storage provider keys, `CHECKOUT_API_SECRET`, `RESEND_*` |
 | **admin** | `DATABASE_URL`, `BETTER_AUTH_SECRET`, `NEXT_PUBLIC_ADMIN_URL` |
 | **docs** | None (static site; OpenAPI synced at build time) |
 

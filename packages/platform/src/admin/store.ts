@@ -2,9 +2,10 @@
 // Admin: Store settings management
 // ---------------------------------------------------------------------------
 
+import { CommerceError } from '@prood/types'
 import type { StoreSettings, UpdateStoreInput } from './types.js'
 import { ensureDefaultStoreInfo } from '../tenant/store-info.js'
-import { updateStoreInfo } from '../database/index.js'
+import { countOrders, updateStoreInfo } from '../database/index.js'
 import { normalizeLocalizedField } from '../domains/helpers.js'
 
 function mapStoreSettings(row: any): StoreSettings {
@@ -55,6 +56,15 @@ export function createAdminStoreDomain() {
 
     async updateStoreSettings(input: UpdateStoreInput): Promise<StoreSettings> {
       const updates: Record<string, unknown> = {}
+
+      if (input.currency != null) {
+        const { currency } = await ensureDefaultStoreInfo()
+        // Orders keep the currency they were charged in, and nothing converts
+        // prices, so a store has one currency for life once it has sold.
+        if (input.currency !== currency && (await countOrders()) > 0) {
+          throw new CommerceError('The store currency cannot change once it has orders.', 'VALIDATION', 422)
+        }
+      }
 
       if (input.name != null) updates.name = input.name
       if (input.description !== undefined) updates.description = input.description

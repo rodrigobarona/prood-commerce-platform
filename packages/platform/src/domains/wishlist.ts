@@ -12,7 +12,8 @@ import {
   findWishlistItemByProduct,
   findProductById,
 } from '../database/index.js'
-import { normalizeLocalizedField, discountablePrice, img } from './helpers.js'
+import { getStoreCurrency } from '../tenant/store-info.js'
+import { mapProduct } from './product-mapper.js'
 
 async function getOrCreateWishlist(customerId: string) {
   let wl = await findWishlistByCustomer(customerId)
@@ -24,6 +25,7 @@ async function getOrCreateWishlist(customerId: string) {
 
 async function buildWishlist(wishlistId: string): Promise<Wishlist> {
   const items = await findWishlistItems(wishlistId)
+  const currency = await getStoreCurrency()
 
   const mapped = await Promise.all(
     items.map(async (item: any) => {
@@ -31,15 +33,8 @@ async function buildWishlist(wishlistId: string): Promise<Wishlist> {
       return {
         id: item.id,
         product: product
-          ? {
-              id: product.id,
-              name: normalizeLocalizedField(product.name),
-              slug: product.slug,
-              price: discountablePrice(product.price, product.compareAtPrice, product.currency),
-              gallery: [],
-              inStock: product.inStock,
-            }
-          : { id: item.productId, name: { en: 'Unknown', pt: 'Desconhecido', es: 'Desconocido' }, slug: '', price: null, gallery: [], inStock: false },
+          ? await mapProduct(product, currency)
+          : { id: item.productId, name: { en: 'Unknown', pt: 'Desconhecido', es: 'Desconocido' }, slug: '', price: null, gallery: [], variants: [], inStock: false },
         variantId: item.variantId ?? null,
         addedAt: item.addedAt,
       }

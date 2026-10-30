@@ -21,7 +21,6 @@ export const products = pgTable('products', {
   // Pricing
   price: numeric('price', { precision: 12, scale: 2 }),
   compareAtPrice: numeric('compare_at_price', { precision: 12, scale: 2 }),
-  currency: text('currency').notNull().default('EUR'),
 
   // Classification
   productType: text('product_type').notNull().default('physical'),

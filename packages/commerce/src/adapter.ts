@@ -74,7 +74,6 @@ function create(): Promise<CommerceInstance> {
   const config = getCommerceConfig()
   return createPlatformAdapter({
     connectionString: config.databaseUrl,
-    currency: config.currency,
   })
 }
 

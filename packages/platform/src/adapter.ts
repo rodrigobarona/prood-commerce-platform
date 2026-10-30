@@ -67,22 +67,20 @@ export interface PlatformAdapterResult {
  * ```ts
  * const { adapter, admin } = await createPlatformAdapter({
  *   connectionString: process.env.DATABASE_URL,
- *   currency: 'EUR',
  * })
  * ```
  */
 export async function createPlatformAdapter(config: PlatformConfig = {}): Promise<PlatformAdapterResult> {
-  const currency = config.currency ?? 'EUR'
   const connectionString = resolveConnectionString(config)
 
   // Auto-initialize the database
   await initDatabase(connectionString)
 
   const catalog = createCatalogDomain()
-  const cart = createCartDomain(currency)
-  const checkout = createCheckoutDomain(currency)
+  const cart = createCartDomain()
+  const checkout = createCheckoutDomain()
   const customers = createCustomersDomain()
-  const orders = createOrdersDomain(currency)
+  const orders = createOrdersDomain()
   const store = createStoreDomain()
   const brands = createBrandsDomain()
   const countries = createCountriesDomain()
@@ -92,7 +90,7 @@ export async function createPlatformAdapter(config: PlatformConfig = {}): Promis
   const returnsDomain = createReturnsDomain()
 
   // Build the admin API
-  const admin = createAdminAPI(currency)
+  const admin = createAdminAPI()
 
   const adapter: PlatformAdapter = {
     name: 'prood',
