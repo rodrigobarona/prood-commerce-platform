@@ -2,7 +2,7 @@
 // Drizzle: Admin order queries
 // ---------------------------------------------------------------------------
 
-import { count, eq, sql, and, like, gte, lte, desc } from 'drizzle-orm'
+import { count, eq, sql, and, inArray, like, gte, lte, desc } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
 import { tenantCondition } from './tenant-filter.js'
@@ -85,12 +85,16 @@ export async function countOrdersByStatus() {
   return map
 }
 
-/** Money actually received: orders still paid, so a refund takes its order back out. */
+/**
+ * Money received: orders still paid or only partly refunded, so a full refund
+ * takes its order back out. A partial refund's amount is not recorded on the
+ * order, so such an order still counts at its full total.
+ */
 export async function sumOrderRevenue() {
   const [result] = await getDb()
     .select({ total: sql`COALESCE(SUM(total), 0)`.mapWith(Number) })
     .from(schema.orders)
-    .where(and(eq(schema.orders.paymentStatus, 'paid'), tenantCondition(schema.orders)))
+    .where(and(inArray(schema.orders.paymentStatus, ['paid', 'partially_refunded']), tenantCondition(schema.orders)))
   return result?.total ?? 0
 }
 
