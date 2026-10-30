@@ -162,10 +162,11 @@ export const updateStoreBody = z.object({
   currency: z.string().optional(),
   locale: z.string().optional(),
   timezone: z.string().optional(),
+  country: z.string().length(2).toUpperCase().optional(),
   contactEmail: z.email().optional(),
   contactPhone: z.string().optional(),
   address: z.string().optional(),
-  socialLinks: z.string().optional(),
+  socialLinks: z.record(z.string(), z.string()).optional(),
 })
 
 export const fulfillOrderBody = z.object({

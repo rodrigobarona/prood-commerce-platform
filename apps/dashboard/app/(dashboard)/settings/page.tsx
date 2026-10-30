@@ -19,6 +19,7 @@ const EMPTY: SettingsFormValues = {
   currency: "EUR",
   locale: "en",
   timezone: "UTC",
+  country: "PT",
   address: "",
 }
 
@@ -31,6 +32,7 @@ function toFormValues(settings: StoreSettings): SettingsFormValues {
     currency: settings.currency ?? "EUR",
     locale: settings.locale ?? "en",
     timezone: settings.timezone ?? "UTC",
+    country: settings.country,
     address: settings.address ?? "",
   }
 }
