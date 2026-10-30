@@ -69,8 +69,10 @@ DATABASE_URL="postgresql://..." pnpm db:migrate
 This creates the commerce and Better Auth tables, the `prood_app` role and the
 row-level-security policies. The role that runs the migrations must be able to
 create roles (the Neon owner role can) and must be the role the apps connect
-with, because `0000_app_role` grants `prood_app` to it. Only run `pnpm db:seed`
-if you want the demo store.
+with, because `0000_app_role` grants `prood_app` to it. Postgres 16 or later is
+required. If `prood_app` already exists under another owner, a superuser must
+first run `GRANT prood_app TO <migrating_role> WITH ADMIN OPTION`. Only run
+`pnpm db:seed` if you want the demo store.
 
 ## Step 2 — Deploy the API
 
@@ -123,7 +125,6 @@ CHECKOUT_URL=https://checkout.prood.com
 CHECKOUT_API_SECRET=<same as API>
 RESEND_API_KEY=re_...
 RESEND_FROM_EMAIL="Prood <noreply@merchant-domain.com>"
-DEFAULT_TENANT_ORG_ID=          # leave empty for multi-tenant
 NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app
 ```
 
@@ -190,10 +191,9 @@ BETTER_AUTH_SECRET=<same as API>
 BETTER_AUTH_URL=https://api.prood.com
 NEXT_PUBLIC_AUTH_URL=https://api.prood.com
 NEXT_PUBLIC_ADMIN_URL=https://admin.prood.com
-ADMIN_USER_IDS=<comma-separated Better Auth user IDs>
 ```
 
-`apps/admin` is for platform operations only. Keep it on a restricted domain and set `ADMIN_USER_IDS` before exposing it outside local development.
+`apps/admin` is for platform operations only. Keep it on a restricted domain. Access is limited to users with the `admin` role.
 
 ## Step 7 — Deploy docs and web
 
@@ -243,7 +243,6 @@ The storefront uses Next.js Cache Components:
 - [ ] `pnpm db:migrate` run against production database
 - [ ] Custom domains verified for at least one merchant
 - [ ] SSL certificates active on all domains
-- [ ] `ADMIN_USER_IDS` set before deploying `apps/admin`
 
 ## Related pages
 

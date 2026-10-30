@@ -45,7 +45,6 @@ Every request resolves the active merchant from the `Host` header:
 
 1. Custom domain → `tenant_domain` table lookup
 2. `{slug}.{NEXT_PUBLIC_PLATFORM_DOMAIN}` → organization slug
-3. Fallback → `DEFAULT_TENANT_ORG_ID` (dev only)
 
 The resolved tenant ID is forwarded to the API via the `Host` header. Catalog cache tags are scoped per tenant.
 
@@ -73,7 +72,6 @@ See [Auth & tenant](/docs/apps/storefront/auth-tenant) for implementation detail
 | `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` | Customer auth |
 | `CHECKOUT_URL` | Checkout app redirect target |
 | `CHECKOUT_API_SECRET` | Auth header for session creation |
-| `DEFAULT_TENANT_ORG_ID` | Dev fallback tenant |
 | `NEXT_PUBLIC_PLATFORM_DOMAIN` | Subdomain tenant resolution |
 
 ## Next.js configuration
