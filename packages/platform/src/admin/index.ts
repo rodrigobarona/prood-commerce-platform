@@ -39,7 +39,7 @@ export function createAdminAPI(currency: string): AdminAPI {
   const orders = createAdminOrdersDomain(currency)
   const customers = createAdminCustomersDomain()
   const store = createAdminStoreDomain()
-  const inventory = createAdminInventoryDomain(currency)
+  const inventory = createAdminInventoryDomain()
 
   return {
     // Auth

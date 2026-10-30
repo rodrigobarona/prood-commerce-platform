@@ -11,9 +11,7 @@ import type {
   CommerceErrorBody,
   Country,
   Customer,
-  DigitalProductMeta,
   DiscountablePrice,
-  EventProductMeta,
   Facet,
   FacetValue,
   FulfillmentStatus,
@@ -29,19 +27,15 @@ import type {
   PaymentEventResult,
   PaymentMethod,
   PaymentStatus,
-  PreOrderMeta,
   Price,
   Product,
-  ProductOption,
   ProductType,
   ProductVariant,
   SearchResult,
-  ServiceProductMeta,
   ShippingMethod,
   StoreCurrency,
   StoreInfo,
   StoreLocale,
-  SubscriptionProductMeta,
 } from "@prood/types"
 import type { ApiCaller } from "./auth-tenant"
 
@@ -146,18 +140,11 @@ const attribute = z.object({
   value: localizedField,
 }) satisfies z.ZodType<Attribute>
 
-const productOption = z.object({
-  id: z.string(),
-  name: localizedField,
-  values: z.array(z.object({ id: z.string(), name: localizedField })),
-}) satisfies z.ZodType<ProductOption>
-
 const productVariant = z.object({
   id: z.string(),
   sku: nullableString,
   name: localizedField.nullable(),
   price: discountablePrice.nullable(),
-  attributes: z.array(attribute),
   inStock: z.boolean(),
   inventoryQuantity: z.number().nullable(),
 }) satisfies z.ZodType<ProductVariant>
@@ -169,45 +156,6 @@ const productType = z.enum([
   "event",
   "subscription",
 ]) satisfies z.ZodType<ProductType>
-
-const digitalProductMeta = z.object({
-  downloadUrl: nullableString,
-  fileSize: z.number().nullable(),
-  fileType: nullableString,
-  licenseKey: nullableString,
-  maxDownloads: z.number().nullable(),
-  expiresInHours: z.number().nullable(),
-}) satisfies z.ZodType<DigitalProductMeta>
-
-const serviceProductMeta = z.object({
-  durationMinutes: z.number().nullable(),
-  requiresBooking: z.boolean(),
-  deliveryMode: z.enum(["in_person", "remote", "hybrid"]),
-}) satisfies z.ZodType<ServiceProductMeta>
-
-const eventProductMeta = z.object({
-  startDate: z.string(),
-  endDate: nullableString,
-  venue: localizedField.nullable(),
-  location: nullableString,
-  isVirtual: z.boolean(),
-  seatInfo: nullableString,
-  capacity: z.number().nullable(),
-}) satisfies z.ZodType<EventProductMeta>
-
-const subscriptionProductMeta = z.object({
-  interval: z.enum(["daily", "weekly", "monthly", "quarterly", "yearly"]),
-  intervalCount: z.number(),
-  trialDays: z.number(),
-  recurringPrice: price,
-}) satisfies z.ZodType<SubscriptionProductMeta>
-
-const preOrderMeta = z.object({
-  enabled: z.boolean(),
-  releaseDate: nullableString,
-  depositAmount: price.nullable(),
-  message: localizedField.nullable(),
-}) satisfies z.ZodType<PreOrderMeta>
 
 export const product = z.object({
   id: z.string(),
@@ -221,7 +169,6 @@ export const product = z.object({
   gallery: z.array(image),
   rating: z.object({ average: z.number(), count: z.number() }).nullable(),
   variants: z.array(productVariant),
-  options: z.array(productOption),
   attributes: z.array(attribute),
   quantityLimit: z.number().nullable(),
   categories: z.array(category),
@@ -232,11 +179,6 @@ export const product = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
   productType,
-  digital: digitalProductMeta.nullable(),
-  service: serviceProductMeta.nullable(),
-  event: eventProductMeta.nullable(),
-  subscription: subscriptionProductMeta.nullable(),
-  preOrder: preOrderMeta.nullable(),
   requiresShipping: z.boolean(),
   isDropshipped: z.boolean(),
   status: nullableString,
@@ -374,8 +316,6 @@ const orderItem = z.object({
   totalPrice: price,
   fulfillmentStatus,
   productType,
-  digital: digitalProductMeta.nullable(),
-  event: eventProductMeta.nullable(),
 }) satisfies z.ZodType<OrderItem>
 
 export const order = z.object({

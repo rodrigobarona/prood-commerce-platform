@@ -22,7 +22,7 @@ npm install @prood/types
 
 | Domain | Types |
 |--------|-------|
-| **Product** | `Product`, `ProductVariant`, `ProductOption`, `Attribute` |
+| **Product** | `Product`, `ProductVariant`, `Attribute` |
 | **Cart** | `Cart`, `CartItem`, `CartTotals` |
 | **Order** | `Order`, `OrderItem`, `OrderStatus`, `FulfillmentStatus` |
 | **Customer** | `Customer`, `Address`, `RegisterInput` |
