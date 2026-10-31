@@ -72,7 +72,9 @@ export default function OverviewPage() {
 async function StoreSetup() {
   const overview = await loadOverview()
   if (!overview) return null
-  return <SetupChecklist items={setupChecklist(overview.stats, overview.settings.url)} />
+  const { stats, settings } = overview
+  const progress = { ...stats, hasContactEmail: Boolean(settings.contactEmail) }
+  return <SetupChecklist items={setupChecklist(progress, settings.url)} />
 }
 
 async function StatsCards() {

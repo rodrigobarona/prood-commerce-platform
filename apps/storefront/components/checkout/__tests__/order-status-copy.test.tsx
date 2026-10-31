@@ -24,9 +24,30 @@ describe("orderStatusCopy", () => {
     )
   })
 
-  it("doesn't invent an address the store hasn't set", () => {
-    expect(detail({ kind: "awaiting_payment" }, { contactEmail: null })).toBe(
-      "We couldn't open payment. Your order is saved. Contact the store with order #1042.",
+  describe("for a store with no contact email", () => {
+    const noEmail = { contactEmail: null }
+
+    it("gives the shopper their order number without sending them to contact anyone", () => {
+      expect(detail({ kind: "awaiting_payment" }, noEmail)).toBe(
+        "We couldn't open payment. Your order #1042 is saved and the store can see it, but it hasn't listed a contact email. Keep this number.",
+      )
+    })
+
+    it("offers a new order after a failed payment", () => {
+      expect(detail({ kind: "failed" }, noEmail)).toBe(
+        "The payment didn't go through, so you haven't been charged. To get these items, place a new order.",
+      )
+    })
+
+    it("says there's no address after a refund", () => {
+      expect(detail({ kind: "refunded" }, noEmail)).toBe("This store hasn't listed a contact email.")
+    })
+
+    it.each([{ kind: "awaiting_payment" }, { kind: "failed" }, { kind: "refunded" }] as const)(
+      "never says to contact the store on $kind",
+      (state) => {
+        expect(detail(state, noEmail)).not.toMatch(/contact the store/i)
+      },
     )
   })
 

@@ -13,8 +13,7 @@ interface OrderStatusCopy {
   detail: ReactNode
 }
 
-function ContactStore({ orderNumber, contactEmail }: Omit<OrderStatusContext, "couldNotOpenPayment">) {
-  if (!contactEmail) return "Contact the store"
+function EmailStore({ orderNumber, contactEmail }: { orderNumber: string; contactEmail: string }) {
   const subject = encodeURIComponent(`Order #${orderNumber}`)
   return (
     <>
@@ -26,11 +25,14 @@ function ContactStore({ orderNumber, contactEmail }: Omit<OrderStatusContext, "c
   )
 }
 
+/** With no contact email there's no way to reach the store, so the copy can't suggest it. */
 export function orderStatusCopy(
   state: OrderPaymentState,
   { couldNotOpenPayment, orderNumber, contactEmail }: OrderStatusContext,
 ): OrderStatusCopy {
-  const contact = <ContactStore orderNumber={orderNumber} contactEmail={contactEmail} />
+  const contact = contactEmail ? (
+    <EmailStore orderNumber={orderNumber} contactEmail={contactEmail} />
+  ) : null
 
   switch (state.kind) {
     case "settled":
@@ -42,10 +44,12 @@ export function orderStatusCopy(
         ? {
             settled: false,
             title: "Your order isn't paid yet",
-            detail: (
+            detail: contact ? (
               <>
                 We couldn&apos;t open payment. Your order is saved. {contact} with order #{orderNumber}.
               </>
+            ) : (
+              `We couldn't open payment. Your order #${orderNumber} is saved and the store can see it, but it hasn't listed a contact email. Keep this number.`
             ),
           }
         : {
@@ -57,18 +61,24 @@ export function orderStatusCopy(
       return {
         settled: false,
         title: "This order wasn't paid",
-        detail: (
+        detail: contact ? (
           <>
             The payment didn&apos;t go through, so you haven&apos;t been charged. {contact} if you still
             want these items.
           </>
+        ) : (
+          "The payment didn't go through, so you haven't been charged. To get these items, place a new order."
         ),
       }
     case "refunded":
       return {
         settled: false,
         title: "This order was refunded",
-        detail: <>{contact} if you have any questions.</>,
+        detail: contact ? (
+          <>{contact} if you have any questions.</>
+        ) : (
+          "This store hasn't listed a contact email."
+        ),
       }
     case "cancelled_paid":
       return {

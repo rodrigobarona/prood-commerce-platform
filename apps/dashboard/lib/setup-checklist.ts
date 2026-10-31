@@ -1,5 +1,5 @@
 export interface SetupItem {
-  id: "product" | "payment" | "test-order"
+  id: "product" | "payment" | "contact-email" | "test-order"
   title: string
   description: string
   done: boolean
@@ -14,6 +14,7 @@ export interface SetupProgress {
   activeProducts: number
   totalOrders: number
   canTakeOrders: boolean
+  hasContactEmail: boolean
 }
 
 /** What's left before a store can sell. Only published products count: shoppers can't buy a draft. */
@@ -37,6 +38,14 @@ export function setupChecklist(progress: SetupProgress, storeUrl: string): Setup
       done: progress.canTakeOrders,
       action: "Connect a provider",
       href: "/integrations",
+    },
+    {
+      id: "contact-email",
+      title: "Add a contact email",
+      description: "Customers need a way to reach you when an order goes wrong.",
+      done: progress.hasContactEmail,
+      action: "Add a contact email",
+      href: "/settings",
     },
     {
       id: "test-order",

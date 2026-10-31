@@ -2,7 +2,13 @@ import { describe, expect, it } from "vitest"
 import { setupChecklist, type SetupProgress } from "../setup-checklist"
 
 const STORE_URL = "https://loja-da-ana.prood.app"
-const fresh: SetupProgress = { totalProducts: 0, activeProducts: 0, totalOrders: 0, canTakeOrders: false }
+const fresh: SetupProgress = {
+  totalProducts: 0,
+  activeProducts: 0,
+  totalOrders: 0,
+  canTakeOrders: false,
+  hasContactEmail: false,
+}
 
 const item = (progress: SetupProgress, id: string) => {
   const found = setupChecklist(progress, STORE_URL).find((entry) => entry.id === id)
@@ -12,13 +18,19 @@ const item = (progress: SetupProgress, id: string) => {
 
 describe("setupChecklist", () => {
   it("starts a new store with everything to do", () => {
-    expect(setupChecklist(fresh, STORE_URL).map((entry) => entry.done)).toEqual([false, false, false])
+    expect(setupChecklist(fresh, STORE_URL).map((entry) => entry.done)).toEqual([
+      false,
+      false,
+      false,
+      false,
+    ])
   })
 
   it("has no shipping step, since shipping isn't configurable yet", () => {
     expect(setupChecklist(fresh, STORE_URL).map((entry) => entry.id)).toEqual([
       "product",
       "payment",
+      "contact-email",
       "test-order",
     ])
   })
@@ -41,6 +53,11 @@ describe("setupChecklist", () => {
     expect(item({ ...fresh, canTakeOrders: true }, "payment").done).toBe(true)
     expect(item({ ...fresh, totalOrders: 3 }, "payment").done).toBe(false)
     expect(item(fresh, "payment").href).toBe("/integrations")
+  })
+
+  it("asks for a contact email, so customers have a way to reach the store", () => {
+    expect(item(fresh, "contact-email")).toMatchObject({ done: false, href: "/settings" })
+    expect(item({ ...fresh, hasContactEmail: true }, "contact-email").done).toBe(true)
   })
 
   it("sends the merchant to their real store for a test order", () => {
