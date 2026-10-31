@@ -16,6 +16,7 @@ import { ReferencePayment } from "./reference-payment"
 const PAY_ERROR = "We couldn't start your payment. You haven't been charged. Try again, or contact the store."
 const LOAD_ERROR = "We couldn't load this payment. You haven't been charged. Reload the page, or contact the store."
 const EXPIRED_ERROR = "This payment link has expired. You haven't been charged. Ask the store for a new one."
+const STUCK_ERROR = "We couldn't continue this payment. If you already paid, you don't need to pay again. Contact the store."
 const FAILED_NOTICE = "Your last payment didn't go through. Try again, or choose another way to pay."
 const TIMED_OUT_NOTICE = "The MB WAY request timed out. You haven't been charged. Try again."
 const PHONE_ERROR = "Enter a Portuguese mobile number, like 912 345 678."
@@ -85,6 +86,19 @@ function Notice({
 function text(data: Record<string, unknown> | null | undefined, key: string): string | undefined {
   const value = data?.[key]
   return typeof value === "string" ? value : undefined
+}
+
+/** Whether a started payment leaves the shopper something to do on this page. */
+function canContinue(session: Pick<SessionData, "state" | "paymentSession" | "publishableKey">): boolean {
+  if (session.state !== "payment") return true
+  const started = session.paymentSession
+  const startedData = started?.providerData
+  return Boolean(
+    (text(startedData, "clientSecret") && session.publishableKey) ||
+      text(startedData, "reference") ||
+      started?.method === "mbway" ||
+      started?.redirectUrl,
+  )
 }
 
 export function PaymentPageClient({ sessionId }: { sessionId: string }) {
@@ -188,8 +202,14 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
         window.location.href = result.redirectUrl
         return
       }
+      const next = { ...data, ...result }
+      if (!canContinue(next)) {
+        setPayError(STUCK_ERROR)
+        setPaying(false)
+        return
+      }
       setNotice(null)
-      setData((prev) => (prev ? { ...prev, ...result } : prev))
+      setData(next)
       setPaying(false)
     } catch {
       setPayError(PAY_ERROR)

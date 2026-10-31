@@ -110,3 +110,70 @@ describe("when the order stops waiting for payment", () => {
     expect(screen.queryByRole("button", { name: /^Pay / })).toBeNull()
   })
 })
+
+describe("coming back from a hosted card page", () => {
+  const started = {
+    ...session,
+    state: "payment",
+    paymentSession: {
+      id: "p1",
+      status: "requires_action",
+      method: "card",
+      redirectUrl: "https://pay.example/card",
+      providerData: { requestId: "r1" },
+      createdAt: new Date().toISOString(),
+    },
+  }
+
+  it("offers the payment page again", async () => {
+    stubFetch({ "/api/sessions/s1": () => json(started) })
+    await open()
+
+    expect(screen.getByRole("link", { name: "Continue to the payment page" }).getAttribute("href")).toBe(
+      "https://pay.example/card",
+    )
+  })
+
+  it("says so when Pay comes back with nothing to do", async () => {
+    const stuck = { ...started, paymentSession: { ...started.paymentSession, redirectUrl: null } }
+    const fetch = stubFetch({
+      "/api/sessions/s1": () => json(stuck),
+      "/pay": () => json({ ...stuck, redirectUrl: null }),
+    })
+    await open()
+
+    await act(async () => {
+      fireEvent.click(pay())
+    })
+
+    expect(fetch).toHaveBeenCalledTimes(2)
+    expect(screen.getByRole("alert").textContent).toContain("We couldn't continue this payment")
+  })
+
+  it("moves on to a reference Pay comes back with", async () => {
+    stubFetch({
+      "/api/sessions/s1": () => json({ ...session, state: "failed" }),
+      "/pay": () =>
+        json({
+          state: "payment",
+          redirectUrl: null,
+          paymentSession: {
+            id: "p2",
+            status: "pending",
+            method: "multibanco",
+            providerData: { entity: "11111", reference: "123456789" },
+            createdAt: new Date().toISOString(),
+          },
+        }),
+    })
+    await open()
+
+    await act(async () => {
+      fireEvent.click(pay())
+    })
+
+    expect(screen.queryByRole("alert")).toBeNull()
+    expect(screen.queryByRole("button", { name: /^Pay / })).toBeNull()
+    expect(screen.getByText(/123\s?456\s?789/)).toBeTruthy()
+  })
+})
