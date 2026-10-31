@@ -142,9 +142,6 @@ function mapEventType(event: Stripe.Event): string {
       return 'payment.cancelled'
     case 'checkout.session.async_payment_failed':
       return 'payment.failed'
-    case 'charge.refunded':
-    case 'refund.created':
-      return 'payment.refunded'
     default:
       return 'payment.updated'
   }
@@ -339,6 +336,7 @@ export class StripePaymentProvider implements PaymentProvider {
 
     const body = typeof payload === 'string' ? payload : Buffer.from(payload)
     const event = await this.stripe.webhooks.constructEventAsync(body, signature, this.webhookSecret)
+    if (event.type === 'charge.refunded') return this.refundEvent(event, event.data.object)
 
     const object = event.data.object as unknown as Record<string, unknown>
     const currency = typeof object.currency === 'string' ? object.currency.toUpperCase() : null
@@ -353,6 +351,28 @@ export class StripePaymentProvider implements PaymentProvider {
       sessionId: extractSessionId(event),
       orderId: metadata?.orderId ?? null,
       amount: minorAmount !== null && currency ? fromMinorUnits(minorAmount, currency) : null,
+      currency,
+      data: event as unknown as Record<string, unknown>,
+    }
+  }
+
+  /**
+   * `charge.refunded` covers refunds made in the Stripe dashboard too, and its
+   * totals say whether anything is left. Orders know the Checkout Session, which
+   * a charge doesn't name, so it is found through the PaymentIntent.
+   */
+  private async refundEvent(event: Stripe.Event, charge: Stripe.Charge): Promise<PaymentWebhookEvent> {
+    const piId = typeof charge.payment_intent === 'string' ? charge.payment_intent : charge.payment_intent?.id
+    const session = piId
+      ? (await this.stripe.checkout.sessions.list({ payment_intent: piId, limit: 1 })).data[0]
+      : undefined
+    const currency = charge.currency.toUpperCase()
+
+    return {
+      type: charge.refunded ? 'payment.refunded' : 'payment.partially_refunded',
+      sessionId: session?.id ?? piId ?? charge.id,
+      orderId: session?.metadata?.orderId ?? null,
+      amount: fromMinorUnits(charge.amount_refunded, currency),
       currency,
       data: event as unknown as Record<string, unknown>,
     }

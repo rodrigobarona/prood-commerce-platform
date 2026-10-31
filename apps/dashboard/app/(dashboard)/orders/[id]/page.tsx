@@ -13,13 +13,11 @@ import { Skeleton } from "@prood/ui/components/skeleton"
 import { localized, formatPrice } from "@prood/ui/lib/commerce"
 import { OrderActions } from "@/components/store/order-actions"
 import { getOrder, getOrderHistory } from "@/lib/admin-api"
+import { canFulfillOrder } from "@/lib/order-actions"
 
 export const metadata = { title: "Order" }
 
-const FULFILLABLE = new Set(["placed", "approved"])
 const CANCELLABLE = new Set(["placed", "approved"])
-// Nothing is owed on these, so they can ship.
-const SETTLED = new Set(["paid", "free"])
 
 type StatusVariant = "default" | "secondary" | "destructive" | "outline"
 
@@ -121,11 +119,7 @@ async function OrderDetail({
         </div>
         <OrderActions
           orderId={order.id}
-          canFulfill={
-            FULFILLABLE.has(order.status) &&
-            SETTLED.has(order.paymentStatus) &&
-            order.fulfillmentStatus !== "not_required"
-          }
+          canFulfill={canFulfillOrder(order)}
           canCancel={CANCELLABLE.has(order.status)}
           refund={order.refund}
           refundAmount={formatPrice(totals.total)}

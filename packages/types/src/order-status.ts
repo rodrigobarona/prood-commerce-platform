@@ -48,7 +48,7 @@ export interface OrderHistoryEntry {
 
 /** A verified payment gateway outcome to apply to an order. */
 export interface PaymentEventInput {
-  outcome: 'authorized' | 'captured' | 'failed' | 'cancelled'
+  outcome: 'authorized' | 'captured' | 'failed' | 'cancelled' | 'refunded' | 'partially_refunded'
   /** Amount reported by the gateway, in major units */
   amount: number | null
   /** ISO 4217 currency reported by the gateway */
@@ -73,7 +73,7 @@ export interface RecordOrderPaymentInput {
  * - `duplicate` — the order already left `unpaid`/`authorized`; nothing changed
  * - `amount_mismatch` — the gateway amount/currency differs from the order total
  * - `order_cancelled` — money arrived on a cancelled order and is owed back
- * - `stale` — the event is about a payment this order no longer uses; nothing changed
+ * - `stale` — the event is about a payment this order no longer uses; the order didn't change
  * - `second_payment` — another payment arrived on an order that has its money
  */
 export type PaymentEventResult =

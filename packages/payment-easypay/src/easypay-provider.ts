@@ -26,6 +26,7 @@ import type {
 import type {
   EasypayConfig,
   EasypayMethod,
+  EasypayRefund,
   EasypaySinglePayment,
 } from './types.js'
 
@@ -255,10 +256,11 @@ export class EasypayPaymentProvider implements PaymentProvider {
     // Easypay notifications are unsigned, so the body is only a trigger: the
     // payment is re-fetched from the API and that response is the source of truth.
     const bodyStr = typeof payload === 'string' ? payload : new TextDecoder().decode(payload)
-    const notification = JSON.parse(bodyStr) as { id?: unknown }
+    const notification = JSON.parse(bodyStr) as { id?: unknown; type?: unknown }
     if (typeof notification.id !== 'string' || notification.id.length === 0) {
       throw new Error('Easypay: notification is missing the payment id')
     }
+    if (notification.type === 'refund') return this.refundEvent(notification.id)
 
     const payment = await this.request<EasypaySinglePayment>(
       'GET',
@@ -272,6 +274,23 @@ export class EasypayPaymentProvider implements PaymentProvider {
       amount: typeof payment.value === 'number' ? payment.value : null,
       currency: payment.currency ? payment.currency.toUpperCase() : null,
       data: payment as unknown as Record<string, unknown>,
+    }
+  }
+
+  /** A refund notification names the refund, which in turn names its payment. */
+  private async refundEvent(refundId: string): Promise<PaymentWebhookEvent> {
+    const refund = await this.request<EasypayRefund>('GET', `/2.0/refund/${encodeURIComponent(refundId)}`)
+    const paymentId = refund.capture?.payment_id
+    if (!paymentId) throw new Error(`Easypay: refund ${refundId} is missing its payment`)
+    const payment = await this.request<EasypaySinglePayment>('GET', `/2.0/single/${encodeURIComponent(paymentId)}`)
+
+    return {
+      type: refundEventType(refund, payment),
+      sessionId: paymentId,
+      orderId: payment.key ?? null,
+      amount: refund.value ?? null,
+      currency: payment.currency ? payment.currency.toUpperCase() : null,
+      data: refund as unknown as Record<string, unknown>,
     }
   }
 
@@ -304,6 +323,14 @@ export class EasypayPaymentProvider implements PaymentProvider {
 
     return res.json() as Promise<T>
   }
+}
+
+/** Only a finished refund counts, and only all of the money makes it a full one. */
+function refundEventType(refund: EasypayRefund, payment: EasypaySinglePayment): string {
+  if (refund.status !== 'success') return 'payment.updated'
+  const captured = refund.capture?.value ?? payment.value
+  const full = refund.value !== undefined && captured !== undefined && refund.value >= captured
+  return full ? 'payment.refunded' : 'payment.partially_refunded'
 }
 
 function statusToEventType(status: PaymentSessionStatus): string {

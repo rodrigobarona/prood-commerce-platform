@@ -188,7 +188,7 @@ export const refundOrderBody = z.object({
     .boolean()
     .optional()
     .describe(
-      "Record a refund already sent from the payment account. Only allowed on orders whose `refund` is `manual`: Prood moves no money."
+      "Record a refund already sent from the payment account. Prood moves no money."
     ),
 })
 

@@ -38,6 +38,14 @@ export interface EasypaySinglePayment {
   captures?: EasypayCapture[]
 }
 
+/** Shape of an Easypay refund (partial). */
+export interface EasypayRefund {
+  id?: string
+  status?: 'success' | 'pending' | 'failed' | 'waiting'
+  value?: number
+  capture?: { payment_id?: string; value?: number }
+}
+
 /** Shape of a capture on an Easypay single payment (partial). */
 export interface EasypayCapture {
   id?: string

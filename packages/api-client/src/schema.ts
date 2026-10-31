@@ -5856,7 +5856,7 @@ export interface operations {
                         fulfilledAt: string | null;
                         createdAt: string;
                         updatedAt: string;
-                        /** @description `provider`: Prood sends the refund. `manual`: refund in the payment account, then record it with `recordOnly`. Null when nothing can be refunded. */
+                        /** @description `provider`: Prood can send the refund. `manual`: refund in the payment account first. Either way, `recordOnly` records a refund already made there. Null when nothing can be refunded. */
                         refund: ("provider" | "manual") | null;
                     };
                 };
@@ -6176,7 +6176,7 @@ export interface operations {
             content: {
                 "application/json": {
                     note?: string;
-                    /** @description Record a refund already sent from the payment account. Only allowed on orders whose `refund` is `manual`: Prood moves no money. */
+                    /** @description Record a refund already sent from the payment account. Prood moves no money. */
                     recordOnly?: boolean;
                 };
             };

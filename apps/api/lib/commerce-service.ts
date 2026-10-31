@@ -165,6 +165,8 @@ const OUTCOME_BY_EVENT: Record<string, PaymentOutcome> = {
   "payment.captured": "captured",
   "payment.failed": "failed",
   "payment.cancelled": "cancelled",
+  "payment.refunded": "refunded",
+  "payment.partially_refunded": "partially_refunded",
 }
 
 function formatMoney(amount: number, currency: string): string {
@@ -280,6 +282,7 @@ export const webhooks = {
     revalidateProducts(orgId)
     if (outcome === "captured") queueOrderEmail(orgId, orderId, "confirmed")
     if (outcome === "failed") queueOrderEmail(orgId, orderId, "payment_failed")
+    if (outcome === "refunded") queueOrderEmail(orgId, orderId, "refunded")
     return result
   },
 }
@@ -360,8 +363,8 @@ export const admin = {
   },
   /**
    * Refund an order and tell the shopper, in that order: nothing is recorded or
-   * sent until the money has moved. Where Prood can't send the refund, the
-   * merchant sends it themselves and confirms with `recordOnly`.
+   * sent until the money has moved. A refund made in the payment account, which
+   * is the only way where Prood can't send it, is confirmed with `recordOnly`.
    */
   refundOrder: async (orgId: string, id: string, input: { note?: string; recordOnly?: boolean }) => {
     const adminApi = await getAdmin()
@@ -371,14 +374,7 @@ export const admin = {
     }
 
     const { amount, currency } = order.totals.total
-    const provider = await refundProvider(orgId, order)
-    if (provider && input.recordOnly) {
-      throw new CommerceError(
-        "Prood can send this refund, so send it instead of recording it.",
-        "VALIDATION",
-        422
-      )
-    }
+    const provider = input.recordOnly ? null : await refundProvider(orgId, order)
     if (!provider && !input.recordOnly) {
       throw new CommerceError(
         `Prood can't send this refund. Refund ${formatMoney(amount, currency)} in your payment account first, then record it here.`,
@@ -406,6 +402,9 @@ export const admin = {
       await withTenant(orgId, () => adminApi.recordRefund(id, input.note))
     } catch (err) {
       if (!provider) throw err
+      // The provider's webhook can get there first, and it tells the shopper.
+      const current = await withTenant(orgId, () => adminApi.getOrder(id)).catch(() => null)
+      if (current?.paymentStatus === "refunded") return
       console.error(`[refund] ${provider.id} refunded order ${id} but recording it failed`, err)
       throw new CommerceError(
         `${formatMoney(amount, currency)} went back to the customer, but we couldn't record it. Don't send it again.`,
