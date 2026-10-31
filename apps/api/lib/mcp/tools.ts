@@ -6,6 +6,7 @@ import { admin, carts, catalog, orders } from "@/lib/commerce-service"
 import { checkout } from "@/lib/commerce-service"
 import { assertCapability } from "@/lib/agent-capability"
 import { getMcpCaller } from "@/lib/mcp/context"
+import { hasScope, type ApiScope } from "@/lib/scopes"
 import {
   addToCartBody,
   adminListOrdersQuery,
@@ -36,9 +37,9 @@ function jsonContent(data: unknown) {
   }
 }
 
-function requireScope(scope: "storefront" | "admin") {
+function requireScope(scope: ApiScope) {
   const caller = getMcpCaller()
-  if (!caller.scopes.includes(scope)) {
+  if (!hasScope(caller.scopes, scope)) {
     throw new CommerceError(`Insufficient scope: requires ${scope}`, "FORBIDDEN")
   }
   return caller.orgId
@@ -373,7 +374,7 @@ export function registerCommerceMcpTools(server: McpServer) {
       inputSchema: adminListQuery,
     },
     async (args) => {
-      const orgId = requireScope("admin")
+      const orgId = requireScope("staff")
       return jsonContent(await admin.listProducts(orgId, adminListQuery.parse(args)))
     }
   )
@@ -397,7 +398,7 @@ export function registerCommerceMcpTools(server: McpServer) {
       inputSchema: z.object({ id: z.string().min(1) }),
     },
     async ({ id }) => {
-      const orgId = requireScope("admin")
+      const orgId = requireScope("staff")
       return jsonContent(await admin.getProduct(orgId, id))
     }
   )
@@ -471,7 +472,7 @@ export function registerCommerceMcpTools(server: McpServer) {
       inputSchema: adminListOrdersQuery,
     },
     async (args) => {
-      const orgId = requireScope("admin")
+      const orgId = requireScope("staff")
       return jsonContent(await admin.listOrders(orgId, adminListOrdersQuery.parse(args)))
     }
   )
@@ -483,7 +484,7 @@ export function registerCommerceMcpTools(server: McpServer) {
       inputSchema: z.object({ id: z.string().min(1) }),
     },
     async ({ id }) => {
-      const orgId = requireScope("admin")
+      const orgId = requireScope("staff")
       return jsonContent(await admin.getOrder(orgId, id))
     }
   )
@@ -509,7 +510,7 @@ export function registerCommerceMcpTools(server: McpServer) {
       inputSchema: z.object({ id: z.string().min(1) }),
     },
     async ({ id }) => {
-      const orgId = requireScope("admin")
+      const orgId = requireScope("staff")
       return jsonContent(await admin.getOrderHistory(orgId, id))
     }
   )
@@ -549,7 +550,7 @@ export function registerCommerceMcpTools(server: McpServer) {
       inputSchema: adminListQuery,
     },
     async (args) => {
-      const orgId = requireScope("admin")
+      const orgId = requireScope("staff")
       return jsonContent(await admin.listCustomers(orgId, adminListQuery.parse(args)))
     }
   )
@@ -561,7 +562,7 @@ export function registerCommerceMcpTools(server: McpServer) {
       inputSchema: z.object({ id: z.string().min(1) }),
     },
     async ({ id }) => {
-      const orgId = requireScope("admin")
+      const orgId = requireScope("staff")
       return jsonContent(await admin.getCustomer(orgId, id))
     }
   )
@@ -572,7 +573,7 @@ export function registerCommerceMcpTools(server: McpServer) {
       title: "Admin get store settings",
     },
     async () => {
-      const orgId = requireScope("admin")
+      const orgId = requireScope("staff")
       return jsonContent(await admin.getStoreSettings(orgId))
     }
   )
@@ -609,7 +610,7 @@ export function registerCommerceMcpTools(server: McpServer) {
       description: "Aggregate dashboard metrics for the tenant.",
     },
     async () => {
-      const orgId = requireScope("admin")
+      const orgId = requireScope("staff")
       return jsonContent(await admin.dashboardStats(orgId))
     }
   )
