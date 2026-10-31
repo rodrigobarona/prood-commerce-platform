@@ -423,7 +423,9 @@ export const storeInfo = z.object({
 
 const canTakeOrders = z
   .boolean()
-  .describe("True when a payment provider is connected. Paid orders are refused without one.")
+  .describe(
+    "True when a payment provider is connected, or when that couldn't be checked. Paid orders are refused without one, whatever this says."
+  )
 
 export const storefrontStore = storeInfo.extend({ canTakeOrders })
 

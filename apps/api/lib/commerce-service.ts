@@ -111,9 +111,19 @@ function toAdminListOrdersParams(q: AdminListOrdersQuery): AdminListOrdersParams
  * Read live rather than with the cached store info, so connecting a provider
  * counts at once. Must stay outside `withTenant`: `prood_app` can't read
  * `integration_config`.
+ *
+ * Fails open: this only decides what to display, so losing it mustn't take the
+ * store or the dashboard down with it. Nothing unpaid slips through, because
+ * `checkout.assertPayable` refuses a paid order by itself, and a store shown
+ * as closed by mistake would lose real sales.
  */
 async function canTakeOrders(orgId: string): Promise<boolean> {
-  return (await listTenantPaymentProviders(orgId)).length > 0
+  try {
+    return (await listTenantPaymentProviders(orgId)).length > 0
+  } catch (err) {
+    console.error("[api] couldn't read payment providers", err)
+    return true
+  }
 }
 
 function storefrontUrl(): string {

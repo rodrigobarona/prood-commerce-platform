@@ -2821,7 +2821,7 @@
                     },
                     "canTakeOrders": {
                       "type": "boolean",
-                      "description": "True when a payment provider is connected. Paid orders are refused without one."
+                      "description": "True when a payment provider is connected, or when that couldn't be checked. Paid orders are refused without one, whatever this says."
                     }
                   },
                   "required": [
@@ -23429,7 +23429,7 @@
                     },
                     "canTakeOrders": {
                       "type": "boolean",
-                      "description": "True when a payment provider is connected. Paid orders are refused without one."
+                      "description": "True when a payment provider is connected, or when that couldn't be checked. Paid orders are refused without one, whatever this says."
                     }
                   },
                   "required": [

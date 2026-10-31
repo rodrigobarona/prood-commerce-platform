@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { CommerceError } from "@prood/types"
 
 const mocks = await vi.hoisted(async () => ({
@@ -66,6 +66,38 @@ describe("store API", () => {
     await admin.dashboardStats("org-1")
     await catalog.getStore("org-1")
     expect(mocks.listTenantPaymentProviders).toHaveBeenCalledTimes(2)
+  })
+})
+
+describe("when payment connections can't be read", () => {
+  beforeEach(() => {
+    vi.spyOn(console, "error").mockImplementation(() => {})
+    mocks.listTenantPaymentProviders.mockRejectedValue(new Error("database unavailable"))
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it("still serves the store, shown as open", async () => {
+    expect(await catalog.getStore("org-1")).toMatchObject({
+      contactEmail: "ola@loja.pt",
+      canTakeOrders: true,
+    })
+  })
+
+  it("still serves the dashboard stats", async () => {
+    expect(await admin.dashboardStats("org-1")).toEqual({ totalOrders: 0, canTakeOrders: true })
+  })
+
+  it("logs the failure", async () => {
+    await catalog.getStore("org-1")
+    expect(console.error).toHaveBeenCalled()
+  })
+
+  it("lets a store outage through as one", async () => {
+    mocks.getStoreInfo.mockRejectedValue(new Error("store info unavailable"))
+    await expect(catalog.getStore("org-1")).rejects.toThrow("store info unavailable")
   })
 })
 

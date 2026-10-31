@@ -1422,7 +1422,7 @@ export interface operations {
                         }[];
                         country: string;
                         contactEmail: string | null;
-                        /** @description True when a payment provider is connected. Paid orders are refused without one. */
+                        /** @description True when a payment provider is connected, or when that couldn't be checked. Paid orders are refused without one, whatever this says. */
                         canTakeOrders: boolean;
                     };
                 };
@@ -6894,7 +6894,7 @@ export interface operations {
                         ordersByStatus: {
                             [key: string]: number;
                         };
-                        /** @description True when a payment provider is connected. Paid orders are refused without one. */
+                        /** @description True when a payment provider is connected, or when that couldn't be checked. Paid orders are refused without one, whatever this says. */
                         canTakeOrders: boolean;
                     };
                 };
