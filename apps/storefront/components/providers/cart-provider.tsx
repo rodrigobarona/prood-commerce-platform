@@ -5,6 +5,7 @@ import {
   useCallback,
   use,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -12,6 +13,7 @@ import {
 import type { Cart, CartItem, Product } from "@prood/types"
 import { CartDrawer } from "@prood/ui/components/cart-drawer"
 import { toast } from "sonner"
+import { latestOnly } from "@/lib/latest-only"
 
 interface AddItemInput {
   productId: string
@@ -251,14 +253,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [mutate])
 
-  const setShippingMethod = useCallback(
-    (methodId: string) =>
-      mutate(
-        fetch(`${API}/shipping-method`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ methodId }),
-        }),
+  const setShippingMethod = useMemo(
+    () =>
+      latestOnly((methodId: string) =>
+        mutate(
+          fetch(`${API}/shipping-method`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ methodId }),
+          }),
+        ),
       ),
     [mutate],
   )

@@ -204,10 +204,20 @@ export function ShippingStep({
       />
 
       {saveError ? (
-        <p role="alert" className="text-sm text-destructive">
-          We couldn&apos;t add this shipping method to your order. Choose it
-          again to retry.
-        </p>
+        <div className="flex items-center justify-between gap-3">
+          <p role="alert" className="text-sm text-destructive">
+            We couldn&apos;t add this shipping method to your order.
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={saving}
+            onClick={() => void choose(form.getValues("methodId"))}
+          >
+            Try again
+          </Button>
+        </div>
       ) : null}
 
       <div className="mt-2 flex gap-3">
