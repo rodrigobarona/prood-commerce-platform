@@ -23593,6 +23593,8 @@
                         "duplicate",
                         "amount_mismatch",
                         "order_cancelled",
+                        "stale",
+                        "second_payment",
                         "ignored"
                       ]
                     }
@@ -23781,6 +23783,8 @@
                         "duplicate",
                         "amount_mismatch",
                         "order_cancelled",
+                        "stale",
+                        "second_payment",
                         "ignored"
                       ]
                     }
