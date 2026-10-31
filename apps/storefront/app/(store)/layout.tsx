@@ -20,7 +20,9 @@ export default function StoreLayout({
           <Header />
         </Suspense>
         <main className="flex-1">{children}</main>
-        <Footer />
+        <Suspense fallback={null}>
+          <Footer />
+        </Suspense>
       </TenantGuard>
     </Suspense>
   )

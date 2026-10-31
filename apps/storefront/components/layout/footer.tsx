@@ -1,5 +1,7 @@
 import Link from "next/link"
 import { cacheLife } from "next/cache"
+import { localized } from "@prood/ui/lib/commerce"
+import { fetchStoreInfo } from "@/lib/commerce-data"
 
 const SHOP = [
   { href: "/products", label: "All products" },
@@ -19,16 +21,29 @@ async function CopyrightYear() {
 }
 
 export async function Footer() {
-  const year = await CopyrightYear()
+  const [year, store] = await Promise.all([
+    CopyrightYear(),
+    // The footer sits outside error.tsx, so it renders without the store's
+    // details rather than taking the page down.
+    fetchStoreInfo().catch(() => null),
+  ])
+  const name = store ? localized(store.name) : null
+  const description = store?.description ? localized(store.description) : null
 
   return (
     <footer className="mt-16 border-t">
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 md:grid-cols-4">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:grid-cols-2 md:grid-cols-3">
         <div className="flex flex-col gap-2">
-          <span className="text-base font-bold">Commerce</span>
-          <p className="text-muted-foreground text-sm">
-            A commerce-agnostic storefront built with Next.js.
-          </p>
+          {name ? <span className="text-base font-bold">{name}</span> : null}
+          {description ? <p className="text-muted-foreground text-sm">{description}</p> : null}
+          {store?.contactEmail ? (
+            <a
+              href={`mailto:${store.contactEmail}`}
+              className="text-muted-foreground hover:text-foreground text-sm"
+            >
+              {store.contactEmail}
+            </a>
+          ) : null}
         </div>
         <div className="flex flex-col gap-2">
           <span className="text-sm font-semibold">Shop</span>
@@ -46,16 +61,12 @@ export async function Footer() {
             </Link>
           ))}
         </div>
-        <div className="flex flex-col gap-2">
-          <span className="text-sm font-semibold">Newsletter</span>
-          <p className="text-muted-foreground text-sm">
-            Subscribe for product updates and offers.
-          </p>
+      </div>
+      {name ? (
+        <div className="text-muted-foreground border-t py-6 text-center text-xs">
+          © {year} {name}. All rights reserved.
         </div>
-      </div>
-      <div className="text-muted-foreground border-t py-6 text-center text-xs">
-        © {year} Commerce. All rights reserved.
-      </div>
+      ) : null}
     </footer>
   )
 }

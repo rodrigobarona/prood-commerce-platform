@@ -1,13 +1,14 @@
 import Link from "next/link"
 import { CheckCircleIcon, WarningCircleIcon } from "@phosphor-icons/react/dist/ssr"
-import { orderPaymentState, type Order, type OrderPaymentState } from "@prood/types"
+import { orderPaymentState, type Order } from "@prood/types"
 import { Button } from "@prood/ui/components/button"
 import { EmptyState } from "@prood/ui/components/empty-state"
 import { OrderTimeline } from "@prood/ui/components/order-timeline"
 import { formatPrice, localized } from "@prood/ui/lib/commerce"
-import { fetchOrder } from "@/lib/commerce-data"
+import { fetchOrder, fetchStoreInfo } from "@/lib/commerce-data"
 import { getSession } from "@/lib/auth"
 import { CreateAccountCard } from "@/components/checkout/create-account-card"
+import { orderStatusCopy } from "@/components/checkout/order-status-copy"
 
 export const metadata = { title: "Order confirmation" }
 
@@ -19,41 +20,6 @@ const DEADLINE_FORMAT = new Intl.DateTimeFormat("en-GB", {
   minute: "2-digit",
   hourCycle: "h23",
 })
-
-function statusCopy(state: OrderPaymentState, couldNotOpenPayment: boolean) {
-  switch (state.kind) {
-    case "settled":
-      return { settled: true, title: "Thank you for your order.", detail: null }
-    case "awaiting_multibanco":
-      return { settled: false, title: "Order received. Pay by Multibanco to confirm it.", detail: null }
-    case "awaiting_payment":
-      return couldNotOpenPayment
-        ? {
-            settled: false,
-            title: "Your order is saved, but not paid",
-            detail: "We couldn't open payment. Contact the store with this order number to complete it.",
-          }
-        : {
-            settled: false,
-            title: "Order received",
-            detail: "We're waiting for your payment. We'll email you when it arrives.",
-          }
-    case "failed":
-      return {
-        settled: false,
-        title: "This order wasn't paid",
-        detail: "The payment didn't go through, so you haven't been charged. Contact the store if you still want these items.",
-      }
-    case "refunded":
-      return { settled: false, title: "This order was refunded", detail: "Contact the store if you have any questions." }
-    case "cancelled_paid":
-      return {
-        settled: false,
-        title: "This order was cancelled",
-        detail: "Your payment arrived after it was cancelled. The store will refund you.",
-      }
-  }
-}
 
 export default async function OrderConfirmationPage({
   searchParams,
@@ -85,10 +51,14 @@ export default async function OrderConfirmationPage({
     )
   }
 
-  const session = await getSession()
+  const [session, store] = await Promise.all([getSession(), fetchStoreInfo().catch(() => null)])
   const isGuest = !session?.user
   const paymentState = orderPaymentState(order)
-  const copy = statusCopy(paymentState, sp.payment === "failed")
+  const copy = orderStatusCopy(paymentState, {
+    couldNotOpenPayment: sp.payment === "failed",
+    orderNumber: order.orderNumber,
+    contactEmail: store?.contactEmail ?? null,
+  })
   const customerEmail = sp.email ?? undefined
   const customerName = [order.shippingAddress?.firstName, order.shippingAddress?.lastName]
     .filter(Boolean)
