@@ -610,6 +610,30 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
   })
 
   describe('coupons', () => {
+    it('gives the use back when the order is cancelled', async () => {
+      await seedCoupon('ONCE', { usageLimitPerCustomer: 1, usageLimitTotal: 1 })
+      const cart = await readyCart()
+      await adapter.applyCoupon(cart.id, 'ONCE')
+      const order = await adapter.placeOrder(cart.id, { contactEmail: 'ana@example.com' })
+      expect(await timesUsed('ONCE')).toBe(1)
+
+      await adapter.cancelOrder(order.id)
+      expect(await timesUsed('ONCE')).toBe(0)
+
+      const retry = await readyCart()
+      await adapter.applyCoupon(retry.id, 'ONCE')
+      await expect(adapter.placeOrder(retry.id, { contactEmail: 'ana@example.com' })).resolves.toBeTruthy()
+    })
+
+    it('gives the use back when the payment fails', async () => {
+      await seedCoupon('DECLINED')
+      const cart = await readyCart()
+      await adapter.applyCoupon(cart.id, 'DECLINED')
+      const order = await adapter.placeOrder(cart.id)
+      await adapter.applyPaymentEvent(order.id, { outcome: 'failed', amount: null, currency: null, provider: 'test' })
+      expect(await timesUsed('DECLINED')).toBe(0)
+    })
+
     it('takes a percentage off the cart and the order, and the shopper pays the total', async () => {
       await seedCoupon('SAVE10')
       const cart = await readyCart()
