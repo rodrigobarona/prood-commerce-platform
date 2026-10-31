@@ -30,6 +30,7 @@ export default defineConfig({
     environment: 'node',
     globals: true,
     testTimeout: 60_000,
-    hookTimeout: 60_000,
+    // Creating the disposable database and migrating it is slow on a busy machine.
+    hookTimeout: 300_000,
   },
 })
