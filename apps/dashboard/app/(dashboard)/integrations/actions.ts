@@ -1,21 +1,33 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { checkPaymentCredentials, isPaymentProviderId } from "@prood/commerce"
 import { requireActiveOrg } from "@/lib/admin"
 import {
   deleteIntegration,
   getIntegration,
   upsertIntegration,
 } from "@/lib/integrations"
-import { getProvider } from "@/lib/providers"
+import {
+  connectedMessage,
+  credentialErrorMessage,
+  getProvider,
+} from "@/lib/providers"
 
+export type SaveIntegrationResult =
+  | { ok: true; message: string }
+  | { ok: false; error: string }
+
+// Returned, not thrown: Next.js hides thrown messages from the client in production.
 export async function saveIntegrationAction(
   provider: string,
   config: Record<string, string>,
   enabled: boolean
-): Promise<void> {
+): Promise<SaveIntegrationResult> {
   const meta = getProvider(provider)
-  if (!meta) throw new Error("Unknown provider")
+  if (!meta || !isPaymentProviderId(provider)) {
+    return { ok: false, error: "We don't know that provider." }
+  }
 
   const orgId = await requireActiveOrg()
   const existing = await getIntegration(orgId, provider)
@@ -31,9 +43,24 @@ export async function saveIntegrationAction(
     if (value) merged[field.key] = value
   }
 
-  await upsertIntegration(orgId, provider, merged, enabled)
+  const missing = meta.fields.find((field) => field.required && !merged[field.key])
+  if (missing) {
+    return { ok: false, error: `Add your ${missing.label.toLowerCase()} to connect ${meta.name}.` }
+  }
+
+  // A store connecting a provider wants to sell through it.
+  const isEnabled = existing ? enabled : true
+
+  // Turning a provider off must work even if its keys have since stopped working.
+  if (isEnabled) {
+    const check = await checkPaymentCredentials(provider, merged)
+    if (check && !check.ok) return { ok: false, error: credentialErrorMessage(meta, check) }
+  }
+
+  await upsertIntegration(orgId, provider, merged, isEnabled)
   revalidatePath("/integrations")
   revalidatePath(`/integrations/${provider}`)
+  return { ok: true, message: connectedMessage(meta, merged, isEnabled) }
 }
 
 export async function disconnectIntegrationAction(

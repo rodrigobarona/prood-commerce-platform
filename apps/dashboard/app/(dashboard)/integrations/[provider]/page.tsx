@@ -6,6 +6,7 @@ import { ArrowLeft } from "@phosphor-icons/react/dist/ssr"
 import { DashboardFormPage } from "@/components/layout/dashboard-page"
 import { ProviderConfigForm } from "@/components/integrations/provider-config-form"
 import { FormPageSkeleton } from "@/components/skeletons"
+import { paymentWebhookUrl } from "@prood/commerce"
 import { getActiveOrganizationId } from "@/lib/auth"
 import { getIntegration } from "@/lib/integrations"
 import { getProvider, providerRegistry } from "@/lib/providers"
@@ -88,8 +89,11 @@ async function IntegrationConfigContent({
         provider={meta}
         initialValues={initialValues}
         configuredKeys={configuredKeys}
-        initialEnabled={state?.enabled ?? false}
+        initialEnabled={state?.enabled ?? true}
         connected={Boolean(state)}
+        webhookUrl={
+          orgId ? `${paymentWebhookUrl(meta.id, orgId)}${meta.webhook.query ?? ""}` : null
+        }
       />
     </>
   )
