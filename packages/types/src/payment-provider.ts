@@ -108,11 +108,12 @@ export interface RefundInput {
 /**
  * Result of testing a store's credentials with a read-only provider call:
  * - `rejected`: the provider refused them; `field` names the credential at fault
+ * - `mismatched`: they belong to different accounts or modes
  * - `unreachable`: the provider didn't answer, so nothing is known about them
  */
 export type CredentialCheck =
   | { ok: true }
-  | { ok: false; reason: 'rejected' | 'unreachable'; field?: string }
+  | { ok: false; reason: 'rejected' | 'mismatched' | 'unreachable'; field?: string }
 
 // ---- Webhook event ---------------------------------------------------------
 

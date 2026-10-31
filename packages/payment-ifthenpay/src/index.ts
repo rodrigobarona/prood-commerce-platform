@@ -2,10 +2,9 @@
 // @prood/payment-ifthenpay — Ifthenpay provider (Portugal)
 // ---------------------------------------------------------------------------
 
-export { IfthenpayPaymentProvider } from './ifthenpay-provider.js'
+export { IfthenpayPaymentProvider, encodeOrderId, decodeOrderId } from './ifthenpay-provider.js'
 export type {
   IfthenpayConfig,
-  IfthenpayMethod,
   IfthenpayMbResponse,
   IfthenpayMbWayResponse,
   IfthenpayCcResponse,

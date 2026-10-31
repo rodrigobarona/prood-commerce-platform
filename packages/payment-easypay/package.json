@@ -1,7 +1,7 @@
 {
   "name": "@prood/payment-easypay",
   "version": "0.1.0",
-  "description": "Easypay (Portugal) payment provider for Prood — Multibanco, MB WAY, card",
+  "description": "Easypay (Portugal) payment provider for Prood \u2014 Multibanco, MB WAY, card",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -19,6 +19,7 @@
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "clean": "rm -rf dist"
   },
   "dependencies": {
@@ -26,6 +27,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }
