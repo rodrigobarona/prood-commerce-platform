@@ -10,20 +10,20 @@ import {
 import {
   loadAndHydrate,
   loadSessionOrder,
+  lockSession,
   persistSession,
   recordStartedPayment,
+  unlockSession,
 } from "@prood/checkout-host"
 import { errorResponse } from "@/lib/api"
 
+// Who is paying and how. What the provider is told about the order is the server's to say.
 const paySchema = z.object({
   email: z.string().email(),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   phone: z.string().optional(),
   method: z.enum(["card", "multibanco", "mbway"]).optional(),
-  sourceToken: z.string().optional(),
-  idempotencyKey: z.string().optional(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
 })
 
 /** An unanswered MB WAY request is dead after its window; anything else can still be paid. */
@@ -34,73 +34,85 @@ function isDeadPayment(payment: PaymentSession | null): boolean {
   )
 }
 
+async function startPayment(id: string, body: z.infer<typeof paySchema>) {
+  const loaded = await loadAndHydrate(id)
+  if (!loaded) throw new CommerceError("Session not found", "NOT_FOUND")
+
+  const { session, meta } = loaded
+
+  if (session.state === "payment" && isDeadPayment(session.paymentSession)) {
+    session.abandonPayment()
+  }
+
+  // A reload or second click must never create a second payable reference.
+  if (session.state !== "payment" && session.state !== "complete") {
+    const method = body.method ?? meta.methods[0]
+    if (!method || !meta.methods.includes(method)) {
+      throw new CommerceError("This store doesn't offer that payment method.", "VALIDATION", 422)
+    }
+
+    const phone = method === "mbway" ? (toPortugueseMobile(body.phone) ?? undefined) : body.phone
+    if (method === "mbway" && !phone) {
+      throw new CommerceError("MB WAY needs a Portuguese mobile number.", "VALIDATION", 422)
+    }
+
+    if (!orderOutcome(await loadSessionOrder(meta)).payable) {
+      throw new CommerceError("This order is no longer waiting for payment.", "VALIDATION", 409)
+    }
+
+    if (session.state === "idle") {
+      session.setCustomerInfo({
+        email: body.email,
+        firstName: body.firstName,
+        lastName: body.lastName,
+        phone,
+      })
+    } else if (phone) {
+      session.updateCustomerInfo({ phone })
+    }
+
+    const payment = await session.submitPayment({
+      method,
+      customerId: meta.customerId ?? undefined,
+    })
+
+    // Saved first: the shopper's reference must survive a failed order write.
+    await persistSession(id, session, meta)
+    await recordStartedPayment(meta, payment, method).catch((err) =>
+      console.error(`[checkout] could not record the payment on order ${meta.orderId}`, err),
+    )
+  }
+
+  const snapshot = session.toSnapshot()
+
+  return NextResponse.json({
+    sessionId: id,
+    providerId: meta.providerId,
+    publishableKey: meta.publishableKey,
+    redirectUrl: snapshot.paymentSession?.redirectUrl ?? null,
+    ...snapshot,
+  })
+}
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params
-    const loaded = await loadAndHydrate(id)
-    if (!loaded) throw new CommerceError("Session not found", "NOT_FOUND")
-
-    const { session, meta } = loaded
     const body = paySchema.parse(await request.json())
 
-    if (session.state === "payment" && isDeadPayment(session.paymentSession)) {
-      session.abandonPayment()
-    }
+    // Taken before the session is read: whoever waits must see what the holder saved.
+    const lock = await lockSession(id)
+    if (!lock) throw new CommerceError("This payment is already starting.", "VALIDATION", 423)
 
-    // A reload or second click must never create a second payable reference.
-    if (session.state !== "payment" && session.state !== "complete") {
-      const method = body.method ?? meta.methods[0]
-      if (!method || !meta.methods.includes(method)) {
-        throw new CommerceError("This store doesn't offer that payment method.", "VALIDATION", 422)
-      }
-
-      const phone = method === "mbway" ? (toPortugueseMobile(body.phone) ?? undefined) : body.phone
-      if (method === "mbway" && !phone) {
-        throw new CommerceError("MB WAY needs a Portuguese mobile number.", "VALIDATION", 422)
-      }
-
-      if (!orderOutcome(await loadSessionOrder(meta)).payable) {
-        throw new CommerceError("This order is no longer waiting for payment.", "VALIDATION", 409)
-      }
-
-      if (session.state === "idle") {
-        session.setCustomerInfo({
-          email: body.email,
-          firstName: body.firstName,
-          lastName: body.lastName,
-          phone,
-        })
-      } else if (phone) {
-        session.updateCustomerInfo({ phone })
-      }
-
-      const payment = await session.submitPayment({
-        method,
-        sourceToken: body.sourceToken,
-        idempotencyKey: body.idempotencyKey,
-        customerId: meta.customerId ?? undefined,
-        metadata: body.metadata,
-      })
-
-      // Saved first: the shopper's reference must survive a failed order write.
-      await persistSession(id, session, meta)
-      await recordStartedPayment(meta, payment, method).catch((err) =>
-        console.error(`[checkout] could not record the payment on order ${meta.orderId}`, err),
+    try {
+      return await startPayment(id, body)
+    } finally {
+      await unlockSession(id, lock).catch((err) =>
+        console.error(`[checkout] could not release session ${id}`, err),
       )
     }
-
-    const snapshot = session.toSnapshot()
-
-    return NextResponse.json({
-      sessionId: id,
-      providerId: meta.providerId,
-      publishableKey: meta.publishableKey,
-      redirectUrl: snapshot.paymentSession?.redirectUrl ?? null,
-      ...snapshot,
-    })
   } catch (err) {
     return errorResponse(err)
   }

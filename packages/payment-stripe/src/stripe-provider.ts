@@ -192,11 +192,12 @@ export class StripePaymentProvider implements PaymentProvider {
 
   async createSession(input: CreatePaymentSessionInput): Promise<PaymentSession> {
     const metadata: Record<string, string> = {}
-    if (input.orderId) metadata.orderId = input.orderId
-    if (input.customerId) metadata.customerId = input.customerId
     for (const [k, v] of Object.entries(input.metadata ?? {})) {
       metadata[k] = typeof v === 'string' ? v : JSON.stringify(v)
     }
+    // Last, so nothing else can claim this payment belongs to another order.
+    if (input.orderId) metadata.orderId = input.orderId
+    if (input.customerId) metadata.customerId = input.customerId
 
     if (!input.returnUrl) {
       throw new Error('returnUrl is required for Stripe Checkout Sessions with ui_mode: elements')
