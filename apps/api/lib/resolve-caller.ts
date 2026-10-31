@@ -1,16 +1,15 @@
-import { assertFeature } from "@prood/commerce"
 import { CommerceError } from "@prood/types"
 import { getAuth, getSession, resolveActiveOrganizationId } from "@/lib/auth"
 import { getOrganizationLimits } from "@/lib/org-plan"
 import { getMemberRole } from "@prood/auth/membership"
 import { lookupTenantByHost } from "@prood/platform"
-import { resolveOrgForAgent } from "@/lib/agent-org"
+import { resolveAgentAccess } from "@/lib/agent-access"
 import {
   assertCapability,
   operationForRequest,
   REQUEST_TARGET_HEADER,
 } from "@/lib/agent-capability"
-import { capabilitiesForRole, hasScope, scopesForRole, type ApiScope } from "@/lib/scopes"
+import { hasScope, scopesForRole, type ApiScope } from "@/lib/scopes"
 import type { ApiCaller } from "@/lib/auth-tenant"
 
 const API_KEY_HEADER = "x-api-key"
@@ -44,26 +43,7 @@ export async function resolveCallerFromHeaders(
       headers: headerList,
     })
     if (agentSession) {
-      const orgId = await resolveOrgForAgent(agentSession)
-      if (!orgId) {
-        throw new CommerceError(
-          "This agent isn't bound to a store. Approve it in your dashboard.",
-          "FORBIDDEN"
-        )
-      }
-      const limits = await getOrganizationLimits(orgId)
-      assertFeature(
-        limits.agentAuthEnabled,
-        "Agent Auth requires a Grow plan or higher",
-      )
-      // Anyone in a store can get an agent approved, so the grant alone proves nothing.
-      const role = agentSession.user ? await getMemberRole(orgId, agentSession.user.id) : null
-      const capabilities = capabilitiesForRole(
-        agentSession.agent.capabilityGrants
-          .filter((grant) => grant.status === "active")
-          .map((grant) => grant.capability),
-        role
-      )
+      const { orgId, capabilities } = await resolveAgentAccess(agentSession)
       const scopes = scopesFromCapabilities(capabilities)
       if (scopes.length === 0) {
         throw new CommerceError("Agent has no active capability grants", "FORBIDDEN")

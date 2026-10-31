@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { nextCookies } from "better-auth/next-js"
+import { APIError, createAuthMiddleware } from "better-auth/api"
 import { admin, organization } from "better-auth/plugins"
 import { agentAuth } from "@better-auth/agent-auth"
 import {
@@ -18,6 +19,12 @@ import { requiredEnv } from "@prood/types"
 import { getMailer } from "../mailer"
 
 /**
+ * Agents are approved in the dashboard, which checks the approver's role in the
+ * store. These plugin routes would grant capabilities with only a session.
+ */
+const DASHBOARD_ONLY_PATHS = new Set(["/agent/approve-capability", "/agent/grant-capability"])
+
+/**
  * Better Auth for the API app — uses shared env/origin helpers from
  * `@prood/auth` and adds Agent Auth (typed plugin APIs require a local
  * `betterAuth()` call here).
@@ -29,6 +36,13 @@ function createAuth() {
 
   return betterAuth({
     database: drizzleAdapter(authDb, { provider: "pg", schema }),
+    hooks: {
+      before: createAuthMiddleware(async (ctx) => {
+        if (DASHBOARD_ONLY_PATHS.has(ctx.path)) {
+          throw new APIError("FORBIDDEN", { message: "Approve agents in your dashboard." })
+        }
+      }),
+    },
     databaseHooks: {
       user: {
         create: {

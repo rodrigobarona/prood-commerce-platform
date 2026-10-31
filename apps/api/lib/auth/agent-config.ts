@@ -1,7 +1,9 @@
 import { createFromOpenAPI } from "@better-auth/agent-auth/openapi"
-import { requiredEnv } from "@prood/types"
+import { APIError } from "better-auth/api"
+import { isCommerceError, requiredEnv } from "@prood/types"
 import { buildOpenApiDocument } from "../openapi"
-import { resolveOrgForAgent } from "../agent-org"
+import { resolveAgentAccess } from "../agent-access"
+import { capabilitiesForRole } from "../scopes"
 
 /** Granted without merchant approval, so only data any shopper can already see. */
 const DEFAULT_CAPABILITIES = new Set([
@@ -59,10 +61,17 @@ export function getAgentAuthOpenAPIOptions() {
       PUT: "session",
       DELETE: "session",
     },
-    async resolveHeaders({ agentSession }) {
-      const orgId = await resolveOrgForAgent(agentSession)
-      if (!orgId) {
-        throw new Error("Agent is not bound to a store its user belongs to")
+    // The plugin has checked the grant and `/v1` only sees the store's key, so
+    // this is the one place the user behind the agent can be checked.
+    async resolveHeaders({ agentSession, capability }) {
+      const { orgId, role } = await resolveAgentAccess(agentSession).catch((err: unknown) => {
+        if (isCommerceError(err)) throw new APIError("FORBIDDEN", { message: err.message })
+        throw err
+      })
+      if (capabilitiesForRole([capability], role).length === 0) {
+        throw new APIError("FORBIDDEN", {
+          message: `This agent's user can't use the ${capability} capability.`,
+        })
       }
 
       const proxyKey = parseProxyKeysByOrg()[orgId]
