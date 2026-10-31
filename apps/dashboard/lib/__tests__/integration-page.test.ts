@@ -21,9 +21,11 @@ import IntegrationConfigPage from "@/app/(dashboard)/integrations/[provider]/pag
 
 const keys = { antiPhishingKey: "secret-1", mbKey: "MB-KEY", mbWayKey: "MBW-KEY", ccKey: "CC-KEY" }
 
-/** The page's output as text. React's own fields start with an underscore and loop. */
+/** The props and text a page sends, without React's own fields and component types, which loop. */
 const serialize = (element: ReactElement) =>
-  JSON.stringify(element.props, (key, value: unknown) => (key.startsWith("_") ? undefined : value))
+  JSON.stringify(element.props, (key, value: unknown) =>
+    key.startsWith("_") || key === "type" ? undefined : value,
+  )
 
 /** Run the page's async content, which the Suspense boundary would render. */
 async function content(): Promise<ReactElement> {
