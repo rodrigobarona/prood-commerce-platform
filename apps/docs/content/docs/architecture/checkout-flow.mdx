@@ -41,8 +41,8 @@ The checkout flow adapts dynamically based on the **fulfillment type** set durin
 | `idle` | `info` | `setCustomerInfo()` |
 | `info` | `shipping`, `payment` | `setShippingAddress()` or `submitPayment()` (pickup/none) |
 | `shipping` | `payment` | `submitPayment()` |
-| `payment` | `confirming`, `complete`, `failed` | `confirmPayment()`, webhook |
-| `confirming` | `complete`, `failed` | Provider response |
+| `payment` | `confirming`, `failed` | `confirmPayment()`, webhook |
+| `confirming` | `payment`, `complete`, `failed` | Back to `payment` while the provider reports it pending |
 | `failed` | `payment` | Retry with new payment method |
 | `complete` | — | Terminal state |
 
@@ -148,7 +148,7 @@ if (paymentSession.redirectUrl) {
 After 3DS redirect or synchronous capture:
 
 ```ts
-const confirmed = await session.confirmPayment(chargeId)
+const confirmed = await session.confirmPayment()
 // session.state === 'complete' (if captured)
 // session.state === 'failed' (if declined)
 ```
