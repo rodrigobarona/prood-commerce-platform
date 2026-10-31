@@ -106,7 +106,15 @@ export const healthBody = z.object({ status: z.literal("ok") })
 
 export const webhookAcceptedBody = z.object({
   received: z.literal(true),
-  result: z.enum(["applied", "duplicate", "amount_mismatch", "order_cancelled", "ignored"]),
+  result: z.enum([
+    "applied",
+    "duplicate",
+    "amount_mismatch",
+    "order_cancelled",
+    "stale",
+    "second_payment",
+    "ignored",
+  ]),
 }) satisfies z.ZodType<{ received: true; result: PaymentEventResult | "ignored" }>
 
 export const callerBody = z.object({

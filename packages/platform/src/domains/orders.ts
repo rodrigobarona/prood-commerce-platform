@@ -34,6 +34,16 @@ import { normalizeLocalizedField } from './helpers.js'
 import { mapOrder } from './order-mapper.js'
 import { recordOrder, type OrderLine } from './order-recorder.js'
 
+// The order has its money, so another capture is a second payment, not a retry.
+const MONEY_RECEIVED = ['paid', 'partially_refunded', 'refunded']
+
+/** Add a note to an order once: providers redeliver their webhooks. */
+async function noteOnce(order: { id: string; status: string }, note: string): Promise<void> {
+  const history = await findOrderHistory(order.id)
+  if (history.some((entry: { note: string | null }) => entry.note === note)) return
+  await createOrderHistory({ orderId: order.id, fromStatus: order.status, toStatus: order.status, note })
+}
+
 export function createOrdersDomain() {
   return {
     async createOrder(input: CreateOrderInput): Promise<Order> {
@@ -202,6 +212,19 @@ export function createOrdersDomain() {
         }
       }
 
+      // A retry replaces the payment on the order, so the abandoned one can still report in.
+      const otherPayment = Boolean(
+        input.transactionId && order.paymentTransactionId && input.transactionId !== order.paymentTransactionId,
+      )
+      if (otherPayment && (input.outcome === 'failed' || input.outcome === 'cancelled')) return 'stale'
+      if (otherPayment && input.outcome === 'captured' && MONEY_RECEIVED.includes(order.paymentStatus)) {
+        await noteOnce(
+          order,
+          `${input.provider} captured a second payment (${input.transactionId}) on this order. It may need a refund.`,
+        )
+        return 'second_payment'
+      }
+
       // A refund needs to know where the money went.
       const payment = {
         paymentProvider: input.provider,
@@ -250,9 +273,10 @@ export function createOrdersDomain() {
       const from = input.outcome === 'authorized' ? ['unpaid'] : ['unpaid', 'authorized']
 
       if (!(await transitionOrderPayment(orderId, from, order.status, target.data))) {
-        // The order moved since it was read: decide again from its new status.
+        // The order moved since it was read: decide again from where it is now.
         const current = await findOrderById(orderId)
-        return current?.status === order.status ? 'duplicate' : this.applyPaymentEvent(orderId, input)
+        const moved = current?.status !== order.status || current?.paymentStatus !== order.paymentStatus
+        return moved ? this.applyPaymentEvent(orderId, input) : 'duplicate'
       }
 
       if (target.data.status === 'cancelled' && order.couponCode) await releaseCoupon(order.couponCode)

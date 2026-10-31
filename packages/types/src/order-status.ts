@@ -72,8 +72,17 @@ export interface RecordOrderPaymentInput {
  * - `applied` — the order moved to the new payment state
  * - `duplicate` — the order already left `unpaid`/`authorized`; nothing changed
  * - `amount_mismatch` — the gateway amount/currency differs from the order total
+ * - `order_cancelled` — money arrived on a cancelled order and is owed back
+ * - `stale` — the event is about a payment this order no longer uses; nothing changed
+ * - `second_payment` — another payment arrived on an order that has its money
  */
-export type PaymentEventResult = 'applied' | 'duplicate' | 'amount_mismatch' | 'order_cancelled'
+export type PaymentEventResult =
+  | 'applied'
+  | 'duplicate'
+  | 'amount_mismatch'
+  | 'order_cancelled'
+  | 'stale'
+  | 'second_payment'
 
 /**
  * Input for updating an order's status.

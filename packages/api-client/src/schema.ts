@@ -6946,7 +6946,7 @@ export interface operations {
                         /** @constant */
                         received: true;
                         /** @enum {string} */
-                        result: "applied" | "duplicate" | "amount_mismatch" | "order_cancelled" | "ignored";
+                        result: "applied" | "duplicate" | "amount_mismatch" | "order_cancelled" | "stale" | "second_payment" | "ignored";
                     };
                 };
             };
@@ -7021,7 +7021,7 @@ export interface operations {
                         /** @constant */
                         received: true;
                         /** @enum {string} */
-                        result: "applied" | "duplicate" | "amount_mismatch" | "order_cancelled" | "ignored";
+                        result: "applied" | "duplicate" | "amount_mismatch" | "order_cancelled" | "stale" | "second_payment" | "ignored";
                     };
                 };
             };

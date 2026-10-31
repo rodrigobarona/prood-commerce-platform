@@ -269,6 +269,9 @@ export const webhooks = {
     if (result === "order_cancelled") {
       console.error(`[webhook] ${provider} reported a payment on cancelled order ${orderId}`)
     }
+    if (result === "second_payment") {
+      console.error(`[webhook] ${provider} reported a second payment on order ${orderId}`)
+    }
     if (result !== "applied") return result
 
     revalidateProducts(orgId)

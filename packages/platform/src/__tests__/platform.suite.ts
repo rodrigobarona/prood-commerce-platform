@@ -993,6 +993,11 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
 
   describe('payment events', () => {
     const provider = 'test'
+    const startedPayment = (transactionId: string) => ({
+      provider,
+      transactionId,
+      details: { method: 'mbway', entity: null, reference: null, expiresAt: null },
+    } as const)
 
     it('captures a payment of the order total, once', async () => {
       const order = await placedOrder()
@@ -1065,6 +1070,69 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       })
       await adapter.applyPaymentEvent(order.id, { outcome: 'captured', amount, currency, provider, transactionId: null })
       expect((await adapter.getOrder(order.id)).paymentTransactionId).toBe('tx_3')
+    })
+
+    it('ignores a failure of a payment the shopper already replaced', async () => {
+      const order = await placedOrder()
+      await adapter.recordOrderPayment(order.id, startedPayment('tx_old'))
+      await adapter.recordOrderPayment(order.id, startedPayment('tx_new'))
+
+      for (const outcome of ['failed', 'cancelled'] as const) {
+        expect(
+          await adapter.applyPaymentEvent(order.id, { outcome, amount: null, currency: null, provider, transactionId: 'tx_old' }),
+        ).toBe('stale')
+      }
+      expect(await adapter.getOrder(order.id)).toMatchObject({
+        status: 'placed',
+        paymentStatus: 'unpaid',
+        paymentTransactionId: 'tx_new',
+      })
+
+      const { amount, currency } = order.totals.total
+      expect(
+        await adapter.applyPaymentEvent(order.id, { outcome: 'captured', amount, currency, provider, transactionId: 'tx_new' }),
+      ).toBe('applied')
+    })
+
+    it('still cancels the order when the current payment fails', async () => {
+      const order = await placedOrder()
+      await adapter.recordOrderPayment(order.id, startedPayment('tx_1'))
+      expect(
+        await adapter.applyPaymentEvent(order.id, { outcome: 'failed', amount: null, currency: null, provider, transactionId: 'tx_1' }),
+      ).toBe('applied')
+      expect(await adapter.getOrder(order.id)).toMatchObject({ status: 'cancelled', paymentStatus: 'voided' })
+    })
+
+    it('flags a second payment once per transaction, keeping the first', async () => {
+      const order = await placedOrder()
+      const { amount, currency } = order.totals.total
+      const captured = (transactionId: string) => ({ outcome: 'captured' as const, amount, currency, provider, transactionId })
+      const secondPaymentNotes = async () =>
+        (await adapter.getOrderHistory(order.id)).filter((entry) => entry.note?.includes('second payment'))
+
+      await adapter.applyPaymentEvent(order.id, captured('tx_1'))
+      expect(await adapter.applyPaymentEvent(order.id, captured('tx_1'))).toBe('duplicate')
+      expect(await secondPaymentNotes()).toHaveLength(0)
+
+      expect(await adapter.applyPaymentEvent(order.id, captured('tx_2'))).toBe('second_payment')
+      expect(await adapter.applyPaymentEvent(order.id, captured('tx_2'))).toBe('second_payment')
+      expect(await secondPaymentNotes()).toHaveLength(1)
+      expect((await secondPaymentNotes())[0]?.note).toContain('tx_2')
+
+      await adapter.applyPaymentEvent(order.id, captured('tx_3'))
+      expect(await secondPaymentNotes()).toHaveLength(2)
+      expect(await adapter.getOrder(order.id)).toMatchObject({ paymentStatus: 'paid', paymentTransactionId: 'tx_1' })
+    })
+
+    it('flags money arriving on an order that was already refunded', async () => {
+      const order = await placedOrder()
+      const { amount, currency } = order.totals.total
+      await adapter.applyPaymentEvent(order.id, { outcome: 'captured', amount, currency, provider, transactionId: 'tx_1' })
+      await asTenant((admin) => admin.recordRefund(order.id))
+      expect(
+        await adapter.applyPaymentEvent(order.id, { outcome: 'captured', amount, currency, provider, transactionId: 'tx_2' }),
+      ).toBe('second_payment')
+      expect((await adapter.getOrder(order.id)).paymentStatus).toBe('refunded')
     })
 
     it('never moves a shipped order', async () => {
