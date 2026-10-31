@@ -203,3 +203,20 @@ describe("when the provider holds the money", () => {
     expect(screen.queryByRole("button", { name: /^Pay / })).toBeNull()
   })
 })
+
+describe("when another tab is already starting the payment", () => {
+  it("says so instead of a failed payment", async () => {
+    stubFetch({
+      "/api/sessions/s1": () => json({ ...session, state: "failed" }),
+      "/pay": () => json({ code: "VALIDATION", message: "busy" }, 423),
+    })
+    await open()
+
+    await act(async () => {
+      fireEvent.click(pay())
+    })
+
+    expect(screen.getByRole("alert").textContent).toContain("already starting")
+    expect(pay()).toBeTruthy()
+  })
+})

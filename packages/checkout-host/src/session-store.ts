@@ -4,9 +4,14 @@ import type { CheckoutSnapshot } from '@prood/checkout'
 import type { PaymentMethodKind } from '@prood/types'
 
 const KEY_PREFIX = 'checkout:session:'
+const LOCK_PREFIX = 'checkout:lock:'
 const DEFAULT_TTL_S = 60 * 60 * 24 // 24 hours
 // A Multibanco reference stays payable for days after the link that made it expires.
 const STARTED_PAYMENT_TTL_S = 60 * 60 * 24 * 7 // 7 days
+// Long enough to start a payment; a crashed holder only blocks retries this long.
+const LOCK_TTL_S = 30
+// Only the holder may release: an expired lock can belong to someone else by now.
+const RELEASE_LOCK = `if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) end return 0`
 
 export interface SessionMeta {
   providerId: string
@@ -79,4 +84,15 @@ export async function loadSession(sessionId: string): Promise<StoredSession | nu
 
 export async function deleteSession(sessionId: string): Promise<void> {
   await getRedis().del(key(sessionId))
+}
+
+/** Take a short lock on a session. Returns a token to release it with, or null if it's held. */
+export async function lockSession(sessionId: string): Promise<string | null> {
+  const token = crypto.randomUUID()
+  const taken = await getRedis().set(`${LOCK_PREFIX}${sessionId}`, token, { nx: true, ex: LOCK_TTL_S })
+  return taken ? token : null
+}
+
+export async function unlockSession(sessionId: string, token: string): Promise<void> {
+  await getRedis().eval(RELEASE_LOCK, [`${LOCK_PREFIX}${sessionId}`], [token])
 }

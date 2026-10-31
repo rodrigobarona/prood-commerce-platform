@@ -57,6 +57,28 @@ describe('checkCredentials', () => {
   })
 })
 
+describe('createSession', () => {
+  it("doesn't let extra metadata claim another order", async () => {
+    const create = vi.fn().mockResolvedValue({ id: 'cs_1', created: 1, status: 'open' })
+    const client = { checkout: { sessions: { create } } } as unknown as Stripe
+
+    await new StripePaymentProvider({ secretKey, client }).createSession({
+      amount: 24.9,
+      currency: 'EUR',
+      orderId: 'order-1',
+      customerId: 'customer-1',
+      returnUrl: 'https://checkout.example/confirm/s1',
+      metadata: { orderId: 'order-2', customerId: 'customer-2', note: 'kept' },
+    })
+
+    expect(create.mock.calls[0]?.[0].metadata).toEqual({
+      orderId: 'order-1',
+      customerId: 'customer-1',
+      note: 'kept',
+    })
+  })
+})
+
 describe('refund', () => {
   it('refunds the payment behind the session, idempotently', async () => {
     const session = { id: 'cs_1', status: 'complete', payment_status: 'paid', payment_intent: 'pi_1', currency: 'eur', created: 1 }

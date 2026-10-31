@@ -16,6 +16,7 @@ import { ReferencePayment } from "./reference-payment"
 const PAY_ERROR = "We couldn't start your payment. You haven't been charged. Try again, or contact the store."
 const LOAD_ERROR = "We couldn't load this payment. You haven't been charged. Reload the page, or contact the store."
 const EXPIRED_ERROR = "This payment link has expired. You haven't been charged. Ask the store for a new one."
+const BUSY_ERROR = "Your payment is already starting. Wait a moment, then reload this page."
 const STUCK_ERROR = "We couldn't continue this payment. If you already paid, you don't need to pay again. Contact the store."
 const FAILED_NOTICE = "Your last payment didn't go through. Try again, or choose another way to pay."
 const TIMED_OUT_NOTICE = "The MB WAY request timed out. You haven't been charged. Try again."
@@ -193,7 +194,7 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
         return
       }
       if (!res.ok) {
-        setPayError(PAY_ERROR)
+        setPayError(res.status === 423 ? BUSY_ERROR : PAY_ERROR)
         setPaying(false)
         return
       }
