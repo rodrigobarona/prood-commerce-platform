@@ -178,6 +178,25 @@ describe('@prood/platform [drizzle]', () => {
     })
   })
 
+  describe('category filter', () => {
+    it('finds every product in a category with several products', async () => {
+      await cleanDatabase()
+      await seedDrizzle()
+      const { adapter } = await createPlatformAdapter()
+      await withTenant(DEMO_ORG_ID, async () => {
+        const before = await adapter.getProducts({ categoryId: 'cat-clothing', page: 1, perPage: 10 })
+        await getDb().execute(sql`
+          insert into product_categories (product_id, category_id)
+          select id, 'cat-clothing' from products
+          where id not in (select product_id from product_categories where category_id = 'cat-clothing')
+          limit 1
+        `)
+        const after = await adapter.getProducts({ categoryId: 'cat-clothing', page: 1, perPage: 10 })
+        expect(after.products.total).toBe(before.products.total + 1)
+      })
+    })
+  })
+
   describe('product visibility', () => {
     it('hides drafts from shopper reads by id and slug', async () => {
       await cleanDatabase()

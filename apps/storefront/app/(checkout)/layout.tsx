@@ -9,7 +9,7 @@ async function ResolvedCheckoutHeader() {
   let storeName = "Commerce"
   try {
     const store = await fetchStoreInfo()
-    if (store) storeName = localized(store.name) || storeName
+    storeName = localized(store.name) || storeName
   } catch {
     // fall back to default name
   }

@@ -10,7 +10,7 @@ import type {
   OrderFulfillmentStatus,
   ShippingMethod,
   PaymentMethod,
-  Address,
+  CheckoutAddress,
 } from '@prood/types'
 import {
   findCart,
@@ -77,12 +77,12 @@ export function createCheckoutDomain(currency: string) {
       ]
     },
 
-    async setShippingAddress(cartId: string, address: Omit<Address, 'id' | 'isDefault'>): Promise<Cart> {
+    async setShippingAddress(cartId: string, address: CheckoutAddress): Promise<Cart> {
       await updateCart(cartId, { shippingAddress: address as any })
       return cartDomain.getCart(cartId)
     },
 
-    async setBillingAddress(cartId: string, address: Omit<Address, 'id' | 'isDefault'>): Promise<Cart> {
+    async setBillingAddress(cartId: string, address: CheckoutAddress): Promise<Cart> {
       await updateCart(cartId, { billingAddress: address as any })
       return cartDomain.getCart(cartId)
     },

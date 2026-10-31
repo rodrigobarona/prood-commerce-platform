@@ -27,15 +27,11 @@ import {
   getTenantPaymentProvider,
   revalidateProducts,
 } from "@prood/commerce"
-import type { PaymentEventInput, PaymentEventResult } from "@prood/types"
+import type { CheckoutAddress, PaymentEventInput, PaymentEventResult } from "@prood/types"
 import { getStorefrontIdentity } from "@prood/platform"
 import { after } from "next/server"
 import { getMailer } from "./mailer"
 import type { PaginationParams } from "@prood/commerce"
-import type { z } from "zod"
-import { checkoutAddressBody } from "./schemas"
-
-type ApiCheckoutAddress = z.infer<typeof checkoutAddressBody>
 import type {
   AddToCartInput,
   AdminListParams,
@@ -129,18 +125,10 @@ export const checkout = {
     getShippingMethods(cartId, orgId),
   getPaymentMethods: (orgId: string, cartId: string) =>
     getPaymentMethods(cartId, orgId),
-  setShippingAddress: (orgId: string, cartId: string, address: ApiCheckoutAddress) =>
-    setShippingAddress(
-      cartId,
-      address as Parameters<typeof setShippingAddress>[1],
-      orgId
-    ),
-  setBillingAddress: (orgId: string, cartId: string, address: ApiCheckoutAddress) =>
-    setBillingAddress(
-      cartId,
-      address as Parameters<typeof setBillingAddress>[1],
-      orgId
-    ),
+  setShippingAddress: (orgId: string, cartId: string, address: CheckoutAddress) =>
+    setShippingAddress(cartId, address, orgId),
+  setBillingAddress: (orgId: string, cartId: string, address: CheckoutAddress) =>
+    setBillingAddress(cartId, address, orgId),
   setShippingMethod: (orgId: string, cartId: string, methodId: string) =>
     setShippingMethod(cartId, methodId, orgId),
   /** Placing an order consumes the cart, so check payment can be taken first. */

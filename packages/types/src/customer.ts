@@ -20,6 +20,23 @@ export interface Address {
   isDefault: boolean
 }
 
+/**
+ * Address snapshot on a cart or order: what the shopper entered at checkout,
+ * stored as given. Not an address-book row, so it has no id or default flag,
+ * and optional lines the shopper skipped are absent.
+ */
+export interface CheckoutAddress {
+  firstName: string
+  lastName: string
+  phone?: Maybe<string>
+  street: string
+  street2?: Maybe<string>
+  city: string
+  state?: Maybe<string>
+  country: string
+  postalCode?: Maybe<string>
+}
+
 /** Customer entity — email joined from Better Auth at read boundaries when needed */
 export interface Customer {
   id: Id

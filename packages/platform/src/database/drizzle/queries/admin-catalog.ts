@@ -2,7 +2,7 @@
 // Drizzle: Admin catalog queries (products + categories write ops)
 // ---------------------------------------------------------------------------
 
-import { eq, sql, and, like, asc, desc, lte } from 'drizzle-orm'
+import { count, eq, and, like, asc, desc, lte } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
 import { tenantCondition, requireOrgId } from './tenant-filter.js'
@@ -11,18 +11,18 @@ import { tenantCondition, requireOrgId } from './tenant-filter.js'
 
 export async function countProducts(): Promise<number> {
   const orgFilter = tenantCondition(schema.products)
-  const result = await getDb().select({ count: sql<number>`count(*)` }).from(schema.products)
+  const result = await getDb().select({ count: count() }).from(schema.products)
     .where(orgFilter)
-  return Number(result[0]?.count ?? 0)
+  return result[0]?.count ?? 0
 }
 
 export async function countActiveProducts(): Promise<number> {
   const orgFilter = tenantCondition(schema.products)
   const conditions = [eq(schema.products.status, 'active')]
   if (orgFilter) conditions.push(orgFilter)
-  const result = await getDb().select({ count: sql<number>`count(*)` }).from(schema.products)
+  const result = await getDb().select({ count: count() }).from(schema.products)
     .where(and(...conditions))
-  return Number(result[0]?.count ?? 0)
+  return result[0]?.count ?? 0
 }
 
 export async function adminCreateProduct(data: Record<string, any>) {
@@ -71,7 +71,7 @@ export async function adminListProducts(opts: {
       .orderBy(orderFn(sortCol))
       .limit(opts.limit)
       .offset(opts.offset),
-    db.select({ count: sql<number>`count(*)` })
+    db.select({ count: count() })
       .from(schema.products)
       .where(conditions.length > 0 ? and(...conditions) : undefined),
   ])

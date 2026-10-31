@@ -1,6 +1,6 @@
 "use client"
 
-import type { Address, Country } from "@prood/types"
+import type { CheckoutAddress, Country } from "@prood/types"
 import { Input } from "@prood/ui/components/input"
 import { Label } from "@prood/ui/components/label"
 import {
@@ -13,7 +13,7 @@ import {
 import { localized, type Locale } from "@prood/ui/lib/commerce"
 import { cn } from "@prood/ui/lib/utils"
 
-export type AddressInput = Partial<Omit<Address, "id" | "isDefault">>
+export type AddressInput = Partial<CheckoutAddress>
 
 export interface AddressFormProps {
   value: AddressInput

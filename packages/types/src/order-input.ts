@@ -7,7 +7,7 @@
 // ---------------------------------------------------------------------------
 
 import type { Id, Maybe, Price } from './common.js'
-import type { Address } from './customer.js'
+import type { CheckoutAddress } from './customer.js'
 
 /** A single item to include in the order */
 export interface OrderItemInput {
@@ -37,10 +37,10 @@ export interface CreateOrderInput {
   }>
 
   /** Shipping address */
-  shippingAddress: Omit<Address, 'id' | 'isDefault'>
+  shippingAddress: CheckoutAddress
 
   /** Billing address (defaults to shipping if not provided) */
-  billingAddress?: Maybe<Omit<Address, 'id' | 'isDefault'>>
+  billingAddress?: Maybe<CheckoutAddress>
 
   /** Selected shipping method ID */
   shippingMethodId?: Maybe<string>

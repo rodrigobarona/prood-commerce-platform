@@ -12,6 +12,5 @@ export interface Category {
   description: Maybe<LocalizedString>
   image: Maybe<Image>
   parentId: Maybe<Id>
-  children: Category[]
   productCount: Maybe<number>
 }

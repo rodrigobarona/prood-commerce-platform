@@ -2,25 +2,25 @@
 // Drizzle: Admin order queries
 // ---------------------------------------------------------------------------
 
-import { eq, sql, and, like, gte, lte, desc } from 'drizzle-orm'
+import { count, eq, sql, and, like, gte, lte, desc } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
 import { tenantCondition } from './tenant-filter.js'
 
 export async function countOrders(): Promise<number> {
-  const result = await getDb().select({ count: sql<number>`count(*)` }).from(schema.orders)
+  const result = await getDb().select({ count: count() }).from(schema.orders)
     .where(tenantCondition(schema.orders))
-  return Number(result[0]?.count ?? 0)
+  return result[0]?.count ?? 0
 }
 
 export async function countOrdersThisMonth(): Promise<number> {
   const now = new Date()
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
   const result = await getDb()
-    .select({ count: sql<number>`count(*)` })
+    .select({ count: count() })
     .from(schema.orders)
     .where(and(gte(schema.orders.createdAt, monthStart), tenantCondition(schema.orders)))
-  return Number(result[0]?.count ?? 0)
+  return result[0]?.count ?? 0
 }
 
 export async function adminFindAllOrders(opts: {
@@ -49,7 +49,7 @@ export async function adminFindAllOrders(opts: {
       .orderBy(desc(schema.orders.createdAt))
       .limit(opts.limit)
       .offset(opts.offset),
-    db.select({ count: sql<number>`count(*)` })
+    db.select({ count: count() })
       .from(schema.orders)
       .where(where),
   ])
@@ -72,7 +72,7 @@ export async function countOrdersByStatus() {
   const result = await getDb()
     .select({
       status: schema.orders.status,
-      count: sql<number>`count(*)`,
+      count: count(),
     })
     .from(schema.orders)
     .where(tenantCondition(schema.orders))
@@ -87,7 +87,7 @@ export async function countOrdersByStatus() {
 
 export async function sumOrderRevenue() {
   const [result] = await getDb()
-    .select({ total: sql<number>`COALESCE(SUM(total), 0)` })
+    .select({ total: sql`COALESCE(SUM(total), 0)`.mapWith(Number) })
     .from(schema.orders)
     .where(tenantCondition(schema.orders))
   return result?.total ?? 0

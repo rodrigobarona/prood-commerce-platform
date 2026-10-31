@@ -1,7 +1,7 @@
 import 'server-only'
 import type {
-  Address,
   Cart,
+  CheckoutAddress,
   Coupon,
   Country,
   Order,
@@ -14,8 +14,6 @@ import type {
   ShippingMethod,
 } from '@prood/types'
 import { getAdapter, runScoped } from './adapter'
-
-type CheckoutAddress = Omit<Address, 'id' | 'isDefault'>
 
 
 // ---- Shipping & payment options ----

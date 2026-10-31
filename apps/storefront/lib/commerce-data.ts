@@ -1,15 +1,19 @@
 import "server-only"
-import type { Cart, Category, Order, Product, StoreInfo } from "@prood/types"
+import type {
+  Cart,
+  Category,
+  Order,
+  PaginatedResult,
+  Product,
+  SearchResult,
+  StoreInfo,
+} from "@prood/types"
 import { isCommerceApiError, unwrap } from "@prood/api-client"
-
-type ProductListResult = {
-  products: { items: Product[]; total: number }
-}
 import { getCommerceApi } from "@/lib/commerce-api"
 
 export async function fetchProductList(
   query: Record<string, string | number | undefined> = {}
-): Promise<ProductListResult> {
+): Promise<SearchResult> {
   const api = await getCommerceApi()
   return unwrap(api.GET("/products", { params: { query } }))
 }
@@ -17,7 +21,7 @@ export async function fetchProductList(
 export async function fetchProductBySlug(slug: string): Promise<Product | null> {
   const api = await getCommerceApi()
   try {
-    return await unwrap<Product>(
+    return await unwrap(
       api.GET("/products/by-slug/{slug}", { params: { path: { slug } } })
     )
   } catch (err) {
@@ -33,7 +37,7 @@ export async function fetchCategories(
   return unwrap(api.GET("/categories", { params: { query } }))
 }
 
-export async function fetchStoreInfo(): Promise<StoreInfo | null> {
+export async function fetchStoreInfo(): Promise<StoreInfo> {
   const api = await getCommerceApi()
   return unwrap(api.GET("/store"))
 }
@@ -55,7 +59,7 @@ export async function fetchOrder(id: string): Promise<Order> {
 
 export async function fetchCustomerOrders(
   query: Record<string, string | number | undefined> = {}
-): Promise<{ items: Order[]; total: number }> {
+): Promise<PaginatedResult<Order>> {
   const api = await getCommerceApi()
   return unwrap(api.GET("/orders", { params: { query } }))
 }

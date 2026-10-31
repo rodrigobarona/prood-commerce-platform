@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import type { DiscountablePrice, Id, Image, LocalizedString, Maybe, Price } from './common.js'
-import type { Address } from './customer.js'
+import type { CheckoutAddress } from './customer.js'
 import type { ShippingMethod } from './shipping.js'
 import type { PaymentMethod } from './payment.js'
 
@@ -39,8 +39,8 @@ export interface Cart {
   id: Id
   items: CartItem[]
   totals: CartTotals
-  shippingAddress: Maybe<Address>
-  billingAddress: Maybe<Address>
+  shippingAddress: Maybe<CheckoutAddress>
+  billingAddress: Maybe<CheckoutAddress>
   shippingMethod: Maybe<ShippingMethod>
   paymentMethod: Maybe<PaymentMethod>
   couponCode: Maybe<string>
