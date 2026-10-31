@@ -6542,17 +6542,18 @@ export interface operations {
                     name?: {
                         [key: string]: string;
                     };
+                    /** @description Shown on the store. Send null to remove it. */
                     description?: {
                         [key: string]: string;
-                    };
+                    } | null;
                     logo?: string | "";
                     favicon?: string;
                     currency?: string;
                     locale?: string;
                     timezone?: string;
                     country?: string;
-                    /** Format: email */
-                    contactEmail?: string;
+                    /** @description Shown on the store and to customers. Send null to remove it. */
+                    contactEmail?: string | null;
                     contactPhone?: string;
                     address?: string;
                     socialLinks?: {

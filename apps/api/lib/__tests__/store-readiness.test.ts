@@ -33,6 +33,7 @@ vi.mock("@prood/commerce", () => ({
 }))
 
 import { admin, catalog, checkout } from "../commerce-service"
+import { updateStoreBody } from "../schemas"
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -83,6 +84,23 @@ describe("admin store API", () => {
     mocks.updateStoreSettings.mockResolvedValue({ contactEmail: "novo@loja.pt" })
     await admin.updateStoreSettings("org-1", { contactEmail: "novo@loja.pt" })
     expect(mocks.revalidateStore).toHaveBeenCalledWith("org-1")
+  })
+})
+
+describe("updating store settings", () => {
+  it("accepts null to remove the contact email and description", () => {
+    expect(updateStoreBody.parse({ contactEmail: null, description: null })).toEqual({
+      contactEmail: null,
+      description: null,
+    })
+  })
+
+  it("leaves out what the request doesn't mention", () => {
+    expect(updateStoreBody.parse({ country: "pt" })).toEqual({ country: "PT" })
+  })
+
+  it("still refuses an empty email", () => {
+    expect(updateStoreBody.safeParse({ contactEmail: "" }).success).toBe(false)
   })
 })
 

@@ -3,7 +3,6 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import type { LocalizedField } from "@prood/types"
 import { Button } from "@prood/ui/components/button"
 import { Input } from "@prood/ui/components/input"
 import { Label } from "@prood/ui/components/label"
@@ -17,27 +16,10 @@ import { updateStoreSettingsAction } from "@/app/(dashboard)/settings/actions"
 import {
   LocalizedFieldInput,
 } from "@/components/store/localized-field-input"
+import { toStoreUpdate, type SettingsFormValues } from "@/lib/store-settings"
 
-export interface SettingsFormValues {
-  name: LocalizedField
-  description: LocalizedField
-  contactEmail: string
-  contactPhone: string
-  currency: string
-  locale: string
-  timezone: string
-  country: string
-  address: string
-}
 
-function trimLocalizedField(field: LocalizedField): LocalizedField | undefined {
-  const trimmed: LocalizedField = {}
-  for (const [key, value] of Object.entries(field)) {
-    const next = value.trim()
-    if (next) trimmed[key] = next
-  }
-  return Object.keys(trimmed).length > 0 ? trimmed : undefined
-}
+const PUBLIC_FIELD_HINT = "Shown on your store and to customers."
 
 export function SettingsForm({ initial }: { initial: SettingsFormValues }) {
   const router = useRouter()
@@ -55,17 +37,7 @@ export function SettingsForm({ initial }: { initial: SettingsFormValues }) {
     event.preventDefault()
     startTransition(async () => {
       try {
-        await updateStoreSettingsAction({
-          name: trimLocalizedField(values.name),
-          description: trimLocalizedField(values.description),
-          contactEmail: values.contactEmail || undefined,
-          contactPhone: values.contactPhone || undefined,
-          currency: values.currency || undefined,
-          locale: values.locale || undefined,
-          timezone: values.timezone || undefined,
-          country: values.country || undefined,
-          address: values.address || undefined,
-        })
+        await updateStoreSettingsAction(toStoreUpdate(values))
         toast.success("Settings saved")
         router.refresh()
       } catch {
@@ -92,6 +64,7 @@ export function SettingsForm({ initial }: { initial: SettingsFormValues }) {
             value={values.description}
             onChange={(description) => set("description", description)}
             multiline
+            hint={PUBLIC_FIELD_HINT}
           />
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="address">Address</Label>
@@ -118,6 +91,7 @@ export function SettingsForm({ initial }: { initial: SettingsFormValues }) {
                 value={values.contactEmail}
                 onChange={(event) => set("contactEmail", event.target.value)}
               />
+              <p className="text-xs text-muted-foreground">{PUBLIC_FIELD_HINT}</p>
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="contactPhone">Contact phone</Label>

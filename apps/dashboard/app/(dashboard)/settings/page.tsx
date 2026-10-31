@@ -1,13 +1,11 @@
 import { Suspense } from "react"
 import type { StoreSettings } from "@prood/commerce"
 import { DashboardFormPage } from "@/components/layout/dashboard-page"
-import {
-  SettingsForm,
-  type SettingsFormValues,
-} from "@/components/store/settings-form"
+import { SettingsForm } from "@/components/store/settings-form"
 import { FormPageSkeleton } from "@/components/skeletons"
 import { emptyLocalizedField } from "@/lib/localized-field"
 import { getStoreSettings } from "@/lib/admin-api"
+import type { SettingsFormValues } from "@/lib/store-settings"
 
 export const metadata = { title: "Store settings" }
 

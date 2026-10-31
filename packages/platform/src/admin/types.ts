@@ -95,7 +95,8 @@ export interface FulfillOrderInput {
 
 export interface UpdateStoreInput {
   name?: LocalizedField
-  description?: LocalizedField
+  /** `null` removes it */
+  description?: LocalizedField | null
   logo?: string
   favicon?: string
   currency?: string
@@ -103,7 +104,8 @@ export interface UpdateStoreInput {
   timezone?: string
   /** ISO 3166-1 alpha-2 */
   country?: string
-  contactEmail?: string
+  /** `null` removes it */
+  contactEmail?: string | null
   contactPhone?: string
   address?: string
   socialLinks?: Record<string, string>

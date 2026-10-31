@@ -155,14 +155,20 @@ export const updateInventoryBody = z.object({
 
 export const updateStoreBody = z.object({
   name: optionalLocalizedFieldSchema,
-  description: optionalLocalizedFieldSchema,
+  description: optionalLocalizedFieldSchema
+    .nullable()
+    .describe("Shown on the store. Send null to remove it."),
   logo: optionalImageUrl,
   favicon: z.string().optional(),
   currency: z.string().length(3).toUpperCase().optional(),
   locale: z.string().optional(),
   timezone: z.string().optional(),
   country: z.string().length(2).toUpperCase().optional(),
-  contactEmail: z.email().optional(),
+  contactEmail: z
+    .email()
+    .nullable()
+    .optional()
+    .describe("Shown on the store and to customers. Send null to remove it."),
   contactPhone: z.string().optional(),
   address: z.string().optional(),
   socialLinks: z.record(z.string(), z.string()).optional(),

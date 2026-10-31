@@ -1511,6 +1511,17 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     expect((await adapter.getStoreInfo()).contactEmail).toBe('ola@loja.pt')
   })
 
+  it('removes a contact email and description a merchant cleared', async () => {
+    await asTenant((admin) =>
+      admin.updateStoreSettings({ contactEmail: 'ola@loja.pt', description: { en: 'Cerâmica' } }),
+    )
+    const settings = await asTenant((admin) =>
+      admin.updateStoreSettings({ contactEmail: null, description: null }),
+    )
+    expect(settings).toMatchObject({ contactEmail: null, description: null })
+    expect(await adapter.getStoreInfo()).toMatchObject({ contactEmail: null, description: null })
+  })
+
   it('stores social links as the record it returns', async () => {
     const socialLinks = { instagram: 'https://instagram.com/prood' }
     const updated = await asTenant((admin) => admin.updateStoreSettings({ socialLinks }))
