@@ -27,12 +27,6 @@ const storeLife = {
   expire: 86_400,
 } as const
 
-const emptySearchResult: SearchResult = {
-  products: { items: [], total: 0, page: 1, perPage: 12, hasMore: false },
-  facets: [],
-  suggestions: null,
-}
-
 function productTag(params: GetProductParams): string {
   if (params.slug) return `product-${params.slug}`
   if (params.id) return `product-${params.id}`
@@ -58,18 +52,7 @@ export async function getProducts(
   'use cache'
   cacheTag(scoped('products', tenantId))
   cacheLife(catalogLife)
-  try {
-    return await runScoped(tenantId, async () => (await getAdapter()).getProducts(params))
-  } catch {
-    return {
-      ...emptySearchResult,
-      products: {
-        ...emptySearchResult.products,
-        page: params.page ?? 1,
-        perPage: params.perPage ?? 12,
-      },
-    }
-  }
+  return runScoped(tenantId, async () => (await getAdapter()).getProducts(params))
 }
 
 /** Fetch a single product by id or slug. */
@@ -107,23 +90,15 @@ export async function getCategories(
   'use cache'
   cacheTag(scoped('categories', tenantId))
   cacheLife(catalogLife)
-  try {
-    return await runScoped(tenantId, async () => (await getAdapter()).getCategories(params))
-  } catch {
-    return []
-  }
+  return runScoped(tenantId, async () => (await getAdapter()).getCategories(params))
 }
 
 /** Fetch store metadata (name, currency, locale, branding). */
-export async function getStoreInfo(tenantId?: string): Promise<StoreInfo | null> {
+export async function getStoreInfo(tenantId?: string): Promise<StoreInfo> {
   'use cache'
   cacheTag(scoped('store', tenantId))
   cacheLife(storeLife)
-  try {
-    return await runScoped(tenantId, async () => (await getAdapter()).getStoreInfo())
-  } catch {
-    return null
-  }
+  return runScoped(tenantId, async () => (await getAdapter()).getStoreInfo())
 }
 
 /** Fetch the list of brands. */
@@ -131,9 +106,5 @@ export async function getBrands(tenantId?: string): Promise<Brand[]> {
   'use cache'
   cacheTag(scoped('products', tenantId))
   cacheLife(catalogLife)
-  try {
-    return await runScoped(tenantId, async () => (await getAdapter()).getBrands())
-  } catch {
-    return []
-  }
+  return runScoped(tenantId, async () => (await getAdapter()).getBrands())
 }

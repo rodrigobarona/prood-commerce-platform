@@ -2,7 +2,7 @@
 // Drizzle: Catalog queries
 // ---------------------------------------------------------------------------
 
-import { count, eq, sql, and, or, asc, desc } from 'drizzle-orm'
+import { count, eq, sql, and, or, asc, desc, inArray } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
 import { tenantCondition } from './tenant-filter.js'
@@ -40,7 +40,7 @@ export async function findProducts(opts: {
       )!); break
       case 'gte': conditions.push(sql`${col} >= ${c.value}`); break
       case 'lte': conditions.push(sql`${col} <= ${c.value}`); break
-      case 'in': conditions.push(sql`${col} IN (${c.value})`); break
+      case 'in': conditions.push(inArray(col, c.value)); break
       default: conditions.push(eq(col, c.value))
     }
   }
