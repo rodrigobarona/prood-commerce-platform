@@ -1607,9 +1607,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -1625,9 +1622,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -1645,7 +1639,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -1826,9 +1819,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -1844,9 +1834,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -1864,7 +1851,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -2053,9 +2039,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -2071,9 +2054,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -2091,7 +2071,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -2273,9 +2252,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -2291,9 +2267,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -2311,7 +2284,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -2499,9 +2471,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -2517,9 +2486,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -2537,7 +2503,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -2724,9 +2689,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -2742,9 +2704,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -2762,7 +2721,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -2943,9 +2901,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -2961,9 +2916,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -2981,7 +2933,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -3097,7 +3048,6 @@ export interface operations {
                         } & {
                             [key: string]: unknown;
                         };
-                        estimatedMinutes?: number;
                         price: {
                             amount: number;
                             currency: string;
@@ -3265,9 +3215,6 @@ export interface operations {
                     state?: string;
                     country: string;
                     postalCode?: string;
-                    district?: string;
-                    nationalAddress?: string;
-                    additionalNumber?: string;
                 };
             };
         };
@@ -3356,9 +3303,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -3374,9 +3318,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -3394,7 +3335,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -3501,9 +3441,6 @@ export interface operations {
                     state?: string;
                     country: string;
                     postalCode?: string;
-                    district?: string;
-                    nationalAddress?: string;
-                    additionalNumber?: string;
                 };
             };
         };
@@ -3592,9 +3529,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -3610,9 +3544,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -3630,7 +3561,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -3817,9 +3747,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -3835,9 +3762,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -3855,7 +3779,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -4025,9 +3948,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -4043,9 +3963,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -4063,7 +3980,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -4230,9 +4146,6 @@ export interface operations {
                                 state?: string | null;
                                 country: string;
                                 postalCode?: string | null;
-                                district?: string | null;
-                                nationalAddress?: string | null;
-                                additionalNumber?: string | null;
                                 isDefault?: boolean;
                             } & {
                                 [key: string]: unknown;
@@ -4248,9 +4161,6 @@ export interface operations {
                                 state?: string | null;
                                 country: string;
                                 postalCode?: string | null;
-                                district?: string | null;
-                                nationalAddress?: string | null;
-                                additionalNumber?: string | null;
                                 isDefault?: boolean;
                             } & {
                                 [key: string]: unknown;
@@ -4268,7 +4178,6 @@ export interface operations {
                                 } & {
                                     [key: string]: unknown;
                                 };
-                                estimatedMinutes?: number;
                                 price: {
                                     amount: number;
                                     currency: string;
@@ -4440,9 +4349,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -4458,9 +4364,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -4478,7 +4381,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -4751,7 +4653,8 @@ export interface operations {
                     compareAtPrice?: number;
                     currency?: string;
                     sku?: string;
-                    productType?: string;
+                    /** @enum {string} */
+                    productType?: "physical" | "digital" | "service" | "event" | "subscription";
                     /** @enum {string} */
                     status?: "draft" | "active" | "archived";
                     inStock?: boolean;
@@ -5173,7 +5076,8 @@ export interface operations {
                     compareAtPrice?: number;
                     currency?: string;
                     sku?: string;
-                    productType?: string;
+                    /** @enum {string} */
+                    productType?: "physical" | "digital" | "service" | "event" | "subscription";
                     /** @enum {string} */
                     status?: "draft" | "active" | "archived";
                     inStock?: boolean;
@@ -5720,9 +5624,6 @@ export interface operations {
                                 state?: string | null;
                                 country: string;
                                 postalCode?: string | null;
-                                district?: string | null;
-                                nationalAddress?: string | null;
-                                additionalNumber?: string | null;
                                 isDefault?: boolean;
                             } & {
                                 [key: string]: unknown;
@@ -5738,9 +5639,6 @@ export interface operations {
                                 state?: string | null;
                                 country: string;
                                 postalCode?: string | null;
-                                district?: string | null;
-                                nationalAddress?: string | null;
-                                additionalNumber?: string | null;
                                 isDefault?: boolean;
                             } & {
                                 [key: string]: unknown;
@@ -5758,7 +5656,6 @@ export interface operations {
                                 } & {
                                     [key: string]: unknown;
                                 };
-                                estimatedMinutes?: number;
                                 price: {
                                     amount: number;
                                     currency: string;
@@ -5930,9 +5827,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -5948,9 +5842,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -5968,7 +5859,6 @@ export interface operations {
                             } & {
                                 [key: string]: unknown;
                             };
-                            estimatedMinutes?: number;
                             price: {
                                 amount: number;
                                 currency: string;
@@ -6413,9 +6303,6 @@ export interface operations {
                                 state?: string | null;
                                 country: string;
                                 postalCode?: string | null;
-                                district?: string | null;
-                                nationalAddress?: string | null;
-                                additionalNumber?: string | null;
                                 isDefault?: boolean;
                             } & {
                                 [key: string]: unknown;
@@ -6519,9 +6406,6 @@ export interface operations {
                             state?: string | null;
                             country: string;
                             postalCode?: string | null;
-                            district?: string | null;
-                            nationalAddress?: string | null;
-                            additionalNumber?: string | null;
                             isDefault?: boolean;
                         } & {
                             [key: string]: unknown;
@@ -6946,9 +6830,6 @@ export interface operations {
                                 state?: string | null;
                                 country: string;
                                 postalCode?: string | null;
-                                district?: string | null;
-                                nationalAddress?: string | null;
-                                additionalNumber?: string | null;
                                 isDefault?: boolean;
                             } & {
                                 [key: string]: unknown;
@@ -6964,9 +6845,6 @@ export interface operations {
                                 state?: string | null;
                                 country: string;
                                 postalCode?: string | null;
-                                district?: string | null;
-                                nationalAddress?: string | null;
-                                additionalNumber?: string | null;
                                 isDefault?: boolean;
                             } & {
                                 [key: string]: unknown;
@@ -6984,7 +6862,6 @@ export interface operations {
                                 } & {
                                     [key: string]: unknown;
                                 };
-                                estimatedMinutes?: number;
                                 price: {
                                     amount: number;
                                     currency: string;

@@ -4,9 +4,6 @@
 
 import type { DiscountablePrice, Id, Image, LocalizedString, Maybe, Price } from './common.js'
 import type { Category } from './category.js'
-import type { PriceTier, CustomerGroupPrice } from './wholesale.js'
-import type { AuctionProductMeta } from './auction.js'
-import type { RentalProductMeta } from './rental.js'
 
 /** Product attribute (e.g., color, size, material) */
 export interface Attribute {
@@ -42,7 +39,7 @@ export interface ProductVariant {
 // ---- Product type discriminator & metadata ----
 
 /** Classifies the product for fulfillment logic and UI rendering */
-export type ProductType = 'physical' | 'digital' | 'service' | 'event' | 'subscription' | 'auction' | 'rental' | 'gift_card'
+export type ProductType = 'physical' | 'digital' | 'service' | 'event' | 'subscription'
 
 /** Metadata for digital products (ebooks, software, courses, etc.) */
 export interface DigitalProductMeta {
@@ -140,7 +137,7 @@ export interface Product {
   inStock: boolean
   /** Whether the displayed price includes VAT */
   vatIncluded: boolean
-  /** VAT rate as a decimal (e.g., 0.15 for KSA 15%) */
+  /** VAT rate as a decimal (e.g., 0.23 for 23% in Portugal) */
   vatRate: Maybe<number>
   tags: string[]
   createdAt: string
@@ -163,28 +160,11 @@ export interface Product {
   /** Subscription metadata (present when productType === 'subscription') */
   subscription: Maybe<SubscriptionProductMeta>
 
-  /** Auction metadata (present when productType === 'auction') */
-  auction: Maybe<AuctionProductMeta>
-
-  /** Rental metadata (present when productType === 'rental') */
-  rental: Maybe<RentalProductMeta>
-
   /** Pre-order information (present on any productType) */
   preOrder: Maybe<PreOrderMeta>
 
   /** Whether this product requires shipping (false for digital, services, events) */
   requiresShipping: boolean
-
-  // ---- Wholesale / B2B (additive) ----
-
-  /** Minimum order quantity for this product (null = 1) */
-  minOrderQuantity: Maybe<number>
-
-  /** Volume-based pricing tiers (null = single price) */
-  priceTiers: Maybe<PriceTier[]>
-
-  /** Per-customer-group price overrides */
-  customerGroupPricing: Maybe<CustomerGroupPrice[]>
 
   // ---- Fulfillment ----
 

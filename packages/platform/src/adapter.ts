@@ -18,13 +18,6 @@ import { createWishlistDomain } from './domains/wishlist.js'
 import { createReviewsDomain } from './domains/reviews.js'
 import { createPromotionsDomain } from './domains/promotions.js'
 import { createReturnsDomain } from './domains/returns.js'
-import {
-  wholesaleStubs,
-  auctionStubs,
-  rentalStubs,
-  giftCardStubs,
-  locationStubs,
-} from './domains/not-supported.js'
 
 /**
  * Resolve the database connection string from config or environment.
@@ -175,13 +168,6 @@ export async function createPlatformAdapter(config: PlatformConfig = {}): Promis
     getReturns: returnsDomain.getReturns,
     getOrderReturns: returnsDomain.getOrderReturns,
     cancelReturn: returnsDomain.cancelReturn,
-
-    // ---- NOT_SUPPORTED domains ----
-    ...wholesaleStubs,
-    ...auctionStubs,
-    ...rentalStubs,
-    ...giftCardStubs,
-    ...locationStubs,
   } as CommerceAdapter
 
   return { adapter, admin }

@@ -79,11 +79,6 @@ export function createOrdersDomain(currency: string) {
       updatedAt: row.updatedAt,
       paymentStatus: row.paymentStatus ?? 'unpaid',
       fulfillmentStatus: row.fulfillmentStatus ?? 'unfulfilled',
-      paymentTerms: null,
-      purchaseOrderNumber: null,
-      companyName: null,
-      giftCardCodesApplied: [],
-      giftCardAmountApplied: null,
     }
   }
 

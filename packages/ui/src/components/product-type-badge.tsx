@@ -9,9 +9,6 @@ const LABELS: Record<string, string> = {
   physical: "Product",
   digital: "Digital",
   subscription: "Subscription",
-  gift_card: "Gift Card",
-  rental: "Rental",
-  auction: "Auction",
   event: "Event",
   service: "Service",
 }

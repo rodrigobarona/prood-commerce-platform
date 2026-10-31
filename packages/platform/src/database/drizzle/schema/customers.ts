@@ -37,9 +37,6 @@ export const customerAddresses = pgTable('customer_addresses', {
   state: text('state'),
   country: text('country').notNull(),
   postalCode: text('postal_code'),
-  district: text('district'),
-  nationalAddress: text('national_address'),
-  additionalNumber: text('additional_number'),
   isDefault: boolean('is_default').notNull().default(false),
 }, (t) => [
   index().on(t.organizationId),

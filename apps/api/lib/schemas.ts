@@ -118,7 +118,7 @@ export const createProductBody = z.object({
   compareAtPrice: z.number().optional(),
   currency: z.string().optional(),
   sku: z.string().optional(),
-  productType: z.string().optional(),
+  productType: z.enum(["physical", "digital", "service", "event", "subscription"]).optional(),
   status: z.enum(["draft", "active", "archived"]).optional(),
   inStock: z.boolean().optional(),
   inventoryQuantity: z.number().int().optional(),
@@ -189,9 +189,6 @@ export const checkoutAddressBody = z.object({
   state: z.string().optional(),
   country: z.string().min(1),
   postalCode: z.string().optional(),
-  district: z.string().optional(),
-  nationalAddress: z.string().optional(),
-  additionalNumber: z.string().optional(),
 })
 
 export const setShippingMethodBody = z.object({

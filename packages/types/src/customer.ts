@@ -4,7 +4,7 @@
 
 import type { Id, Maybe, DeepPartial } from './common.js'
 
-/** Physical address — includes GCC-specific fields */
+/** Physical address */
 export interface Address {
   id: Id
   firstName: string
@@ -17,12 +17,6 @@ export interface Address {
   state: Maybe<string>
   country: string
   postalCode: Maybe<string>
-  /** حي — neighborhood/district (common in Saudi addresses) */
-  district: Maybe<string>
-  /** العنوان الوطني — Saudi National Address */
-  nationalAddress: Maybe<string>
-  /** الرقم الإضافي — Saudi additional number */
-  additionalNumber: Maybe<string>
   isDefault: boolean
 }
 

@@ -13,7 +13,7 @@ function mockPaymentSession(overrides: Partial<PaymentSession> = {}): PaymentSes
     providerId: 'mock',
     status: 'pending',
     amount: 99.99,
-    currency: 'SAR',
+    currency: 'EUR',
     providerData: null,
     redirectUrl: 'https://gateway.com/3ds/abc',
     createdAt: '2026-02-09T12:00:00Z',
@@ -36,7 +36,7 @@ function mockProvider(overrides: Partial<PaymentProvider> = {}): PaymentProvider
 function defaultConfig(overrides: Partial<CheckoutSessionConfig> = {}): CheckoutSessionConfig {
   return {
     paymentProvider: mockProvider(),
-    currency: 'SAR',
+    currency: 'EUR',
     amount: 99.99,
     returnUrl: 'https://store.com/confirm',
     ...overrides,
@@ -49,13 +49,10 @@ const address = {
   phone: '+966500000000',
   street: '123 King Fahd Rd',
   street2: null,
-  city: 'Riyadh',
-  state: 'Riyadh',
-  country: 'SA',
+  city: 'Lisbon',
+  state: 'Lisbon',
+  country: 'PT',
   postalCode: '12345',
-  district: null,
-  nationalAddress: null,
-  additionalNumber: null,
 }
 
 // ---------------------------------------------------------------------------
@@ -78,7 +75,7 @@ describe('CheckoutSession', () => {
 
     it('has correct config values', () => {
       expect(session.amount).toBe(99.99)
-      expect(session.currency).toBe('SAR')
+      expect(session.currency).toBe('EUR')
     })
 
     it('has null for all optional fields', () => {
@@ -115,7 +112,7 @@ describe('CheckoutSession', () => {
       session.setCustomerInfo({ email: 'ali@example.com' })
       session.setShippingAddress(address)
       expect(session.state).toBe('shipping')
-      expect(session.shippingAddress?.city).toBe('Riyadh')
+      expect(session.shippingAddress?.city).toBe('Lisbon')
     })
 
     it('defaults billing address to shipping address', () => {
@@ -128,7 +125,7 @@ describe('CheckoutSession', () => {
       session.setCustomerInfo({ email: 'ali@example.com' })
       const billing = { ...address, city: 'Jeddah' }
       session.setShippingAddress(address, billing)
-      expect(session.shippingAddress?.city).toBe('Riyadh')
+      expect(session.shippingAddress?.city).toBe('Lisbon')
       expect(session.billingAddress?.city).toBe('Jeddah')
     })
 
@@ -401,7 +398,7 @@ describe('CheckoutSession', () => {
       expect(snap.state).toBe('info')
       expect(snap.customerInfo).toEqual({ email: 'ali@example.com', firstName: 'Ali' })
       expect(snap.amount).toBe(99.99)
-      expect(snap.currency).toBe('SAR')
+      expect(snap.currency).toBe('EUR')
       expect(snap.error).toBeNull()
     })
 

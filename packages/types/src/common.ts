@@ -114,7 +114,7 @@ export function isCommerceError(err: unknown): err is CommerceError {
 
 /**
  * Tax calculation strategy — allows per-market tax rules.
- * e.g., 15% VAT for KSA, 5% for UAE, 0% for Bahrain.
+ * e.g., 23% VAT in Portugal, 21% in Spain, 19% in Germany.
  */
 export interface TaxStrategy {
   /** Calculate tax for a given subtotal and country code */

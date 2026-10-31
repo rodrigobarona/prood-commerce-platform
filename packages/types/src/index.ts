@@ -66,26 +66,11 @@ export type { StoreInfo, StoreCurrency, StoreLocale } from './store.js'
 // Country
 export type { Country } from './country.js'
 
-// Store Location
-export type { StoreLocation, Coordinates, LocationContact, WorkingHoursEntry } from './location.js'
-
 // Promotion
 export type { Promotion, Coupon, DiscountType, PromotionTarget, PromotionCondition } from './promotion.js'
 
 // Return
 export type { ReturnRequest, ReturnItem, CreateReturnInput, ReturnReason, ReturnStatus, RefundMethod } from './return.js'
-
-// Wholesale / B2B
-export type { PriceTier, CustomerGroup, CustomerGroupPrice, QuoteRequest, QuoteLineItem, QuoteStatus, CreateQuoteInput, PaymentTerms, PaymentTermsType } from './wholesale.js'
-
-// Auction
-export type { AuctionProductMeta, AuctionType, AuctionStatus, Bid, PlaceBidInput } from './auction.js'
-
-// Rental
-export type { RentalProductMeta, RentalPricingUnit, RentalPricingTier, AvailabilitySlot, RentalBooking, RentalBookingStatus, CreateRentalBookingInput } from './rental.js'
-
-// Gift Card
-export type { GiftCard, GiftCardStatus, GiftCardTransaction, PurchaseGiftCardInput, RedeemGiftCardInput } from './gift-card.js'
 
 // Adapter contract (sub-interfaces + composed)
 export type {
@@ -106,13 +91,8 @@ export type {
   StoreAdapter,
   PromotionAdapter,
   ReturnAdapter,
-  WholesaleAdapter,
-  AuctionAdapter,
-  RentalAdapter,
-  GiftCardAdapter,
   BrandAdapter,
   CountryAdapter,
-  LocationAdapter,
   GetProductParams,
   GetCategoriesParams,
   AddToCartInput,
@@ -139,18 +119,6 @@ export type {
   TaxResult,
   TaxLineItemResult,
 } from './tax.js'
-
-// Delivery Provider (pluggable last-mile delivery)
-export type {
-  DeliveryProvider,
-  Delivery,
-  DeliveryStatus,
-  DeliveryAddress,
-  DeliveryEstimate,
-  EstimateDeliveryInput,
-  CreateDeliveryInput,
-  DeliveryWebhookEvent,
-} from './delivery-provider.js'
 
 // Storage Provider (pluggable object storage for native platform)
 export type {

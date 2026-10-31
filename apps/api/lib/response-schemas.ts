@@ -32,9 +32,6 @@ const address = z
     state: nullableString.optional(),
     country: z.string(),
     postalCode: nullableString.optional(),
-    district: nullableString.optional(),
-    nationalAddress: nullableString.optional(),
-    additionalNumber: nullableString.optional(),
     isDefault: z.boolean().optional(),
   })
   .catchall(z.unknown())
@@ -144,7 +141,6 @@ export const shippingMethod = z
     provider: z.string(),
     fulfillmentType: z.string(),
     estimatedDays: z.object({ min: z.number(), max: z.number() }).catchall(z.unknown()),
-    estimatedMinutes: z.number().optional(),
     price,
     cashOnDelivery: z.boolean(),
   })

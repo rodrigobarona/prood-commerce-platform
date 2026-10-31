@@ -2912,24 +2912,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -2995,24 +2977,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -3069,9 +3033,6 @@
                                 "max"
                               ],
                               "additionalProperties": {}
-                            },
-                            "estimatedMinutes": {
-                              "type": "number"
                             },
                             "price": {
                               "type": "object",
@@ -3642,24 +3603,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -3725,24 +3668,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -3799,9 +3724,6 @@
                                 "max"
                               ],
                               "additionalProperties": {}
-                            },
-                            "estimatedMinutes": {
-                              "type": "number"
                             },
                             "price": {
                               "type": "object",
@@ -4372,24 +4294,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -4455,24 +4359,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -4529,9 +4415,6 @@
                                 "max"
                               ],
                               "additionalProperties": {}
-                            },
-                            "estimatedMinutes": {
-                              "type": "number"
                             },
                             "price": {
                               "type": "object",
@@ -5140,24 +5023,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -5223,24 +5088,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -5297,9 +5144,6 @@
                                 "max"
                               ],
                               "additionalProperties": {}
-                            },
-                            "estimatedMinutes": {
-                              "type": "number"
                             },
                             "price": {
                               "type": "object",
@@ -5898,24 +5742,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -5981,24 +5807,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -6055,9 +5863,6 @@
                                 "max"
                               ],
                               "additionalProperties": {}
-                            },
-                            "estimatedMinutes": {
-                              "type": "number"
                             },
                             "price": {
                               "type": "object",
@@ -6628,24 +6433,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -6711,24 +6498,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -6785,9 +6554,6 @@
                                 "max"
                               ],
                               "additionalProperties": {}
-                            },
-                            "estimatedMinutes": {
-                              "type": "number"
                             },
                             "price": {
                               "type": "object",
@@ -7377,24 +7143,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -7460,24 +7208,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -7534,9 +7264,6 @@
                                 "max"
                               ],
                               "additionalProperties": {}
-                            },
-                            "estimatedMinutes": {
-                              "type": "number"
                             },
                             "price": {
                               "type": "object",
@@ -7877,9 +7604,6 @@
                           "max"
                         ],
                         "additionalProperties": {}
-                      },
-                      "estimatedMinutes": {
-                        "type": "number"
                       },
                       "price": {
                         "type": "object",
@@ -8582,24 +8306,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -8665,24 +8371,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -8739,9 +8427,6 @@
                                 "max"
                               ],
                               "additionalProperties": {}
-                            },
-                            "estimatedMinutes": {
-                              "type": "number"
                             },
                             "price": {
                               "type": "object",
@@ -9043,15 +8728,6 @@
                     "minLength": 1
                   },
                   "postalCode": {
-                    "type": "string"
-                  },
-                  "district": {
-                    "type": "string"
-                  },
-                  "nationalAddress": {
-                    "type": "string"
-                  },
-                  "additionalNumber": {
                     "type": "string"
                   }
                 },
@@ -9374,24 +9050,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -9457,24 +9115,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -9531,9 +9171,6 @@
                                 "max"
                               ],
                               "additionalProperties": {}
-                            },
-                            "estimatedMinutes": {
-                              "type": "number"
                             },
                             "price": {
                               "type": "object",
@@ -9835,15 +9472,6 @@
                     "minLength": 1
                   },
                   "postalCode": {
-                    "type": "string"
-                  },
-                  "district": {
-                    "type": "string"
-                  },
-                  "nationalAddress": {
-                    "type": "string"
-                  },
-                  "additionalNumber": {
                     "type": "string"
                   }
                 },
@@ -10166,24 +9794,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -10249,24 +9859,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -10323,9 +9915,6 @@
                                 "max"
                               ],
                               "additionalProperties": {}
-                            },
-                            "estimatedMinutes": {
-                              "type": "number"
                             },
                             "price": {
                               "type": "object",
@@ -10855,24 +10444,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -10938,24 +10509,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -11012,9 +10565,6 @@
                                 "max"
                               ],
                               "additionalProperties": {}
-                            },
-                            "estimatedMinutes": {
-                              "type": "number"
                             },
                             "price": {
                               "type": "object",
@@ -11581,24 +11131,6 @@
                                       "null"
                                     ]
                                   },
-                                  "district": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "nationalAddress": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "additionalNumber": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
                                   "isDefault": {
                                     "type": "boolean"
                                   }
@@ -11664,24 +11196,6 @@
                                       "null"
                                     ]
                                   },
-                                  "district": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "nationalAddress": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "additionalNumber": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
                                   "isDefault": {
                                     "type": "boolean"
                                   }
@@ -11738,9 +11252,6 @@
                                       "max"
                                     ],
                                     "additionalProperties": {}
-                                  },
-                                  "estimatedMinutes": {
-                                    "type": "number"
                                   },
                                   "price": {
                                     "type": "object",
@@ -12290,24 +11801,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -12373,24 +11866,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -12447,9 +11922,6 @@
                                 "max"
                               ],
                               "additionalProperties": {}
-                            },
-                            "estimatedMinutes": {
-                              "type": "number"
                             },
                             "price": {
                               "type": "object",
@@ -13763,7 +13235,14 @@
                     "type": "string"
                   },
                   "productType": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                      "physical",
+                      "digital",
+                      "service",
+                      "event",
+                      "subscription"
+                    ]
                   },
                   "status": {
                     "type": "string",
@@ -14900,7 +14379,14 @@
                     "type": "string"
                   },
                   "productType": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                      "physical",
+                      "digital",
+                      "service",
+                      "event",
+                      "subscription"
+                    ]
                   },
                   "status": {
                     "type": "string",
@@ -16298,24 +15784,6 @@
                                       "null"
                                     ]
                                   },
-                                  "district": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "nationalAddress": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "additionalNumber": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
                                   "isDefault": {
                                     "type": "boolean"
                                   }
@@ -16381,24 +15849,6 @@
                                       "null"
                                     ]
                                   },
-                                  "district": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "nationalAddress": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "additionalNumber": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
                                   "isDefault": {
                                     "type": "boolean"
                                   }
@@ -16455,9 +15905,6 @@
                                       "max"
                                     ],
                                     "additionalProperties": {}
-                                  },
-                                  "estimatedMinutes": {
-                                    "type": "number"
                                   },
                                   "price": {
                                     "type": "object",
@@ -17004,24 +16451,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -17087,24 +16516,6 @@
                                 "null"
                               ]
                             },
-                            "district": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "nationalAddress": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "additionalNumber": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
                             "isDefault": {
                               "type": "boolean"
                             }
@@ -17161,9 +16572,6 @@
                                 "max"
                               ],
                               "additionalProperties": {}
-                            },
-                            "estimatedMinutes": {
-                              "type": "number"
                             },
                             "price": {
                               "type": "object",
@@ -18406,24 +17814,6 @@
                                     "null"
                                   ]
                                 },
-                                "district": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ]
-                                },
-                                "nationalAddress": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ]
-                                },
-                                "additionalNumber": {
-                                  "type": [
-                                    "string",
-                                    "null"
-                                  ]
-                                },
                                 "isDefault": {
                                   "type": "boolean"
                                 }
@@ -18719,24 +18109,6 @@
                             "type": "string"
                           },
                           "postalCode": {
-                            "type": [
-                              "string",
-                              "null"
-                            ]
-                          },
-                          "district": {
-                            "type": [
-                              "string",
-                              "null"
-                            ]
-                          },
-                          "nationalAddress": {
-                            "type": [
-                              "string",
-                              "null"
-                            ]
-                          },
-                          "additionalNumber": {
                             "type": [
                               "string",
                               "null"
@@ -19953,24 +19325,6 @@
                                       "null"
                                     ]
                                   },
-                                  "district": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "nationalAddress": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "additionalNumber": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
                                   "isDefault": {
                                     "type": "boolean"
                                   }
@@ -20036,24 +19390,6 @@
                                       "null"
                                     ]
                                   },
-                                  "district": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "nationalAddress": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "additionalNumber": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
                                   "isDefault": {
                                     "type": "boolean"
                                   }
@@ -20110,9 +19446,6 @@
                                       "max"
                                     ],
                                     "additionalProperties": {}
-                                  },
-                                  "estimatedMinutes": {
-                                    "type": "number"
                                   },
                                   "price": {
                                     "type": "object",

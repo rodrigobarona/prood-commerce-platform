@@ -53,9 +53,6 @@ export function createCustomersDomain() {
       state: (row.state as string | null) ?? null,
       country: String(row.country),
       postalCode: (row.postalCode as string | null) ?? (row.postal_code as string | null) ?? null,
-      district: (row.district as string | null) ?? null,
-      nationalAddress: (row.nationalAddress as string | null) ?? (row.national_address as string | null) ?? null,
-      additionalNumber: (row.additionalNumber as string | null) ?? (row.additional_number as string | null) ?? null,
       isDefault: Boolean(row.isDefault ?? row.is_default),
     }
   }
@@ -130,9 +127,6 @@ export function createCustomersDomain() {
         state: address.state ?? null,
         country: address.country,
         postalCode: address.postalCode ?? null,
-        district: address.district ?? null,
-        nationalAddress: address.nationalAddress ?? null,
-        additionalNumber: address.additionalNumber ?? null,
         isDefault: address.isDefault ?? false,
       })
 
@@ -155,7 +149,6 @@ export function createCustomersDomain() {
       if (address.state !== undefined) updates.state = address.state
       if (address.country != null) updates.country = address.country
       if (address.postalCode !== undefined) updates.postalCode = address.postalCode
-      if (address.district !== undefined) updates.district = address.district
       if (address.isDefault != null) updates.isDefault = address.isDefault
 
       await dbUpdateAddress(addressId, updates)

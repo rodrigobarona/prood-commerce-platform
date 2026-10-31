@@ -7,7 +7,7 @@ import type { Id, LocalizedString, Maybe, Price } from './common.js'
 /** How the discount value is applied */
 export type DiscountType =
   | 'percentage'        // e.g., 20% off
-  | 'fixed_amount'      // e.g., 50 SAR off
+  | 'fixed_amount'      // e.g., 50 EUR off
   | 'free_shipping'     // waive shipping cost
   | 'buy_x_get_y'       // buy 2 get 1 free
   | 'bundle'            // bundle pricing

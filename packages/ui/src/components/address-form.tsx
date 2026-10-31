@@ -19,7 +19,6 @@ export interface AddressFormProps {
   value: AddressInput
   onChange: (value: AddressInput) => void
   countries?: Country[]
-  showGccFields?: boolean
   idPrefix?: string
   locale?: Locale
   className?: string
@@ -51,7 +50,6 @@ export function AddressForm({
   value,
   onChange,
   countries = [],
-  showGccFields = false,
   idPrefix = "addr",
   locale = "en",
   className,
@@ -142,32 +140,6 @@ export function AddressForm({
           onChange={(e) => set({ postalCode: e.target.value })}
         />
       </Field>
-
-      {showGccFields ? (
-        <>
-          <Field id={id("district")} label="District">
-            <Input
-              id={id("district")}
-              value={value.district ?? ""}
-              onChange={(e) => set({ district: e.target.value })}
-            />
-          </Field>
-          <Field id={id("nationalAddress")} label="National address">
-            <Input
-              id={id("nationalAddress")}
-              value={value.nationalAddress ?? ""}
-              onChange={(e) => set({ nationalAddress: e.target.value })}
-            />
-          </Field>
-          <Field id={id("additionalNumber")} label="Additional number">
-            <Input
-              id={id("additionalNumber")}
-              value={value.additionalNumber ?? ""}
-              onChange={(e) => set({ additionalNumber: e.target.value })}
-            />
-          </Field>
-        </>
-      ) : null}
     </div>
   )
 }

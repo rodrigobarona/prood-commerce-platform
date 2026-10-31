@@ -8,7 +8,6 @@ import type { ShippingMethod } from './shipping.js'
 import type { PaymentMethod } from './payment.js'
 import type { CartTotals } from './cart.js'
 import type { ProductType, DigitalProductMeta, EventProductMeta } from './product.js'
-import type { PaymentTerms } from './wholesale.js'
 
 /** Order status lifecycle (Commerce Layer-inspired) */
 export type OrderStatus =
@@ -99,23 +98,4 @@ export interface Order {
 
   createdAt: string
   updatedAt: string
-
-  // ---- B2B / Wholesale (additive) ----
-
-  /** Payment terms for B2B orders (null = standard payment) */
-  paymentTerms: Maybe<PaymentTerms>
-
-  /** Buyer's purchase order number reference */
-  purchaseOrderNumber: Maybe<string>
-
-  /** Company name for B2B orders */
-  companyName: Maybe<string>
-
-  // ---- Gift cards ----
-
-  /** Gift card codes applied to this order */
-  giftCardCodesApplied: string[]
-
-  /** Total gift card amount deducted */
-  giftCardAmountApplied: Maybe<Price>
 }

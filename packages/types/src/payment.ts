@@ -4,19 +4,15 @@
 
 import type { Id, LocalizedString, Maybe } from './common.js'
 
-/** Known GCC and international payment types */
+/** Known payment types */
 export type PaymentType =
   | 'card'
-  | 'mada'
   | 'apple_pay'
   | 'google_pay'
-  | 'stc_pay'
-  | 'tamara'
-  | 'tabby'
-  | 'tap'
+  | 'mbway'
+  | 'multibanco'
   | 'cash_on_delivery'
   | 'bank_transfer'
-  | 'sadad'
   | 'paypal'
   | 'custom'
 

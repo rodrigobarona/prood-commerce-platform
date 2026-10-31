@@ -22,9 +22,6 @@ function fullAddress(overrides: Partial<Address> = {}): Omit<Address, 'id' | 'is
     state: null,
     country: 'PT',
     postalCode: '1100-053',
-    district: null,
-    nationalAddress: null,
-    additionalNumber: null,
     ...overrides,
   }
 }
@@ -429,8 +426,6 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     const afterDelete = await adapter.getAddresses()
     expect(afterDelete.length).toBe(0)
   })
-
-  // ---- Not-supported domains ----
 
   // ---- Promotions ----
 

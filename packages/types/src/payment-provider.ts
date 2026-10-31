@@ -56,7 +56,7 @@ export interface PaymentSession {
 export interface CreatePaymentSessionInput {
   /** Payment amount (major currency units) */
   amount: number
-  /** ISO 4217 currency code (e.g., 'SAR', 'USD') */
+  /** ISO 4217 currency code (e.g., 'EUR', 'USD') */
   currency: string
   /** Client-side token from gateway SDK (e.g., Tap tok_xxx, Stripe pm_xxx) */
   sourceToken?: string
@@ -128,7 +128,7 @@ export interface PaymentWebhookEvent {
  * const tap = new TapPaymentProvider({ secretKey: 'sk_test_...' })
  * const session = await tap.createSession({
  *   amount: 99.99,
- *   currency: 'SAR',
+ *   currency: 'EUR',
  *   sourceToken: 'tok_xxx', // from goSell.js
  *   returnUrl: 'https://store.com/checkout/confirm',
  * })

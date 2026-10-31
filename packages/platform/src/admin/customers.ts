@@ -24,9 +24,6 @@ function mapAddress(row: Record<string, unknown>): Address {
     state: (row.state as string | null) ?? null,
     country: String(row.country),
     postalCode: (row.postalCode as string | null) ?? (row.postal_code as string | null) ?? null,
-    district: (row.district as string | null) ?? null,
-    nationalAddress: (row.nationalAddress as string | null) ?? (row.national_address as string | null) ?? null,
-    additionalNumber: (row.additionalNumber as string | null) ?? (row.additional_number as string | null) ?? null,
     isDefault: Boolean(row.isDefault ?? row.is_default),
   }
 }

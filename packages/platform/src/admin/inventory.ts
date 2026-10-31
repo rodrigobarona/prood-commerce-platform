@@ -76,13 +76,8 @@ function mapProduct(row: any, related: {
     service: null,
     event: null,
     subscription: null,
-    auction: null,
-    rental: null,
     preOrder: null,
     requiresShipping: Boolean(row.requiresShipping),
-    minOrderQuantity: null,
-    priceTiers: null,
-    customerGroupPricing: null,
     isDropshipped: Boolean(row.isDropshipped),
     status: row.status ?? 'draft',
   }
