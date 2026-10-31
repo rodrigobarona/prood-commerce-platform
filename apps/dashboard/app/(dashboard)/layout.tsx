@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { redirect } from "next/navigation"
 import { connection } from "next/server"
 import {
@@ -7,6 +8,7 @@ import {
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar"
 import { DashboardHeader } from "@/components/layout/dashboard-header"
 import type { OrgSummary } from "@/components/layout/org-switcher"
+import { ViewStoreLink } from "@/components/layout/view-store-link"
 import {
   getActiveOrganizationId,
   getSession,
@@ -46,6 +48,11 @@ export default async function DashboardLayout({
       <DashboardSidebar
         orgs={orgs}
         activeOrgId={activeOrgId}
+        storeLink={
+          <Suspense fallback={null}>
+            <ViewStoreLink />
+          </Suspense>
+        }
         user={{
           name: session.user.name,
           email: session.user.email,

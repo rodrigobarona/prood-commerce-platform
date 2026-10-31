@@ -1,5 +1,6 @@
 "use client"
 
+import type { ReactNode } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
@@ -26,10 +27,12 @@ function isActive(pathname: string, href: string): boolean {
 export function DashboardSidebar({
   orgs,
   activeOrgId,
+  storeLink,
   user,
 }: {
   orgs: OrgSummary[]
   activeOrgId: string | null
+  storeLink: ReactNode
   user: UserSummary
 }) {
   const pathname = usePathname()
@@ -38,6 +41,7 @@ export function DashboardSidebar({
     <Sidebar collapsible="icon" variant="inset">
       <SidebarHeader>
         <OrgSwitcher orgs={orgs} activeOrgId={activeOrgId} />
+        {storeLink}
       </SidebarHeader>
       <SidebarContent>
         {navGroups.map((group) => (
