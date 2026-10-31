@@ -51,6 +51,9 @@ async function placeOrderForCaller(cartId: string, email?: string, providerId?: 
   if (caller.userId) {
     customerId = await ensureCustomer(orgId, caller.userId)
   } else {
+    if (!email) {
+      throw new CommerceError("An email is required to place a guest order", "VALIDATION", 422)
+    }
     const cart = await getCart(cartId, orgId)
     const addr = cart.billingAddress ?? cart.shippingAddress
     if (!addr) {

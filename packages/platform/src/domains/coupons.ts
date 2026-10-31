@@ -7,6 +7,7 @@ import type { Maybe, Promotion, PromotionCondition } from '@prood/types'
 import type { coupons, promotions } from '../database/drizzle/schema/promotions.js'
 import {
   countOrdersByShopper,
+  decrementCouponUsage,
   findCouponByCode,
   findProductCategoryIds,
   findPromotionById,
@@ -220,6 +221,13 @@ export async function redeemCoupon(code: string, context: CouponContext): Promis
   const { discount, problem } = await assess(coupon, context, true)
   if (problem) throw new CommerceError(couponMessage(code, problem), 'VALIDATION', 422)
 
-  await incrementCouponUsage(coupon!.id)
+  // A coupon that gave nothing, like free shipping on a digital order, isn't used up.
+  if (discount > 0) await incrementCouponUsage(coupon!.id)
   return discount
+}
+
+/** Give back the use a cancelled order took. */
+export async function releaseCoupon(code: string): Promise<void> {
+  const coupon = await findCouponByCode(code)
+  if (coupon) await decrementCouponUsage(coupon.id)
 }

@@ -2,7 +2,7 @@
 // Drizzle: Order queries
 // ---------------------------------------------------------------------------
 
-import { count, eq, and, desc, inArray, or, sql } from 'drizzle-orm'
+import { count, eq, and, desc, inArray, or, sql, ne } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
 import { tenantCondition, requireOrgId } from './tenant-filter.js'
@@ -88,6 +88,7 @@ export async function countOrdersByShopper(
           : undefined,
       ),
       couponCode ? eq(schema.orders.couponCode, couponCode) : undefined,
+      ne(schema.orders.status, 'cancelled'),
       tenantCondition(schema.orders),
     ))
   return row?.count ?? 0

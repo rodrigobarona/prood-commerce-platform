@@ -110,6 +110,7 @@ export {
   insertPromotion,
   lockCouponByCode,
   incrementCouponUsage,
+  decrementCouponUsage,
 } from './promotions.js'
 
 // Returns

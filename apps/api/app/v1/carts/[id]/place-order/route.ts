@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { CommerceError } from "@prood/types"
 import { createGuestCustomer, ensureCustomer, getCart } from "@prood/commerce"
 import { requireCaller } from "@/lib/auth-tenant"
 import { checkout } from "@/lib/commerce-service"
@@ -23,6 +24,9 @@ export async function POST(
     if (caller.userId) {
       customerId = await ensureCustomer(caller.orgId, caller.userId)
     } else {
+      if (!body.email) {
+        throw new CommerceError("An email is required to place a guest order", "VALIDATION", 422)
+      }
       const cart = await getCart(id, caller.orgId)
       const addr = cart.billingAddress ?? cart.shippingAddress
       customerId = await createGuestCustomer(caller.orgId, {

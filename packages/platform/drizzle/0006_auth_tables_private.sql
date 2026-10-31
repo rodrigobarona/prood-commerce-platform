@@ -2,6 +2,9 @@
 -- prood_app has no business with credentials, so it gets no access at all.
 REVOKE ALL ON TABLE "user" FROM prood_app;
 --> statement-breakpoint
+-- Merchants see their customers' sign-in email, and order emails go to it.
+GRANT SELECT (id, email) ON TABLE "user" TO prood_app;
+--> statement-breakpoint
 REVOKE ALL ON TABLE "session" FROM prood_app;
 --> statement-breakpoint
 REVOKE ALL ON TABLE "account" FROM prood_app;

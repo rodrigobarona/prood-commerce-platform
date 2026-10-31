@@ -27,6 +27,7 @@ import {
 } from '../database/index.js'
 import { getStoreCurrency } from '../tenant/store-info.js'
 import { requireSellable } from './availability.js'
+import { releaseCoupon } from './coupons.js'
 import { listPaymentMethods, listShippingMethods } from './checkout-methods.js'
 import { normalizeLocalizedField } from './helpers.js'
 import { mapOrder } from './order-mapper.js'
@@ -159,6 +160,9 @@ export function createOrdersDomain() {
       if (input.status === 'fulfilled' && !order.fulfilledAt) updates.fulfilledAt = now
 
       await updateOrder(orderId, updates)
+      if (input.status === 'cancelled' && order.status !== 'cancelled' && order.couponCode) {
+        await releaseCoupon(order.couponCode)
+      }
 
       await createOrderHistory({
         orderId,
@@ -234,6 +238,8 @@ export function createOrdersDomain() {
         const current = await findOrderById(orderId)
         return current?.status === order.status ? 'duplicate' : this.applyPaymentEvent(orderId, input)
       }
+
+      if (target.data.status === 'cancelled' && order.couponCode) await releaseCoupon(order.couponCode)
 
       await createOrderHistory({
         orderId,

@@ -37,6 +37,12 @@ export async function incrementCouponUsage(id: string) {
     .where(and(eq(schema.coupons.id, id), tenantCondition(schema.coupons)))
 }
 
+export async function decrementCouponUsage(id: string) {
+  await getDb().update(schema.coupons)
+    .set({ timesUsed: sql`greatest(${schema.coupons.timesUsed} - 1, 0)` })
+    .where(and(eq(schema.coupons.id, id), tenantCondition(schema.coupons)))
+}
+
 export async function findPromotionById(id: string) {
   const [row] = await getDb().select().from(schema.promotions)
     .where(and(eq(schema.promotions.id, id), tenantCondition(schema.promotions)))
