@@ -99,7 +99,7 @@ interface PaymentProvider {
   readonly id: string
   createSession(input: CreatePaymentSessionInput): Promise<PaymentSession>
   confirmSession(sessionId: string): Promise<PaymentSession>
-  refund(input: RefundInput): Promise<PaymentSession>
+  refund?(input: RefundInput): Promise<void>
   verifyWebhook(event: PaymentWebhookEvent): Promise<boolean>
 }
 ```

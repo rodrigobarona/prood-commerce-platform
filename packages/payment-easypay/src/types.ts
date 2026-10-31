@@ -35,5 +35,11 @@ export interface EasypaySinglePayment {
   currency?: string
   value?: number
   /** Captures of this payment; refunds are issued against a capture. */
-  transactions?: { id?: string }[]
+  captures?: EasypayCapture[]
+}
+
+/** Shape of a capture on an Easypay single payment (partial). */
+export interface EasypayCapture {
+  id?: string
+  status?: 'delayed' | 'waiting' | 'pending' | 'success' | 'failed' | 'refunded'
 }

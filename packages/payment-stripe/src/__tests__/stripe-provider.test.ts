@@ -61,10 +61,8 @@ describe('refund', () => {
   it('refunds the payment behind the session, idempotently', async () => {
     const session = { id: 'cs_1', status: 'complete', payment_status: 'paid', payment_intent: 'pi_1', currency: 'eur', created: 1 }
     const create = vi.fn().mockResolvedValue({})
-    const client = {
-      checkout: { sessions: { retrieve: vi.fn().mockResolvedValue(session) } },
-      refunds: { create },
-    } as unknown as Stripe
+    const retrieve = vi.fn().mockResolvedValue(session)
+    const client = { checkout: { sessions: { retrieve } }, refunds: { create } } as unknown as Stripe
     const stripe = new StripePaymentProvider({ secretKey, client })
 
     await stripe.refund({ sessionId: 'cs_1', amount: 24.9, idempotencyKey: 'refund-order-1' })
@@ -73,5 +71,18 @@ describe('refund', () => {
       { payment_intent: 'pi_1', amount: 2490 },
       { idempotencyKey: 'refund-order-1' },
     )
+  })
+
+  it('needs no read after the refund, so a failed read cannot report it as failed', async () => {
+    const session = { id: 'cs_1', status: 'complete', payment_status: 'paid', payment_intent: 'pi_1', currency: 'eur', created: 1 }
+    const retrieve = vi.fn().mockResolvedValueOnce(session).mockRejectedValue(new Error('ETIMEDOUT'))
+    const client = {
+      checkout: { sessions: { retrieve } },
+      refunds: { create: vi.fn().mockResolvedValue({}) },
+    } as unknown as Stripe
+
+    await new StripePaymentProvider({ secretKey, client }).refund({ sessionId: 'cs_1' })
+
+    expect(retrieve).toHaveBeenCalledOnce()
   })
 })

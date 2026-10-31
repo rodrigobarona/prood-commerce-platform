@@ -176,8 +176,11 @@ export interface PaymentProvider {
   /** Get current status of a payment session */
   getSession(sessionId: string): Promise<PaymentSession>
 
-  /** Refund a captured payment (full or partial), for providers with a refund API */
-  refund?(input: RefundInput): Promise<PaymentSession>
+  /**
+   * Refund a captured payment (full or partial), for providers with a refund API.
+   * Resolving means the money moved, so nothing may be read back afterwards.
+   */
+  refund?(input: RefundInput): Promise<void>
 
   /** Capture an authorized payment — only for auth+capture gateways */
   captureSession?(sessionId: string, amount?: number): Promise<PaymentSession>

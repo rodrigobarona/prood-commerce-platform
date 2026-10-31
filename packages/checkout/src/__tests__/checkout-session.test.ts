@@ -30,7 +30,7 @@ function mockProvider(overrides: Partial<PaymentProvider> = {}): PaymentProvider
     getSession: vi.fn().mockResolvedValue(mockPaymentSession()),
     methods: ['card'],
     refundableMethods: ['card'],
-    refund: vi.fn().mockResolvedValue(mockPaymentSession({ status: 'refunded' })),
+    refund: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   }
 }

@@ -76,23 +76,49 @@ describe('createSession', () => {
 })
 
 describe('refund', () => {
-  it('refunds the capture, not the payment', async () => {
-    const fetch = mockFetch(
-      { body: { id: 'p1', value: 24.9, transactions: [{ id: 'cap1' }] } },
-      { body: {} },
-      { body: { id: 'p1', value: 24.9 } },
-    )
+  const paid = { id: 'p1', value: 24.9, captures: [{ id: 'cap1', status: 'success' }] }
+
+  it('refunds the capture with a key Easypay honours, and reads nothing back', async () => {
+    const fetch = mockFetch({ body: paid }, { status: 201, body: { status: 'ok', id: 'r1' } })
 
     await easypay().refund({ sessionId: 'p1', amount: 24.9, idempotencyKey: 'refund-order-1' })
 
+    expect(fetch).toHaveBeenCalledTimes(2)
     expect(fetch.mock.calls[1]?.[0]).toBe('https://api.prod.easypay.pt/2.0/refund/cap1')
+    expect((fetch.mock.calls[1]?.[1] as RequestInit).headers).toMatchObject({ 'Idempotency-Key': 'refund-order-1' })
     expect(sentBody(fetch, 1)).toEqual({ value: 24.9, transaction_key: 'refund-order-1' })
   })
 
-  it('sends nothing when the payment has no capture', async () => {
-    const fetch = mockFetch({ body: { id: 'p1', value: 24.9, transactions: [] } })
+  it('gives every refund call a deadline', async () => {
+    const fetch = mockFetch({ body: paid }, { status: 201 })
+
+    await easypay().refund({ sessionId: 'p1', amount: 24.9 })
+
+    expect((fetch.mock.calls[0]?.[1] as RequestInit).signal).toBeInstanceOf(AbortSignal)
+    expect((fetch.mock.calls[1]?.[1] as RequestInit).signal).toBeInstanceOf(AbortSignal)
+  })
+
+  it('sends nothing on a retry after the capture was refunded', async () => {
+    const fetch = mockFetch({ body: { ...paid, captures: [{ id: 'cap1', status: 'refunded' }] } })
+
+    await easypay().refund({ sessionId: 'p1', amount: 24.9, idempotencyKey: 'refund-order-1' })
+
+    expect(fetch).toHaveBeenCalledOnce()
+  })
+
+  it.each([
+    ['has no capture', []],
+    ['is still being captured', [{ id: 'cap1', status: 'pending' }]],
+    ['failed to capture', [{ id: 'cap1', status: 'failed' }]],
+  ])('sends nothing when the payment %s', async (_name, captures) => {
+    const fetch = mockFetch({ body: { ...paid, captures } })
     await expect(easypay().refund({ sessionId: 'p1' })).rejects.toThrow('no capture')
     expect(fetch).toHaveBeenCalledOnce()
+  })
+
+  it('reports a refused refund', async () => {
+    mockFetch({ body: paid }, { status: 422, body: { status: 'error', message: ['Refund window expired'] } })
+    await expect(easypay().refund({ sessionId: 'p1' })).rejects.toThrow('Easypay API error (422)')
   })
 
   it('does not offer to refund Multibanco, which needs the shopper IBAN', () => {

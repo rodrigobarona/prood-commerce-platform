@@ -33,6 +33,7 @@ const EASYPAY_PROD = 'https://api.prod.easypay.pt'
 const EASYPAY_HOSTS = [EASYPAY_PROD, 'https://api.test.easypay.pt']
 const REFERENCE_DAYS = 3
 const CHECK_TIMEOUT_MS = 10_000
+const REFUND_TIMEOUT_MS = 20_000
 
 const METHOD_CODES: Record<PaymentMethodKind, EasypayMethod> = {
   multibanco: 'mb',
@@ -196,17 +197,37 @@ export class EasypayPaymentProvider implements PaymentProvider {
     return paymentToSession(p, this.id, methodFromCode(p.method?.type), p.value ?? 0, p.currency ?? 'EUR')
   }
 
-  async refund(input: RefundInput): Promise<PaymentSession> {
-    const payment = await this.request<EasypaySinglePayment>('GET', `/2.0/single/${input.sessionId}`)
-    const captureId = payment.transactions?.[0]?.id
-    if (!captureId) throw new Error(`Easypay: payment ${input.sessionId} has no capture to refund`)
+  /**
+   * Refund a capture. Two guards keep a retry from paying twice: `Idempotency-Key`,
+   * which Easypay documents for every POST but forgets after 24 hours, and the
+   * capture's own status, which shows a refund that already went through.
+   */
+  async refund(input: RefundInput): Promise<void> {
+    const signal = () => AbortSignal.timeout(REFUND_TIMEOUT_MS)
+    const payment = await this.request<EasypaySinglePayment>(
+      'GET',
+      `/2.0/single/${input.sessionId}`,
+      undefined,
+      { signal: signal() },
+    )
 
-    await this.request('POST', `/2.0/refund/${captureId}`, {
-      value: input.amount ?? payment.value,
-      ...(input.idempotencyKey && { transaction_key: input.idempotencyKey }),
-      ...(input.reason && { descriptive: input.reason }),
-    })
-    return this.getSession(input.sessionId)
+    const captures = payment.captures ?? []
+    if (captures.some((capture) => capture.status === 'refunded')) return
+    const capture = captures.find((candidate) => candidate.status === 'success')
+    if (!capture?.id) throw new Error(`Easypay: payment ${input.sessionId} has no capture to refund`)
+
+    await this.request(
+      'POST',
+      `/2.0/refund/${capture.id}`,
+      {
+        value: input.amount ?? payment.value,
+        ...(input.idempotencyKey && { transaction_key: input.idempotencyKey }),
+      },
+      {
+        signal: signal(),
+        ...(input.idempotencyKey && { headers: { 'Idempotency-Key': input.idempotencyKey } }),
+      },
+    )
   }
 
   async checkCredentials(): Promise<CredentialCheck> {
@@ -263,11 +284,17 @@ export class EasypayPaymentProvider implements PaymentProvider {
     }
   }
 
-  private async request<T>(method: string, path: string, body?: unknown): Promise<T> {
+  private async request<T>(
+    method: string,
+    path: string,
+    body?: unknown,
+    options: { headers?: Record<string, string>; signal?: AbortSignal } = {},
+  ): Promise<T> {
     const res = await fetch(`${this.baseUrl}${path}`, {
       method,
-      headers: this.headers(),
+      headers: { ...this.headers(), ...options.headers },
       ...(body ? { body: JSON.stringify(body) } : {}),
+      ...(options.signal && { signal: options.signal }),
     })
 
     if (!res.ok) {
