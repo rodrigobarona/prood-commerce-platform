@@ -64,6 +64,13 @@
       "when": 1793466069210,
       "tag": "0008_redundant_justin_hammer",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793467551942,
+      "tag": "0009_brave_ricochet",
+      "breakpoints": true
     }
   ]
 }
