@@ -1,17 +1,54 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { Button } from "@prood/ui/components/button"
 
-export function ConfirmClient({
-  sessionId,
-  stripeSessionId,
+type ConfirmStatus = "loading" | "complete" | "pending" | "failed" | "closed" | "unknown"
+
+interface ConfirmResult {
+  state: string
+  payable: boolean
+  returnUrl: string | null
+  orderId: string | null
+}
+
+function statusFor(result: ConfirmResult): ConfirmStatus {
+  if (result.state === "complete") return "complete"
+  if (!result.payable) return "closed"
+  if (result.state === "failed") return "failed"
+  if (result.state === "payment" || result.state === "confirming") return "pending"
+  // Nothing was started, so there's nothing to confirm yet.
+  return "failed"
+}
+
+function storeUrl(result: ConfirmResult): string | null {
+  if (!result.returnUrl) return null
+  const url = new URL(result.returnUrl)
+  if (result.orderId) url.searchParams.set("orderId", result.orderId)
+  return url.toString()
+}
+
+function Panel({
+  title,
+  children,
+  action,
 }: {
-  sessionId: string
-  stripeSessionId: string | null
+  title: string
+  children: React.ReactNode
+  action?: React.ReactNode
 }) {
-  const [status, setStatus] = useState<"loading" | "success" | "error">("loading")
+  return (
+    <div className="bg-background flex flex-col items-center gap-3 rounded-2xl border p-6 text-center shadow-sm">
+      <h2 className="text-lg font-semibold">{title}</h2>
+      <p className="text-muted-foreground text-sm">{children}</p>
+      {action}
+    </div>
+  )
+}
+
+export function ConfirmClient({ sessionId }: { sessionId: string }) {
+  const [status, setStatus] = useState<ConfirmStatus>("loading")
   const [returnUrl, setReturnUrl] = useState<string | null>(null)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   useEffect(() => {
     let active = true
@@ -19,37 +56,27 @@ export function ConfirmClient({
     fetch(`/api/sessions/${sessionId}/confirm`, {
       method: "POST",
       signal: controller.signal,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ providerSessionId: stripeSessionId }),
     })
-      .then((r) => r.json())
-      .then((data: { state?: string; returnUrl?: string; orderId?: string; error?: string }) => {
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`Confirm request failed (${r.status})`)
+        return (await r.json()) as ConfirmResult
+      })
+      .then((result) => {
         if (!active) return
-        if (data.error) {
-          setErrorMsg(data.error)
-          setStatus("error")
-          return
-        }
-        if (data.returnUrl) {
-          const url = new URL(data.returnUrl)
-          if (data.orderId) url.searchParams.set("orderId", data.orderId)
-          setReturnUrl(url.toString())
-        }
-        setStatus("success")
+        setReturnUrl(storeUrl(result))
+        setStatus(statusFor(result))
       })
       .catch(() => {
-        if (!active) return
-        setErrorMsg("Confirmation failed")
-        setStatus("error")
+        if (active) setStatus("unknown")
       })
     return () => {
       active = false
       controller.abort()
     }
-  }, [sessionId, stripeSessionId])
+  }, [sessionId])
 
   useEffect(() => {
-    if (status === "success" && returnUrl) {
+    if (status === "complete" && returnUrl) {
       const timer = setTimeout(() => {
         window.location.href = returnUrl
       }, 2000)
@@ -57,29 +84,56 @@ export function ConfirmClient({
     }
   }, [status, returnUrl])
 
-  if (status === "loading") {
-    return (
-      <div className="bg-background flex flex-col items-center gap-3 rounded-2xl border p-6 text-center shadow-sm">
-        <p className="text-muted-foreground text-sm">Confirming your payment...</p>
-      </div>
-    )
-  }
+  const backToStore = returnUrl ? (
+    <Button asChild variant="outline" className="mt-1">
+      <a href={returnUrl}>Back to the store</a>
+    </Button>
+  ) : null
 
-  if (status === "error") {
-    return (
-      <div className="bg-background flex flex-col items-center gap-3 rounded-2xl border p-6 text-center shadow-sm">
-        <h2 className="text-lg font-semibold text-red-600">Payment Error</h2>
-        <p className="text-muted-foreground text-sm">{errorMsg}</p>
-      </div>
-    )
+  switch (status) {
+    case "loading":
+      return (
+        <div className="bg-background flex flex-col items-center gap-3 rounded-2xl border p-6 text-center shadow-sm">
+          <p className="text-muted-foreground text-sm">Checking your payment...</p>
+        </div>
+      )
+    case "complete":
+      return (
+        <Panel title="Payment confirmed">
+          {returnUrl ? "Taking you back to the store..." : "Thank you for your purchase."}
+        </Panel>
+      )
+    case "pending":
+      return (
+        <Panel title="Payment pending" action={backToStore}>
+          We&apos;re waiting for your payment. We&apos;ll email you when it arrives.
+        </Panel>
+      )
+    case "failed":
+      return (
+        <Panel
+          title="Payment not completed"
+          action={
+            <Button asChild className="mt-1">
+              <a href={`/c/${sessionId}`}>Try again</a>
+            </Button>
+          }
+        >
+          Your payment didn&apos;t go through. You haven&apos;t been charged.
+        </Panel>
+      )
+    case "closed":
+      return (
+        <Panel title="This order can't be paid" action={backToStore}>
+          It&apos;s no longer waiting for payment. Contact the store for help.
+        </Panel>
+      )
+    case "unknown":
+      return (
+        <Panel title="We couldn't check your payment">
+          If you paid, you don&apos;t need to pay again. Reload this page to check, or contact the
+          store.
+        </Panel>
+      )
   }
-
-  return (
-    <div className="bg-background flex flex-col items-center gap-3 rounded-2xl border p-6 text-center shadow-sm">
-      <h2 className="text-lg font-semibold text-green-600">Payment Confirmed</h2>
-      <p className="text-muted-foreground text-sm">
-        {returnUrl ? "Redirecting you back to the store..." : "Thank you for your purchase."}
-      </p>
-    </div>
-  )
 }
