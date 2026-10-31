@@ -16,6 +16,7 @@ import {
   unlockSession,
 } from "@prood/checkout-host"
 import { errorResponse } from "@/lib/api"
+import { sessionView } from "@/lib/session-view"
 
 // Who is paying and how. What the provider is told about the order is the server's to say.
 const paySchema = z.object({
@@ -74,6 +75,8 @@ async function startPayment(id: string, body: z.infer<typeof paySchema>) {
     const payment = await session.submitPayment({
       method,
       customerId: meta.customerId ?? undefined,
+      // The same try resent gets the same payment; a retry after a failure gets a new one.
+      idempotencyKey: `checkout-${id}-${method}-${session.paymentSession?.id ?? "first"}`,
     })
 
     // Saved first: the shopper's reference must survive a failed order write.
@@ -90,7 +93,7 @@ async function startPayment(id: string, body: z.infer<typeof paySchema>) {
     providerId: meta.providerId,
     publishableKey: meta.publishableKey,
     redirectUrl: snapshot.paymentSession?.redirectUrl ?? null,
-    ...snapshot,
+    ...sessionView(snapshot),
   })
 }
 

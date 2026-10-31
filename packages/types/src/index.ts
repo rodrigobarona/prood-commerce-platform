@@ -138,6 +138,6 @@ export type {
 export { safeEqual } from './security.js'
 
 // Order payment state
-export { MBWAY_WINDOW_MS, SETTLED_PAYMENTS, orderOutcome, orderPaymentState, toPortugueseMobile, type OrderOutcome, type OrderPaymentState } from './order-payment.js'
+export { MBWAY_WINDOW_MS, PAYMENT_DECLINED_PARAM, PAYMENT_DECLINED_VALUE, SETTLED_PAYMENTS, orderOutcome, orderPaymentState, toPortugueseMobile, type OrderOutcome, type OrderPaymentState } from './order-payment.js'
 export { safeRedirectPath } from './redirect.js'
 export { requiredEnv, storeOriginForSlug } from './env.js'

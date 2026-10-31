@@ -85,6 +85,26 @@ describe('createSession', () => {
   })
 })
 
+describe('starting a payment', () => {
+  it('gives up before the checkout lock runs out, and resends safely', async () => {
+    const create = vi.fn().mockResolvedValue({ id: 'cs_1', created: 1, status: 'open' })
+    const client = { checkout: { sessions: { create } } } as unknown as Stripe
+
+    await new StripePaymentProvider({ secretKey, client }).createSession({
+      amount: 24.9,
+      currency: 'EUR',
+      returnUrl: 'https://checkout.example/confirm/s1',
+      idempotencyKey: 'checkout-s1',
+    })
+
+    expect(create.mock.calls[0]?.[1]).toEqual({
+      timeout: 20_000,
+      maxNetworkRetries: 0,
+      idempotencyKey: 'checkout-s1',
+    })
+  })
+})
+
 describe('refund', () => {
   it('refunds the payment behind the session, idempotently', async () => {
     const session = { id: 'cs_1', status: 'complete', payment_status: 'paid', payment_intent: 'pi_1', currency: 'eur', created: 1 }

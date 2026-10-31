@@ -23,7 +23,7 @@ import type {
   CreatePaymentSessionInput,
   PaymentWebhookEvent,
 } from '@prood/types'
-import { safeEqual, toPortugueseMobile } from '@prood/types'
+import { PAYMENT_DECLINED_PARAM, PAYMENT_DECLINED_VALUE, safeEqual, toPortugueseMobile } from '@prood/types'
 
 import type {
   IfthenpayConfig,
@@ -35,6 +35,8 @@ import type {
 const IFTHENPAY_BASE = 'https://api.ifthenpay.com'
 
 const REFERENCE_DAYS = 3
+// Under the 30 seconds a checkout session is locked for while its payment starts.
+const CREATE_TIMEOUT_MS = 20_000
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 function formatAmount(amount: number): string {
@@ -55,6 +57,14 @@ export function decodeOrderId(encoded: string): string {
   const hex = value.toString(16).padStart(32, '0')
   if (hex.length !== 32) return encoded
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+}
+
+/** Where a declined card returns to. The confirm page offers another try from here. */
+function declinedUrl(returnUrl: string | undefined): string | undefined {
+  if (!returnUrl) return undefined
+  const url = new URL(returnUrl)
+  url.searchParams.set(PAYMENT_DECLINED_PARAM, PAYMENT_DECLINED_VALUE)
+  return url.toString()
 }
 
 /** The last day a reference made today can be paid, from `DD-MM-YYYY` when given. */
@@ -176,10 +186,11 @@ export class IfthenpayPaymentProvider implements PaymentProvider {
         const res = await this.request<IfthenpayCcResponse>('POST', `/creditcard/init/${this.cfg.ccKey}`, {
           orderId,
           amount,
-          // Every outcome returns to the confirm page, which reports the real state.
+          // Every outcome returns to the confirm page. Ifthenpay has no read to
+          // ask afterwards, so the URL is how that page learns a card was declined.
           successUrl: input.returnUrl,
-          cancelUrl: input.cancelUrl ?? input.returnUrl,
-          errorUrl: input.returnUrl,
+          cancelUrl: input.cancelUrl ?? declinedUrl(input.returnUrl),
+          errorUrl: declinedUrl(input.returnUrl),
           description: `Order ${orderId}`,
         })
         if (!res.PaymentUrl) {
@@ -259,6 +270,7 @@ export class IfthenpayPaymentProvider implements PaymentProvider {
         'Accept': 'application/json',
       },
       ...(body ? { body: JSON.stringify(body) } : {}),
+      signal: AbortSignal.timeout(CREATE_TIMEOUT_MS),
     })
 
     if (!res.ok) {

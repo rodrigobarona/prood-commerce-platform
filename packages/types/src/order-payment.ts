@@ -8,6 +8,10 @@ import type { Order, OrderPaymentDetails, PaymentStatus } from './order.js'
 /** Nothing is owed on these, so the order can ship. A partial refund leaves the sale standing. */
 export const SETTLED_PAYMENTS: readonly PaymentStatus[] = ['paid', 'free', 'partially_refunded']
 
+/** Set on the confirm page's URL by a hosted page that turned a card down. */
+export const PAYMENT_DECLINED_PARAM = 'payment'
+export const PAYMENT_DECLINED_VALUE = 'failed'
+
 /** How long a shopper has to approve an MB WAY request in the app. */
 export const MBWAY_WINDOW_MS = 5 * 60 * 1000
 

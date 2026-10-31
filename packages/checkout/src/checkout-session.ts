@@ -15,6 +15,7 @@
 //                            failed → payment (retry)
 // ---------------------------------------------------------------------------
 
+import { CommerceError } from '@prood/types'
 import type { CheckoutAddress, PaymentMethodKind, PaymentProvider, PaymentSession } from '@prood/types'
 import { EventEmitter } from './events.js'
 import type {
@@ -58,6 +59,13 @@ function withoutNulls(data: Record<string, unknown> | null): Record<string, unkn
 // ---------------------------------------------------------------------------
 // CheckoutSession
 // ---------------------------------------------------------------------------
+
+/** A payment link past its deadline. */
+export class CheckoutExpiredError extends CommerceError {
+  constructor() {
+    super('This payment link has expired.', 'VALIDATION', 410)
+  }
+}
 
 /**
  * Universal checkout session — a state machine that orchestrates the
@@ -511,7 +519,7 @@ export class CheckoutSession extends EventEmitter<CheckoutEvents> {
   private assertNotExpired(): void {
     if (this._config.expiresAt && Date.now() > this._config.expiresAt) {
       this.emit('expired', {})
-      throw new Error('Checkout session has expired')
+      throw new CheckoutExpiredError()
     }
   }
 }

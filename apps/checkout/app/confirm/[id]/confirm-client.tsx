@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Button } from "@prood/ui/components/button"
+import { PAYMENT_DECLINED_PARAM, PAYMENT_DECLINED_VALUE } from "@prood/types"
 import { storeUrl } from "@/lib/store-url"
 
 type ConfirmStatus = "loading" | "complete" | "pending" | "failed" | "closed" | "unknown"
@@ -41,14 +42,15 @@ function Panel({
   )
 }
 
-export function ConfirmClient({ sessionId }: { sessionId: string }) {
+export function ConfirmClient({ sessionId, declined }: { sessionId: string; declined: boolean }) {
   const [status, setStatus] = useState<ConfirmStatus>("loading")
   const [returnUrl, setReturnUrl] = useState<string | null>(null)
 
   useEffect(() => {
     let active = true
     const controller = new AbortController()
-    fetch(`/api/sessions/${sessionId}/confirm`, {
+    const query = declined ? `?${PAYMENT_DECLINED_PARAM}=${PAYMENT_DECLINED_VALUE}` : ""
+    fetch(`/api/sessions/${sessionId}/confirm${query}`, {
       method: "POST",
       signal: controller.signal,
     })
@@ -68,7 +70,7 @@ export function ConfirmClient({ sessionId }: { sessionId: string }) {
       active = false
       controller.abort()
     }
-  }, [sessionId])
+  }, [sessionId, declined])
 
   useEffect(() => {
     if (status === "complete" && returnUrl) {

@@ -14,7 +14,7 @@ import { StripePayment } from "./stripe-payment"
 import { ReferencePayment } from "./reference-payment"
 
 const PAY_ERROR = "We couldn't start your payment. You haven't been charged. Try again, or contact the store."
-const LOAD_ERROR = "We couldn't load this payment. You haven't been charged. Reload the page, or contact the store."
+const LOAD_ERROR = "We couldn't load this payment. Reload the page, or contact the store."
 const EXPIRED_ERROR = "This payment link has expired. You haven't been charged. Ask the store for a new one."
 const BUSY_ERROR = "Your payment is already starting. Wait a moment, then reload this page."
 const STUCK_ERROR = "We couldn't continue this payment. If you already paid, you don't need to pay again. Contact the store."
@@ -107,6 +107,7 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
   const [loadFailed, setLoadFailed] = useState(false)
   const [loading, setLoading] = useState(true)
   const [paying, setPaying] = useState(false)
+  const [expired, setExpired] = useState(false)
   const [payError, setPayError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [method, setMethod] = useState<PaymentMethodKind | null>(null)
@@ -190,6 +191,11 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
       if (res.status === 409) {
         // The order stopped waiting for payment, so another try can't work.
         setData((prev) => (prev ? { ...prev, payable: false } : prev))
+        setPaying(false)
+        return
+      }
+      if (res.status === 410) {
+        setExpired(true)
         setPaying(false)
         return
       }
@@ -322,7 +328,7 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
     )
   }
 
-  if (timeLeft === 0) {
+  if (expired || timeLeft === 0) {
     return <Notice title="Payment link expired">{EXPIRED_ERROR}</Notice>
   }
 

@@ -34,6 +34,8 @@ const EASYPAY_PROD = 'https://api.prod.easypay.pt'
 const EASYPAY_HOSTS = [EASYPAY_PROD, 'https://api.test.easypay.pt']
 const REFERENCE_DAYS = 3
 const CHECK_TIMEOUT_MS = 10_000
+// Under the 30 seconds a checkout session is locked for while its payment starts.
+const CREATE_TIMEOUT_MS = 20_000
 const REFUND_TIMEOUT_MS = 20_000
 
 const METHOD_CODES: Record<PaymentMethodKind, EasypayMethod> = {
@@ -181,7 +183,10 @@ export class EasypayPaymentProvider implements PaymentProvider {
       },
     }
 
-    const created = await this.request<EasypaySinglePayment>('POST', '/2.0/single', body)
+    const created = await this.request<EasypaySinglePayment>('POST', '/2.0/single', body, {
+      signal: AbortSignal.timeout(CREATE_TIMEOUT_MS),
+      ...(input.idempotencyKey && { headers: { 'Idempotency-Key': input.idempotencyKey } }),
+    })
     const session = paymentToSession(created, this.id, method, input.amount, input.currency)
     if (method === 'multibanco' && !session.providerData?.reference) {
       throw new Error('Easypay: no Multibanco reference was returned')

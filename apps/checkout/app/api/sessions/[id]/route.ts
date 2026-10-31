@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { CommerceError, orderOutcome } from "@prood/types"
 import { loadSession, loadSessionOrder } from "@prood/checkout-host"
 import { errorResponse } from "@/lib/api"
+import { sessionView } from "@/lib/session-view"
 
 export async function GET(
   _request: Request,
@@ -22,7 +23,7 @@ export async function GET(
       storeName: stored.meta.storeName ?? null,
       returnUrl: stored.meta.returnUrl ?? null,
       methods: stored.meta.methods,
-      ...stored.snapshot,
+      ...sessionView(stored.snapshot),
       state: outcome.state ?? stored.snapshot.state,
       payable: outcome.payable,
     })

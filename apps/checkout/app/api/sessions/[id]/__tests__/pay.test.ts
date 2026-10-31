@@ -65,7 +65,11 @@ describe("what the browser can say", () => {
     })
 
     expect(response.status).toBe(200)
-    expect(mocks.submitPayment).toHaveBeenCalledWith({ method: "card", customerId: "customer-1" })
+    expect(mocks.submitPayment).toHaveBeenCalledWith({
+      method: "card",
+      customerId: "customer-1",
+      idempotencyKey: "checkout-s1-card-first",
+    })
   })
 })
 
@@ -109,5 +113,28 @@ describe("two payments at once", () => {
 
     expect(response.status).toBe(200)
     log.mockRestore()
+  })
+
+  it("keys the payment to the session, and a retry to the failure before it", async () => {
+    mocks.loadSessionOrder.mockResolvedValue({ status: "placed", paymentStatus: "unpaid" })
+    mocks.lockSession.mockResolvedValue("token")
+    mocks.unlockSession.mockResolvedValue(undefined)
+    mocks.submitPayment.mockResolvedValue(payment)
+    mocks.loadAndHydrate.mockResolvedValue({
+      session: {
+        state: "failed",
+        paymentSession: { id: "p0", method: "card" },
+        submitPayment: mocks.submitPayment,
+        updateCustomerInfo: vi.fn(),
+        toSnapshot: () => ({ state: "payment", paymentSession: payment }),
+      },
+      meta: { providerId: "stripe", methods: ["card"], orderId: "order-1" },
+    })
+
+    await pay()
+
+    expect(mocks.submitPayment).toHaveBeenCalledWith(
+      expect.objectContaining({ idempotencyKey: "checkout-s1-card-p0" }),
+    )
   })
 })

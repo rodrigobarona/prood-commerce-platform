@@ -75,6 +75,18 @@ describe('createSession', () => {
   })
 })
 
+describe('starting a payment', () => {
+  it('resends safely, and gives up before the checkout lock runs out', async () => {
+    const fetch = mockFetch({ body: { id: 'p1', method: { reference: '123' } } })
+
+    await easypay().createSession({ amount: 10, currency: 'EUR', orderId: 'o1', idempotencyKey: 'checkout-s1' })
+
+    const init = fetch.mock.calls[0]?.[1] as RequestInit
+    expect(init.headers).toMatchObject({ 'Idempotency-Key': 'checkout-s1' })
+    expect(init.signal).toBeInstanceOf(AbortSignal)
+  })
+})
+
 describe('refund', () => {
   const paid = { id: 'p1', value: 24.9, captures: [{ id: 'cap1', status: 'success' }] }
 

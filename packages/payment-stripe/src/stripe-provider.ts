@@ -25,6 +25,8 @@ import type {
 import type { StripeConfig } from './types.js'
 
 const CHECK_TIMEOUT_MS = 10_000
+// Under the 30 seconds a checkout session is locked for while its payment starts.
+const CREATE_TIMEOUT_MS = 20_000
 
 // ---------------------------------------------------------------------------
 // Currency helpers
@@ -231,7 +233,11 @@ export class StripePaymentProvider implements PaymentProvider {
           : {}),
         metadata,
       },
-      input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : undefined,
+      {
+        timeout: CREATE_TIMEOUT_MS,
+        maxNetworkRetries: 0,
+        ...(input.idempotencyKey && { idempotencyKey: input.idempotencyKey }),
+      },
     )
 
     return sessionToPaymentSession(session, this.id)

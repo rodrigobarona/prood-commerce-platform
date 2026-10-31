@@ -745,7 +745,7 @@ describe('CheckoutSession', () => {
       // Advance time past expiry
       vi.advanceTimersByTime(1500)
 
-      await expect(session.submitPayment()).rejects.toThrow('expired')
+      await expect(session.submitPayment()).rejects.toMatchObject({ statusCode: 410 })
       vi.useRealTimers()
     })
 

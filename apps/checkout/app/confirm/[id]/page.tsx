@@ -1,13 +1,17 @@
 import { Suspense } from "react"
 import { Skeleton } from "@prood/ui/components/skeleton"
+import { PAYMENT_DECLINED_PARAM, PAYMENT_DECLINED_VALUE } from "@prood/types"
 import { ConfirmClient } from "./confirm-client"
 
 export default async function ConfirmPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   const { id } = await params
+  const declined = (await searchParams)[PAYMENT_DECLINED_PARAM] === PAYMENT_DECLINED_VALUE
 
   return (
     <Suspense
@@ -19,7 +23,7 @@ export default async function ConfirmPage({
         </div>
       }
     >
-      <ConfirmClient sessionId={id} />
+      <ConfirmClient sessionId={id} declined={declined} />
     </Suspense>
   )
 }

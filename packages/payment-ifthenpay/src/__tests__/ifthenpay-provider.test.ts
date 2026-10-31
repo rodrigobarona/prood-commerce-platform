@@ -90,8 +90,8 @@ describe('createSession', () => {
 
     expect(sentBody(fetch)).toMatchObject({
       successUrl: input.returnUrl,
-      cancelUrl: input.returnUrl,
-      errorUrl: input.returnUrl,
+      cancelUrl: `${input.returnUrl}?payment=failed`,
+      errorUrl: `${input.returnUrl}?payment=failed`,
     })
     expect(session).toMatchObject({ method: 'card', redirectUrl: 'https://pay.example/cc' })
   })
