@@ -321,7 +321,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Place order from cart */
+        /**
+         * Place order from cart
+         * @description Guests must send an email; a signed-in customer doesn't need to.
+         */
         post: operations["placeOrder"];
         delete?: never;
         options?: never;

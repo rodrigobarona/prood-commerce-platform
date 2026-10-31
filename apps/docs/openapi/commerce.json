@@ -11533,6 +11533,7 @@
       "post": {
         "operationId": "placeOrder",
         "summary": "Place order from cart",
+        "description": "Guests must send an email; a signed-in customer doesn't need to.",
         "tags": [
           "Storefront"
         ],
