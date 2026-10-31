@@ -35,9 +35,8 @@ function connect(overrides: Partial<PaymentProvider> = {}) {
     name: "Stripe",
     refundableMethods: ["card"],
     refund: vi.fn().mockResolvedValue({}),
-    ...overrides,
   }
-  mocks.getTenantPaymentProvider.mockResolvedValue({ provider })
+  mocks.getTenantPaymentProvider.mockResolvedValue({ provider: { ...provider, ...overrides } })
   return provider
 }
 
@@ -125,7 +124,8 @@ describe("refundOrder", () => {
   })
 
   it("treats a method the provider can't pay back as manual", async () => {
-    const provider = connect({ refundableMethods: ["mbway", "card"] })
+    const refund = vi.fn()
+    connect({ refund, refundableMethods: ["mbway", "card"] })
     mocks.getOrder.mockResolvedValue({
       ...paid,
       paymentDetails: { method: "multibanco", entity: "1", reference: "2", expiresAt: null },
@@ -133,7 +133,7 @@ describe("refundOrder", () => {
 
     await expect(admin.refundOrder("org", "order-1", {})).rejects.toThrow("Prood can't send")
 
-    expect(provider.refund).not.toHaveBeenCalled()
+    expect(refund).not.toHaveBeenCalled()
   })
 
   it("treats a disconnected provider as manual", async () => {
