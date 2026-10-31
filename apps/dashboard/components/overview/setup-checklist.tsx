@@ -40,7 +40,7 @@ export function SetupChecklist({ items }: { items: SetupItem[] }) {
                   <span className="text-xs text-muted-foreground">{item.description}</span>
                 )}
               </div>
-              {item.done ? null : (
+              {item.done || item.blocked ? null : (
                 <Button asChild size="sm" variant="outline">
                   {item.external ? (
                     <a href={item.href} target="_blank" rel="noopener noreferrer">

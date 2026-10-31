@@ -7,12 +7,14 @@ export interface SetupItem {
   href: string
   /** Opens outside the dashboard, on the store itself. */
   external?: boolean
+  /** Waiting on an earlier step, so its action isn't offered yet. */
+  blocked?: boolean
 }
 
 export interface SetupProgress {
   totalProducts: number
   activeProducts: number
-  totalOrders: number
+  paidOrders: number
   canTakeOrders: boolean
   hasContactEmail: boolean
 }
@@ -20,6 +22,7 @@ export interface SetupProgress {
 /** What's left before a store can sell. Only published products count: shoppers can't buy a draft. */
 export function setupChecklist(progress: SetupProgress, storeUrl: string): SetupItem[] {
   const hasDraft = progress.totalProducts > 0
+  const canBuy = progress.activeProducts > 0 && progress.canTakeOrders
   return [
     {
       id: "product",
@@ -50,11 +53,14 @@ export function setupChecklist(progress: SetupProgress, storeUrl: string): Setup
     {
       id: "test-order",
       title: "Place a test order",
-      description: "Buy from your own store to check that checkout works.",
-      done: progress.totalOrders > 0,
+      description: canBuy
+        ? "Buy from your own store and pay, to check that checkout works."
+        : "Publish a product and connect a payment provider first.",
+      done: progress.paidOrders > 0,
       action: "Open your store",
       href: storeUrl,
       external: true,
+      blocked: !canBuy,
     },
   ]
 }

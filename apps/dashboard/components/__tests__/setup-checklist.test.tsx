@@ -7,7 +7,7 @@ const STORE_URL = "https://lojadaana.pt"
 const fresh = {
   totalProducts: 0,
   activeProducts: 0,
-  totalOrders: 0,
+  paidOrders: 0,
   canTakeOrders: false,
   hasContactEmail: false,
 }
@@ -19,7 +19,14 @@ describe("SetupChecklist", () => {
     expect(html).toContain('href="/products/new"')
     expect(html).toContain('href="/integrations"')
     expect(html).toContain('href="/settings"')
-    expect(html).toContain(`href="${STORE_URL}"`)
+  })
+
+  it("holds back the store link until there's something to buy and a way to pay", () => {
+    const blocked = setupChecklist(fresh, STORE_URL)
+    expect(renderToStaticMarkup(<SetupChecklist items={blocked} />)).not.toContain(`href="${STORE_URL}"`)
+
+    const ready = setupChecklist({ ...fresh, activeProducts: 1, canTakeOrders: true }, STORE_URL)
+    expect(renderToStaticMarkup(<SetupChecklist items={ready} />)).toContain(`href="${STORE_URL}"`)
   })
 
   it("drops the link for a finished step", () => {
@@ -31,7 +38,7 @@ describe("SetupChecklist", () => {
 
   it("disappears once the store is ready", () => {
     const items = setupChecklist(
-      { ...fresh, activeProducts: 1, totalOrders: 1, canTakeOrders: true, hasContactEmail: true },
+      { ...fresh, activeProducts: 1, paidOrders: 1, canTakeOrders: true, hasContactEmail: true },
       STORE_URL,
     )
     expect(renderToStaticMarkup(<SetupChecklist items={items} />)).toBe("")

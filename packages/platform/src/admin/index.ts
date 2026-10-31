@@ -17,6 +17,7 @@ import {
   countProducts,
   countActiveProducts,
   countOrders,
+  countPaidOrders,
 } from '../database/index.js'
 import { mapOrder } from '../domains/order-mapper.js'
 
@@ -79,6 +80,7 @@ export function createAdminAPI(): AdminAPI {
         totalProducts,
         activeProducts,
         totalOrders,
+        paidOrders,
         totalRevenue,
         totalCustomers,
         ordersByStatus,
@@ -87,6 +89,7 @@ export function createAdminAPI(): AdminAPI {
         countProducts(),
         countActiveProducts(),
         countOrders(),
+        countPaidOrders(),
         sumOrderRevenue(),
         countCustomers(),
         countOrdersByStatus(),
@@ -99,6 +102,7 @@ export function createAdminAPI(): AdminAPI {
         totalProducts,
         activeProducts,
         totalOrders,
+        paidOrders,
         totalRevenue,
         totalCustomers,
         recentOrders,

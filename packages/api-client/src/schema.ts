@@ -6743,6 +6743,8 @@ export interface operations {
                         totalProducts: number;
                         activeProducts: number;
                         totalOrders: number;
+                        /** @description Orders that reached paid, even if later refunded. */
+                        paidOrders: number;
                         totalRevenue: number;
                         totalCustomers: number;
                         recentOrders: {

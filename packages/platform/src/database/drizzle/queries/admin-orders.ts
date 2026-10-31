@@ -13,6 +13,21 @@ export async function countOrders(): Promise<number> {
   return result[0]?.count ?? 0
 }
 
+/**
+ * Orders that reached paid, whatever happened next: a refund doesn't undo the
+ * payment having worked. Free orders never touch a payment provider.
+ */
+export async function countPaidOrders(): Promise<number> {
+  const result = await getDb()
+    .select({ count: count() })
+    .from(schema.orders)
+    .where(and(
+      inArray(schema.orders.paymentStatus, ['paid', 'partially_refunded', 'refunded']),
+      tenantCondition(schema.orders),
+    ))
+  return result[0]?.count ?? 0
+}
+
 export async function countOrdersThisMonth(): Promise<number> {
   const now = new Date()
   const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))

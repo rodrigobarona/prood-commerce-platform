@@ -468,6 +468,7 @@ export const adminDashboardStats = z.object({
   totalProducts: z.number(),
   activeProducts: z.number(),
   totalOrders: z.number(),
+  paidOrders: z.number().describe("Orders that reached paid, even if later refunded."),
   totalRevenue: z.number(),
   totalCustomers: z.number(),
   recentOrders: z.array(order),

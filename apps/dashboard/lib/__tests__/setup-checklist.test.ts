@@ -5,7 +5,7 @@ const STORE_URL = "https://loja-da-ana.prood.app"
 const fresh: SetupProgress = {
   totalProducts: 0,
   activeProducts: 0,
-  totalOrders: 0,
+  paidOrders: 0,
   canTakeOrders: false,
   hasContactEmail: false,
 }
@@ -51,7 +51,7 @@ describe("setupChecklist", () => {
 
   it("follows the store's payment connection, so losing it reopens the step", () => {
     expect(item({ ...fresh, canTakeOrders: true }, "payment").done).toBe(true)
-    expect(item({ ...fresh, totalOrders: 3 }, "payment").done).toBe(false)
+    expect(item({ ...fresh, paidOrders: 3 }, "payment").done).toBe(false)
     expect(item(fresh, "payment").href).toBe("/integrations")
   })
 
@@ -61,7 +61,22 @@ describe("setupChecklist", () => {
   })
 
   it("sends the merchant to their real store for a test order", () => {
-    expect(item(fresh, "test-order")).toMatchObject({ href: STORE_URL, external: true })
-    expect(item({ ...fresh, totalOrders: 1 }, "test-order").done).toBe(true)
+    const ready = { ...fresh, activeProducts: 1, canTakeOrders: true }
+    expect(item(ready, "test-order")).toMatchObject({ href: STORE_URL, external: true, blocked: false })
+  })
+
+  it("only ticks the test order once an order reached paid", () => {
+    expect(item({ ...fresh, paidOrders: 0 }, "test-order").done).toBe(false)
+    expect(item({ ...fresh, paidOrders: 1 }, "test-order").done).toBe(true)
+  })
+
+  it.each([
+    ["no product", { canTakeOrders: true }],
+    ["only drafts", { totalProducts: 2, canTakeOrders: true }],
+    ["no provider", { activeProducts: 1 }],
+  ])("doesn't offer a test order with %s", (_, progress) => {
+    const testOrder = item({ ...fresh, ...progress }, "test-order")
+    expect(testOrder.blocked).toBe(true)
+    expect(testOrder.description).toBe("Publish a product and connect a payment provider first.")
   })
 })

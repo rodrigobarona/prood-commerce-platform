@@ -22650,6 +22650,10 @@
                     "totalOrders": {
                       "type": "number"
                     },
+                    "paidOrders": {
+                      "type": "number",
+                      "description": "Orders that reached paid, even if later refunded."
+                    },
                     "totalRevenue": {
                       "type": "number"
                     },
@@ -23436,6 +23440,7 @@
                     "totalProducts",
                     "activeProducts",
                     "totalOrders",
+                    "paidOrders",
                     "totalRevenue",
                     "totalCustomers",
                     "recentOrders",

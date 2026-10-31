@@ -144,6 +144,8 @@ export interface DashboardStats {
   totalProducts: number
   activeProducts: number
   totalOrders: number
+  /** Orders that reached paid, even if later refunded */
+  paidOrders: number
   /** Total of orders whose payment status is `paid`: money received and not refunded */
   totalRevenue: number
   totalCustomers: number

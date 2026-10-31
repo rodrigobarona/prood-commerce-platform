@@ -974,6 +974,23 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       expect(await revenue()).toBe(expected)
     })
 
+    it('counts orders that reached paid, even once refunded', async () => {
+      const paidOrders = async () => (await asTenant((admin) => admin.getDashboardStats())).paidOrders
+
+      await placedOrder()
+      const cancelled = await placedOrder()
+      await adapter.cancelOrder(cancelled.id)
+      const authorized = await placedOrder()
+      await adapter.applyPaymentEvent(authorized.id, { outcome: 'authorized', amount: null, currency: null, provider: 'test' })
+      expect(await paidOrders()).toBe(0)
+
+      const order = await placedOrder()
+      await capture(order)
+      expect(await paidOrders()).toBe(1)
+      await asTenant((admin) => admin.recordRefund(order.id))
+      expect(await paidOrders()).toBe(1)
+    })
+
     it('keeps a partly refunded order in revenue', async () => {
       const order = await placedOrder()
       await capture(order)
