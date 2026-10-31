@@ -54,19 +54,21 @@ Per-tenant overrides via dashboard Integrations → Stripe.
 | --- | --- |
 | `payment_intent.succeeded` | Mark order as confirmed |
 | `payment_intent.payment_failed` | Mark order as failed |
-| `charge.refunded` | Update order refund status |
+| `charge.refunded` | Record a refund, including one made in the Stripe dashboard. Stripe's refunded totals decide between `refunded` and `partially_refunded` |
 
 Webhook URL: `https://checkout.example.com/api/webhooks/stripe/{orgId}`
 
 ## Refunds
 
 ```ts
-const result = await provider.refund({
-  sessionId: 'pi_xxx',
+await provider.refund({
+  sessionId: 'cs_xxx', // the Checkout Session on the order
   amount: 50, // partial refund in major units
-  reason: 'Customer request',
+  reason: 'requested_by_customer',
 })
 ```
+
+`refund()` resolves when Stripe accepts the refund and reads nothing back. Stripe honours `idempotencyKey`, so a retry can't send the money twice.
 
 ## Test mode
 

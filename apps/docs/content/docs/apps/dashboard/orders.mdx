@@ -57,9 +57,9 @@ Actions are conditionally shown based on current status:
 
 | Action | Visible when |
 | --- | --- |
-| Fulfill | `status` is `placed` or `approved` AND `paymentStatus` is `paid` |
+| Fulfill | `status` is `placed` or `approved` AND `paymentStatus` is `paid`, `free` or `partially_refunded`. The API refuses to fulfil a cancelled order |
 | Cancel | `status` is `placed` or `approved` |
-| Refund | `paymentStatus` is `paid`, including a paid order that was cancelled. `GET /v1/admin/orders/{id}` returns `refund`: `provider` sends the money through the payment provider, `manual` means the merchant refunds in their payment account, then records it |
+| Refund | `paymentStatus` is `paid`, including a paid order that was cancelled. `GET /v1/admin/orders/{id}` returns `refund`: `provider` sends the money through the payment provider, `manual` means the merchant refunds in their payment account, then records it. A refund already made in the payment account can be recorded either way with `recordOnly`, which moves no money |
 
 Server actions in `app/(dashboard)/orders/actions.ts`:
 
@@ -145,10 +145,11 @@ Payment fails
 ## Refund flow
 
 1. Merchant clicks **Refund** on order detail page
-2. Dashboard sends `POST /v1/admin/orders/{id}/refund` with amount and reason
+2. Dashboard sends `POST /v1/admin/orders/{id}/refund` with an optional note
 3. API calls payment provider's `refund()` method with tenant credentials
-4. Order status updated to `cancelled`, payment status to `refunded`
-5. Webhook from provider confirms refund completion
+4. Order status updated to `cancelled`, payment status to `refunded`, and the shopper is emailed
+
+A refund made in the Stripe dashboard or Easypay's backoffice arrives as a webhook and does the same. Whichever reports it first records it, and the shopper is emailed once. Ifthenpay sends no refund webhook, so those refunds are recorded by hand.
 
 ## API endpoints used
 

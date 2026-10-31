@@ -67,8 +67,8 @@ Replace `{orgId}` with the merchant's organization ID (e.g. `org_demo`).
 
 | Event | Purpose |
 | --- | --- |
-| `charge.refunded` | Refund processed |
-| `refund.created` | Refund initiated |
+| `charge.refunded` | Refund processed, including one made in the Stripe dashboard |
+| `refund.created` | Received and ignored: `charge.refunded` already reports the refund |
 
 You can configure all events at once using the provided setup script:
 
