@@ -348,4 +348,26 @@ describe("reading an order by id", () => {
   it("shows it all to store members", async () => {
     await expect(read({ ...caller, scopes: ["staff", "storefront"], via: "session" })).resolves.toEqual(order)
   })
+
+  it("strips it for an agent with another admin grant", async () => {
+    const agent = {
+      ...caller,
+      scopes: ["admin", "storefront"],
+      via: "agent",
+      capabilities: ["getOrder", "adminGetDashboard"],
+    } satisfies Parameters<typeof read>[0]
+
+    await expect(read(agent)).resolves.toMatchObject({ shippingAddress: null })
+  })
+
+  it("shows it all to an agent granted adminGetOrder", async () => {
+    const agent = {
+      ...caller,
+      scopes: ["admin", "storefront"],
+      via: "agent",
+      capabilities: ["getOrder", "adminGetOrder"],
+    } satisfies Parameters<typeof read>[0]
+
+    await expect(read(agent)).resolves.toEqual(order)
+  })
 })

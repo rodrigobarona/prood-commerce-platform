@@ -24,17 +24,19 @@ vi.mock("@prood/auth/membership", async (importOriginal) => ({
 import { CommerceError } from "@prood/types"
 import { getAgentAuthOpenAPIOptions } from "../auth/agent-config"
 
-const agentSession = {
+const agentSession = (...capabilities: string[]) => ({
   user: { id: "user-1" },
-  agent: { capabilityGrants: [] },
-}
+  agent: {
+    capabilityGrants: capabilities.map((capability) => ({ capability, status: "active" })),
+  },
+})
 
-function execute(capability: string, args?: Record<string, unknown>) {
+function execute(capability: string, args?: Record<string, unknown>, grants = agentSession()) {
   return Promise.resolve(
     getAgentAuthOpenAPIOptions().onExecute?.({
       capability,
       arguments: args,
-      agentSession,
+      agentSession: grants,
     } as never),
   )
 }
@@ -83,6 +85,36 @@ describe("executing a capability through the plugin", () => {
     await execute("listProducts")
 
     expect(mocks.fetch).toHaveBeenCalledOnce()
+  })
+
+  it("refuses getOrder without adminGetOrder, since the store's key reads the whole order", async () => {
+    mocks.getMemberRole.mockResolvedValue("owner")
+
+    const err = await denial(
+      execute("getOrder", { id: "order-1" }, agentSession("getOrder", "adminGetDashboard")),
+    )
+
+    expect(err?.status).toBe("FORBIDDEN")
+    expect(mocks.fetch).not.toHaveBeenCalled()
+  })
+
+  it("allows getOrder with adminGetOrder", async () => {
+    mocks.getMemberRole.mockResolvedValue("owner")
+
+    await execute("getOrder", { id: "order-1" }, agentSession("getOrder", "adminGetOrder"))
+
+    expect(mocks.fetch).toHaveBeenCalledOnce()
+  })
+
+  it("refuses getOrder when a demotion takes adminGetOrder away", async () => {
+    mocks.getMemberRole.mockResolvedValue("member")
+
+    const err = await denial(
+      execute("getOrder", { id: "order-1" }, agentSession("getOrder", "adminGetOrder")),
+    )
+
+    expect(err?.status).toBe("FORBIDDEN")
+    expect(mocks.fetch).not.toHaveBeenCalled()
   })
 
   it("refuses an agent whose user left the store", async () => {

@@ -64,13 +64,21 @@ export function getAgentAuthOpenAPIOptions() {
     // The plugin has checked the grant and `/v1` only sees the store's key, so
     // this is the one place the user behind the agent can be checked.
     async resolveHeaders({ agentSession, capability }) {
-      const { orgId, role } = await resolveAgentAccess(agentSession).catch((err: unknown) => {
+      const { orgId, role, capabilities } = await resolveAgentAccess(agentSession).catch((err: unknown) => {
         if (isCommerceError(err)) throw new APIError("FORBIDDEN", { message: err.message })
         throw err
       })
       if (capabilitiesForRole([capability], role).length === 0) {
         throw new APIError("FORBIDDEN", {
           message: `This agent's user can't use the ${capability} capability.`,
+        })
+      }
+
+      // `/v1` would see the store's key and return the whole order, not the
+      // public view a bearer token gets.
+      if (capability === "getOrder" && !capabilities.includes("adminGetOrder")) {
+        throw new APIError("FORBIDDEN", {
+          message: "This agent doesn't have the adminGetOrder capability.",
         })
       }
 

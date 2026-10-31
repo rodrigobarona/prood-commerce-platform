@@ -196,7 +196,7 @@ multi-step checkout, and customer account pages.
 - **Host-based multi-tenancy** — Custom domains (verified in `tenant_domain`
   table) and platform subdomains (`{slug}.prood.app`)
 - **Customer authentication** — Better Auth email/password per store origin,
-  with auto-linking of guest customers on registration
+  with auto-linking of guest customers once the email is verified
 - **Cart persistence** — httpOnly `commerce_cart_id` cookie (30-day expiry)
 - **4-step checkout** — Contact info, shipping address (Geoapify autocomplete),
   shipping method selection, order review
@@ -726,7 +726,7 @@ and row-level security. Implements the `CommerceAdapter` interface from
 
 - `ensureCustomerForAuthUser` — links Better Auth user to commerce customer
 - `ensureGuestCustomer` — creates guest customer from checkout info
-- `autoLinkGuestCustomers` — on registration, links guest purchases across
+- `autoLinkGuestCustomers` — on email verification, links guest purchases across
   tenants to the new authenticated user
 
 ---

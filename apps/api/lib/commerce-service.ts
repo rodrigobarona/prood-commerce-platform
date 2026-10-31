@@ -322,10 +322,16 @@ export const webhooks = {
 }
 
 export const orders = {
-  /** Staff and the customer who placed it see everything; anyone else, the public view. */
+  /**
+   * Staff and the customer who placed it see everything; anyone else, the public
+   * view. Capabilities are per operation, so an agent needs `adminGetOrder`.
+   */
   getForCaller: async (caller: ApiCaller, id: string, email?: string) => {
     const order = await getOrder(id, caller.orgId)
-    if (hasScope(caller.scopes, "staff")) return order
+    const isStaff = caller.capabilities
+      ? caller.capabilities.includes("adminGetOrder")
+      : hasScope(caller.scopes, "staff")
+    if (isStaff) return order
     if (caller.userId && order.customerId) {
       const customerId = await resolveCustomerId(caller.orgId, caller.userId)
       if (customerId === order.customerId) return order
