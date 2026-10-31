@@ -712,7 +712,7 @@ export interface operations {
                 content: {
                     "application/json": {
                         organizationId: string;
-                        scopes: ("storefront" | "admin")[];
+                        scopes: ("storefront" | "staff" | "admin")[];
                         /** @enum {string} */
                         via: "api-key" | "session" | "host" | "agent";
                     };

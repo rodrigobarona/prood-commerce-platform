@@ -5,6 +5,7 @@ import {
   getActiveOrganizationId as getActiveOrganizationIdFromPackage,
   getSession as getSessionFromPackage,
 } from "@prood/auth"
+import { getMemberRole } from "@prood/auth/membership"
 import { getAuth, type Session } from "./server"
 
 /**
@@ -26,6 +27,8 @@ export const getCurrentUser = cache(async function getCurrentUser() {
  * The id of the organization (tenant store) the merchant is administering.
  * If the session has no active org but the user belongs to at least one store,
  * the first store is selected automatically (same default as the org switcher UI).
+ * A session keeps its active organization after its user is removed from that
+ * store, so membership is checked on every request.
  */
 export const getActiveOrganizationId = cache(
   async function getActiveOrganizationId(): Promise<string | null> {
@@ -36,7 +39,8 @@ export const getActiveOrganizationId = cache(
     }
 
     const existing = await getActiveOrganizationIdFromPackage(getAuth)
-    if (existing) return existing
+    const userId = (await getSession())?.user.id
+    if (existing && userId && (await getMemberRole(existing, userId))) return existing
 
     let orgs: Awaited<ReturnType<typeof listOrganizations>>
     try {
@@ -60,6 +64,12 @@ export const getActiveOrganizationId = cache(
     return first.id
   }
 )
+
+/** The current merchant's role in the active store, or null if they have none. */
+export const getActiveMemberRole = cache(async function getActiveMemberRole(): Promise<string | null> {
+  const [orgId, user] = await Promise.all([getActiveOrganizationId(), getCurrentUser()])
+  return orgId && user ? getMemberRole(orgId, user.id) : null
+})
 
 /** All organizations (tenant stores) the current merchant belongs to. */
 export const listOrganizations = cache(async function listOrganizations() {

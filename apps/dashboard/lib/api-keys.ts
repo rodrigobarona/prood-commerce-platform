@@ -2,7 +2,7 @@ import "server-only"
 import { and, desc, eq } from "drizzle-orm"
 import { authDb } from "@/lib/auth/db"
 import { apikey } from "@/lib/auth/schema"
-import { requireActiveOrg } from "@/lib/admin"
+import { requireStoreAdmin } from "@/lib/admin"
 
 export interface DashboardApiKey {
   id: string
@@ -28,7 +28,7 @@ function parseScopes(metadata: string | null): string[] {
 }
 
 export async function listActiveOrgApiKeys(): Promise<DashboardApiKey[]> {
-  const orgId = await requireActiveOrg()
+  const orgId = await requireStoreAdmin()
   const rows = await authDb
     .select({
       id: apikey.id,
@@ -51,7 +51,7 @@ export async function listActiveOrgApiKeys(): Promise<DashboardApiKey[]> {
 }
 
 export async function revokeActiveOrgApiKey(id: string): Promise<void> {
-  const orgId = await requireActiveOrg()
+  const orgId = await requireStoreAdmin()
   await authDb
     .update(apikey)
     .set({ enabled: false, updatedAt: new Date() })

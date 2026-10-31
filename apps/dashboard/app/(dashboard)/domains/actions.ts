@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { getEntitlements } from "@prood/billing"
 import { assertLimit } from "@prood/commerce"
-import { requireActiveOrg } from "@/lib/admin"
+import { requireStoreAdmin } from "@/lib/admin"
 import { getActiveOrganizationPlan } from "@/lib/billing"
 import {
   createDomainRow,
@@ -21,7 +21,7 @@ import {
 } from "@/lib/vercel"
 
 export async function addDomainAction(domain: string): Promise<DomainVerification> {
-  const orgId = await requireActiveOrg()
+  const orgId = await requireStoreAdmin()
   const plan = await getActiveOrganizationPlan()
   const limits = getEntitlements(plan?.planId ?? "free")
   const domains = await listDomains(orgId)
@@ -44,7 +44,7 @@ export async function addDomainAction(domain: string): Promise<DomainVerificatio
 export async function verifyDomainAction(
   id: string
 ): Promise<DomainVerification> {
-  const orgId = await requireActiveOrg()
+  const orgId = await requireStoreAdmin()
   const row = await findDomain(orgId, id)
   if (!row) throw new Error("Domain not found")
   const result = await verifyProjectDomain(row.domain)
@@ -55,7 +55,7 @@ export async function verifyDomainAction(
 }
 
 export async function removeDomainAction(id: string): Promise<void> {
-  const orgId = await requireActiveOrg()
+  const orgId = await requireStoreAdmin()
   const row = await findDomain(orgId, id)
   if (!row) return
   await removeProjectDomain(row.domain)

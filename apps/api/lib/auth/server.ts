@@ -8,6 +8,7 @@ import {
   resolveBetterAuthTrustedOrigins,
   storeApiKey,
 } from "@prood/auth/server"
+import { storeAccess } from "@prood/auth/access"
 import { authDb } from "@prood/auth/db"
 import * as schema from "@prood/auth/schema"
 import { autoLinkGuestCustomers } from "@prood/platform"
@@ -80,6 +81,7 @@ function createAuth() {
       : undefined,
     plugins: [
       organization({
+        ...storeAccess,
         organizationHooks,
         async sendInvitationEmail(data) {
           const inviteLink = `${dashboardUrl}/invite/${data.id}`

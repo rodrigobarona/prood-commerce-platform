@@ -20,12 +20,13 @@ If no method resolves a valid caller, the request returns `401 Unauthorized`.
 
 ## Scopes
 
-Two scopes control access:
+Three scopes control access:
 
 | Scope | Endpoints | Callers |
 | --- | --- | --- |
 | `storefront` | Catalog reads, cart CRUD, place order, customer orders | Storefront (Host), customer sessions, agents with storefront grants |
-| `admin` | Full CRUD — products, orders, customers, store, inventory, stats | Dashboard sessions, API keys with admin scope, agents with admin grants |
+| `staff` | Read admin data — products, orders, customers, store, stats | Every member of the store |
+| `admin` | Full CRUD — products, orders, customers, store, inventory, stats. Implies `staff` | Sessions of store owners and admins, API keys with admin scope, agents with admin grants acting for an owner or admin |
 
 Route handlers enforce scope:
 
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
 ```ts
 interface ApiCaller {
   orgId: string
-  scopes: ('storefront' | 'admin')[]
+  scopes: ('storefront' | 'staff' | 'admin')[]
   type: 'agent' | 'api-key' | 'session' | 'host'
   userId?: string  // present for session and agent callers
 }
@@ -68,7 +69,7 @@ createCommerceApiClient({
 })
 ```
 
-The API reads the session, extracts `activeOrganizationId`, and grants both `admin` and `storefront` scopes.
+The API reads the session, extracts `activeOrganizationId`, and looks up the user's role in that store on every request. Owners and admins get `admin`, `staff` and `storefront`. Other members get `staff` and `storefront`. A session whose user no longer belongs to the store gets nothing from it.
 
 ## Host-based authentication (storefront)
 

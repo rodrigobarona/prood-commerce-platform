@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { checkPaymentCredentials, isPaymentProviderId } from "@prood/commerce"
-import { requireActiveOrg } from "@/lib/admin"
+import { ADMIN_ONLY_MESSAGE, canManageStore, requireStoreAdmin } from "@/lib/admin"
 import {
   deleteIntegration,
   getIntegration,
@@ -29,7 +29,8 @@ export async function saveIntegrationAction(
     return { ok: false, error: "We don't know that provider." }
   }
 
-  const orgId = await requireActiveOrg()
+  if (!(await canManageStore())) return { ok: false, error: ADMIN_ONLY_MESSAGE }
+  const orgId = await requireStoreAdmin()
   const existing = await getIntegration(orgId, provider)
 
   // Merge submitted values over existing config, keeping only known fields.
@@ -66,7 +67,7 @@ export async function saveIntegrationAction(
 export async function disconnectIntegrationAction(
   provider: string
 ): Promise<void> {
-  const orgId = await requireActiveOrg()
+  const orgId = await requireStoreAdmin()
   await deleteIntegration(orgId, provider)
   revalidatePath("/integrations")
   revalidatePath(`/integrations/${provider}`)

@@ -5,6 +5,7 @@ import { nextCookies } from "better-auth/next-js"
 import { admin, organization } from "better-auth/plugins"
 import { apiKey } from "@better-auth/api-key"
 import { requiredEnv } from "@prood/types"
+import { storeAccess } from "./access"
 import { authDb } from "./db"
 import * as schema from "./schema"
 import { resolveBetterAuthTrustedOrigins, resolveTrustedOrigins } from "./origins"
@@ -54,7 +55,7 @@ export function createAuth(options: CreateAuthOptions = {}) {
         }
       : undefined,
     plugins: [
-      organization(),
+      organization(storeAccess),
       storeApiKey(),
       admin({
         defaultRole: "user",

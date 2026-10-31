@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 import { APIError } from "better-auth/api"
 import { headers } from "next/headers"
 import { getAuth } from "@/lib/auth/server"
-import { requireActiveOrg } from "@/lib/admin"
+import { ADMIN_ONLY_MESSAGE, canManageStore, requireStoreAdmin } from "@/lib/admin"
 import { revokeActiveOrgApiKey } from "@/lib/api-keys"
 
 export interface ApiKeyActionState {
@@ -16,6 +16,8 @@ export async function createApiKeyAction(
   _state: ApiKeyActionState,
   formData: FormData
 ): Promise<ApiKeyActionState> {
+  if (!(await canManageStore())) return { error: ADMIN_ONLY_MESSAGE }
+
   const name = String(formData.get("name") ?? "").trim()
   const scopes = formData
     .getAll("scopes")
@@ -25,7 +27,7 @@ export async function createApiKeyAction(
   if (!name) return { error: "API key name is required." }
   if (scopes.length === 0) return { error: "Select at least one scope." }
 
-  const orgId = await requireActiveOrg()
+  const orgId = await requireStoreAdmin()
   try {
     const result = await getAuth().api.createApiKey({
       headers: await headers(),

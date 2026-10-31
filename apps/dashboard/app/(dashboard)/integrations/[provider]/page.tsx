@@ -7,6 +7,7 @@ import { DashboardFormPage } from "@/components/layout/dashboard-page"
 import { ProviderConfigForm } from "@/components/integrations/provider-config-form"
 import { FormPageSkeleton } from "@/components/skeletons"
 import { paymentWebhookUrl } from "@prood/commerce"
+import { canManageStore } from "@/lib/admin"
 import { getActiveOrganizationId } from "@/lib/auth"
 import { getIntegration } from "@/lib/integrations"
 import { getProvider, providerRegistry } from "@/lib/providers"
@@ -39,9 +40,11 @@ async function IntegrationConfigContent({
   const meta = getProvider(provider)
   if (!meta) notFound()
 
+  // Some providers keep keys in plain text fields, so the form is for admins alone.
+  const canManage = await canManageStore()
   const orgId = await getActiveOrganizationId()
   let state = null
-  if (orgId) {
+  if (orgId && canManage) {
     try {
       state = await getIntegration(orgId, provider)
     } catch {
@@ -85,16 +88,22 @@ async function IntegrationConfigContent({
         </div>
       </div>
 
-      <ProviderConfigForm
-        provider={meta}
-        initialValues={initialValues}
-        configuredKeys={configuredKeys}
-        initialEnabled={state?.enabled ?? true}
-        connected={Boolean(state)}
-        webhookUrl={
-          orgId ? `${paymentWebhookUrl(meta.id, orgId)}${meta.webhook.query ?? ""}` : null
-        }
-      />
+      {canManage ? (
+        <ProviderConfigForm
+          provider={meta}
+          initialValues={initialValues}
+          configuredKeys={configuredKeys}
+          initialEnabled={state?.enabled ?? true}
+          connected={Boolean(state)}
+          webhookUrl={
+            orgId ? `${paymentWebhookUrl(meta.id, orgId)}${meta.webhook.query ?? ""}` : null
+          }
+        />
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Only store owners and admins can change {meta.name}. Ask one of them for help.
+        </p>
+      )}
     </>
   )
 }

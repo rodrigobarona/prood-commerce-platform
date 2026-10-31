@@ -4,6 +4,7 @@ import { Key } from "@phosphor-icons/react/dist/ssr"
 import { DashboardFormPage } from "@/components/layout/dashboard-page"
 import { Badge } from "@prood/ui/components/badge"
 import { Button } from "@prood/ui/components/button"
+import { canManageStore } from "@/lib/admin"
 import { listActiveOrgApiKeys } from "@/lib/api-keys"
 import { ApiKeyCreateForm } from "./api-key-create-form"
 import { revokeApiKeyAction } from "./actions"
@@ -12,6 +13,19 @@ import { requiredEnv } from "@prood/types"
 export const metadata = { title: "API keys" }
 
 export default async function ApiKeysPage() {
+  if (!(await canManageStore())) {
+    return (
+      <DashboardFormPage>
+        <div>
+          <h2 className="font-heading text-xl font-medium">API keys</h2>
+          <p className="text-sm text-muted-foreground">
+            Only store owners and admins can manage API keys. Ask one of them for help.
+          </p>
+        </div>
+      </DashboardFormPage>
+    )
+  }
+
   const apiBase = requiredEnv(process.env.COMMERCE_API_URL, "COMMERCE_API_URL")
   const docsHref = `${requiredEnv(process.env.NEXT_PUBLIC_DOCS_URL, "NEXT_PUBLIC_DOCS_URL").replace(/\/$/, "")}/docs/api`
   let keys: Awaited<ReturnType<typeof listActiveOrgApiKeys>> = []

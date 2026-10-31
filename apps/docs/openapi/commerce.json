@@ -166,6 +166,7 @@
                         "type": "string",
                         "enum": [
                           "storefront",
+                          "staff",
                           "admin"
                         ]
                       }

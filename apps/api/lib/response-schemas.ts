@@ -119,7 +119,7 @@ export const webhookAcceptedBody = z.object({
 
 export const callerBody = z.object({
   organizationId: z.string(),
-  scopes: z.array(z.enum(["storefront", "admin"])),
+  scopes: z.array(z.enum(["storefront", "staff", "admin"])),
   via: z.enum(["api-key", "session", "host", "agent"]),
 }) satisfies z.ZodType<Pick<ApiCaller, "scopes" | "via"> & { organizationId: string }>
 

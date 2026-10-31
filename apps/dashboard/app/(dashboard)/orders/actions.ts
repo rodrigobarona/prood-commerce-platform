@@ -4,12 +4,14 @@ import { revalidatePath } from "next/cache"
 import { isCommerceApiError } from "@prood/api-client"
 import type { FulfillOrderInput } from "@prood/commerce"
 import { fulfillOrder, refundOrder, cancelOrder } from "@/lib/admin-api"
+import { ADMIN_ONLY_MESSAGE, canManageStore, requireStoreAdmin } from "@/lib/admin"
 import { isNextInternalError } from "@/lib/errors"
 
 export async function fulfillOrderAction(
   id: string,
   input: FulfillOrderInput
 ): Promise<void> {
+  await requireStoreAdmin()
   await fulfillOrder(id, input)
   revalidatePath("/orders")
   revalidatePath(`/orders/${id}`)
@@ -22,6 +24,7 @@ export async function refundOrderAction(
   id: string,
   input: { note?: string; recordOnly?: boolean }
 ): Promise<RefundOrderResult> {
+  if (!(await canManageStore())) return { ok: false, error: ADMIN_ONLY_MESSAGE }
   try {
     await refundOrder(id, input)
   } catch (err) {
@@ -43,6 +46,7 @@ export async function cancelOrderAction(
   id: string,
   note?: string
 ): Promise<{ error?: string }> {
+  if (!(await canManageStore())) return { error: ADMIN_ONLY_MESSAGE }
   try {
     await cancelOrder(id, note)
   } catch (err) {

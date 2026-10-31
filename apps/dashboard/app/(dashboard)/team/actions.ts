@@ -3,14 +3,15 @@
 import { and, count, eq } from "drizzle-orm"
 import { getEntitlements } from "@prood/billing"
 import { assertLimit } from "@prood/commerce"
-import { requireActiveOrg } from "@/lib/admin"
+import { ADMIN_ONLY_MESSAGE, canManageStore, requireStoreAdmin } from "@/lib/admin"
 import { getActiveOrganizationPlan } from "@/lib/billing"
 import { authDb } from "@/lib/auth/db"
 import { invitation, member } from "@/lib/auth/schema"
 
 /** Pre-flight check before Better Auth sends the invitation email. */
 export async function assertTeamSeatAvailableAction(): Promise<{ error?: string }> {
-  const orgId = await requireActiveOrg()
+  if (!(await canManageStore())) return { error: ADMIN_ONLY_MESSAGE }
+  const orgId = await requireStoreAdmin()
   const plan = await getActiveOrganizationPlan()
   const limits = getEntitlements(plan?.planId ?? "free")
 

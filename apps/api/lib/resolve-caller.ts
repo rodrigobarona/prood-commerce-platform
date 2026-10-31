@@ -2,6 +2,7 @@ import { assertFeature } from "@prood/commerce"
 import { CommerceError } from "@prood/types"
 import { getAuth, getSession, resolveActiveOrganizationId } from "@/lib/auth"
 import { getOrganizationLimits } from "@/lib/org-plan"
+import { getMemberRole } from "@prood/auth/membership"
 import { lookupTenantByHost } from "@prood/platform"
 import { resolveOrgForAgent } from "@/lib/agent-org"
 import {
@@ -9,7 +10,8 @@ import {
   operationForRequest,
   REQUEST_TARGET_HEADER,
 } from "@/lib/agent-capability"
-import type { ApiCaller, ApiScope } from "@/lib/auth-tenant"
+import { capabilitiesForRole, hasScope, scopesForRole, type ApiScope } from "@/lib/scopes"
+import type { ApiCaller } from "@/lib/auth-tenant"
 
 const API_KEY_HEADER = "x-api-key"
 
@@ -54,9 +56,14 @@ export async function resolveCallerFromHeaders(
         limits.agentAuthEnabled,
         "Agent Auth requires a Grow plan or higher",
       )
-      const capabilities = agentSession.agent.capabilityGrants
-        .filter((grant) => grant.status === "active")
-        .map((grant) => grant.capability)
+      // Anyone in a store can get an agent approved, so the grant alone proves nothing.
+      const role = agentSession.user ? await getMemberRole(orgId, agentSession.user.id) : null
+      const capabilities = capabilitiesForRole(
+        agentSession.agent.capabilityGrants
+          .filter((grant) => grant.status === "active")
+          .map((grant) => grant.capability),
+        role
+      )
       const scopes = scopesFromCapabilities(capabilities)
       if (scopes.length === 0) {
         throw new CommerceError("Agent has no active capability grants", "FORBIDDEN")
@@ -86,11 +93,14 @@ export async function resolveCallerFromHeaders(
   const session = await getSession(headerList)
   const sessionOrgId = await resolveActiveOrganizationId(headerList)
   if (sessionOrgId && session?.user) {
-    return {
-      orgId: sessionOrgId,
-      scopes: ["admin", "storefront"],
-      via: "session",
-      userId: session.user.id,
+    const role = await getMemberRole(sessionOrgId, session.user.id)
+    if (role) {
+      return {
+        orgId: sessionOrgId,
+        scopes: scopesForRole(role),
+        via: "session",
+        userId: session.user.id,
+      }
     }
   }
 
@@ -131,8 +141,13 @@ export async function requireCallerFromHeaders(
   if (!caller) {
     throw new CommerceError("Authentication required", "UNAUTHORIZED")
   }
-  if (!caller.scopes.includes(scope)) {
-    throw new CommerceError("Insufficient scope for this resource", "FORBIDDEN")
+  if (!hasScope(caller.scopes, scope)) {
+    throw new CommerceError(
+      caller.via === "session"
+        ? "Only store owners and admins can do this."
+        : "Insufficient scope for this resource",
+      "FORBIDDEN"
+    )
   }
   if (caller.capabilities) {
     assertCapability(

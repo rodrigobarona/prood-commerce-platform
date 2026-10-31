@@ -5,7 +5,7 @@ import { errorResponse } from "@/lib/api"
 
 export async function GET() {
   try {
-    const { orgId } = await requireCaller("admin")
+    const { orgId } = await requireCaller("staff")
     return NextResponse.json(await admin.dashboardStats(orgId))
   } catch (err) {
     return errorResponse(err)

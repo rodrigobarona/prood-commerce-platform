@@ -7,7 +7,7 @@ import { errorResponse } from "@/lib/api"
 
 export async function GET(req: Request) {
   try {
-    const { orgId } = await requireCaller("admin")
+    const { orgId } = await requireCaller("staff")
     const query = readQuery(req, adminListQuery)
     return NextResponse.json(await admin.listCustomers(orgId, query))
   } catch (err) {
