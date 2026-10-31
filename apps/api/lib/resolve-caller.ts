@@ -71,18 +71,6 @@ export async function resolveCallerFromHeaders(
   }
 
   const session = await getSession(headerList)
-  const sessionOrgId = await resolveActiveOrganizationId(headerList)
-  if (sessionOrgId && session?.user) {
-    const role = await getMemberRole(sessionOrgId, session.user.id)
-    if (role) {
-      return {
-        orgId: sessionOrgId,
-        scopes: scopesForRole(role),
-        via: "session",
-        userId: session.user.id,
-      }
-    }
-  }
 
   // Only trust x-storefront-host for tenant resolution — the raw Host header
   // is the API's own hostname (e.g. api-prood.vercel.app) and can never
@@ -94,11 +82,27 @@ export async function resolveCallerFromHeaders(
   if (storefrontHost) {
     const hostOrgId = await lookupTenantByHost(storefrontHost, platformDomain())
     if (hostOrgId) {
+      // The store being visited wins over the session's active store, so a
+      // merchant shopping elsewhere is a shopper there.
+      const role = session?.user ? await getMemberRole(hostOrgId, session.user.id) : null
       return {
         orgId: hostOrgId,
-        scopes: ["storefront"],
+        scopes: role ? scopesForRole(role) : ["storefront"],
         via: session?.user ? "session" : "host",
         userId: session?.user?.id,
+      }
+    }
+  }
+
+  const sessionOrgId = await resolveActiveOrganizationId(headerList)
+  if (sessionOrgId && session?.user) {
+    const role = await getMemberRole(sessionOrgId, session.user.id)
+    if (role) {
+      return {
+        orgId: sessionOrgId,
+        scopes: scopesForRole(role),
+        via: "session",
+        userId: session.user.id,
       }
     }
   }

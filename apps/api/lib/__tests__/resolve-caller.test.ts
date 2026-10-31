@@ -91,6 +91,82 @@ describe("session callers", () => {
   })
 })
 
+describe("signed-in callers on a storefront", () => {
+  const onStore = new Headers({ "x-storefront-host": "store-b.test:3000" })
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.stubEnv("NEXT_PUBLIC_PLATFORM_DOMAIN", "prood.test")
+    mocks.getSession.mockResolvedValue({ user: { id: "user-1" } })
+    mocks.resolveActiveOrganizationId.mockResolvedValue("org-a")
+    mocks.lookupTenantByHost.mockResolvedValue("org-b")
+  })
+
+  it("puts a merchant of another store in the visited store, as a shopper", async () => {
+    mocks.getMemberRole.mockImplementation(async (orgId: string) =>
+      orgId === "org-a" ? "owner" : null
+    )
+
+    const caller = await resolveCallerFromHeaders(onStore)
+
+    expect(caller).toEqual({
+      orgId: "org-b",
+      scopes: ["storefront"],
+      via: "session",
+      userId: "user-1",
+    })
+    expect(mocks.lookupTenantByHost).toHaveBeenCalledWith("store-b.test", "prood.test")
+  })
+
+  it("doesn't save an active store for someone browsing a storefront", async () => {
+    mocks.getMemberRole.mockResolvedValue(null)
+
+    await resolveCallerFromHeaders(onStore)
+
+    expect(mocks.resolveActiveOrganizationId).not.toHaveBeenCalled()
+  })
+
+  it("gives a member of the visited store their role there", async () => {
+    mocks.getMemberRole.mockImplementation(async (orgId: string) =>
+      orgId === "org-b" ? "member" : "owner"
+    )
+
+    await expect(resolveCallerFromHeaders(onStore)).resolves.toMatchObject({
+      orgId: "org-b",
+      scopes: ["staff", "storefront"],
+    })
+  })
+
+  it("keeps a guest as a guest", async () => {
+    mocks.getSession.mockResolvedValue(null)
+
+    await expect(resolveCallerFromHeaders(onStore)).resolves.toEqual({
+      orgId: "org-b",
+      scopes: ["storefront"],
+      via: "host",
+      userId: undefined,
+    })
+    expect(mocks.getMemberRole).not.toHaveBeenCalled()
+  })
+
+  it("falls back to the session's store when the host isn't a store", async () => {
+    mocks.lookupTenantByHost.mockResolvedValue(null)
+    mocks.getMemberRole.mockResolvedValue("owner")
+
+    await expect(resolveCallerFromHeaders(onStore)).resolves.toMatchObject({ orgId: "org-a" })
+  })
+
+  it("uses the session's store for dashboard calls with no store host", async () => {
+    mocks.getMemberRole.mockResolvedValue("owner")
+
+    await expect(resolveCallerFromHeaders(new Headers())).resolves.toMatchObject({
+      orgId: "org-a",
+      scopes: ["admin", "staff", "storefront"],
+    })
+    expect(mocks.lookupTenantByHost).not.toHaveBeenCalled()
+  })
+})
+
 describe("agents", () => {
   const grants = (...capabilities: string[]) => ({
     user: { id: "user-1" },
