@@ -356,7 +356,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get order by id */
+        /**
+         * Get order by id
+         * @description The order's address, payment and contact details need the customer who placed it or a store member. The email it was placed with adds the payment details a guest needs to pay.
+         */
         get: operations["getOrder"];
         put?: never;
         post?: never;
@@ -633,7 +636,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Payment webhook GET (IfThenPay) */
+        /** Payment webhook GET (Ifthenpay) */
         get: operations["paymentWebhookGet"];
         put?: never;
         /** Payment webhook (checkout service) */
@@ -4148,7 +4151,9 @@ export interface operations {
     };
     getOrder: {
         parameters: {
-            query?: never;
+            query?: {
+                email?: string;
+            };
             header?: never;
             path: {
                 id: string;
@@ -5477,6 +5482,7 @@ export interface operations {
                 dateFrom?: string;
                 dateTo?: string;
                 search?: string;
+                awaitingPaymentFrom?: string;
             };
             header?: never;
             path?: never;

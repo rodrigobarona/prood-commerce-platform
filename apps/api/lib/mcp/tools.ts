@@ -16,6 +16,7 @@ import {
   createCategoryBody,
   createProductBody,
   fulfillOrderBody,
+  getOrderQuery,
   listCustomerOrdersQuery,
   placeOrderBody,
   refundOrderBody,
@@ -357,11 +358,11 @@ export function registerCommerceMcpTools(server: McpServer) {
     "getOrder",
     {
       title: "Get order",
-      inputSchema: z.object({ id: z.string().min(1) }),
+      inputSchema: z.object({ id: z.string().min(1), ...getOrderQuery.shape }),
     },
-    async ({ id }) => {
-      const orgId = requireScope("storefront")
-      return jsonContent(await orders.get(orgId, id))
+    async ({ id, email }) => {
+      requireScope("storefront")
+      return jsonContent(await orders.getForCaller(getMcpCaller(), id, email))
     }
   )
 
@@ -530,6 +531,8 @@ export function registerCommerceMcpTools(server: McpServer) {
     "adminRefundOrder",
     {
       title: "Admin refund order",
+      description:
+        "Sends real money back to the shopper through the store's payment provider, and can't be undone.",
       inputSchema: z.object({ id: z.string().min(1), ...refundOrderBody.shape }),
     },
     async ({ id, ...body }) => {

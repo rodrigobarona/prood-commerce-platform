@@ -72,7 +72,7 @@ export default async function OrderConfirmationPage({
   let order: Order | null = null
   if (orderId) {
     try {
-      order = await fetchOrder(orderId)
+      order = await fetchOrder(orderId, sp.email)
     } catch {
       order = null
     }

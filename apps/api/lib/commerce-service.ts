@@ -25,6 +25,7 @@ import {
   getAdapter,
   verifyPaymentWebhook,
   getTenantPaymentProvider,
+  resolveCustomerId,
   revalidateProducts,
   revalidateStore,
 } from "@prood/commerce"
@@ -40,6 +41,9 @@ import {
 import { getStorefrontIdentity } from "@prood/platform"
 import { after } from "next/server"
 import { getMailer } from "./mailer"
+import { isOrderEmail, publicOrder } from "./order-view"
+import { hasScope } from "./scopes"
+import type { ApiCaller } from "./auth-tenant"
 import type { PaginationParams } from "@prood/commerce"
 import type {
   AddToCartInput,
@@ -101,6 +105,7 @@ function toAdminListOrdersParams(q: AdminListOrdersQuery): AdminListOrdersParams
     dateFrom: q.dateFrom,
     dateTo: q.dateTo,
     search: q.search,
+    awaitingPaymentFrom: q.awaitingPaymentFrom,
   }
 }
 
@@ -317,7 +322,16 @@ export const webhooks = {
 }
 
 export const orders = {
-  get: (orgId: string, id: string) => getOrder(id, orgId),
+  /** Staff and the customer who placed it see everything; anyone else, the public view. */
+  getForCaller: async (caller: ApiCaller, id: string, email?: string) => {
+    const order = await getOrder(id, caller.orgId)
+    if (hasScope(caller.scopes, "staff")) return order
+    if (caller.userId && order.customerId) {
+      const customerId = await resolveCustomerId(caller.orgId, caller.userId)
+      if (customerId === order.customerId) return order
+    }
+    return publicOrder(order, isOrderEmail(order, email))
+  },
   list: (orgId: string, params?: PaginationParams & { customerId?: string }) =>
     getCustomerOrders(params, orgId),
 }

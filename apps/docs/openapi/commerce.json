@@ -13457,6 +13457,7 @@
       "get": {
         "operationId": "getOrder",
         "summary": "Get order by id",
+        "description": "The order's address, payment and contact details need the customer who placed it or a store member. The email it was placed with adds the payment details a guest needs to pay.",
         "tags": [
           "Storefront"
         ],
@@ -13479,6 +13480,13 @@
             "name": "id",
             "in": "path",
             "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "email",
+            "in": "query",
             "schema": {
               "type": "string"
             }
@@ -18362,6 +18370,13 @@
           },
           {
             "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "awaitingPaymentFrom",
             "in": "query",
             "schema": {
               "type": "string"
@@ -23742,7 +23757,7 @@
       },
       "get": {
         "operationId": "paymentWebhookGet",
-        "summary": "Payment webhook GET (IfThenPay)",
+        "summary": "Payment webhook GET (Ifthenpay)",
         "tags": [
           "Webhooks"
         ],

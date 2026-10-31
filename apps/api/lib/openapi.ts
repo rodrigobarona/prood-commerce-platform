@@ -7,6 +7,7 @@ import {
   categoriesQuery,
   couponBody,
   createCategoryBody,
+  getOrderQuery,
   createProductBody,
   fulfillOrderBody,
   refundOrderBody,
@@ -359,6 +360,9 @@ export function buildOpenApiDocument() {
       "/orders/{id}": pathItem("GET", "Get order by id", "getOrder", {
         pathTemplate: "/orders/{id}",
         scope: "storefront",
+        description:
+          "The order's address, payment and contact details need the customer who placed it or a store member. The email it was placed with adds the payment details a guest needs to pay.",
+        query: getOrderQuery,
         response: responses.order,
       }),
       "/admin/products": {
@@ -492,7 +496,7 @@ export function buildOpenApiDocument() {
             },
           },
         }),
-        ...pathItem("GET", "Payment webhook GET (IfThenPay)", "paymentWebhookGet", {
+        ...pathItem("GET", "Payment webhook GET (Ifthenpay)", "paymentWebhookGet", {
           pathTemplate: "/webhooks/payments/{provider}",
           scope: "storefront",
           tag: "Webhooks",

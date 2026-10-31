@@ -3,6 +3,8 @@ import { CommerceError, type Order, type PaymentProvider } from "@prood/types"
 
 const mocks = vi.hoisted(() => ({
   getOrder: vi.fn(),
+  storefrontGetOrder: vi.fn(),
+  resolveCustomerId: vi.fn(),
   recordRefund: vi.fn(),
   getTenantPaymentProvider: vi.fn(),
   verifyPaymentWebhook: vi.fn(),
@@ -15,6 +17,8 @@ vi.mock("next/server", () => ({ after: mocks.after }))
 vi.mock("@prood/platform", () => ({ getStorefrontIdentity: vi.fn() }))
 vi.mock("@/lib/mailer", () => ({ getMailer: vi.fn() }))
 vi.mock("@prood/commerce", () => ({
+  getOrder: mocks.storefrontGetOrder,
+  resolveCustomerId: mocks.resolveCustomerId,
   getAdmin: async () => ({ getOrder: mocks.getOrder, recordRefund: mocks.recordRefund }),
   getAdapter: async () => ({ applyPaymentEvent: mocks.applyPaymentEvent }),
   getTenantPaymentProvider: mocks.getTenantPaymentProvider,
@@ -23,7 +27,7 @@ vi.mock("@prood/commerce", () => ({
   withTenant: (_org: string, fn: () => Promise<unknown>) => fn(),
 }))
 
-import { admin, webhooks } from "../commerce-service"
+import { admin, orders, webhooks } from "../commerce-service"
 
 const paid = {
   id: "order-1",
@@ -293,5 +297,55 @@ describe("refund webhooks", () => {
     await webhooks.reconcilePayment("easypay", "{}", "", "org-1")
 
     expect(mocks.after).not.toHaveBeenCalled()
+  })
+})
+
+describe("reading an order by id", () => {
+  const order = {
+    id: "order-1",
+    customerId: "customer-1",
+    contactEmail: "ana@example.pt",
+    shippingAddress: { firstName: "Ana" },
+    paymentDetails: { method: "multibanco", reference: "2" },
+  }
+  const caller = { orgId: "org-1", scopes: ["storefront"], via: "host" } as const
+  const read = (who: Parameters<typeof orders.getForCaller>[0], email?: string) =>
+    orders.getForCaller(who, "order-1", email)
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mocks.storefrontGetOrder.mockResolvedValue(order)
+  })
+
+  it("strips it for a stranger", async () => {
+    await expect(read({ ...caller, scopes: ["storefront"] })).resolves.toMatchObject({
+      shippingAddress: null,
+      paymentDetails: null,
+    })
+  })
+
+  it("adds the payment details for the order's email", async () => {
+    await expect(read({ ...caller, scopes: ["storefront"] }, "ana@example.pt")).resolves.toMatchObject({
+      shippingAddress: null,
+      paymentDetails: order.paymentDetails,
+    })
+  })
+
+  it("shows it all to the customer who placed it", async () => {
+    mocks.resolveCustomerId.mockResolvedValue("customer-1")
+
+    await expect(read({ ...caller, scopes: ["storefront"], userId: "user-1" })).resolves.toEqual(order)
+  })
+
+  it("strips it for another signed-in customer", async () => {
+    mocks.resolveCustomerId.mockResolvedValue("customer-2")
+
+    await expect(read({ ...caller, scopes: ["storefront"], userId: "user-2" })).resolves.toMatchObject({
+      shippingAddress: null,
+    })
+  })
+
+  it("shows it all to store members", async () => {
+    await expect(read({ ...caller, scopes: ["staff", "storefront"], via: "session" })).resolves.toEqual(order)
   })
 })
