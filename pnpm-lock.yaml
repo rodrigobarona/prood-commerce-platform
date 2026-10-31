@@ -703,6 +703,9 @@ importers:
       '@prood/billing':
         specifier: workspace:*
         version: link:../../packages/billing
+      '@prood/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       '@prood/ui':
         specifier: workspace:*
         version: link:../../packages/ui

@@ -1,5 +1,7 @@
-const dashboardUrl = process.env.NEXT_PUBLIC_DASHBOARD_URL ?? "http://localhost:3002"
-const docsUrl = process.env.NEXT_PUBLIC_DOCS_URL ?? "http://localhost:3003"
+import { requiredEnv } from "@prood/types"
+
+const dashboardUrl = requiredEnv(process.env.NEXT_PUBLIC_DASHBOARD_URL, "NEXT_PUBLIC_DASHBOARD_URL").replace(/\/$/, "")
+const docsUrl = requiredEnv(process.env.NEXT_PUBLIC_DOCS_URL, "NEXT_PUBLIC_DOCS_URL").replace(/\/$/, "")
 
 export const siteConfig = {
   name: "Prood",

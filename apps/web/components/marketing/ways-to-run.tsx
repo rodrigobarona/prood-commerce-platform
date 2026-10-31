@@ -35,7 +35,7 @@ export function WaysToRun() {
       <ul className="mt-14 grid gap-px overflow-hidden rounded-xl border border-border bg-border md:grid-cols-3">
         {ways.map(({ icon: Icon, audience, title, body }) => (
           <li key={title} className="bg-card p-7 md:p-8">
-            <Icon className="size-7 text-brand" />
+            <Icon className="size-7 text-brand" aria-hidden />
             <p className="mt-6 text-sm text-muted-foreground">{audience}</p>
             <h3 className="mt-1 text-xl font-semibold tracking-[-0.015em]">{title}</h3>
             <p className="mt-3 leading-7 text-muted-foreground">{body}</p>

@@ -12,9 +12,10 @@
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
-    "@prood/billing": "workspace:*",
-    "@prood/ui": "workspace:*",
     "@phosphor-icons/react": "catalog:",
+    "@prood/billing": "workspace:*",
+    "@prood/types": "workspace:*",
+    "@prood/ui": "workspace:*",
     "next": "catalog:",
     "next-themes": "catalog:",
     "react": "catalog:",
