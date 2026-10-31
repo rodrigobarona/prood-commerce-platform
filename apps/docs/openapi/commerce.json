@@ -21574,6 +21574,9 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "currencyLocked": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -21590,7 +21593,8 @@
                     "contactEmail",
                     "contactPhone",
                     "address",
-                    "socialLinks"
+                    "socialLinks",
+                    "currencyLocked"
                   ],
                   "additionalProperties": false
                 }
@@ -21848,6 +21852,9 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "currencyLocked": {
+                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -21864,7 +21871,8 @@
                     "contactEmail",
                     "contactPhone",
                     "address",
-                    "socialLinks"
+                    "socialLinks",
+                    "currencyLocked"
                   ],
                   "additionalProperties": false
                 }
@@ -22044,8 +22052,7 @@
                   },
                   "currency": {
                     "type": "string",
-                    "minLength": 3,
-                    "maxLength": 3
+                    "pattern": "^[A-Za-z]{3}$"
                   },
                   "locale": {
                     "type": "string"

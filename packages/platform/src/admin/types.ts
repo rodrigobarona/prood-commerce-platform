@@ -125,6 +125,8 @@ export interface StoreSettings {
   contactPhone: string | null
   address: string | null
   socialLinks: Record<string, string> | null
+  /** Whether the store has orders, which fixes its currency for good. */
+  currencyLocked: boolean
 }
 
 // ---- Inventory ----

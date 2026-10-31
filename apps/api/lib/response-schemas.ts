@@ -417,6 +417,7 @@ export const adminStoreSettings = z.object({
   contactPhone: nullableString,
   address: nullableString,
   socialLinks: z.record(z.string(), z.string()).nullable(),
+  currencyLocked: z.boolean(),
 }) satisfies z.ZodType<StoreSettings>
 
 export const adminDashboardStats = z.object({

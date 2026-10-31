@@ -235,8 +235,10 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     })
 
     it('keeps the currency once the store has sold, so revenue is never mixed', async () => {
+      expect(await asTenant((admin) => admin.getStoreSettings())).toMatchObject({ currencyLocked: false })
       await asTenant((admin) => admin.updateStoreSettings({ currency: 'USD' }))
       await placedOrder()
+      expect(await asTenant((admin) => admin.getStoreSettings())).toMatchObject({ currencyLocked: true })
 
       await expect(
         asTenant((admin) => admin.updateStoreSettings({ currency: 'EUR' })),

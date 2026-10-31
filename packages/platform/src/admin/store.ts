@@ -8,7 +8,7 @@ import { ensureDefaultStoreInfo } from '../tenant/store-info.js'
 import { countOrders, updateStoreInfo } from '../database/index.js'
 import { normalizeLocalizedField } from '../domains/helpers.js'
 
-function mapStoreSettings(row: any): StoreSettings {
+function mapStoreSettings(row: any, currencyLocked: boolean): StoreSettings {
   let supportedCurrencies: string[] = ['EUR']
   let supportedLocales: string[] = ['en']
 
@@ -44,6 +44,7 @@ function mapStoreSettings(row: any): StoreSettings {
     contactPhone: row.contactPhone ?? null,
     address: row.address ?? null,
     socialLinks: row.socialLinks,
+    currencyLocked,
   }
 }
 
@@ -51,7 +52,7 @@ export function createAdminStoreDomain() {
   return {
     async getStoreSettings(): Promise<StoreSettings> {
       const row = await ensureDefaultStoreInfo()
-      return mapStoreSettings(row)
+      return mapStoreSettings(row, (await countOrders()) > 0)
     },
 
     async updateStoreSettings(input: UpdateStoreInput): Promise<StoreSettings> {

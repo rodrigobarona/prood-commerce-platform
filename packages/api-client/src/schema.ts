@@ -6427,6 +6427,7 @@ export interface operations {
                         socialLinks: {
                             [key: string]: string;
                         } | null;
+                        currencyLocked: boolean;
                     };
                 };
             };
@@ -6540,6 +6541,7 @@ export interface operations {
                         socialLinks: {
                             [key: string]: string;
                         } | null;
+                        currencyLocked: boolean;
                     };
                 };
             };
