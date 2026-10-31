@@ -74,7 +74,7 @@ if (paymentSession.redirectUrl) {
 ### Confirm payment (payment → complete)
 
 ```ts
-const confirmed = await session.confirmPayment(chargeId)
+const confirmed = await session.confirmPayment()
 // session.state === 'complete' | 'failed'
 ```
 
@@ -107,7 +107,7 @@ session.on('expired', () => { ... })
 const snapshot = session.toSnapshot()
 // Serializable — used by @prood/checkout-host for Redis persistence
 
-CheckoutSession.fromSnapshot(snapshot, provider)
+CheckoutSession.fromSnapshot(snapshot, { paymentProvider: provider })
 // Rehydrate from saved state
 ```
 

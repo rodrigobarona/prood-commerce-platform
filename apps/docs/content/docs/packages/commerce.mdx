@@ -57,7 +57,7 @@ const admin = getAdmin(orgId)
 const products = await admin.listProducts({ page: 1 })
 const created = await admin.createProduct(input)
 await admin.fulfillOrder(orderId, { trackingNumber: 'TRK123' })
-await admin.refundOrder(orderId, { amount: 5000, reason: 'Customer request' })
+await admin.recordRefund(orderId, 'Customer request') // records a refund already sent; moves no money
 const stats = await admin.getDashboardStats()
 ```
 

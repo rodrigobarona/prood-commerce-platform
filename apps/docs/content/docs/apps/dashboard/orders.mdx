@@ -59,7 +59,7 @@ Actions are conditionally shown based on current status:
 | --- | --- |
 | Fulfill | `status` is `placed` or `approved` AND `paymentStatus` is `paid` |
 | Cancel | `status` is `placed` or `approved` |
-| Refund | `status` is `approved` or `fulfilled` AND `paymentStatus` is `paid` |
+| Refund | `paymentStatus` is `paid`, including a paid order that was cancelled. `GET /v1/admin/orders/{id}` returns `refund`: `provider` sends the money through the payment provider, `manual` means the merchant refunds in their payment account, then records it |
 
 Server actions in `app/(dashboard)/orders/actions.ts`:
 
@@ -67,7 +67,10 @@ Server actions in `app/(dashboard)/orders/actions.ts`:
 'use server'
 export async function fulfillOrderAction(id: string, input: FulfillOrderInput) { ... }
 export async function cancelOrderAction(id: string, note?: string) { ... }
-export async function refundOrderAction(id: string, note?: string) { ... }
+export async function refundOrderAction(
+  id: string,
+  input: { note?: string; recordOnly?: boolean },
+): Promise<RefundOrderResult> { ... }
 ```
 
 ### Order timeline

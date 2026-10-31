@@ -717,7 +717,7 @@ and row-level security. Implements the `CommerceAdapter` interface from
 | ----------- | ---------------------------------------------------------- |
 | Products    | `listProducts`, `getProduct`, `createProduct`, `updateProduct`, `deleteProduct` |
 | Categories  | `createCategory`, `updateCategory`, `deleteCategory`       |
-| Orders      | `listOrders`, `getOrder`, `fulfillOrder`, `refundOrder`    |
+| Orders      | `listOrders`, `getOrder`, `fulfillOrder`, `recordRefund`   |
 | Customers   | `listCustomers`, `getCustomer`, `deleteCustomer`           |
 | Store       | `getStoreSettings`, `updateStoreSettings`                  |
 | Inventory   | `updateInventory` (set/increment/decrement), `getLowStockProducts` |
@@ -842,10 +842,10 @@ verification (`stripe-signature` HMAC-SHA256).
 
 **Location:** `packages/payment-easypay`
 
-Portugal-focused provider. Methods via `metadata.method`:
-- `mb` — Multibanco reference (entity + reference for ATM payment)
-- `mbw` — MB WAY (mobile payment)
-- `cc` — Hosted card redirect
+Portugal-focused provider. Methods via `method`:
+- `multibanco` — Multibanco reference (entity + reference for ATM payment)
+- `mbway` — MB WAY (mobile payment)
+- `card` — Hosted card redirect
 
 Async confirmation via webhook. Polls Easypay API for session status.
 
