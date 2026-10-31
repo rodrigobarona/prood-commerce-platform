@@ -22,6 +22,7 @@ export {
 export {
   createCart,
   findCart,
+  findCartItem,
   findCartItems,
   findExistingCartItem,
   insertCartItem,

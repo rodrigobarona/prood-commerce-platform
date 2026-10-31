@@ -437,6 +437,74 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     })
   })
 
+  describe('stock', () => {
+    const inStock = { productId: 'prod-2' }
+
+    function setStock(quantity: number) {
+      return setProducts(`inventory_quantity = ${quantity}`, `'prod-2'`)
+    }
+
+    it('refuses more than a tracked stock holds, and sells all of it', async () => {
+      await setStock(3)
+      const cart = await adapter.createCart()
+      await expect(adapter.addToCart(cart.id, { ...inStock, quantity: 4 })).rejects.toMatchObject({
+        code: 'VALIDATION',
+        message: expect.stringContaining('Only 3 of'),
+      })
+      const added = await adapter.addToCart(cart.id, { ...inStock, quantity: 3 })
+      expect(added.itemCount).toBe(3)
+    })
+
+    it('counts what the cart already holds when adding', async () => {
+      await setStock(3)
+      const cart = await adapter.createCart()
+      await adapter.addToCart(cart.id, { ...inStock, quantity: 2 })
+      await expect(adapter.addToCart(cart.id, { ...inStock, quantity: 2 })).rejects.toMatchObject({ code: 'VALIDATION' })
+      expect((await adapter.getCart(cart.id)).itemCount).toBe(2)
+    })
+
+    it('checks a new quantity for a line, and still lets it go down', async () => {
+      await setStock(3)
+      const cart = await adapter.createCart()
+      const added = await adapter.addToCart(cart.id, { ...inStock, quantity: 3 })
+      const line = added.items[0]!
+      await expect(adapter.updateCartItem(cart.id, line.id, 4)).rejects.toMatchObject({ code: 'VALIDATION' })
+      expect((await adapter.updateCartItem(cart.id, line.id, 1)).itemCount).toBe(1)
+    })
+
+    it('checks the tighter of product and variant stock', async () => {
+      await setProducts(`inventory_quantity = 100`, `'prod-1'`)
+      await withTenant(DEMO_ORG_ID, () =>
+        getDb().execute(sql`update product_variants set inventory_quantity = 2 where id = 'var-tshirt-s'`),
+      )
+      const cart = await adapter.createCart()
+      await expect(
+        adapter.addToCart(cart.id, { productId: 'prod-1', variantId: 'var-tshirt-s', quantity: 3 }),
+      ).rejects.toMatchObject({ code: 'VALIDATION' })
+    })
+
+    it('does not place an order for more than is left', async () => {
+      const cart = await adapter.createCart()
+      await adapter.addToCart(cart.id, { ...inStock, quantity: 5 })
+      await adapter.setShippingAddress(cart.id, fullAddress())
+      await adapter.setShippingMethod(cart.id, 'standard')
+      await setStock(4)
+      await expect(adapter.placeOrder(cart.id)).rejects.toMatchObject({ code: 'VALIDATION' })
+      expect((await adapter.getCart(cart.id)).items).toHaveLength(1)
+    })
+
+    it('does not create an order for more than is left', async () => {
+      await setStock(1)
+      await expect(directOrder()).rejects.toMatchObject({ code: 'VALIDATION' })
+    })
+
+    it('leaves an untracked stock unlimited', async () => {
+      await setProducts(`inventory_quantity = null`, `'prod-2'`)
+      const cart = await adapter.createCart()
+      expect((await adapter.addToCart(cart.id, { ...inStock, quantity: 500 })).itemCount).toBe(500)
+    })
+  })
+
   // ---- Checkout ----
 
   it('should list shipping methods', async () => {

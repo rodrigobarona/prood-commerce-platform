@@ -24,6 +24,16 @@ export async function findCart(cartId: string) {
   return row ?? null
 }
 
+export async function findCartItem(cartId: string, itemId: string) {
+  const [row] = await getDb().select().from(schema.cartItems)
+    .where(and(
+      eq(schema.cartItems.id, itemId),
+      eq(schema.cartItems.cartId, cartId),
+      tenantCondition(schema.cartItems),
+    ))
+  return row ?? null
+}
+
 export async function findCartItems(cartId: string) {
   return getDb().select().from(schema.cartItems)
     .where(and(eq(schema.cartItems.cartId, cartId), tenantCondition(schema.cartItems)))

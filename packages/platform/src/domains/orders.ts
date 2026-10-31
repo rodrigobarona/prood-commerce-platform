@@ -60,7 +60,7 @@ export function createOrdersDomain() {
         if (product?.status !== 'active') {
           throw new CommerceError(`Product not found: ${item.productId}`, 'NOT_FOUND')
         }
-        const variant = await requireSellable(product, item.variantId)
+        const variant = await requireSellable(product, item.variantId, item.quantity)
         const image = await findPrimaryImage(product.id)
 
         lines.push({

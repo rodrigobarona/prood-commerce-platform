@@ -13,11 +13,16 @@ function refuse(message: string): never {
 }
 
 /**
- * Check a line of an active product and return the variant it sells, if any.
+ * Check a line of an active product, for the whole quantity it would hold, and
+ * return the variant it sells, if any.
  * A product with variants is only sold as one of them: its base price is not
  * what any variant costs.
  */
-export async function requireSellable(product: typeof products.$inferSelect, variantId?: Maybe<string>) {
+export async function requireSellable(
+  product: typeof products.$inferSelect,
+  variantId: Maybe<string> | undefined,
+  quantity: number,
+) {
   const name = resolveLocalized(product.name)
   const variant = variantId ? await findVariantById(variantId) : null
 
@@ -29,6 +34,10 @@ export async function requireSellable(product: typeof products.$inferSelect, var
   }
   if (!isInStock(product) || (variant && !isInStock(variant))) {
     refuse(`${name} is out of stock.`)
+  }
+  const stock = Math.min(product.inventoryQuantity ?? Infinity, variant?.inventoryQuantity ?? Infinity)
+  if (quantity > stock) {
+    refuse(`Only ${stock} of ${name} left. Lower the quantity and try again.`)
   }
   if ((variant?.price ?? product.price) == null) {
     refuse(`${name} has no price.`)

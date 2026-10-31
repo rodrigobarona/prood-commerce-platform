@@ -82,7 +82,7 @@ export function createCheckoutDomain() {
           const name = normalizeLocalizedField(item.name).en ?? item.productId
           throw new CommerceError(`${name} is no longer available.`, 'VALIDATION', 422)
         }
-        await requireSellable(product, item.variantId)
+        await requireSellable(product, item.variantId, item.quantity)
 
         lines.push({
           productId: item.productId,

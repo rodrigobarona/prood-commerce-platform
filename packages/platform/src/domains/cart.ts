@@ -7,6 +7,7 @@ import type { Cart, AddToCartInput } from '@prood/types'
 import {
   createCart as dbCreateCart,
   findCart,
+  findCartItem,
   findCartItems,
   findExistingCartItem,
   insertCartItem,
@@ -128,9 +129,8 @@ export function createCartDomain() {
       if (product?.status !== 'active') {
         throw new CommerceError(`Product not found: ${item.productId}`, 'NOT_FOUND')
       }
-      await requireSellable(product, item.variantId)
-
       const existing = await findExistingCartItem(cartId, item.productId, item.variantId)
+      await requireSellable(product, item.variantId, (existing?.quantity ?? 0) + item.quantity)
 
       if (existing) {
         await updateCartItemQuantity(existing.id, existing.quantity + item.quantity)
@@ -151,6 +151,13 @@ export function createCartDomain() {
       if (quantity <= 0) {
         await deleteCartItem(itemId)
       } else {
+        const item = await findCartItem(cartId, itemId)
+        if (!item) throw new CommerceError(`Cart item not found: ${itemId}`, 'NOT_FOUND')
+        const product = await findProductById(item.productId)
+        if (product?.status !== 'active') {
+          throw new CommerceError(`Product not found: ${item.productId}`, 'NOT_FOUND')
+        }
+        await requireSellable(product, item.variantId, quantity)
         await updateCartItemQuantity(itemId, quantity)
       }
       await updateCart(cartId, { updatedAt: new Date() })
