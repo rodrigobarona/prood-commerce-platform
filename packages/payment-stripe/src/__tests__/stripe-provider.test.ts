@@ -86,3 +86,44 @@ describe('refund', () => {
     expect(retrieve).toHaveBeenCalledOnce()
   })
 })
+
+describe('verifyWebhook', () => {
+  function refundWebhook(charge: Record<string, unknown>, sessions: unknown[]) {
+    const event = { type: 'charge.refunded', data: { object: charge } }
+    const list = vi.fn().mockResolvedValue({ data: sessions })
+    const client = {
+      checkout: { sessions: { list } },
+      webhooks: { constructEventAsync: vi.fn().mockResolvedValue(event) },
+    } as unknown as Stripe
+    return { stripe: new StripePaymentProvider({ secretKey, webhookSecret, client }), list }
+  }
+
+  const charge = { id: 'ch_1', payment_intent: 'pi_1', currency: 'eur', amount: 2490, amount_refunded: 2490, refunded: true }
+  const session = { id: 'cs_1', metadata: { orderId: 'order-1' } }
+
+  it('finds the order behind a refund made in the Stripe dashboard', async () => {
+    const { stripe, list } = refundWebhook(charge, [session])
+
+    await expect(stripe.verifyWebhook('{}', 'sig')).resolves.toMatchObject({
+      type: 'payment.refunded',
+      sessionId: 'cs_1',
+      orderId: 'order-1',
+      amount: 24.9,
+      currency: 'EUR',
+    })
+    expect(list).toHaveBeenCalledWith({ payment_intent: 'pi_1', limit: 1 })
+  })
+
+  it('tells a partial refund from a full one', async () => {
+    const { stripe } = refundWebhook({ ...charge, amount_refunded: 500, refunded: false }, [session])
+    await expect(stripe.verifyWebhook('{}', 'sig')).resolves.toMatchObject({
+      type: 'payment.partially_refunded',
+      amount: 5,
+    })
+  })
+
+  it('leaves a refund it cannot tie to an order unmatched', async () => {
+    const { stripe } = refundWebhook(charge, [])
+    await expect(stripe.verifyWebhook('{}', 'sig')).resolves.toMatchObject({ type: 'payment.refunded', orderId: null })
+  })
+})

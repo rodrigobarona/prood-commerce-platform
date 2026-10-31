@@ -373,7 +373,7 @@ export const adminOrder = order.extend({
     .enum(["provider", "manual"])
     .nullable()
     .describe(
-      "`provider`: Prood sends the refund. `manual`: refund in the payment account, then record it with `recordOnly`. Null when nothing can be refunded."
+      "`provider`: Prood can send the refund. `manual`: refund in the payment account first. Either way, `recordOnly` records a refund already made there. Null when nothing can be refunded."
     ),
 })
 

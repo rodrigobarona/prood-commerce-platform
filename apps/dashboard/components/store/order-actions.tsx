@@ -60,19 +60,19 @@ export function OrderActions({
     })
   }
 
-  function handleRefund() {
+  function handleRefund(recordOnly: boolean) {
     startTransition(async () => {
       try {
         const result = await refundOrderAction(orderId, {
           note: refundNote || undefined,
-          recordOnly: refund === "manual",
+          recordOnly,
         })
         if (!result.ok) {
           toast.error(result.error)
           return
         }
         toast.success(
-          refund === "manual"
+          recordOnly
             ? `Refund of ${refundAmount} recorded.`
             : `Refund of ${refundAmount} sent to the customer.`
         )
@@ -204,7 +204,7 @@ export function OrderActions({
               <DialogDescription>
                 {refund === "manual"
                   ? `Prood can't send this refund. Refund ${refundAmount} in your payment account first, then record it here.`
-                  : `This sends ${refundAmount} back to the customer through your payment provider, cancels the order and emails them.`}
+                  : `This sends ${refundAmount} back to the customer through your payment provider, cancels the order and emails them. Already refunded it in your payment account? Record it instead, and no money moves.`}
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-1.5">
@@ -220,10 +220,19 @@ export function OrderActions({
               <DialogClose asChild>
                 <Button variant="ghost">Cancel</Button>
               </DialogClose>
+              {refund === "provider" ? (
+                <Button
+                  variant="outline"
+                  disabled={pending}
+                  onClick={() => handleRefund(true)}
+                >
+                  Record refund
+                </Button>
+              ) : null}
               <Button
                 variant="destructive"
                 disabled={pending}
-                onClick={handleRefund}
+                onClick={() => handleRefund(refund === "manual")}
               >
                 {pending
                   ? "Refunding..."

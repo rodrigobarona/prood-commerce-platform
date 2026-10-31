@@ -11,10 +11,9 @@ import {
   updateOrderTracking,
   updateOrder,
   createOrderHistory,
-  transitionOrderPayment,
 } from '../database/index.js'
-import { releaseCoupon } from '../domains/coupons.js'
 import { mapOrder } from '../domains/order-mapper.js'
+import { markOrderRefunded } from '../domains/order-refund.js'
 
 export function createAdminOrdersDomain() {
   async function fullOrder(id: string): Promise<Order> {
@@ -55,6 +54,10 @@ export function createAdminOrdersDomain() {
     async fulfillOrder(id: string, input: FulfillOrderInput): Promise<void> {
       const order = await findOrderById(id)
       if (!order) throw new CommerceError(`Order not found: ${id}`, "NOT_FOUND")
+      // A refund cancels the order, so this also stops refunded goods from shipping.
+      if (order.status === 'cancelled') {
+        throw new CommerceError("A cancelled order can't be fulfilled.", 'VALIDATION', 422)
+      }
 
       await updateOrderTracking(id, {
         trackingNumber: input.trackingNumber ?? null,
@@ -86,24 +89,9 @@ export function createAdminOrdersDomain() {
         throw new CommerceError('Only paid orders can be refunded.', 'VALIDATION', 422)
       }
 
-      const recorded = await transitionOrderPayment(id, ['paid'], order.status, {
-        status: 'cancelled',
-        paymentStatus: 'refunded',
-        cancelledAt: order.cancelledAt ?? new Date(),
-      })
-      if (!recorded) {
+      if (!(await markOrderRefunded(order, ['paid'], note ?? 'Order refunded'))) {
         throw new CommerceError('This order changed while it was being refunded.', 'VALIDATION', 409)
       }
-
-      // Cancelling already released it, so a late payment must not release it again.
-      if (order.status !== 'cancelled' && order.couponCode) await releaseCoupon(order.couponCode)
-
-      await createOrderHistory({
-        orderId: id,
-        fromStatus: order.status,
-        toStatus: 'cancelled',
-        note: note ?? 'Order refunded',
-      })
     },
   }
 }

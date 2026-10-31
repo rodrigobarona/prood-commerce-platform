@@ -32,6 +32,7 @@ import { releaseCoupon } from './coupons.js'
 import { listPaymentMethods, listShippingMethods } from './checkout-methods.js'
 import { normalizeLocalizedField } from './helpers.js'
 import { mapOrder } from './order-mapper.js'
+import { markOrderRefunded } from './order-refund.js'
 import { recordOrder, type OrderLine } from './order-recorder.js'
 
 // The order has its money, so another capture is a second payment, not a retry.
@@ -225,6 +226,30 @@ export function createOrdersDomain() {
         return 'second_payment'
       }
 
+      if (input.outcome === 'refunded' || input.outcome === 'partially_refunded') {
+        if (otherPayment) {
+          await noteOnce(
+            order,
+            `${input.provider} refunded ${input.transactionId}, which isn't the payment this order kept. The order didn't change.`,
+          )
+          return 'stale'
+        }
+        const note = `Refunded in ${input.provider}`
+        if (input.outcome === 'refunded') {
+          return (await markOrderRefunded(order, ['paid', 'partially_refunded'], note)) ? 'applied' : 'duplicate'
+        }
+        // The rest of the money stays with the merchant, so the order carries on.
+        const partial = await transitionOrderPayment(orderId, ['paid'], order.status, { paymentStatus: 'partially_refunded' })
+        if (!partial) return 'duplicate'
+        await createOrderHistory({
+          orderId,
+          fromStatus: order.status,
+          toStatus: order.status,
+          note: `Partly refunded in ${input.provider}: ${input.amount ?? 'unknown amount'} ${input.currency ?? ''}`.trim(),
+        })
+        return 'applied'
+      }
+
       // A refund needs to know where the money went.
       const payment = {
         paymentProvider: input.provider,
@@ -256,7 +281,7 @@ export function createOrdersDomain() {
         paymentStatus: 'voided',
         ...(cancels && { status: 'cancelled', cancelledAt: order.cancelledAt ?? now }),
       }
-      const next: Record<PaymentEventInput['outcome'], { note: string; data: Record<string, unknown> }> = {
+      const next: Record<typeof input.outcome, { note: string; data: Record<string, unknown> }> = {
         authorized: { note: 'Payment authorized', data: { ...payment, paymentStatus: 'authorized' } },
         captured: {
           note: 'Payment captured',

@@ -126,6 +126,47 @@ describe('refund', () => {
   })
 })
 
+describe('verifyWebhook', () => {
+  const notification = JSON.stringify({ id: 'r1', key: 'refund-order-1', type: 'refund', status: 'success' })
+  const payment = { id: 'p1', key: 'order-1', value: 24.9, currency: 'eur', payment_status: 'paid' }
+  const refund = { id: 'r1', status: 'success', value: 24.9, capture: { payment_id: 'p1', value: 24.9 } }
+
+  it('follows a refund notification from the refund to its order', async () => {
+    const fetch = mockFetch({ body: refund }, { body: payment })
+
+    await expect(easypay().verifyWebhook(notification, '')).resolves.toMatchObject({
+      type: 'payment.refunded',
+      sessionId: 'p1',
+      orderId: 'order-1',
+      amount: 24.9,
+      currency: 'EUR',
+    })
+    expect(fetch.mock.calls[0]?.[0]).toBe('https://api.prod.easypay.pt/2.0/refund/r1')
+    expect(fetch.mock.calls[1]?.[0]).toBe('https://api.prod.easypay.pt/2.0/single/p1')
+  })
+
+  it('tells a partial refund from a full one', async () => {
+    mockFetch({ body: { ...refund, value: 5 } }, { body: payment })
+    await expect(easypay().verifyWebhook(notification, '')).resolves.toMatchObject({
+      type: 'payment.partially_refunded',
+      amount: 5,
+    })
+  })
+
+  it.each(['pending', 'waiting', 'failed'])('records nothing while the refund is %s', async (status) => {
+    mockFetch({ body: { ...refund, status } }, { body: payment })
+    await expect(easypay().verifyWebhook(notification, '')).resolves.toMatchObject({ type: 'payment.updated' })
+  })
+
+  it('still reads other notifications from the payment', async () => {
+    const fetch = mockFetch({ body: payment })
+    await expect(
+      easypay().verifyWebhook(JSON.stringify({ id: 'p1', type: 'capture', status: 'success' }), ''),
+    ).resolves.toMatchObject({ type: 'payment.captured', sessionId: 'p1', orderId: 'order-1' })
+    expect(fetch.mock.calls[0]?.[0]).toBe('https://api.prod.easypay.pt/2.0/single/p1')
+  })
+})
+
 describe('checkCredentials', () => {
   it('uses a read-only call', async () => {
     const fetch = mockFetch({ body: { data: [] } })

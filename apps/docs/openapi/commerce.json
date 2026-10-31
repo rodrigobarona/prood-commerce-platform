@@ -20068,7 +20068,7 @@
                           "type": "null"
                         }
                       ],
-                      "description": "`provider`: Prood sends the refund. `manual`: refund in the payment account, then record it with `recordOnly`. Null when nothing can be refunded."
+                      "description": "`provider`: Prood can send the refund. `manual`: refund in the payment account first. Either way, `recordOnly` records a refund already made there. Null when nothing can be refunded."
                     }
                   },
                   "required": [
@@ -21037,7 +21037,7 @@
                     "type": "string"
                   },
                   "recordOnly": {
-                    "description": "Record a refund already sent from the payment account. Only allowed on orders whose `refund` is `manual`: Prood moves no money.",
+                    "description": "Record a refund already sent from the payment account. Prood moves no money.",
                     "type": "boolean"
                   }
                 },
