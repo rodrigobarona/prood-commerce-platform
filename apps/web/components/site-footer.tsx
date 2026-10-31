@@ -1,76 +1,81 @@
 import Link from "next/link"
 
-import { Logo } from "@/components/logo"
-import { siteConfig } from "@/lib/site"
+import { Logo } from "@prood/ui/components/logo"
+import { ThemeToggle } from "@/components/theme-toggle"
+import { docsPage, siteConfig } from "@/lib/site"
 
-const footerLinks = {
-  Product: [
-    { label: "How it works", href: "/#how-it-works" },
-    { label: "Pricing", href: "/pricing" },
-    { label: "Integrations", href: "/integrations" },
-    { label: "For agencies", href: "/agencies" },
-  ],
-  Resources: [
-    { label: "Documentation", href: `${siteConfig.docsUrl}/docs`, external: true },
-    { label: "For merchants", href: `${siteConfig.docsUrl}/docs/guides/for-merchants`, external: true },
-    { label: "Quick start", href: `${siteConfig.docsUrl}/docs/getting-started/quick-start`, external: true },
-    { label: "Demo storefront", href: siteConfig.storefrontUrl, external: true },
-  ],
-  Company: [
-    { label: "AI & agents", href: "/ai" },
-    { label: "Start free", href: siteConfig.registerUrl },
-    { label: "Privacy", href: "/privacy" },
-    { label: "Terms", href: "/terms" },
-  ],
-} as const
+const columns = [
+  {
+    title: "Product",
+    links: [
+      { label: "Pricing", href: "/pricing" },
+      { label: "Integrations", href: "/integrations" },
+      { label: "For agencies", href: "/agencies" },
+      { label: "For developers", href: "/developers" },
+    ],
+  },
+  {
+    title: "Docs",
+    links: [
+      { label: "Quick start", href: docsPage("getting-started/quick-start") },
+      { label: "Merchant guide", href: docsPage("guides/for-merchants") },
+      { label: "API reference", href: siteConfig.apiReferenceUrl },
+      { label: "MCP server", href: docsPage("apps/api/mcp") },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { label: "Contact", href: `mailto:${siteConfig.email}` },
+      { label: "Privacy", href: "/privacy" },
+      { label: "Terms", href: "/terms" },
+    ],
+  },
+] as const
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-border/60 bg-muted/15">
-      <div className="mx-auto max-w-6xl px-6 py-20 md:py-24">
-        <div className="grid gap-12 md:grid-cols-[minmax(0,1.35fr)_repeat(3,minmax(0,1fr))] md:gap-10">
-          <div className="space-y-5">
-            <Logo />
-            <p className="max-w-[22rem] text-[15px] leading-7 text-muted-foreground">
-              {siteConfig.tagline}. Start free on your domain, connect payments with your keys, and
-              upgrade when the business needs more—not to open the doors.
+    <footer className="border-t border-border">
+      <div className="mx-auto max-w-6xl px-5 py-16 sm:px-6">
+        <div className="grid gap-12 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+          <div className="max-w-xs">
+            <Logo className="h-7" />
+            <p className="mt-4 text-sm leading-6 text-muted-foreground">
+              Commerce on your own domain, your own payment accounts and an open API. No cut of
+              your sales.
             </p>
           </div>
-
-          {Object.entries(footerLinks).map(([title, links]) => (
-            <div key={title}>
-              <h3 className="text-[13px] font-semibold tracking-[0.02em]">{title}</h3>
-              <ul className="mt-5 space-y-3.5">
-                {links.map((link) => (
+          {columns.map((column) => (
+            <nav key={column.title} aria-label={column.title}>
+              <h2 className="font-sans text-sm font-semibold">{column.title}</h2>
+              <ul className="mt-4 space-y-3">
+                {column.links.map((link) => (
                   <li key={link.label}>
-                    {"external" in link && link.external ? (
-                      <a
-                        href={link.href}
-                        className="text-[14px] text-muted-foreground transition-colors hover:text-foreground"
-                        {...(link.href.startsWith("http")
-                          ? { target: "_blank", rel: "noopener noreferrer" }
-                          : {})}
-                      >
-                        {link.label}
-                      </a>
-                    ) : (
+                    {link.href.startsWith("/") ? (
                       <Link
                         href={link.href}
-                        className="text-[14px] text-muted-foreground transition-colors hover:text-foreground"
+                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                       >
                         {link.label}
                       </Link>
+                    ) : (
+                      <a
+                        href={link.href}
+                        className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                      >
+                        {link.label}
+                      </a>
                     )}
                   </li>
                 ))}
               </ul>
-            </div>
+            </nav>
           ))}
         </div>
 
-        <div className="mt-16 flex flex-col gap-2 border-t border-border/50 pt-8 text-[13px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 Prood. We don&apos;t take a cut of your sales.</p>
-          <p className="text-[12px]">hello@prood.com</p>
+        <div className="mt-14 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6 text-sm text-muted-foreground">
+          <p>© 2026 Prood</p>
+          <ThemeToggle />
         </div>
       </div>
     </footer>

@@ -1,8 +1,11 @@
 # Prood
 
-Production commerce platform built as a **pnpm + Turborepo** monorepo on
+Prood is an API-first, multi-tenant commerce platform: merchants and agencies
+get stores on their own domains, checkout through their own Stripe, Easypay or
+Ifthenpay accounts, and the same REST API, MCP server and Agent Auth that the
+dashboard uses, with no cut of sales. It's a **pnpm + Turborepo** monorepo on
 **Next.js 16 / React 19**, **Neon Postgres + Drizzle**, **Better Auth**,
-**Upstash Redis**, and Vercel.
+**Upstash Redis** and Vercel. Brand and voice: [`_docs/BRAND.md`](_docs/BRAND.md).
 
 ## Architecture
 

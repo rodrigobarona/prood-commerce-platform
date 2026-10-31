@@ -12,18 +12,14 @@
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
-    "@prood/billing": "workspace:*",
     "@phosphor-icons/react": "catalog:",
-    "class-variance-authority": "catalog:",
-    "clsx": "catalog:",
+    "@prood/billing": "workspace:*",
+    "@prood/types": "workspace:*",
+    "@prood/ui": "workspace:*",
     "next": "catalog:",
     "next-themes": "catalog:",
-    "radix-ui": "catalog:",
-    "shadcn": "catalog:",
     "react": "catalog:",
-    "react-dom": "catalog:",
-    "tailwind-merge": "catalog:",
-    "tw-animate-css": "catalog:"
+    "react-dom": "catalog:"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "catalog:",

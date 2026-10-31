@@ -1,71 +1,107 @@
-import type { Metadata } from "next"
-import Link from "next/link"
+import {
+  BracketsCurlyIcon,
+  GlobeSimpleIcon,
+  LockKeyIcon,
+  PlugsConnectedIcon,
+} from "@phosphor-icons/react/dist/ssr"
 
-import { IntegrationsSection } from "@/components/marketing/integrations-section"
-import { CtaSection } from "@/components/marketing/cta-section"
-import { MarketingCard, SectionContainer, SectionHeader, SectionShell } from "@/components/marketing/section"
-import { MarketingPageShell } from "@/components/marketing-page-shell"
-import { integrationCategories, integrationProviders } from "@/lib/integrations"
-import { siteConfig } from "@/lib/site"
+import { ClosingCta } from "@/components/marketing/closing-cta"
+import { PageHero, Section, SectionHeading } from "@/components/marketing/section"
+import { paymentProviders } from "@/lib/payment-providers"
+import { pageMetadata } from "@/lib/metadata"
+import { docsPage } from "@/lib/site"
 
-export const metadata: Metadata = {
+export const metadata = pageMetadata({
   title: "Integrations",
   description:
-    "Connect Stripe, Easypay, Ifthenpay, and more per store. Your keys, encrypted per merchant—no Prood fee on sales at launch.",
-}
+    "Connect Stripe, Easypay or Ifthenpay with your own accounts, bring your own domain, and build on the REST API and MCP server.",
+  path: "/integrations",
+})
+
+const platform = [
+  {
+    icon: GlobeSimpleIcon,
+    title: "Custom domains",
+    body: "Add a domain in the dashboard and Prood provisions it on Vercel with HTTPS. Every store also has a prood.app address.",
+  },
+  {
+    icon: BracketsCurlyIcon,
+    title: "REST API",
+    body: "Connect your ERP, shipping tools or spreadsheets through /v1 with an organization API key.",
+  },
+  {
+    icon: PlugsConnectedIcon,
+    title: "MCP server",
+    body: "Give any MCP-compatible AI client access to the store through 40 tools, with your approval for changes.",
+  },
+] as const
 
 export default function IntegrationsPage() {
-  const live = integrationProviders.filter((p) => p.status === "live")
-
   return (
-    <MarketingPageShell>
-      <SectionShell variant="glow">
-        <SectionContainer className="pt-24 pb-8 md:pt-32">
-          <SectionHeader
-            align="center"
-            eyebrow="Integrations"
-            title="Your processors, per store"
-            description="Each merchant connects their own accounts from the dashboard. Credentials stay encrypted. You pay the processor—Prood does not add a sales fee at launch."
-          />
-          <p className="mx-auto mt-6 max-w-2xl text-center text-[14px] text-muted-foreground">
-            Categories: {integrationCategories.join(", ")}.{" "}
-            <Link
-              href={`${siteConfig.docsUrl}/docs/guides/payment-integration`}
-              className="text-foreground underline-offset-4 hover:underline"
-            >
-              Read the payment guide
-            </Link>
-          </p>
-        </SectionContainer>
-      </SectionShell>
+    <>
+      <PageHero
+        eyebrow="Integrations"
+        title="Your accounts, connected per store."
+        lead="Each store connects its own payment accounts from the dashboard. Prood never holds your money and never shares keys between stores."
+      />
 
-      <IntegrationsSection />
-
-      <SectionShell variant="muted">
-        <SectionContainer>
-          <MarketingCard>
-            <h3 className="marketing-heading-md">Why we ask for your keys</h3>
-            <p className="marketing-copy mt-3">
-              Platforms often punish you for using Stripe or PayPal directly. Prood connects your
-              existing merchant accounts per store—so agencies and brands keep the relationships they
-              already have.
-            </p>
-          </MarketingCard>
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            {live.map((provider) => (
-              <div key={provider.id} className="marketing-panel p-5">
-                <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-                  {provider.category}
-                </p>
-                <h4 className="mt-2 text-[15px] font-semibold">{provider.name}</h4>
-                <p className="mt-2 text-[13px] leading-6 text-muted-foreground">{provider.description}</p>
+      <Section labelledBy="payments-title">
+        <SectionHeading
+          id="payments-title"
+          eyebrow="Payments"
+          title="Three providers, live today."
+          description="You pay your provider's processing fees. Prood adds nothing on top."
+        />
+        <ul className="mt-14 grid gap-4 lg:grid-cols-3">
+          {paymentProviders.map((provider) => (
+            <li key={provider.id} className="flex flex-col rounded-xl border border-border bg-card p-6">
+              <div className="flex items-baseline justify-between gap-4">
+                <h3 className="text-xl font-semibold">{provider.name}</h3>
+                <span className="rounded-full bg-success/12 px-2.5 py-0.5 text-xs font-medium text-success">
+                  Live
+                </span>
               </div>
-            ))}
-          </div>
-        </SectionContainer>
-      </SectionShell>
+              <p className="mt-1 text-sm text-muted-foreground">{provider.region}</p>
+              <p className="mt-4 flex-1 leading-7 text-muted-foreground">{provider.summary}</p>
+              <ul className="mt-5 flex flex-wrap gap-2" aria-label={`${provider.name} payment methods`}>
+                {provider.methods.map((method) => (
+                  <li key={method} className="rounded-md bg-muted px-2.5 py-1 text-sm">
+                    {method}
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-8 flex items-start gap-3 text-[0.9375rem] leading-6 text-muted-foreground">
+          <LockKeyIcon className="mt-0.5 size-5 shrink-0 text-brand" aria-hidden />
+          <p>
+            Credentials are encrypted for each store and only used to talk to your provider.{" "}
+            <a
+              href={docsPage("guides/payment-integration")}
+              className="font-medium text-foreground underline underline-offset-4"
+            >
+              Read the payment setup guide
+            </a>
+            .
+          </p>
+        </div>
+      </Section>
 
-      <CtaSection />
-    </MarketingPageShell>
+      <Section labelledBy="platform-title">
+        <SectionHeading id="platform-title" eyebrow="Platform" title="Domains and code." />
+        <ul className="mt-14 grid gap-x-8 gap-y-10 md:grid-cols-3">
+          {platform.map(({ icon: Icon, title, body }) => (
+            <li key={title} className="border-t border-border pt-5">
+              <Icon className="size-6 text-brand" aria-hidden />
+              <h3 className="mt-4 text-lg font-semibold">{title}</h3>
+              <p className="mt-2 leading-7 text-muted-foreground">{body}</p>
+            </li>
+          ))}
+        </ul>
+      </Section>
+
+      <ClosingCta />
+    </>
   )
 }
