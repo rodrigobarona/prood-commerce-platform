@@ -273,6 +273,7 @@ export class EasypayPaymentProvider implements PaymentProvider {
       orderId: payment.key ?? null,
       amount: typeof payment.value === 'number' ? payment.value : null,
       currency: payment.currency ? payment.currency.toUpperCase() : null,
+      method: methodFromCode(payment.method?.type) ?? null,
       data: payment as unknown as Record<string, unknown>,
     }
   }
@@ -290,6 +291,7 @@ export class EasypayPaymentProvider implements PaymentProvider {
       orderId: payment.key ?? null,
       amount: refund.value ?? null,
       currency: payment.currency ? payment.currency.toUpperCase() : null,
+      refundId,
       data: refund as unknown as Record<string, unknown>,
     }
   }
@@ -325,7 +327,10 @@ export class EasypayPaymentProvider implements PaymentProvider {
   }
 }
 
-/** Only a finished refund counts, and only all of the money makes it a full one. */
+/**
+ * Only a finished refund counts. Each one is compared with the capture alone,
+ * so the order adds up partial refunds that together return all the money.
+ */
 function refundEventType(refund: EasypayRefund, payment: EasypaySinglePayment): string {
   if (refund.status !== 'success') return 'payment.updated'
   const captured = refund.capture?.value ?? payment.value

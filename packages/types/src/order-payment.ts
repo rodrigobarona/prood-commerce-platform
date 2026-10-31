@@ -3,7 +3,10 @@
 // ---------------------------------------------------------------------------
 
 import type { Maybe } from './common.js'
-import type { Order, OrderPaymentDetails } from './order.js'
+import type { Order, OrderPaymentDetails, PaymentStatus } from './order.js'
+
+/** Nothing is owed on these, so the order can ship. A partial refund leaves the sale standing. */
+export const SETTLED_PAYMENTS: readonly PaymentStatus[] = ['paid', 'free', 'partially_refunded']
 
 /** How long a shopper has to approve an MB WAY request in the app. */
 export const MBWAY_WINDOW_MS = 5 * 60 * 1000
@@ -13,8 +16,9 @@ export const MBWAY_WINDOW_MS = 5 * 60 * 1000
  * - `awaiting_multibanco`: unpaid, with a reference to pay at an ATM or bank
  * - `awaiting_payment`: unpaid, or a payment is still being confirmed
  * - `failed`: the payment failed or was cancelled
- * - `refunded`: money went back to the shopper
- * - `cancelled_paid`: paid after the order was cancelled, so a refund is owed
+ * - `refunded`: all the money went back to the shopper
+ * - `partially_refunded`: some money went back, and the order carries on
+ * - `cancelled_paid`: the store holds money for a cancelled order, so a refund is owed
  */
 export type OrderPaymentState =
   | { kind: 'settled' }
@@ -22,6 +26,7 @@ export type OrderPaymentState =
   | { kind: 'awaiting_payment' }
   | { kind: 'failed' }
   | { kind: 'refunded' }
+  | { kind: 'partially_refunded' }
   | { kind: 'cancelled_paid' }
 
 export function orderPaymentState(
@@ -33,8 +38,9 @@ export function orderPaymentState(
     case 'free':
       return { kind: 'settled' }
     case 'refunded':
-    case 'partially_refunded':
       return { kind: 'refunded' }
+    case 'partially_refunded':
+      return order.status === 'cancelled' ? { kind: 'cancelled_paid' } : { kind: 'partially_refunded' }
     case 'voided':
       return { kind: 'failed' }
     case 'authorized':
@@ -64,7 +70,8 @@ export function orderOutcome(
   order: Pick<Order, 'status' | 'paymentStatus'> | null,
 ): OrderOutcome {
   if (!order) return { state: null, payable: true }
-  if (order.paymentStatus === 'paid' || order.paymentStatus === 'free') {
+  // Money on a cancelled order is owed back, so that is no completed purchase.
+  if (SETTLED_PAYMENTS.includes(order.paymentStatus) && order.status !== 'cancelled') {
     return { state: 'complete', payable: false }
   }
   // Same answer as orderPaymentState: authorized funds are still being confirmed.

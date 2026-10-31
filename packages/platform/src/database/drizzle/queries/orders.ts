@@ -50,6 +50,22 @@ export async function transitionOrderPayment(
   return rows.length > 0
 }
 
+/**
+ * Add a refund to an order and return all its refunds. One UPDATE, so refunds
+ * reported at once all count, and a redelivered one just writes itself again.
+ */
+export async function addOrderRefund(
+  orderId: string,
+  refundId: string,
+  amount: number,
+): Promise<Record<string, number>> {
+  const [row] = await getDb().update(schema.orders)
+    .set({ refunds: sql`${schema.orders.refunds} || ${JSON.stringify({ [refundId]: amount })}::jsonb` })
+    .where(and(eq(schema.orders.id, orderId), tenantCondition(schema.orders)))
+    .returning({ refunds: schema.orders.refunds })
+  return row?.refunds ?? {}
+}
+
 export async function findOrders(opts: { limit: number; offset: number; customerId?: string }) {
   const conditions: any[] = [tenantCondition(schema.orders)]
   if (opts.customerId) conditions.push(eq(schema.orders.customerId, opts.customerId))

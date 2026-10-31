@@ -46,6 +46,12 @@ function statusCopy(state: OrderPaymentState, couldNotOpenPayment: boolean) {
       }
     case "refunded":
       return { settled: false, title: "This order was refunded", detail: "Contact the store if you have any questions." }
+    case "partially_refunded":
+      return {
+        settled: true,
+        title: "Thank you for your order.",
+        detail: "Part of it was refunded. Contact the store if you have any questions.",
+      }
     case "cancelled_paid":
       return {
         settled: false,

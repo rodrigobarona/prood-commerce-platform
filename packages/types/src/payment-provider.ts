@@ -125,10 +125,17 @@ export interface PaymentWebhookEvent {
   sessionId: string
   /** Commerce order the payment belongs to, as reported by the gateway */
   orderId: string | null
-  /** Amount the gateway reports for this event, in major units (e.g. 49.90) */
+  /**
+   * Amount the gateway reports for this event, in major units (e.g. 49.90). On a
+   * refund with `refundId` this is that one refund; without it, the running total.
+   */
   amount: number | null
   /** ISO 4217 currency of `amount`, uppercase */
   currency: string | null
+  /** How the shopper paid, when the gateway says */
+  method?: PaymentMethodKind | null
+  /** Gateway's id for this refund, for gateways that report refunds one at a time */
+  refundId?: string | null
   /** Raw event data from the provider */
   data: Record<string, unknown>
 }

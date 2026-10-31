@@ -37,6 +37,8 @@ export const orders = pgTable('orders', {
   paymentProvider: text('payment_provider'),
   paymentTransactionId: text('payment_transaction_id'),
   paymentDetails: jsonb('payment_details').$type<OrderPaymentDetails>(),
+  // Refunds the gateway reports one at a time, by its refund id, in major units
+  refunds: jsonb('refunds').$type<Record<string, number>>().notNull().default({}),
   couponCode: text('coupon_code'),
   trackingNumber: text('tracking_number'),
   trackingUrl: text('tracking_url'),

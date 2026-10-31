@@ -173,10 +173,16 @@ function formatMoney(amount: number, currency: string): string {
   return new Intl.NumberFormat("en-IE", { style: "currency", currency }).format(amount)
 }
 
-type OrderEmail = "confirmed" | "payment_failed" | "shipped" | "refunded"
+type OrderEmail = "confirmed" | "payment_failed" | "shipped" | "refunded" | "partially_refunded"
+
+/** What a partial refund's email reports. Gateways that don't name refunds give a running total. */
+interface PartialRefund {
+  amount: number | null
+  runningTotal: boolean
+}
 
 /** Email the shopper about their order, branded as the store. Run via `after()`. */
-async function sendOrderEmail(orgId: string, orderId: string, kind: OrderEmail) {
+async function sendOrderEmail(orgId: string, orderId: string, kind: OrderEmail, refund?: PartialRefund) {
   const storefrontUrl = process.env.NEXT_PUBLIC_STOREFRONT_URL
   if (!storefrontUrl) throw new Error("NEXT_PUBLIC_STOREFRONT_URL is required")
 
@@ -224,6 +230,16 @@ async function sendOrderEmail(orgId: string, orderId: string, kind: OrderEmail) 
       template: "order-refunded",
       data: { ...base, refundAmount: total, orderUrl: ordersUrl },
     },
+    partially_refunded: {
+      subject: `${store.name}: partial refund for order #${order.orderNumber}`,
+      template: "order-refunded",
+      data: {
+        ...base,
+        refundAmount: refund?.amount == null ? "Part of your order" : formatMoney(refund.amount, order.totals.total.currency),
+        refundAmountLabel: refund?.runningTotal ? "Refunded so far" : "Refund amount",
+        orderUrl: ordersUrl,
+      },
+    },
   }
 
   const message = messages[kind]
@@ -231,9 +247,9 @@ async function sendOrderEmail(orgId: string, orderId: string, kind: OrderEmail) 
 }
 
 /** Queue an order email to send after the response, logging failures. */
-function queueOrderEmail(orgId: string, orderId: string, kind: OrderEmail) {
+function queueOrderEmail(orgId: string, orderId: string, kind: OrderEmail, refund?: PartialRefund) {
   after(() =>
-    sendOrderEmail(orgId, orderId, kind).catch((err) =>
+    sendOrderEmail(orgId, orderId, kind, refund).catch((err) =>
       console.error(`[email] ${kind} email for order ${orderId} failed`, err)
     )
   )
@@ -263,9 +279,15 @@ export const webhooks = {
         currency: event.currency,
         provider,
         transactionId: event.sessionId || null,
+        method: event.method ?? null,
+        refundId: event.refundId ?? null,
       })
     )
 
+    // An error makes the provider redeliver it, by when the capture should be in.
+    if (result === "refund_before_capture") {
+      throw new CommerceError(`Order ${orderId} isn't paid yet, so its refund can't apply.`, "VALIDATION", 409)
+    }
     if (result === "amount_mismatch") {
       console.error(
         `[webhook] ${provider} amount mismatch for order ${orderId}: ${event.amount} ${event.currency}`
@@ -277,12 +299,19 @@ export const webhooks = {
     if (result === "second_payment") {
       console.error(`[webhook] ${provider} reported a second payment on order ${orderId}`)
     }
-    if (result !== "applied") return result
+    if (result !== "applied" && result !== "refund_completed") return result
 
     revalidateProducts(orgId)
     if (outcome === "captured") queueOrderEmail(orgId, orderId, "confirmed")
     if (outcome === "failed") queueOrderEmail(orgId, orderId, "payment_failed")
-    if (outcome === "refunded") queueOrderEmail(orgId, orderId, "refunded")
+    if (outcome === "refunded" || result === "refund_completed") {
+      queueOrderEmail(orgId, orderId, "refunded")
+    } else if (outcome === "partially_refunded") {
+      queueOrderEmail(orgId, orderId, "partially_refunded", {
+        amount: event.amount,
+        runningTotal: !event.refundId,
+      })
+    }
     return result
   },
 }

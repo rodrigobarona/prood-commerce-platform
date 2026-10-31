@@ -358,6 +358,7 @@ export class StripePaymentProvider implements PaymentProvider {
       orderId: metadata?.orderId ?? null,
       amount: minorAmount !== null && currency ? fromMinorUnits(minorAmount, currency) : null,
       currency,
+      method: 'card',
       data: event as unknown as Record<string, unknown>,
     }
   }

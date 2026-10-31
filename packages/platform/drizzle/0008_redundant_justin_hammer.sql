@@ -1,0 +1,1 @@
+ALTER TABLE "orders" ADD COLUMN "refunds" jsonb DEFAULT '{}'::jsonb NOT NULL;

@@ -31,7 +31,7 @@ describe('orderPaymentState', () => {
 
   it('reports refunds and money owed on a cancelled order', () => {
     expect(state({ paymentStatus: 'refunded', status: 'cancelled' }).kind).toBe('refunded')
-    expect(state({ paymentStatus: 'partially_refunded', status: 'approved' }).kind).toBe('refunded')
+    expect(state({ paymentStatus: 'partially_refunded', status: 'approved' }).kind).toBe('partially_refunded')
     expect(state({ paymentStatus: 'paid', status: 'cancelled' }).kind).toBe('cancelled_paid')
   })
 })
@@ -76,4 +76,23 @@ describe('toPortugueseMobile', () => {
   it.each(['', null, undefined, '212345678', '91234567', '+34 612 345 678'])('refuses %s', (input) =>
     expect(toPortugueseMobile(input)).toBeNull(),
   )
+})
+
+describe('money on the order', () => {
+  it("doesn't call a paid, cancelled order complete", () => {
+    expect(orderOutcome({ status: 'cancelled', paymentStatus: 'paid' })).toEqual({ state: 'failed', payable: false })
+    expect(state({ status: 'cancelled', paymentStatus: 'paid' })).toEqual({ kind: 'cancelled_paid' })
+  })
+
+  it('keeps a partly refunded sale standing', () => {
+    expect(orderOutcome({ status: 'approved', paymentStatus: 'partially_refunded' })).toEqual({
+      state: 'complete',
+      payable: false,
+    })
+    expect(state({ status: 'approved', paymentStatus: 'partially_refunded' })).toEqual({ kind: 'partially_refunded' })
+  })
+
+  it('owes the rest back when a partly refunded order is cancelled', () => {
+    expect(state({ status: 'cancelled', paymentStatus: 'partially_refunded' })).toEqual({ kind: 'cancelled_paid' })
+  })
 })

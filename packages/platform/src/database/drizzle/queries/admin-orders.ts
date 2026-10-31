@@ -57,17 +57,6 @@ export async function adminFindAllOrders(opts: {
   return { rows, total: countResult[0]?.count ?? 0 }
 }
 
-export async function updateOrderTracking(id: string, data: {
-  trackingNumber?: string | null
-  trackingUrl?: string | null
-  status?: string
-}) {
-  await getDb().update(schema.orders).set({
-    ...data as any,
-    updatedAt: new Date(),
-  }).where(and(eq(schema.orders.id, id), tenantCondition(schema.orders)))
-}
-
 export async function countOrdersByStatus() {
   const result = await getDb()
     .select({

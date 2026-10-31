@@ -2,15 +2,14 @@
 // Admin: Order management
 // ---------------------------------------------------------------------------
 
-import { CommerceError } from '@prood/types'
-import type { Order, PaginatedResult } from '@prood/types'
+import { CommerceError, SETTLED_PAYMENTS } from '@prood/types'
+import type { Order, PaginatedResult, PaymentStatus } from '@prood/types'
 import type { AdminListOrdersParams, FulfillOrderInput } from './types.js'
 import {
   findOrderById,
   findAllOrders,
-  updateOrderTracking,
-  updateOrder,
   createOrderHistory,
+  transitionOrderPayment,
 } from '../database/index.js'
 import { mapOrder } from '../domains/order-mapper.js'
 import { markOrderRefunded } from '../domains/order-refund.js'
@@ -58,17 +57,26 @@ export function createAdminOrdersDomain() {
       if (order.status === 'cancelled') {
         throw new CommerceError("A cancelled order can't be fulfilled.", 'VALIDATION', 422)
       }
+      if (order.status === 'fulfilled') {
+        throw new CommerceError('This order is already fulfilled.', 'VALIDATION', 422)
+      }
+      if (order.fulfillmentStatus === 'not_required') {
+        throw new CommerceError('This order has nothing to ship.', 'VALIDATION', 422)
+      }
+      if (!SETTLED_PAYMENTS.includes(order.paymentStatus as PaymentStatus)) {
+        throw new CommerceError("This order can't ship until it's paid.", 'VALIDATION', 422)
+      }
 
-      await updateOrderTracking(id, {
-        trackingNumber: input.trackingNumber ?? null,
-        trackingUrl: input.trackingUrl ?? null,
+      const fulfilled = await transitionOrderPayment(id, [order.paymentStatus], order.status, {
         status: 'fulfilled',
-      })
-
-      await updateOrder(id, {
         fulfillmentStatus: 'fulfilled',
         fulfilledAt: new Date(),
+        trackingNumber: input.trackingNumber ?? null,
+        trackingUrl: input.trackingUrl ?? null,
       })
+      if (!fulfilled) {
+        throw new CommerceError('This order changed while it was being fulfilled. Review it and try again.', 'VALIDATION', 409)
+      }
 
       await createOrderHistory({
         orderId: id,

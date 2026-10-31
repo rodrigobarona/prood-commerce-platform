@@ -7,6 +7,8 @@ export interface OrderRefundedEmailProps {
   customerName: string
   orderNumber: string
   refundAmount: string
+  /** Partial refunds can report the running total instead of this refund */
+  refundAmountLabel?: string
   orderUrl: string
 }
 
@@ -15,6 +17,7 @@ export function OrderRefundedEmail({
   customerName,
   orderNumber,
   refundAmount,
+  refundAmountLabel = 'Refund amount',
   orderUrl,
 }: OrderRefundedEmailProps) {
   return (
@@ -39,7 +42,7 @@ export function OrderRefundedEmail({
           <Text className="font-13 text-fg-3 m-0 mb-2 font-sans">Order number</Text>
           <Text className="font-16 text-fg m-0 mb-4 font-sans">{orderNumber}</Text>
           <Hr className="border-stroke my-4" />
-          <Text className="font-13 text-fg-3 m-0 mb-2 font-sans">Refund amount</Text>
+          <Text className="font-13 text-fg-3 m-0 mb-2 font-sans">{refundAmountLabel}</Text>
           <Text className="font-16 text-fg m-0 font-sans">{refundAmount}</Text>
         </Section>
 

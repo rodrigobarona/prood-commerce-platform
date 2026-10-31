@@ -131,6 +131,16 @@ describe('verifyWebhook', () => {
   const payment = { id: 'p1', key: 'order-1', value: 24.9, currency: 'eur', payment_status: 'paid' }
   const refund = { id: 'r1', status: 'success', value: 24.9, capture: { payment_id: 'p1', value: 24.9 } }
 
+  it('names a partial refund so the order can add it to the others', async () => {
+    mockFetch({ body: { ...refund, value: 10 } }, { body: payment })
+
+    await expect(easypay().verifyWebhook(notification, '')).resolves.toMatchObject({
+      type: 'payment.partially_refunded',
+      amount: 10,
+      refundId: 'r1',
+    })
+  })
+
   it('follows a refund notification from the refund to its order', async () => {
     const fetch = mockFetch({ body: refund }, { body: payment })
 

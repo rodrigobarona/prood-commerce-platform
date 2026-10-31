@@ -203,6 +203,8 @@ describe("reconcilePayment", () => {
       currency: "EUR",
       provider: "stripe",
       transactionId: "cs_1",
+      method: null,
+      refundId: null,
     })
     expect(emailsQueued()).toBe(1)
   })
@@ -223,13 +225,13 @@ describe("reconcilePayment", () => {
     expect(emailsQueued()).toBe(0)
   })
 
-  it("records a partial refund without telling the shopper the order was refunded", async () => {
+  it("tells the shopper about a partial refund", async () => {
     mocks.verifyPaymentWebhook.mockResolvedValue({ ...event, type: "payment.partially_refunded", amount: 5 })
 
     await expect(reconcile()).resolves.toBe("applied")
 
     expect(mocks.applyPaymentEvent).toHaveBeenCalledWith("order-1", expect.objectContaining({ outcome: "partially_refunded" }))
-    expect(emailsQueued()).toBe(0)
+    expect(emailsQueued()).toBe(1)
   })
 })
 
@@ -247,5 +249,49 @@ describe("getOrder", () => {
   it("offers the manual path for a provider without refunds", async () => {
     connect({ refund: undefined, refundableMethods: [] })
     await expect(admin.getOrder("org", "order-1")).resolves.toMatchObject({ refund: "manual" })
+  })
+})
+
+describe("refund webhooks", () => {
+  const event = (type: string, extra = {}) => ({
+    type,
+    sessionId: "tx_1",
+    orderId: "order-1",
+    amount: 10,
+    currency: "EUR",
+    data: {},
+    ...extra,
+  })
+
+  beforeEach(() => vi.clearAllMocks())
+
+  it("errors on a refund that beat its capture, so the provider redelivers it", async () => {
+    mocks.verifyPaymentWebhook.mockResolvedValue(event("payment.refunded"))
+    mocks.applyPaymentEvent.mockResolvedValue("refund_before_capture")
+
+    await expect(webhooks.reconcilePayment("easypay", "{}", "", "org-1")).rejects.toMatchObject({ statusCode: 409 })
+    expect(mocks.after).not.toHaveBeenCalled()
+  })
+
+  it("passes on how the gateway identifies a refund", async () => {
+    mocks.verifyPaymentWebhook.mockResolvedValue(event("payment.partially_refunded", { refundId: "r1" }))
+    mocks.applyPaymentEvent.mockResolvedValue("applied")
+
+    await webhooks.reconcilePayment("easypay", "{}", "", "org-1")
+
+    expect(mocks.applyPaymentEvent).toHaveBeenCalledWith(
+      "order-1",
+      expect.objectContaining({ outcome: "partially_refunded", amount: 10, refundId: "r1" }),
+    )
+    expect(mocks.after).toHaveBeenCalledOnce()
+  })
+
+  it("stays quiet about a redelivered partial refund", async () => {
+    mocks.verifyPaymentWebhook.mockResolvedValue(event("payment.partially_refunded"))
+    mocks.applyPaymentEvent.mockResolvedValue("duplicate")
+
+    await webhooks.reconcilePayment("easypay", "{}", "", "org-1")
+
+    expect(mocks.after).not.toHaveBeenCalled()
   })
 })
