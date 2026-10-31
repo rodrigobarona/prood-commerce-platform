@@ -16,7 +16,7 @@ import {
   type SavedItem,
 } from "@/components/cart/save-for-later"
 import { useCart } from "@/components/providers/cart-provider"
-import { STORE_CLOSED_MESSAGE } from "@/lib/store-status"
+import { STORE_CLOSED_MESSAGE, canCheckOut } from "@/lib/store-status"
 
 export default function CartPage() {
   const {
@@ -83,6 +83,7 @@ export default function CartPage() {
   }
 
   const formattedTotal = cart.totals.total.formatted || ""
+  const checkoutOpen = canCheckOut(canTakeOrders, cart)
 
   return (
     <>
@@ -146,7 +147,7 @@ export default function CartPage() {
 
             <CartSummary
               cart={cart}
-              checkoutDisabledReason={canTakeOrders ? undefined : STORE_CLOSED_MESSAGE}
+              checkoutDisabledReason={checkoutOpen ? undefined : STORE_CLOSED_MESSAGE}
             />
 
             <div className="rounded-2xl border p-5">
@@ -165,7 +166,7 @@ export default function CartPage() {
 
       {/* Sticky mobile checkout CTA */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-4 backdrop-blur-sm lg:hidden">
-        {canTakeOrders ? (
+        {checkoutOpen ? (
           <Button asChild className="w-full" size="lg">
             <Link href="/checkout">
               Checkout · {formattedTotal}

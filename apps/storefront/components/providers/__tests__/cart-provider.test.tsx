@@ -52,6 +52,15 @@ describe("the cart drawer", () => {
     expect(screen.getByRole("link", { name: "Checkout" }).getAttribute("href")).toBe("/checkout")
   })
 
+  it("keeps checkout open for a free cart when the store can't take orders", async () => {
+    const free = { ...price, amount: 0, formatted: "€0.00" }
+    vi.mocked(fetch).mockImplementation(
+      async () => new Response(JSON.stringify({ cart: { ...cart, totals: { subtotal: free, total: free } } })),
+    )
+    await openCart(false)
+    expect(screen.getByRole("link", { name: "Checkout" }).getAttribute("href")).toBe("/checkout")
+  })
+
   it("shuts checkout, with the reason, when the store can't take orders", async () => {
     await openCart(false)
     expect(screen.queryByRole("link", { name: "Checkout" })).toBeNull()

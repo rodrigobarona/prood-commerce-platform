@@ -7,7 +7,7 @@ import { localized } from "@prood/ui/lib/commerce"
 import { cn } from "@prood/ui/lib/utils"
 import { useCart } from "@/components/providers/cart-provider"
 import { startCheckout } from "@/app/(checkout)/checkout/actions"
-import { STORE_CLOSED_MESSAGE } from "@/lib/store-status"
+import { STORE_CLOSED_MESSAGE, canCheckOut } from "@/lib/store-status"
 import { CheckoutSidebar } from "./checkout-sidebar"
 import { ContactStep } from "./steps/contact-step"
 import { AddressStep } from "./steps/address-step"
@@ -90,17 +90,6 @@ export function CheckoutFlow({ geoCountry }: { geoCountry?: string }) {
 
   const goTo = useCallback((step: number) => setActiveStep(step), [])
 
-  if (!canTakeOrders) {
-    return (
-      <EmptyState
-        title={STORE_CLOSED_MESSAGE}
-        description="Your cart is saved. Check back soon."
-        actionLabel="Back to store"
-        actionHref="/"
-      />
-    )
-  }
-
   if (hydrating) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
@@ -127,6 +116,17 @@ export function CheckoutFlow({ geoCountry }: { geoCountry?: string }) {
         description="Add something before checking out."
         actionLabel="Browse products"
         actionHref="/products"
+      />
+    )
+  }
+
+  if (!canCheckOut(canTakeOrders, cart)) {
+    return (
+      <EmptyState
+        title={STORE_CLOSED_MESSAGE}
+        description="Your cart is saved. Check back soon."
+        actionLabel="Back to store"
+        actionHref="/"
       />
     )
   }

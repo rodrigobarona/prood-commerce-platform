@@ -14,7 +14,7 @@ import type { Cart, CartItem, Product } from "@prood/types"
 import { CartDrawer } from "@prood/ui/components/cart-drawer"
 import { toast } from "sonner"
 import { latestOnly } from "@/lib/latest-only"
-import { STORE_CLOSED_MESSAGE } from "@/lib/store-status"
+import { STORE_CLOSED_MESSAGE, canCheckOut } from "@/lib/store-status"
 
 interface AddItemInput {
   productId: string
@@ -300,7 +300,7 @@ export function CartProvider({
         onOpenChange={setOpen}
         cart={cart}
         loading={loading}
-        checkoutDisabledReason={canTakeOrders ? undefined : STORE_CLOSED_MESSAGE}
+        checkoutDisabledReason={canCheckOut(canTakeOrders, cart) ? undefined : STORE_CLOSED_MESSAGE}
         onUpdateQuantity={updateItem}
         onRemove={removeItem}
       />

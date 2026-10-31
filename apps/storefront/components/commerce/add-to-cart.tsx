@@ -6,7 +6,7 @@ import type { Product } from "@prood/types"
 import { Button } from "@prood/ui/components/button"
 import { QuantitySelector } from "@prood/ui/components/quantity-selector"
 import { useCart } from "@/components/providers/cart-provider"
-import { STORE_CLOSED_MESSAGE } from "@/lib/store-status"
+import { STORE_CLOSED_MESSAGE, isFree } from "@/lib/store-status"
 
 export function AddToCart({
   product,
@@ -19,7 +19,9 @@ export function AddToCart({
 }) {
   const { addItem, canTakeOrders, loading } = useCart()
   const [quantity, setQuantity] = useState(1)
-  const purchasable = available && canTakeOrders
+  const price = product.variants.find((variant) => variant.id === variantId)?.price ?? product.price
+  const open = canTakeOrders || isFree(price)
+  const purchasable = available && open
 
   return (
     <div className="flex flex-col gap-4">
@@ -39,7 +41,7 @@ export function AddToCart({
           {available ? "Add to cart" : "Out of stock"}
         </Button>
       </div>
-      {canTakeOrders ? null : (
+      {open ? null : (
         <p className="text-muted-foreground text-sm">{STORE_CLOSED_MESSAGE}</p>
       )}
     </div>

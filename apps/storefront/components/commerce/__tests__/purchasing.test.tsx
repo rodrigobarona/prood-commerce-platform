@@ -46,6 +46,21 @@ describe("AddToCart", () => {
     expect(screen.getByText("This store isn't taking orders yet.")).toBeTruthy()
   })
 
+  it("lets shoppers add a free product even so, since it needs no payment", () => {
+    mocks.cart.canTakeOrders = false
+    const free = { ...product, price: { amount: 0, currency: "EUR", formatted: "€0.00" } } as Product
+    render(<AddToCart product={free} available />)
+    expect(addButton().disabled).toBe(false)
+    expect(screen.queryByText("This store isn't taking orders yet.")).toBeNull()
+  })
+
+  it("goes by the chosen variant's price", () => {
+    mocks.cart.canTakeOrders = false
+    const variants = [{ id: "v1", price: { amount: 0, currency: "EUR", formatted: "€0.00" } }]
+    render(<AddToCart product={{ ...product, variants } as unknown as Product} variantId="v1" available />)
+    expect(addButton().disabled).toBe(false)
+  })
+
   it("still reports stock on its own", () => {
     render(<AddToCart product={product} available={false} />)
     expect(addButton().textContent).toContain("Out of stock")

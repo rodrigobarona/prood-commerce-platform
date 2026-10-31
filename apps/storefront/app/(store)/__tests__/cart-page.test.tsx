@@ -48,6 +48,18 @@ describe("CartPage", () => {
     expect(screen.getByRole("link", { name: "Proceed to checkout" }).getAttribute("href")).toBe("/checkout")
   })
 
+  it("keeps checkout open for a free cart when the store can't take orders", () => {
+    mocks.cart.canTakeOrders = false
+    mocks.cart.cart = {
+      items: [{ id: "i1" }],
+      itemCount: 1,
+      totals: { subtotal: price(0), total: price(0) },
+    }
+    render(<CartPage />)
+    expect(screen.getByRole("link", { name: "Proceed to checkout" }).getAttribute("href")).toBe("/checkout")
+    expect(screen.queryByText("This store isn't taking orders yet.")).toBeNull()
+  })
+
   it("shuts both ways to checkout, with the reason, when the store can't take orders", () => {
     mocks.cart.canTakeOrders = false
     render(<CartPage />)
