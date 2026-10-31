@@ -18,6 +18,13 @@ export async function generateMetadata(): Promise<Metadata> {
   return store ? storeMetadata(store) : {}
 }
 
+async function StoreProviders({ children }: { children: React.ReactNode }) {
+  // If the store can't be read, don't tell shoppers it's closed: the API still
+  // refuses an order it can't take payment for.
+  const store = await fetchStoreInfo().catch(() => null)
+  return <AppProviders canTakeOrders={store?.canTakeOrders ?? true}>{children}</AppProviders>
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,7 +38,7 @@ export default function RootLayout({
     >
       <body suppressHydrationWarning className="flex min-h-svh flex-col">
         <Suspense fallback={null}>
-          <AppProviders>{children}</AppProviders>
+          <StoreProviders>{children}</StoreProviders>
         </Suspense>
       </body>
     </html>

@@ -14,6 +14,7 @@ import type { Cart, CartItem, Product } from "@prood/types"
 import { CartDrawer } from "@prood/ui/components/cart-drawer"
 import { toast } from "sonner"
 import { latestOnly } from "@/lib/latest-only"
+import { STORE_CLOSED_MESSAGE } from "@/lib/store-status"
 
 interface AddItemInput {
   productId: string
@@ -23,6 +24,7 @@ interface AddItemInput {
 
 interface CartContextValue {
   cart: Cart | null
+  canTakeOrders: boolean
   itemCount: number
   loading: boolean
   hydrating: boolean
@@ -114,7 +116,13 @@ function applyOptimisticRemove(cart: Cart, itemId: string): Cart {
   }
 }
 
-export function CartProvider({ children }: { children: ReactNode }) {
+export function CartProvider({
+  canTakeOrders,
+  children,
+}: {
+  canTakeOrders: boolean
+  children: ReactNode
+}) {
   const [cart, setCart] = useState<Cart | null>(null)
   const [loading, setLoading] = useState(false)
   const [hydrating, setHydrating] = useState(true)
@@ -271,6 +279,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     <CartContext
       value={{
         cart,
+        canTakeOrders,
         itemCount: cart?.itemCount ?? 0,
         loading,
         hydrating,
@@ -291,6 +300,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         onOpenChange={setOpen}
         cart={cart}
         loading={loading}
+        checkoutDisabledReason={canTakeOrders ? undefined : STORE_CLOSED_MESSAGE}
         onUpdateQuantity={updateItem}
         onRemove={removeItem}
       />

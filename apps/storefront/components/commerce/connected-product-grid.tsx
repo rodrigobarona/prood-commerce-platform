@@ -11,6 +11,12 @@ export function ConnectedProductGrid({
   products: Product[]
   columns?: 2 | 3 | 4 | 5 | 6
 }) {
-  const { addProduct } = useCart()
-  return <ProductGrid products={products} columns={columns} onAddToCart={addProduct} />
+  const { addProduct, canTakeOrders } = useCart()
+  return (
+    <ProductGrid
+      products={products}
+      columns={columns}
+      onAddToCart={canTakeOrders ? addProduct : undefined}
+    />
+  )
 }

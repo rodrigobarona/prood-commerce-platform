@@ -1,12 +1,13 @@
 "use server"
 
 import type { CheckoutAddress } from "@prood/types"
-import { isCommerceApiError, unwrap } from "@prood/api-client"
+import { unwrap } from "@prood/api-client"
 import { headers } from "next/headers"
 import { clearCartId, getCartId } from "@/lib/cart-cookie"
 import { getCommerceApi } from "@/lib/commerce-api"
 import { resolveTenantId } from "@/lib/tenant"
 import { fetchStoreInfo } from "@/lib/commerce-data"
+import { checkoutErrorMessage } from "@/lib/checkout-error"
 import { localized } from "@prood/ui/lib/commerce"
 
 export interface CheckoutResult {
@@ -129,7 +130,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
 
     return { ok: true, orderId: order.id, checkoutUrl: session.checkoutUrl }
   } catch (err) {
-    const message = err instanceof Error || isCommerceApiError(err) ? err.message : null
-    return { ok: false, error: message ?? "Checkout failed" }
+    console.error("[checkout] failed to start", err)
+    return { ok: false, error: checkoutErrorMessage(err) }
   }
 }

@@ -119,7 +119,8 @@ export function useSavedItems() {
 
 interface SavedItemRowProps {
   item: SavedItem
-  onMoveToCart: (item: SavedItem) => void
+  /** Omit while items can't be added to the cart. */
+  onMoveToCart?: (item: SavedItem) => void
   onRemove: (productId: string) => void
 }
 
@@ -165,7 +166,8 @@ function SavedItemRow({ item, onMoveToCart, onRemove }: SavedItemRowProps) {
           type="button"
           variant="ghost"
           size="icon"
-          onClick={() => onMoveToCart(item)}
+          disabled={!onMoveToCart}
+          onClick={() => onMoveToCart?.(item)}
           aria-label="Move to cart"
         >
           <ShoppingCartIcon className="size-4" />
@@ -186,7 +188,7 @@ function SavedItemRow({ item, onMoveToCart, onRemove }: SavedItemRowProps) {
 
 interface SaveForLaterSectionProps {
   items: SavedItem[]
-  onMoveToCart: (item: SavedItem) => void
+  onMoveToCart?: (item: SavedItem) => void
   onRemove: (productId: string) => void
 }
 

@@ -16,10 +16,19 @@ import {
   type SavedItem,
 } from "@/components/cart/save-for-later"
 import { useCart } from "@/components/providers/cart-provider"
+import { STORE_CLOSED_MESSAGE } from "@/lib/store-status"
 
 export default function CartPage() {
-  const { cart, loading, addItem, updateItem, removeItem, applyCoupon, removeCoupon } =
-    useCart()
+  const {
+    cart,
+    canTakeOrders,
+    loading,
+    addItem,
+    updateItem,
+    removeItem,
+    applyCoupon,
+    removeCoupon,
+  } = useCart()
   const { items: savedItems, save: saveItem, remove: removeSaved } = useSavedItems()
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponError, setCouponError] = useState<string | null>(null)
@@ -125,7 +134,7 @@ export default function CartPage() {
                 <Separator />
                 <SaveForLaterSection
                   items={savedItems}
-                  onMoveToCart={handleMoveToCart}
+                  onMoveToCart={canTakeOrders ? handleMoveToCart : undefined}
                   onRemove={removeSaved}
                 />
               </>
@@ -135,7 +144,10 @@ export default function CartPage() {
           {/* Sidebar: Summary + Coupon */}
           <div className="flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start">
 
-            <CartSummary cart={cart} />
+            <CartSummary
+              cart={cart}
+              checkoutDisabledReason={canTakeOrders ? undefined : STORE_CLOSED_MESSAGE}
+            />
 
             <div className="rounded-2xl border p-5">
               <h3 className="mb-3 text-sm font-medium">Discount code</h3>
@@ -153,11 +165,17 @@ export default function CartPage() {
 
       {/* Sticky mobile checkout CTA */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-4 backdrop-blur-sm lg:hidden">
-        <Button asChild className="w-full" size="lg">
-          <Link href="/checkout">
-            Checkout · {formattedTotal}
-          </Link>
-        </Button>
+        {canTakeOrders ? (
+          <Button asChild className="w-full" size="lg">
+            <Link href="/checkout">
+              Checkout · {formattedTotal}
+            </Link>
+          </Button>
+        ) : (
+          <Button className="w-full" size="lg" disabled>
+            {STORE_CLOSED_MESSAGE}
+          </Button>
+        )}
       </div>
     </>
   )
