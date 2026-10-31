@@ -1,6 +1,5 @@
 import { Suspense } from "react"
 import { notFound } from "next/navigation"
-import type { Order } from "@prood/commerce"
 import type { OrderHistoryEntry } from "@prood/types"
 import { Badge } from "@prood/ui/components/badge"
 import {
@@ -19,7 +18,6 @@ export const metadata = { title: "Order" }
 
 const FULFILLABLE = new Set(["placed", "approved"])
 const CANCELLABLE = new Set(["placed", "approved"])
-const REFUNDABLE = new Set(["approved", "fulfilled"])
 // Nothing is owed on these, so they can ship.
 const SETTLED = new Set(["paid", "free"])
 
@@ -81,7 +79,7 @@ async function OrderDetail({
 }) {
   const { id } = await params
 
-  let order: Order
+  let order: Awaited<ReturnType<typeof getOrder>>
   let history: OrderHistoryEntry[]
   try {
     ;[order, history] = await Promise.all([
@@ -129,7 +127,8 @@ async function OrderDetail({
             order.fulfillmentStatus !== "not_required"
           }
           canCancel={CANCELLABLE.has(order.status)}
-          canRefund={REFUNDABLE.has(order.status) && order.paymentStatus === "paid"}
+          refund={order.refund}
+          refundAmount={formatPrice(totals.total)}
         />
       </div>
 
