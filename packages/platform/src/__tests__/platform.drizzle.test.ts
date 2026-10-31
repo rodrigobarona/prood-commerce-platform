@@ -171,6 +171,15 @@ describe('@prood/platform [drizzle]', () => {
       })
     })
 
+    it.each(['user', 'account', 'session', 'apikey', 'integration_config', 'member'])(
+      'cannot read %s inside a tenant scope',
+      async (table) => {
+        await expect(
+          withTenant(DEMO_ORG_ID, () => getDb().execute(sql.raw(`select 1 from "${table}" limit 1`))),
+        ).rejects.toMatchObject({ cause: expect.objectContaining({ code: '42501' }) })
+      },
+    )
+
     it('rejects inserts outside a tenant scope', async () => {
       await expect(
         getDb().execute(sql`insert into products (id, name, slug) values ('prod-orphan', '{}', 'orphan')`),
