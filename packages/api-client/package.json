@@ -13,6 +13,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@prood/types": "workspace:*",
     "openapi-fetch": "catalog:"
   },
   "devDependencies": {

@@ -638,41 +638,6 @@
                                         }
                                       ]
                                     },
-                                    "attributes": {
-                                      "type": "array",
-                                      "items": {
-                                        "type": "object",
-                                        "properties": {
-                                          "code": {
-                                            "type": "string"
-                                          },
-                                          "name": {
-                                            "type": "object",
-                                            "propertyNames": {
-                                              "type": "string"
-                                            },
-                                            "additionalProperties": {
-                                              "type": "string"
-                                            }
-                                          },
-                                          "value": {
-                                            "type": "object",
-                                            "propertyNames": {
-                                              "type": "string"
-                                            },
-                                            "additionalProperties": {
-                                              "type": "string"
-                                            }
-                                          }
-                                        },
-                                        "required": [
-                                          "code",
-                                          "name",
-                                          "value"
-                                        ],
-                                        "additionalProperties": false
-                                      }
-                                    },
                                     "inStock": {
                                       "type": "boolean"
                                     },
@@ -688,60 +653,8 @@
                                     "sku",
                                     "name",
                                     "price",
-                                    "attributes",
                                     "inStock",
                                     "inventoryQuantity"
-                                  ],
-                                  "additionalProperties": false
-                                }
-                              },
-                              "options": {
-                                "type": "array",
-                                "items": {
-                                  "type": "object",
-                                  "properties": {
-                                    "id": {
-                                      "type": "string"
-                                    },
-                                    "name": {
-                                      "type": "object",
-                                      "propertyNames": {
-                                        "type": "string"
-                                      },
-                                      "additionalProperties": {
-                                        "type": "string"
-                                      }
-                                    },
-                                    "values": {
-                                      "type": "array",
-                                      "items": {
-                                        "type": "object",
-                                        "properties": {
-                                          "id": {
-                                            "type": "string"
-                                          },
-                                          "name": {
-                                            "type": "object",
-                                            "propertyNames": {
-                                              "type": "string"
-                                            },
-                                            "additionalProperties": {
-                                              "type": "string"
-                                            }
-                                          }
-                                        },
-                                        "required": [
-                                          "id",
-                                          "name"
-                                        ],
-                                        "additionalProperties": false
-                                      }
-                                    }
-                                  },
-                                  "required": [
-                                    "id",
-                                    "name",
-                                    "values"
                                   ],
                                   "additionalProperties": false
                                 }
@@ -911,292 +824,6 @@
                                   "subscription"
                                 ]
                               },
-                              "digital": {
-                                "anyOf": [
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "downloadUrl": {
-                                        "type": [
-                                          "string",
-                                          "null"
-                                        ]
-                                      },
-                                      "fileSize": {
-                                        "type": [
-                                          "number",
-                                          "null"
-                                        ]
-                                      },
-                                      "fileType": {
-                                        "type": [
-                                          "string",
-                                          "null"
-                                        ]
-                                      },
-                                      "licenseKey": {
-                                        "type": [
-                                          "string",
-                                          "null"
-                                        ]
-                                      },
-                                      "maxDownloads": {
-                                        "type": [
-                                          "number",
-                                          "null"
-                                        ]
-                                      },
-                                      "expiresInHours": {
-                                        "type": [
-                                          "number",
-                                          "null"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "downloadUrl",
-                                      "fileSize",
-                                      "fileType",
-                                      "licenseKey",
-                                      "maxDownloads",
-                                      "expiresInHours"
-                                    ],
-                                    "additionalProperties": false
-                                  },
-                                  {
-                                    "type": "null"
-                                  }
-                                ]
-                              },
-                              "service": {
-                                "anyOf": [
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "durationMinutes": {
-                                        "type": [
-                                          "number",
-                                          "null"
-                                        ]
-                                      },
-                                      "requiresBooking": {
-                                        "type": "boolean"
-                                      },
-                                      "deliveryMode": {
-                                        "type": "string",
-                                        "enum": [
-                                          "in_person",
-                                          "remote",
-                                          "hybrid"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "durationMinutes",
-                                      "requiresBooking",
-                                      "deliveryMode"
-                                    ],
-                                    "additionalProperties": false
-                                  },
-                                  {
-                                    "type": "null"
-                                  }
-                                ]
-                              },
-                              "event": {
-                                "anyOf": [
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "startDate": {
-                                        "type": "string"
-                                      },
-                                      "endDate": {
-                                        "type": [
-                                          "string",
-                                          "null"
-                                        ]
-                                      },
-                                      "venue": {
-                                        "anyOf": [
-                                          {
-                                            "type": "object",
-                                            "propertyNames": {
-                                              "type": "string"
-                                            },
-                                            "additionalProperties": {
-                                              "type": "string"
-                                            }
-                                          },
-                                          {
-                                            "type": "null"
-                                          }
-                                        ]
-                                      },
-                                      "location": {
-                                        "type": [
-                                          "string",
-                                          "null"
-                                        ]
-                                      },
-                                      "isVirtual": {
-                                        "type": "boolean"
-                                      },
-                                      "seatInfo": {
-                                        "type": [
-                                          "string",
-                                          "null"
-                                        ]
-                                      },
-                                      "capacity": {
-                                        "type": [
-                                          "number",
-                                          "null"
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "startDate",
-                                      "endDate",
-                                      "venue",
-                                      "location",
-                                      "isVirtual",
-                                      "seatInfo",
-                                      "capacity"
-                                    ],
-                                    "additionalProperties": false
-                                  },
-                                  {
-                                    "type": "null"
-                                  }
-                                ]
-                              },
-                              "subscription": {
-                                "anyOf": [
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "interval": {
-                                        "type": "string",
-                                        "enum": [
-                                          "daily",
-                                          "weekly",
-                                          "monthly",
-                                          "quarterly",
-                                          "yearly"
-                                        ]
-                                      },
-                                      "intervalCount": {
-                                        "type": "number"
-                                      },
-                                      "trialDays": {
-                                        "type": "number"
-                                      },
-                                      "recurringPrice": {
-                                        "type": "object",
-                                        "properties": {
-                                          "amount": {
-                                            "type": "number"
-                                          },
-                                          "currency": {
-                                            "type": "string"
-                                          },
-                                          "formatted": {
-                                            "type": "string"
-                                          }
-                                        },
-                                        "required": [
-                                          "amount",
-                                          "currency",
-                                          "formatted"
-                                        ],
-                                        "additionalProperties": false
-                                      }
-                                    },
-                                    "required": [
-                                      "interval",
-                                      "intervalCount",
-                                      "trialDays",
-                                      "recurringPrice"
-                                    ],
-                                    "additionalProperties": false
-                                  },
-                                  {
-                                    "type": "null"
-                                  }
-                                ]
-                              },
-                              "preOrder": {
-                                "anyOf": [
-                                  {
-                                    "type": "object",
-                                    "properties": {
-                                      "enabled": {
-                                        "type": "boolean"
-                                      },
-                                      "releaseDate": {
-                                        "type": [
-                                          "string",
-                                          "null"
-                                        ]
-                                      },
-                                      "depositAmount": {
-                                        "anyOf": [
-                                          {
-                                            "type": "object",
-                                            "properties": {
-                                              "amount": {
-                                                "type": "number"
-                                              },
-                                              "currency": {
-                                                "type": "string"
-                                              },
-                                              "formatted": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            "required": [
-                                              "amount",
-                                              "currency",
-                                              "formatted"
-                                            ],
-                                            "additionalProperties": false
-                                          },
-                                          {
-                                            "type": "null"
-                                          }
-                                        ]
-                                      },
-                                      "message": {
-                                        "anyOf": [
-                                          {
-                                            "type": "object",
-                                            "propertyNames": {
-                                              "type": "string"
-                                            },
-                                            "additionalProperties": {
-                                              "type": "string"
-                                            }
-                                          },
-                                          {
-                                            "type": "null"
-                                          }
-                                        ]
-                                      }
-                                    },
-                                    "required": [
-                                      "enabled",
-                                      "releaseDate",
-                                      "depositAmount",
-                                      "message"
-                                    ],
-                                    "additionalProperties": false
-                                  },
-                                  {
-                                    "type": "null"
-                                  }
-                                ]
-                              },
                               "requiresShipping": {
                                 "type": "boolean"
                               },
@@ -1222,7 +849,6 @@
                               "gallery",
                               "rating",
                               "variants",
-                              "options",
                               "attributes",
                               "quantityLimit",
                               "categories",
@@ -1233,11 +859,6 @@
                               "createdAt",
                               "updatedAt",
                               "productType",
-                              "digital",
-                              "service",
-                              "event",
-                              "subscription",
-                              "preOrder",
                               "requiresShipping",
                               "isDropshipped",
                               "status"
@@ -1748,41 +1369,6 @@
                               }
                             ]
                           },
-                          "attributes": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "code": {
-                                  "type": "string"
-                                },
-                                "name": {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                },
-                                "value": {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                }
-                              },
-                              "required": [
-                                "code",
-                                "name",
-                                "value"
-                              ],
-                              "additionalProperties": false
-                            }
-                          },
                           "inStock": {
                             "type": "boolean"
                           },
@@ -1798,60 +1384,8 @@
                           "sku",
                           "name",
                           "price",
-                          "attributes",
                           "inStock",
                           "inventoryQuantity"
-                        ],
-                        "additionalProperties": false
-                      }
-                    },
-                    "options": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "name": {
-                            "type": "object",
-                            "propertyNames": {
-                              "type": "string"
-                            },
-                            "additionalProperties": {
-                              "type": "string"
-                            }
-                          },
-                          "values": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "id": {
-                                  "type": "string"
-                                },
-                                "name": {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                }
-                              },
-                              "required": [
-                                "id",
-                                "name"
-                              ],
-                              "additionalProperties": false
-                            }
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "name",
-                          "values"
                         ],
                         "additionalProperties": false
                       }
@@ -2021,292 +1555,6 @@
                         "subscription"
                       ]
                     },
-                    "digital": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "downloadUrl": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "fileSize": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            },
-                            "fileType": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "licenseKey": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "maxDownloads": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            },
-                            "expiresInHours": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "downloadUrl",
-                            "fileSize",
-                            "fileType",
-                            "licenseKey",
-                            "maxDownloads",
-                            "expiresInHours"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "service": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "durationMinutes": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            },
-                            "requiresBooking": {
-                              "type": "boolean"
-                            },
-                            "deliveryMode": {
-                              "type": "string",
-                              "enum": [
-                                "in_person",
-                                "remote",
-                                "hybrid"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "durationMinutes",
-                            "requiresBooking",
-                            "deliveryMode"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "event": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "startDate": {
-                              "type": "string"
-                            },
-                            "endDate": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "venue": {
-                              "anyOf": [
-                                {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "location": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "isVirtual": {
-                              "type": "boolean"
-                            },
-                            "seatInfo": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "capacity": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "startDate",
-                            "endDate",
-                            "venue",
-                            "location",
-                            "isVirtual",
-                            "seatInfo",
-                            "capacity"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "subscription": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "interval": {
-                              "type": "string",
-                              "enum": [
-                                "daily",
-                                "weekly",
-                                "monthly",
-                                "quarterly",
-                                "yearly"
-                              ]
-                            },
-                            "intervalCount": {
-                              "type": "number"
-                            },
-                            "trialDays": {
-                              "type": "number"
-                            },
-                            "recurringPrice": {
-                              "type": "object",
-                              "properties": {
-                                "amount": {
-                                  "type": "number"
-                                },
-                                "currency": {
-                                  "type": "string"
-                                },
-                                "formatted": {
-                                  "type": "string"
-                                }
-                              },
-                              "required": [
-                                "amount",
-                                "currency",
-                                "formatted"
-                              ],
-                              "additionalProperties": false
-                            }
-                          },
-                          "required": [
-                            "interval",
-                            "intervalCount",
-                            "trialDays",
-                            "recurringPrice"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "preOrder": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "enabled": {
-                              "type": "boolean"
-                            },
-                            "releaseDate": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "depositAmount": {
-                              "anyOf": [
-                                {
-                                  "type": "object",
-                                  "properties": {
-                                    "amount": {
-                                      "type": "number"
-                                    },
-                                    "currency": {
-                                      "type": "string"
-                                    },
-                                    "formatted": {
-                                      "type": "string"
-                                    }
-                                  },
-                                  "required": [
-                                    "amount",
-                                    "currency",
-                                    "formatted"
-                                  ],
-                                  "additionalProperties": false
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "message": {
-                              "anyOf": [
-                                {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            }
-                          },
-                          "required": [
-                            "enabled",
-                            "releaseDate",
-                            "depositAmount",
-                            "message"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
                     "requiresShipping": {
                       "type": "boolean"
                     },
@@ -2332,7 +1580,6 @@
                     "gallery",
                     "rating",
                     "variants",
-                    "options",
                     "attributes",
                     "quantityLimit",
                     "categories",
@@ -2343,11 +1590,6 @@
                     "createdAt",
                     "updatedAt",
                     "productType",
-                    "digital",
-                    "service",
-                    "event",
-                    "subscription",
-                    "preOrder",
                     "requiresShipping",
                     "isDropshipped",
                     "status"
@@ -2755,41 +1997,6 @@
                               }
                             ]
                           },
-                          "attributes": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "code": {
-                                  "type": "string"
-                                },
-                                "name": {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                },
-                                "value": {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                }
-                              },
-                              "required": [
-                                "code",
-                                "name",
-                                "value"
-                              ],
-                              "additionalProperties": false
-                            }
-                          },
                           "inStock": {
                             "type": "boolean"
                           },
@@ -2805,60 +2012,8 @@
                           "sku",
                           "name",
                           "price",
-                          "attributes",
                           "inStock",
                           "inventoryQuantity"
-                        ],
-                        "additionalProperties": false
-                      }
-                    },
-                    "options": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "name": {
-                            "type": "object",
-                            "propertyNames": {
-                              "type": "string"
-                            },
-                            "additionalProperties": {
-                              "type": "string"
-                            }
-                          },
-                          "values": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "id": {
-                                  "type": "string"
-                                },
-                                "name": {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                }
-                              },
-                              "required": [
-                                "id",
-                                "name"
-                              ],
-                              "additionalProperties": false
-                            }
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "name",
-                          "values"
                         ],
                         "additionalProperties": false
                       }
@@ -3028,292 +2183,6 @@
                         "subscription"
                       ]
                     },
-                    "digital": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "downloadUrl": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "fileSize": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            },
-                            "fileType": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "licenseKey": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "maxDownloads": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            },
-                            "expiresInHours": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "downloadUrl",
-                            "fileSize",
-                            "fileType",
-                            "licenseKey",
-                            "maxDownloads",
-                            "expiresInHours"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "service": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "durationMinutes": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            },
-                            "requiresBooking": {
-                              "type": "boolean"
-                            },
-                            "deliveryMode": {
-                              "type": "string",
-                              "enum": [
-                                "in_person",
-                                "remote",
-                                "hybrid"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "durationMinutes",
-                            "requiresBooking",
-                            "deliveryMode"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "event": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "startDate": {
-                              "type": "string"
-                            },
-                            "endDate": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "venue": {
-                              "anyOf": [
-                                {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "location": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "isVirtual": {
-                              "type": "boolean"
-                            },
-                            "seatInfo": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "capacity": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "startDate",
-                            "endDate",
-                            "venue",
-                            "location",
-                            "isVirtual",
-                            "seatInfo",
-                            "capacity"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "subscription": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "interval": {
-                              "type": "string",
-                              "enum": [
-                                "daily",
-                                "weekly",
-                                "monthly",
-                                "quarterly",
-                                "yearly"
-                              ]
-                            },
-                            "intervalCount": {
-                              "type": "number"
-                            },
-                            "trialDays": {
-                              "type": "number"
-                            },
-                            "recurringPrice": {
-                              "type": "object",
-                              "properties": {
-                                "amount": {
-                                  "type": "number"
-                                },
-                                "currency": {
-                                  "type": "string"
-                                },
-                                "formatted": {
-                                  "type": "string"
-                                }
-                              },
-                              "required": [
-                                "amount",
-                                "currency",
-                                "formatted"
-                              ],
-                              "additionalProperties": false
-                            }
-                          },
-                          "required": [
-                            "interval",
-                            "intervalCount",
-                            "trialDays",
-                            "recurringPrice"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "preOrder": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "enabled": {
-                              "type": "boolean"
-                            },
-                            "releaseDate": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "depositAmount": {
-                              "anyOf": [
-                                {
-                                  "type": "object",
-                                  "properties": {
-                                    "amount": {
-                                      "type": "number"
-                                    },
-                                    "currency": {
-                                      "type": "string"
-                                    },
-                                    "formatted": {
-                                      "type": "string"
-                                    }
-                                  },
-                                  "required": [
-                                    "amount",
-                                    "currency",
-                                    "formatted"
-                                  ],
-                                  "additionalProperties": false
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "message": {
-                              "anyOf": [
-                                {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            }
-                          },
-                          "required": [
-                            "enabled",
-                            "releaseDate",
-                            "depositAmount",
-                            "message"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
                     "requiresShipping": {
                       "type": "boolean"
                     },
@@ -3339,7 +2208,6 @@
                     "gallery",
                     "rating",
                     "variants",
-                    "options",
                     "attributes",
                     "quantityLimit",
                     "categories",
@@ -3350,11 +2218,6 @@
                     "createdAt",
                     "updatedAt",
                     "productType",
-                    "digital",
-                    "service",
-                    "event",
-                    "subscription",
-                    "preOrder",
                     "requiresShipping",
                     "isDropshipped",
                     "status"
@@ -12752,131 +11615,6 @@
                               "event",
                               "subscription"
                             ]
-                          },
-                          "digital": {
-                            "anyOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "downloadUrl": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "fileSize": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ]
-                                  },
-                                  "fileType": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "licenseKey": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "maxDownloads": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ]
-                                  },
-                                  "expiresInHours": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "downloadUrl",
-                                  "fileSize",
-                                  "fileType",
-                                  "licenseKey",
-                                  "maxDownloads",
-                                  "expiresInHours"
-                                ],
-                                "additionalProperties": false
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "event": {
-                            "anyOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "startDate": {
-                                    "type": "string"
-                                  },
-                                  "endDate": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "venue": {
-                                    "anyOf": [
-                                      {
-                                        "type": "object",
-                                        "propertyNames": {
-                                          "type": "string"
-                                        },
-                                        "additionalProperties": {
-                                          "type": "string"
-                                        }
-                                      },
-                                      {
-                                        "type": "null"
-                                      }
-                                    ]
-                                  },
-                                  "location": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "isVirtual": {
-                                    "type": "boolean"
-                                  },
-                                  "seatInfo": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "capacity": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "startDate",
-                                  "endDate",
-                                  "venue",
-                                  "location",
-                                  "isVirtual",
-                                  "seatInfo",
-                                  "capacity"
-                                ],
-                                "additionalProperties": false
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
                           }
                         },
                         "required": [
@@ -12889,9 +11627,7 @@
                           "price",
                           "totalPrice",
                           "fulfillmentStatus",
-                          "productType",
-                          "digital",
-                          "event"
+                          "productType"
                         ],
                         "additionalProperties": false
                       }
@@ -13763,131 +12499,6 @@
                                     "event",
                                     "subscription"
                                   ]
-                                },
-                                "digital": {
-                                  "anyOf": [
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "downloadUrl": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "fileSize": {
-                                          "type": [
-                                            "number",
-                                            "null"
-                                          ]
-                                        },
-                                        "fileType": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "licenseKey": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "maxDownloads": {
-                                          "type": [
-                                            "number",
-                                            "null"
-                                          ]
-                                        },
-                                        "expiresInHours": {
-                                          "type": [
-                                            "number",
-                                            "null"
-                                          ]
-                                        }
-                                      },
-                                      "required": [
-                                        "downloadUrl",
-                                        "fileSize",
-                                        "fileType",
-                                        "licenseKey",
-                                        "maxDownloads",
-                                        "expiresInHours"
-                                      ],
-                                      "additionalProperties": false
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                },
-                                "event": {
-                                  "anyOf": [
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "startDate": {
-                                          "type": "string"
-                                        },
-                                        "endDate": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "venue": {
-                                          "anyOf": [
-                                            {
-                                              "type": "object",
-                                              "propertyNames": {
-                                                "type": "string"
-                                              },
-                                              "additionalProperties": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "type": "null"
-                                            }
-                                          ]
-                                        },
-                                        "location": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "isVirtual": {
-                                          "type": "boolean"
-                                        },
-                                        "seatInfo": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "capacity": {
-                                          "type": [
-                                            "number",
-                                            "null"
-                                          ]
-                                        }
-                                      },
-                                      "required": [
-                                        "startDate",
-                                        "endDate",
-                                        "venue",
-                                        "location",
-                                        "isVirtual",
-                                        "seatInfo",
-                                        "capacity"
-                                      ],
-                                      "additionalProperties": false
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
                                 }
                               },
                               "required": [
@@ -13900,9 +12511,7 @@
                                 "price",
                                 "totalPrice",
                                 "fulfillmentStatus",
-                                "productType",
-                                "digital",
-                                "event"
+                                "productType"
                               ],
                               "additionalProperties": false
                             }
@@ -14760,131 +13369,6 @@
                               "event",
                               "subscription"
                             ]
-                          },
-                          "digital": {
-                            "anyOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "downloadUrl": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "fileSize": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ]
-                                  },
-                                  "fileType": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "licenseKey": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "maxDownloads": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ]
-                                  },
-                                  "expiresInHours": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "downloadUrl",
-                                  "fileSize",
-                                  "fileType",
-                                  "licenseKey",
-                                  "maxDownloads",
-                                  "expiresInHours"
-                                ],
-                                "additionalProperties": false
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "event": {
-                            "anyOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "startDate": {
-                                    "type": "string"
-                                  },
-                                  "endDate": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "venue": {
-                                    "anyOf": [
-                                      {
-                                        "type": "object",
-                                        "propertyNames": {
-                                          "type": "string"
-                                        },
-                                        "additionalProperties": {
-                                          "type": "string"
-                                        }
-                                      },
-                                      {
-                                        "type": "null"
-                                      }
-                                    ]
-                                  },
-                                  "location": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "isVirtual": {
-                                    "type": "boolean"
-                                  },
-                                  "seatInfo": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "capacity": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "startDate",
-                                  "endDate",
-                                  "venue",
-                                  "location",
-                                  "isVirtual",
-                                  "seatInfo",
-                                  "capacity"
-                                ],
-                                "additionalProperties": false
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
                           }
                         },
                         "required": [
@@ -14897,9 +13381,7 @@
                           "price",
                           "totalPrice",
                           "fulfillmentStatus",
-                          "productType",
-                          "digital",
-                          "event"
+                          "productType"
                         ],
                         "additionalProperties": false
                       }
@@ -15841,41 +14323,6 @@
                                     }
                                   ]
                                 },
-                                "attributes": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "object",
-                                    "properties": {
-                                      "code": {
-                                        "type": "string"
-                                      },
-                                      "name": {
-                                        "type": "object",
-                                        "propertyNames": {
-                                          "type": "string"
-                                        },
-                                        "additionalProperties": {
-                                          "type": "string"
-                                        }
-                                      },
-                                      "value": {
-                                        "type": "object",
-                                        "propertyNames": {
-                                          "type": "string"
-                                        },
-                                        "additionalProperties": {
-                                          "type": "string"
-                                        }
-                                      }
-                                    },
-                                    "required": [
-                                      "code",
-                                      "name",
-                                      "value"
-                                    ],
-                                    "additionalProperties": false
-                                  }
-                                },
                                 "inStock": {
                                   "type": "boolean"
                                 },
@@ -15891,60 +14338,8 @@
                                 "sku",
                                 "name",
                                 "price",
-                                "attributes",
                                 "inStock",
                                 "inventoryQuantity"
-                              ],
-                              "additionalProperties": false
-                            }
-                          },
-                          "options": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "id": {
-                                  "type": "string"
-                                },
-                                "name": {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                },
-                                "values": {
-                                  "type": "array",
-                                  "items": {
-                                    "type": "object",
-                                    "properties": {
-                                      "id": {
-                                        "type": "string"
-                                      },
-                                      "name": {
-                                        "type": "object",
-                                        "propertyNames": {
-                                          "type": "string"
-                                        },
-                                        "additionalProperties": {
-                                          "type": "string"
-                                        }
-                                      }
-                                    },
-                                    "required": [
-                                      "id",
-                                      "name"
-                                    ],
-                                    "additionalProperties": false
-                                  }
-                                }
-                              },
-                              "required": [
-                                "id",
-                                "name",
-                                "values"
                               ],
                               "additionalProperties": false
                             }
@@ -16114,292 +14509,6 @@
                               "subscription"
                             ]
                           },
-                          "digital": {
-                            "anyOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "downloadUrl": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "fileSize": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ]
-                                  },
-                                  "fileType": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "licenseKey": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "maxDownloads": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ]
-                                  },
-                                  "expiresInHours": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "downloadUrl",
-                                  "fileSize",
-                                  "fileType",
-                                  "licenseKey",
-                                  "maxDownloads",
-                                  "expiresInHours"
-                                ],
-                                "additionalProperties": false
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "service": {
-                            "anyOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "durationMinutes": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ]
-                                  },
-                                  "requiresBooking": {
-                                    "type": "boolean"
-                                  },
-                                  "deliveryMode": {
-                                    "type": "string",
-                                    "enum": [
-                                      "in_person",
-                                      "remote",
-                                      "hybrid"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "durationMinutes",
-                                  "requiresBooking",
-                                  "deliveryMode"
-                                ],
-                                "additionalProperties": false
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "event": {
-                            "anyOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "startDate": {
-                                    "type": "string"
-                                  },
-                                  "endDate": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "venue": {
-                                    "anyOf": [
-                                      {
-                                        "type": "object",
-                                        "propertyNames": {
-                                          "type": "string"
-                                        },
-                                        "additionalProperties": {
-                                          "type": "string"
-                                        }
-                                      },
-                                      {
-                                        "type": "null"
-                                      }
-                                    ]
-                                  },
-                                  "location": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "isVirtual": {
-                                    "type": "boolean"
-                                  },
-                                  "seatInfo": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "capacity": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "startDate",
-                                  "endDate",
-                                  "venue",
-                                  "location",
-                                  "isVirtual",
-                                  "seatInfo",
-                                  "capacity"
-                                ],
-                                "additionalProperties": false
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "subscription": {
-                            "anyOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "interval": {
-                                    "type": "string",
-                                    "enum": [
-                                      "daily",
-                                      "weekly",
-                                      "monthly",
-                                      "quarterly",
-                                      "yearly"
-                                    ]
-                                  },
-                                  "intervalCount": {
-                                    "type": "number"
-                                  },
-                                  "trialDays": {
-                                    "type": "number"
-                                  },
-                                  "recurringPrice": {
-                                    "type": "object",
-                                    "properties": {
-                                      "amount": {
-                                        "type": "number"
-                                      },
-                                      "currency": {
-                                        "type": "string"
-                                      },
-                                      "formatted": {
-                                        "type": "string"
-                                      }
-                                    },
-                                    "required": [
-                                      "amount",
-                                      "currency",
-                                      "formatted"
-                                    ],
-                                    "additionalProperties": false
-                                  }
-                                },
-                                "required": [
-                                  "interval",
-                                  "intervalCount",
-                                  "trialDays",
-                                  "recurringPrice"
-                                ],
-                                "additionalProperties": false
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "preOrder": {
-                            "anyOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "enabled": {
-                                    "type": "boolean"
-                                  },
-                                  "releaseDate": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "depositAmount": {
-                                    "anyOf": [
-                                      {
-                                        "type": "object",
-                                        "properties": {
-                                          "amount": {
-                                            "type": "number"
-                                          },
-                                          "currency": {
-                                            "type": "string"
-                                          },
-                                          "formatted": {
-                                            "type": "string"
-                                          }
-                                        },
-                                        "required": [
-                                          "amount",
-                                          "currency",
-                                          "formatted"
-                                        ],
-                                        "additionalProperties": false
-                                      },
-                                      {
-                                        "type": "null"
-                                      }
-                                    ]
-                                  },
-                                  "message": {
-                                    "anyOf": [
-                                      {
-                                        "type": "object",
-                                        "propertyNames": {
-                                          "type": "string"
-                                        },
-                                        "additionalProperties": {
-                                          "type": "string"
-                                        }
-                                      },
-                                      {
-                                        "type": "null"
-                                      }
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "enabled",
-                                  "releaseDate",
-                                  "depositAmount",
-                                  "message"
-                                ],
-                                "additionalProperties": false
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
                           "requiresShipping": {
                             "type": "boolean"
                           },
@@ -16425,7 +14534,6 @@
                           "gallery",
                           "rating",
                           "variants",
-                          "options",
                           "attributes",
                           "quantityLimit",
                           "categories",
@@ -16436,11 +14544,6 @@
                           "createdAt",
                           "updatedAt",
                           "productType",
-                          "digital",
-                          "service",
-                          "event",
-                          "subscription",
-                          "preOrder",
                           "requiresShipping",
                           "isDropshipped",
                           "status"
@@ -16856,41 +14959,6 @@
                               }
                             ]
                           },
-                          "attributes": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "code": {
-                                  "type": "string"
-                                },
-                                "name": {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                },
-                                "value": {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                }
-                              },
-                              "required": [
-                                "code",
-                                "name",
-                                "value"
-                              ],
-                              "additionalProperties": false
-                            }
-                          },
                           "inStock": {
                             "type": "boolean"
                           },
@@ -16906,60 +14974,8 @@
                           "sku",
                           "name",
                           "price",
-                          "attributes",
                           "inStock",
                           "inventoryQuantity"
-                        ],
-                        "additionalProperties": false
-                      }
-                    },
-                    "options": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "name": {
-                            "type": "object",
-                            "propertyNames": {
-                              "type": "string"
-                            },
-                            "additionalProperties": {
-                              "type": "string"
-                            }
-                          },
-                          "values": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "id": {
-                                  "type": "string"
-                                },
-                                "name": {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                }
-                              },
-                              "required": [
-                                "id",
-                                "name"
-                              ],
-                              "additionalProperties": false
-                            }
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "name",
-                          "values"
                         ],
                         "additionalProperties": false
                       }
@@ -17129,292 +15145,6 @@
                         "subscription"
                       ]
                     },
-                    "digital": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "downloadUrl": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "fileSize": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            },
-                            "fileType": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "licenseKey": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "maxDownloads": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            },
-                            "expiresInHours": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "downloadUrl",
-                            "fileSize",
-                            "fileType",
-                            "licenseKey",
-                            "maxDownloads",
-                            "expiresInHours"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "service": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "durationMinutes": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            },
-                            "requiresBooking": {
-                              "type": "boolean"
-                            },
-                            "deliveryMode": {
-                              "type": "string",
-                              "enum": [
-                                "in_person",
-                                "remote",
-                                "hybrid"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "durationMinutes",
-                            "requiresBooking",
-                            "deliveryMode"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "event": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "startDate": {
-                              "type": "string"
-                            },
-                            "endDate": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "venue": {
-                              "anyOf": [
-                                {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "location": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "isVirtual": {
-                              "type": "boolean"
-                            },
-                            "seatInfo": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "capacity": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "startDate",
-                            "endDate",
-                            "venue",
-                            "location",
-                            "isVirtual",
-                            "seatInfo",
-                            "capacity"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "subscription": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "interval": {
-                              "type": "string",
-                              "enum": [
-                                "daily",
-                                "weekly",
-                                "monthly",
-                                "quarterly",
-                                "yearly"
-                              ]
-                            },
-                            "intervalCount": {
-                              "type": "number"
-                            },
-                            "trialDays": {
-                              "type": "number"
-                            },
-                            "recurringPrice": {
-                              "type": "object",
-                              "properties": {
-                                "amount": {
-                                  "type": "number"
-                                },
-                                "currency": {
-                                  "type": "string"
-                                },
-                                "formatted": {
-                                  "type": "string"
-                                }
-                              },
-                              "required": [
-                                "amount",
-                                "currency",
-                                "formatted"
-                              ],
-                              "additionalProperties": false
-                            }
-                          },
-                          "required": [
-                            "interval",
-                            "intervalCount",
-                            "trialDays",
-                            "recurringPrice"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "preOrder": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "enabled": {
-                              "type": "boolean"
-                            },
-                            "releaseDate": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "depositAmount": {
-                              "anyOf": [
-                                {
-                                  "type": "object",
-                                  "properties": {
-                                    "amount": {
-                                      "type": "number"
-                                    },
-                                    "currency": {
-                                      "type": "string"
-                                    },
-                                    "formatted": {
-                                      "type": "string"
-                                    }
-                                  },
-                                  "required": [
-                                    "amount",
-                                    "currency",
-                                    "formatted"
-                                  ],
-                                  "additionalProperties": false
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "message": {
-                              "anyOf": [
-                                {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            }
-                          },
-                          "required": [
-                            "enabled",
-                            "releaseDate",
-                            "depositAmount",
-                            "message"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
                     "requiresShipping": {
                       "type": "boolean"
                     },
@@ -17440,7 +15170,6 @@
                     "gallery",
                     "rating",
                     "variants",
-                    "options",
                     "attributes",
                     "quantityLimit",
                     "categories",
@@ -17451,11 +15180,6 @@
                     "createdAt",
                     "updatedAt",
                     "productType",
-                    "digital",
-                    "service",
-                    "event",
-                    "subscription",
-                    "preOrder",
                     "requiresShipping",
                     "isDropshipped",
                     "status"
@@ -18076,41 +15800,6 @@
                               }
                             ]
                           },
-                          "attributes": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "code": {
-                                  "type": "string"
-                                },
-                                "name": {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                },
-                                "value": {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                }
-                              },
-                              "required": [
-                                "code",
-                                "name",
-                                "value"
-                              ],
-                              "additionalProperties": false
-                            }
-                          },
                           "inStock": {
                             "type": "boolean"
                           },
@@ -18126,60 +15815,8 @@
                           "sku",
                           "name",
                           "price",
-                          "attributes",
                           "inStock",
                           "inventoryQuantity"
-                        ],
-                        "additionalProperties": false
-                      }
-                    },
-                    "options": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "name": {
-                            "type": "object",
-                            "propertyNames": {
-                              "type": "string"
-                            },
-                            "additionalProperties": {
-                              "type": "string"
-                            }
-                          },
-                          "values": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "id": {
-                                  "type": "string"
-                                },
-                                "name": {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                }
-                              },
-                              "required": [
-                                "id",
-                                "name"
-                              ],
-                              "additionalProperties": false
-                            }
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "name",
-                          "values"
                         ],
                         "additionalProperties": false
                       }
@@ -18349,292 +15986,6 @@
                         "subscription"
                       ]
                     },
-                    "digital": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "downloadUrl": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "fileSize": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            },
-                            "fileType": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "licenseKey": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "maxDownloads": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            },
-                            "expiresInHours": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "downloadUrl",
-                            "fileSize",
-                            "fileType",
-                            "licenseKey",
-                            "maxDownloads",
-                            "expiresInHours"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "service": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "durationMinutes": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            },
-                            "requiresBooking": {
-                              "type": "boolean"
-                            },
-                            "deliveryMode": {
-                              "type": "string",
-                              "enum": [
-                                "in_person",
-                                "remote",
-                                "hybrid"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "durationMinutes",
-                            "requiresBooking",
-                            "deliveryMode"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "event": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "startDate": {
-                              "type": "string"
-                            },
-                            "endDate": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "venue": {
-                              "anyOf": [
-                                {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "location": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "isVirtual": {
-                              "type": "boolean"
-                            },
-                            "seatInfo": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "capacity": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "startDate",
-                            "endDate",
-                            "venue",
-                            "location",
-                            "isVirtual",
-                            "seatInfo",
-                            "capacity"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "subscription": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "interval": {
-                              "type": "string",
-                              "enum": [
-                                "daily",
-                                "weekly",
-                                "monthly",
-                                "quarterly",
-                                "yearly"
-                              ]
-                            },
-                            "intervalCount": {
-                              "type": "number"
-                            },
-                            "trialDays": {
-                              "type": "number"
-                            },
-                            "recurringPrice": {
-                              "type": "object",
-                              "properties": {
-                                "amount": {
-                                  "type": "number"
-                                },
-                                "currency": {
-                                  "type": "string"
-                                },
-                                "formatted": {
-                                  "type": "string"
-                                }
-                              },
-                              "required": [
-                                "amount",
-                                "currency",
-                                "formatted"
-                              ],
-                              "additionalProperties": false
-                            }
-                          },
-                          "required": [
-                            "interval",
-                            "intervalCount",
-                            "trialDays",
-                            "recurringPrice"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "preOrder": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "enabled": {
-                              "type": "boolean"
-                            },
-                            "releaseDate": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "depositAmount": {
-                              "anyOf": [
-                                {
-                                  "type": "object",
-                                  "properties": {
-                                    "amount": {
-                                      "type": "number"
-                                    },
-                                    "currency": {
-                                      "type": "string"
-                                    },
-                                    "formatted": {
-                                      "type": "string"
-                                    }
-                                  },
-                                  "required": [
-                                    "amount",
-                                    "currency",
-                                    "formatted"
-                                  ],
-                                  "additionalProperties": false
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "message": {
-                              "anyOf": [
-                                {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            }
-                          },
-                          "required": [
-                            "enabled",
-                            "releaseDate",
-                            "depositAmount",
-                            "message"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
                     "requiresShipping": {
                       "type": "boolean"
                     },
@@ -18660,7 +16011,6 @@
                     "gallery",
                     "rating",
                     "variants",
-                    "options",
                     "attributes",
                     "quantityLimit",
                     "categories",
@@ -18671,11 +16021,6 @@
                     "createdAt",
                     "updatedAt",
                     "productType",
-                    "digital",
-                    "service",
-                    "event",
-                    "subscription",
-                    "preOrder",
                     "requiresShipping",
                     "isDropshipped",
                     "status"
@@ -19078,41 +16423,6 @@
                               }
                             ]
                           },
-                          "attributes": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "code": {
-                                  "type": "string"
-                                },
-                                "name": {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                },
-                                "value": {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                }
-                              },
-                              "required": [
-                                "code",
-                                "name",
-                                "value"
-                              ],
-                              "additionalProperties": false
-                            }
-                          },
                           "inStock": {
                             "type": "boolean"
                           },
@@ -19128,60 +16438,8 @@
                           "sku",
                           "name",
                           "price",
-                          "attributes",
                           "inStock",
                           "inventoryQuantity"
-                        ],
-                        "additionalProperties": false
-                      }
-                    },
-                    "options": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "name": {
-                            "type": "object",
-                            "propertyNames": {
-                              "type": "string"
-                            },
-                            "additionalProperties": {
-                              "type": "string"
-                            }
-                          },
-                          "values": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "properties": {
-                                "id": {
-                                  "type": "string"
-                                },
-                                "name": {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                }
-                              },
-                              "required": [
-                                "id",
-                                "name"
-                              ],
-                              "additionalProperties": false
-                            }
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "name",
-                          "values"
                         ],
                         "additionalProperties": false
                       }
@@ -19351,292 +16609,6 @@
                         "subscription"
                       ]
                     },
-                    "digital": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "downloadUrl": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "fileSize": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            },
-                            "fileType": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "licenseKey": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "maxDownloads": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            },
-                            "expiresInHours": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "downloadUrl",
-                            "fileSize",
-                            "fileType",
-                            "licenseKey",
-                            "maxDownloads",
-                            "expiresInHours"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "service": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "durationMinutes": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            },
-                            "requiresBooking": {
-                              "type": "boolean"
-                            },
-                            "deliveryMode": {
-                              "type": "string",
-                              "enum": [
-                                "in_person",
-                                "remote",
-                                "hybrid"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "durationMinutes",
-                            "requiresBooking",
-                            "deliveryMode"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "event": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "startDate": {
-                              "type": "string"
-                            },
-                            "endDate": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "venue": {
-                              "anyOf": [
-                                {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "location": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "isVirtual": {
-                              "type": "boolean"
-                            },
-                            "seatInfo": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "capacity": {
-                              "type": [
-                                "number",
-                                "null"
-                              ]
-                            }
-                          },
-                          "required": [
-                            "startDate",
-                            "endDate",
-                            "venue",
-                            "location",
-                            "isVirtual",
-                            "seatInfo",
-                            "capacity"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "subscription": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "interval": {
-                              "type": "string",
-                              "enum": [
-                                "daily",
-                                "weekly",
-                                "monthly",
-                                "quarterly",
-                                "yearly"
-                              ]
-                            },
-                            "intervalCount": {
-                              "type": "number"
-                            },
-                            "trialDays": {
-                              "type": "number"
-                            },
-                            "recurringPrice": {
-                              "type": "object",
-                              "properties": {
-                                "amount": {
-                                  "type": "number"
-                                },
-                                "currency": {
-                                  "type": "string"
-                                },
-                                "formatted": {
-                                  "type": "string"
-                                }
-                              },
-                              "required": [
-                                "amount",
-                                "currency",
-                                "formatted"
-                              ],
-                              "additionalProperties": false
-                            }
-                          },
-                          "required": [
-                            "interval",
-                            "intervalCount",
-                            "trialDays",
-                            "recurringPrice"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "preOrder": {
-                      "anyOf": [
-                        {
-                          "type": "object",
-                          "properties": {
-                            "enabled": {
-                              "type": "boolean"
-                            },
-                            "releaseDate": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "depositAmount": {
-                              "anyOf": [
-                                {
-                                  "type": "object",
-                                  "properties": {
-                                    "amount": {
-                                      "type": "number"
-                                    },
-                                    "currency": {
-                                      "type": "string"
-                                    },
-                                    "formatted": {
-                                      "type": "string"
-                                    }
-                                  },
-                                  "required": [
-                                    "amount",
-                                    "currency",
-                                    "formatted"
-                                  ],
-                                  "additionalProperties": false
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            },
-                            "message": {
-                              "anyOf": [
-                                {
-                                  "type": "object",
-                                  "propertyNames": {
-                                    "type": "string"
-                                  },
-                                  "additionalProperties": {
-                                    "type": "string"
-                                  }
-                                },
-                                {
-                                  "type": "null"
-                                }
-                              ]
-                            }
-                          },
-                          "required": [
-                            "enabled",
-                            "releaseDate",
-                            "depositAmount",
-                            "message"
-                          ],
-                          "additionalProperties": false
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
                     "requiresShipping": {
                       "type": "boolean"
                     },
@@ -19662,7 +16634,6 @@
                     "gallery",
                     "rating",
                     "variants",
-                    "options",
                     "attributes",
                     "quantityLimit",
                     "categories",
@@ -19673,11 +16644,6 @@
                     "createdAt",
                     "updatedAt",
                     "productType",
-                    "digital",
-                    "service",
-                    "event",
-                    "subscription",
-                    "preOrder",
                     "requiresShipping",
                     "isDropshipped",
                     "status"
@@ -21214,131 +18180,6 @@
                                     "event",
                                     "subscription"
                                   ]
-                                },
-                                "digital": {
-                                  "anyOf": [
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "downloadUrl": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "fileSize": {
-                                          "type": [
-                                            "number",
-                                            "null"
-                                          ]
-                                        },
-                                        "fileType": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "licenseKey": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "maxDownloads": {
-                                          "type": [
-                                            "number",
-                                            "null"
-                                          ]
-                                        },
-                                        "expiresInHours": {
-                                          "type": [
-                                            "number",
-                                            "null"
-                                          ]
-                                        }
-                                      },
-                                      "required": [
-                                        "downloadUrl",
-                                        "fileSize",
-                                        "fileType",
-                                        "licenseKey",
-                                        "maxDownloads",
-                                        "expiresInHours"
-                                      ],
-                                      "additionalProperties": false
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                },
-                                "event": {
-                                  "anyOf": [
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "startDate": {
-                                          "type": "string"
-                                        },
-                                        "endDate": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "venue": {
-                                          "anyOf": [
-                                            {
-                                              "type": "object",
-                                              "propertyNames": {
-                                                "type": "string"
-                                              },
-                                              "additionalProperties": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "type": "null"
-                                            }
-                                          ]
-                                        },
-                                        "location": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "isVirtual": {
-                                          "type": "boolean"
-                                        },
-                                        "seatInfo": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "capacity": {
-                                          "type": [
-                                            "number",
-                                            "null"
-                                          ]
-                                        }
-                                      },
-                                      "required": [
-                                        "startDate",
-                                        "endDate",
-                                        "venue",
-                                        "location",
-                                        "isVirtual",
-                                        "seatInfo",
-                                        "capacity"
-                                      ],
-                                      "additionalProperties": false
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
                                 }
                               },
                               "required": [
@@ -21351,9 +18192,7 @@
                                 "price",
                                 "totalPrice",
                                 "fulfillmentStatus",
-                                "productType",
-                                "digital",
-                                "event"
+                                "productType"
                               ],
                               "additionalProperties": false
                             }
@@ -22208,131 +19047,6 @@
                               "event",
                               "subscription"
                             ]
-                          },
-                          "digital": {
-                            "anyOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "downloadUrl": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "fileSize": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ]
-                                  },
-                                  "fileType": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "licenseKey": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "maxDownloads": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ]
-                                  },
-                                  "expiresInHours": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "downloadUrl",
-                                  "fileSize",
-                                  "fileType",
-                                  "licenseKey",
-                                  "maxDownloads",
-                                  "expiresInHours"
-                                ],
-                                "additionalProperties": false
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "event": {
-                            "anyOf": [
-                              {
-                                "type": "object",
-                                "properties": {
-                                  "startDate": {
-                                    "type": "string"
-                                  },
-                                  "endDate": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "venue": {
-                                    "anyOf": [
-                                      {
-                                        "type": "object",
-                                        "propertyNames": {
-                                          "type": "string"
-                                        },
-                                        "additionalProperties": {
-                                          "type": "string"
-                                        }
-                                      },
-                                      {
-                                        "type": "null"
-                                      }
-                                    ]
-                                  },
-                                  "location": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "isVirtual": {
-                                    "type": "boolean"
-                                  },
-                                  "seatInfo": {
-                                    "type": [
-                                      "string",
-                                      "null"
-                                    ]
-                                  },
-                                  "capacity": {
-                                    "type": [
-                                      "number",
-                                      "null"
-                                    ]
-                                  }
-                                },
-                                "required": [
-                                  "startDate",
-                                  "endDate",
-                                  "venue",
-                                  "location",
-                                  "isVirtual",
-                                  "seatInfo",
-                                  "capacity"
-                                ],
-                                "additionalProperties": false
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
                           }
                         },
                         "required": [
@@ -22345,9 +19059,7 @@
                           "price",
                           "totalPrice",
                           "fulfillmentStatus",
-                          "productType",
-                          "digital",
-                          "event"
+                          "productType"
                         ],
                         "additionalProperties": false
                       }
@@ -24512,6 +21224,9 @@
                     "timezone": {
                       "type": "string"
                     },
+                    "country": {
+                      "type": "string"
+                    },
                     "supportedCurrencies": {
                       "type": "array",
                       "items": {
@@ -24567,6 +21282,7 @@
                     "currency",
                     "locale",
                     "timezone",
+                    "country",
                     "supportedCurrencies",
                     "supportedLocales",
                     "contactEmail",
@@ -24782,6 +21498,9 @@
                     "timezone": {
                       "type": "string"
                     },
+                    "country": {
+                      "type": "string"
+                    },
                     "supportedCurrencies": {
                       "type": "array",
                       "items": {
@@ -24837,6 +21556,7 @@
                     "currency",
                     "locale",
                     "timezone",
+                    "country",
                     "supportedCurrencies",
                     "supportedLocales",
                     "contactEmail",
@@ -25029,6 +21749,10 @@
                   "timezone": {
                     "type": "string"
                   },
+                  "country": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z]{2}$"
+                  },
                   "contactEmail": {
                     "type": "string",
                     "format": "email",
@@ -25041,7 +21765,13 @@
                     "type": "string"
                   },
                   "socialLinks": {
-                    "type": "string"
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {
+                      "type": "string"
+                    }
                   }
                 },
                 "additionalProperties": false
@@ -25464,131 +22194,6 @@
                                     "event",
                                     "subscription"
                                   ]
-                                },
-                                "digital": {
-                                  "anyOf": [
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "downloadUrl": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "fileSize": {
-                                          "type": [
-                                            "number",
-                                            "null"
-                                          ]
-                                        },
-                                        "fileType": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "licenseKey": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "maxDownloads": {
-                                          "type": [
-                                            "number",
-                                            "null"
-                                          ]
-                                        },
-                                        "expiresInHours": {
-                                          "type": [
-                                            "number",
-                                            "null"
-                                          ]
-                                        }
-                                      },
-                                      "required": [
-                                        "downloadUrl",
-                                        "fileSize",
-                                        "fileType",
-                                        "licenseKey",
-                                        "maxDownloads",
-                                        "expiresInHours"
-                                      ],
-                                      "additionalProperties": false
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
-                                },
-                                "event": {
-                                  "anyOf": [
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "startDate": {
-                                          "type": "string"
-                                        },
-                                        "endDate": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "venue": {
-                                          "anyOf": [
-                                            {
-                                              "type": "object",
-                                              "propertyNames": {
-                                                "type": "string"
-                                              },
-                                              "additionalProperties": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "type": "null"
-                                            }
-                                          ]
-                                        },
-                                        "location": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "isVirtual": {
-                                          "type": "boolean"
-                                        },
-                                        "seatInfo": {
-                                          "type": [
-                                            "string",
-                                            "null"
-                                          ]
-                                        },
-                                        "capacity": {
-                                          "type": [
-                                            "number",
-                                            "null"
-                                          ]
-                                        }
-                                      },
-                                      "required": [
-                                        "startDate",
-                                        "endDate",
-                                        "venue",
-                                        "location",
-                                        "isVirtual",
-                                        "seatInfo",
-                                        "capacity"
-                                      ],
-                                      "additionalProperties": false
-                                    },
-                                    {
-                                      "type": "null"
-                                    }
-                                  ]
                                 }
                               },
                               "required": [
@@ -25601,9 +22206,7 @@
                                 "price",
                                 "totalPrice",
                                 "fulfillmentStatus",
-                                "productType",
-                                "digital",
-                                "event"
+                                "productType"
                               ],
                               "additionalProperties": false
                             }

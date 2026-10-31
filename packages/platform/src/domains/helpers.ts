@@ -93,6 +93,16 @@ export function discountablePrice(
   return base
 }
 
+/** Round an average star rating to one decimal, as shown to shoppers. */
+export function roundRating(average: number): number {
+  return Math.round(average * 10) / 10
+}
+
+/** ISO 8601 form of a nullable database timestamp. */
+export function isoDate(value: Date | null): string | null {
+  return value ? value.toISOString() : null
+}
+
 /** Create an Image from url + altText */
 export function img(url: string, altText: string | null): Image {
   return {

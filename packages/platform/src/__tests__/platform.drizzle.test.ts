@@ -72,7 +72,7 @@ async function cleanDatabase() {
     wishlist_items, wishlists,
     reviews,
     coupons, promotions,
-    product_tags, product_categories, product_attributes, product_option_values, product_options, product_variants, product_images, products,
+    product_tags, product_categories, product_attributes, product_variants, product_images, products,
     categories,
     customer_addresses, customers,
     brands, countries, store_info

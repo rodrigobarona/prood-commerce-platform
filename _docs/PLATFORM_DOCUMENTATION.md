@@ -625,7 +625,7 @@ carts, orders, customers, adapters, and all provider interfaces.
 
 | Module                 | Domain                                        |
 | ---------------------- | --------------------------------------------- |
-| `product.ts`           | Product, ProductImage, ProductVariant, ProductOption |
+| `product.ts`           | Product, ProductImage, ProductVariant |
 | `category.ts`          | Category (tree with parent)                   |
 | `cart.ts`              | Cart, CartItem                                |
 | `order.ts`             | Order, OrderItem, OrderHistory                |
@@ -667,8 +667,6 @@ and row-level security. Implements the `CommerceAdapter` interface from
 - `products` — pricing, status, product_type, inventory, VAT, slug
 - `product_images` — ordered images per product
 - `product_variants` — SKU-level size/color variants
-- `product_options` — option groups (Size, Color)
-- `product_option_values` — individual option values (S, M, L)
 - `product_attributes` — key-value metadata
 - `product_tags` — freeform tags
 - `product_categories` — many-to-many junction
@@ -930,13 +928,12 @@ dialog, sheet, popover, dropdown-menu, command, tooltip, table, pagination,
 breadcrumb, sidebar, scroll-area, empty-state, sonner
 
 **Commerce-specific (33+):** product-card, product-grid, product-gallery,
-product-price, product-options, product-type-badge, category-filter, cart-item,
+product-price, product-type-badge, category-filter, cart-item,
 cart-drawer, cart-summary, quantity-selector, coupon-input, free-shipping-bar,
 address-form, checkout-header, checkout-footer, checkout-stepper, order-card,
 order-timeline, review-stars, review-card, wishlist-grid, search-palette,
 hero-banner, promo-banner
 
-**Specialized product types:** event-card, subscription-card
 
 **Utility exports:**
 - `@prood/ui/lib/utils` — `cn()` class merging
@@ -1013,7 +1010,7 @@ The commerce data model follows an e-commerce standard with product-centric
 catalog, cart-to-order conversion, and customer identity management.
 
 **Catalog domain:**
-- Products have images, variants, options (with values), attributes, tags
+- Products have images, variants, attributes, tags
 - Products belong to categories (many-to-many) and brands
 - Categories form a tree via `parent_id`
 

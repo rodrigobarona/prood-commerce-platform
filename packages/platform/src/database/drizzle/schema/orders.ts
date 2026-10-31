@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import { pgTable, text, integer, boolean, numeric, jsonb, timestamp, index, unique } from 'drizzle-orm/pg-core'
-import type { LocalizedField } from '@prood/types'
+import type { LocalizedField, PaymentMethod, ShippingMethod } from '@prood/types'
 import { customers } from './customers.js'
 import { organizationId, tenantIsolation } from './tenant.js'
 
@@ -31,9 +31,9 @@ export const orders = pgTable('orders', {
   shippingAddress: jsonb('shipping_address'),
   billingAddress: jsonb('billing_address'),
 
-  // Shipping
-  shippingMethod: text('shipping_method'),
-  paymentMethod: text('payment_method'),
+  // Shipping and payment (JSON snapshots of the methods chosen at checkout)
+  shippingMethod: jsonb('shipping_method').$type<ShippingMethod>(),
+  paymentMethod: jsonb('payment_method').$type<PaymentMethod>(),
   trackingNumber: text('tracking_number'),
   trackingUrl: text('tracking_url'),
 

@@ -20,68 +20,15 @@ import {
   createOrderHistory,
   findOrderById,
   findOrders,
-  findOrderItems,
+  countOrdersForCustomer,
   findOrderHistory,
   transitionOrderPayment,
   updateOrder,
 } from '../database/index.js'
-import { generateOrderNumber, normalizeLocalizedField, price, priceRequired, img, parseJsonField, toNumber } from './helpers.js'
+import { generateOrderNumber } from './helpers.js'
+import { mapOrder } from './order-mapper.js'
 
 export function createOrdersDomain(currency: string) {
-  /** Map DB order row + items to unified Order type */
-  async function mapOrder(row: any): Promise<Order> {
-    const items = await findOrderItems(row.id)
-
-    return {
-      id: row.id,
-      orderNumber: row.orderNumber,
-      status: row.status,
-      items: items.map((i: any) => ({
-        id: i.id,
-        productId: i.productId,
-        variantId: i.variantId ?? null,
-        name: normalizeLocalizedField(i.name),
-        image: i.image ? img(i.image, null) : null,
-        quantity: i.quantity,
-        price: priceRequired(toNumber(i.price), currency),
-        totalPrice: priceRequired(toNumber(i.totalPrice), currency),
-        fulfillmentStatus: i.fulfillmentStatus as any,
-        productType: i.productType as any,
-        digital: null,
-        event: null,
-      })),
-      totals: {
-        subtotal: priceRequired(row.subtotal, currency),
-        shipping: price(row.shippingCost, currency),
-        tax: price(row.tax, currency),
-        discount: price(row.discount, currency),
-        total: priceRequired(row.total, currency),
-      },
-      shippingAddress: parseJsonField(row.shippingAddress),
-      billingAddress: parseJsonField(row.billingAddress),
-      shippingMethod: row.shippingMethod
-        ? (() => { const n = parseJsonField(row.shippingMethod); return { id: 'default', name: normalizeLocalizedField(n), provider: 'custom', fulfillmentType: 'shipping' as const, price: priceRequired(0, currency), estimatedDays: { min: 1, max: 7 }, cashOnDelivery: false } })()
-        : null,
-      paymentMethod: row.paymentMethod
-        ? (() => { const n = parseJsonField(row.paymentMethod); return { id: 'default', type: 'card', name: normalizeLocalizedField(n), provider: 'platform', installments: null, icon: null } })()
-        : null,
-      trackingNumber: row.trackingNumber ?? null,
-      trackingUrl: row.trackingUrl ?? null,
-      note: row.note ?? null,
-      customerId: row.customerId ?? null,
-      contactEmail: row.contactEmail ?? null,
-      requiresShipping: Boolean(row.requiresShipping),
-      placedAt: row.placedAt ?? null,
-      approvedAt: row.approvedAt ?? null,
-      cancelledAt: row.cancelledAt ?? null,
-      fulfilledAt: row.fulfilledAt ?? null,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-      paymentStatus: row.paymentStatus ?? 'unpaid',
-      fulfillmentStatus: row.fulfillmentStatus ?? 'unfulfilled',
-    }
-  }
-
   return {
     async createOrder(input: CreateOrderInput): Promise<Order> {
       const id = crypto.randomUUID()
@@ -125,6 +72,7 @@ export function createOrdersDomain(currency: string) {
       })
 
       const row = await findOrderById(id)
+      if (!row) throw new CommerceError(`Order not found after creation: ${id}`, "NOT_FOUND")
       return mapOrder(row)
     },
 
@@ -145,15 +93,18 @@ export function createOrdersDomain(currency: string) {
         return { items: [], total: 0, page, perPage, hasMore: false }
       }
 
-      const rows = await findOrders({ limit: perPage, offset, customerId: params.customerId })
+      const [rows, total] = await Promise.all([
+        findOrders({ limit: perPage, offset, customerId: params.customerId }),
+        countOrdersForCustomer(params.customerId),
+      ])
       const orders = await Promise.all(rows.map(mapOrder))
 
       return {
         items: orders,
-        total: orders.length,
+        total,
         page,
         perPage,
-        hasMore: orders.length === perPage,
+        hasMore: offset + perPage < total,
       }
     },
 

@@ -26,6 +26,7 @@ export interface SettingsFormValues {
   currency: string
   locale: string
   timezone: string
+  country: string
   address: string
 }
 
@@ -62,6 +63,7 @@ export function SettingsForm({ initial }: { initial: SettingsFormValues }) {
           currency: values.currency || undefined,
           locale: values.locale || undefined,
           timezone: values.timezone || undefined,
+          country: values.country || undefined,
           address: values.address || undefined,
         })
         toast.success("Settings saved")
@@ -149,6 +151,18 @@ export function SettingsForm({ initial }: { initial: SettingsFormValues }) {
                 id="timezone"
                 value={values.timezone}
                 onChange={(event) => set("timezone", event.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="country">Country</Label>
+              <Input
+                id="country"
+                maxLength={2}
+                value={values.country}
+                required
+                pattern="[A-Za-z]{2}"
+                title="Use a two-letter country code, like PT."
+                onChange={(event) => set("country", event.target.value)}
               />
             </div>
           </div>

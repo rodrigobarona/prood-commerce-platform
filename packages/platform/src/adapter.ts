@@ -70,7 +70,7 @@ export async function createPlatformAdapter(config: PlatformConfig = {}): Promis
   // Auto-initialize the database
   await initDatabase(connectionString)
 
-  const catalog = createCatalogDomain(currency)
+  const catalog = createCatalogDomain()
   const cart = createCartDomain(currency)
   const checkout = createCheckoutDomain(currency)
   const customers = createCustomersDomain()

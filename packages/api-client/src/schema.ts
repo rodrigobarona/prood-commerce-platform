@@ -838,29 +838,8 @@ export interface operations {
                                         originalAmount?: number;
                                         discountPercent?: number;
                                     } | null;
-                                    attributes: {
-                                        code: string;
-                                        name: {
-                                            [key: string]: string;
-                                        };
-                                        value: {
-                                            [key: string]: string;
-                                        };
-                                    }[];
                                     inStock: boolean;
                                     inventoryQuantity: number | null;
-                                }[];
-                                options: {
-                                    id: string;
-                                    name: {
-                                        [key: string]: string;
-                                    };
-                                    values: {
-                                        id: string;
-                                        name: {
-                                            [key: string]: string;
-                                        };
-                                    }[];
                                 }[];
                                 attributes: {
                                     code: string;
@@ -898,54 +877,6 @@ export interface operations {
                                 updatedAt: string;
                                 /** @enum {string} */
                                 productType: "physical" | "digital" | "service" | "event" | "subscription";
-                                digital: {
-                                    downloadUrl: string | null;
-                                    fileSize: number | null;
-                                    fileType: string | null;
-                                    licenseKey: string | null;
-                                    maxDownloads: number | null;
-                                    expiresInHours: number | null;
-                                } | null;
-                                service: {
-                                    durationMinutes: number | null;
-                                    requiresBooking: boolean;
-                                    /** @enum {string} */
-                                    deliveryMode: "in_person" | "remote" | "hybrid";
-                                } | null;
-                                event: {
-                                    startDate: string;
-                                    endDate: string | null;
-                                    venue: {
-                                        [key: string]: string;
-                                    } | null;
-                                    location: string | null;
-                                    isVirtual: boolean;
-                                    seatInfo: string | null;
-                                    capacity: number | null;
-                                } | null;
-                                subscription: {
-                                    /** @enum {string} */
-                                    interval: "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
-                                    intervalCount: number;
-                                    trialDays: number;
-                                    recurringPrice: {
-                                        amount: number;
-                                        currency: string;
-                                        formatted: string;
-                                    };
-                                } | null;
-                                preOrder: {
-                                    enabled: boolean;
-                                    releaseDate: string | null;
-                                    depositAmount: {
-                                        amount: number;
-                                        currency: string;
-                                        formatted: string;
-                                    } | null;
-                                    message: {
-                                        [key: string]: string;
-                                    } | null;
-                                } | null;
                                 requiresShipping: boolean;
                                 isDropshipped: boolean;
                                 status: string | null;
@@ -1089,29 +1020,8 @@ export interface operations {
                                 originalAmount?: number;
                                 discountPercent?: number;
                             } | null;
-                            attributes: {
-                                code: string;
-                                name: {
-                                    [key: string]: string;
-                                };
-                                value: {
-                                    [key: string]: string;
-                                };
-                            }[];
                             inStock: boolean;
                             inventoryQuantity: number | null;
-                        }[];
-                        options: {
-                            id: string;
-                            name: {
-                                [key: string]: string;
-                            };
-                            values: {
-                                id: string;
-                                name: {
-                                    [key: string]: string;
-                                };
-                            }[];
                         }[];
                         attributes: {
                             code: string;
@@ -1149,54 +1059,6 @@ export interface operations {
                         updatedAt: string;
                         /** @enum {string} */
                         productType: "physical" | "digital" | "service" | "event" | "subscription";
-                        digital: {
-                            downloadUrl: string | null;
-                            fileSize: number | null;
-                            fileType: string | null;
-                            licenseKey: string | null;
-                            maxDownloads: number | null;
-                            expiresInHours: number | null;
-                        } | null;
-                        service: {
-                            durationMinutes: number | null;
-                            requiresBooking: boolean;
-                            /** @enum {string} */
-                            deliveryMode: "in_person" | "remote" | "hybrid";
-                        } | null;
-                        event: {
-                            startDate: string;
-                            endDate: string | null;
-                            venue: {
-                                [key: string]: string;
-                            } | null;
-                            location: string | null;
-                            isVirtual: boolean;
-                            seatInfo: string | null;
-                            capacity: number | null;
-                        } | null;
-                        subscription: {
-                            /** @enum {string} */
-                            interval: "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
-                            intervalCount: number;
-                            trialDays: number;
-                            recurringPrice: {
-                                amount: number;
-                                currency: string;
-                                formatted: string;
-                            };
-                        } | null;
-                        preOrder: {
-                            enabled: boolean;
-                            releaseDate: string | null;
-                            depositAmount: {
-                                amount: number;
-                                currency: string;
-                                formatted: string;
-                            } | null;
-                            message: {
-                                [key: string]: string;
-                            } | null;
-                        } | null;
                         requiresShipping: boolean;
                         isDropshipped: boolean;
                         status: string | null;
@@ -1319,29 +1181,8 @@ export interface operations {
                                 originalAmount?: number;
                                 discountPercent?: number;
                             } | null;
-                            attributes: {
-                                code: string;
-                                name: {
-                                    [key: string]: string;
-                                };
-                                value: {
-                                    [key: string]: string;
-                                };
-                            }[];
                             inStock: boolean;
                             inventoryQuantity: number | null;
-                        }[];
-                        options: {
-                            id: string;
-                            name: {
-                                [key: string]: string;
-                            };
-                            values: {
-                                id: string;
-                                name: {
-                                    [key: string]: string;
-                                };
-                            }[];
                         }[];
                         attributes: {
                             code: string;
@@ -1379,54 +1220,6 @@ export interface operations {
                         updatedAt: string;
                         /** @enum {string} */
                         productType: "physical" | "digital" | "service" | "event" | "subscription";
-                        digital: {
-                            downloadUrl: string | null;
-                            fileSize: number | null;
-                            fileType: string | null;
-                            licenseKey: string | null;
-                            maxDownloads: number | null;
-                            expiresInHours: number | null;
-                        } | null;
-                        service: {
-                            durationMinutes: number | null;
-                            requiresBooking: boolean;
-                            /** @enum {string} */
-                            deliveryMode: "in_person" | "remote" | "hybrid";
-                        } | null;
-                        event: {
-                            startDate: string;
-                            endDate: string | null;
-                            venue: {
-                                [key: string]: string;
-                            } | null;
-                            location: string | null;
-                            isVirtual: boolean;
-                            seatInfo: string | null;
-                            capacity: number | null;
-                        } | null;
-                        subscription: {
-                            /** @enum {string} */
-                            interval: "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
-                            intervalCount: number;
-                            trialDays: number;
-                            recurringPrice: {
-                                amount: number;
-                                currency: string;
-                                formatted: string;
-                            };
-                        } | null;
-                        preOrder: {
-                            enabled: boolean;
-                            releaseDate: string | null;
-                            depositAmount: {
-                                amount: number;
-                                currency: string;
-                                formatted: string;
-                            } | null;
-                            message: {
-                                [key: string]: string;
-                            } | null;
-                        } | null;
                         requiresShipping: boolean;
                         isDropshipped: boolean;
                         status: string | null;
@@ -3947,25 +3740,6 @@ export interface operations {
                             fulfillmentStatus: "unfulfilled" | "partially_fulfilled" | "fulfilled" | "returned" | "download_ready" | "license_sent" | "access_granted" | "ticket_issued";
                             /** @enum {string} */
                             productType: "physical" | "digital" | "service" | "event" | "subscription";
-                            digital: {
-                                downloadUrl: string | null;
-                                fileSize: number | null;
-                                fileType: string | null;
-                                licenseKey: string | null;
-                                maxDownloads: number | null;
-                                expiresInHours: number | null;
-                            } | null;
-                            event: {
-                                startDate: string;
-                                endDate: string | null;
-                                venue: {
-                                    [key: string]: string;
-                                } | null;
-                                location: string | null;
-                                isVirtual: boolean;
-                                seatInfo: string | null;
-                                capacity: number | null;
-                            } | null;
                         }[];
                         totals: {
                             subtotal: {
@@ -4170,25 +3944,6 @@ export interface operations {
                                 fulfillmentStatus: "unfulfilled" | "partially_fulfilled" | "fulfilled" | "returned" | "download_ready" | "license_sent" | "access_granted" | "ticket_issued";
                                 /** @enum {string} */
                                 productType: "physical" | "digital" | "service" | "event" | "subscription";
-                                digital: {
-                                    downloadUrl: string | null;
-                                    fileSize: number | null;
-                                    fileType: string | null;
-                                    licenseKey: string | null;
-                                    maxDownloads: number | null;
-                                    expiresInHours: number | null;
-                                } | null;
-                                event: {
-                                    startDate: string;
-                                    endDate: string | null;
-                                    venue: {
-                                        [key: string]: string;
-                                    } | null;
-                                    location: string | null;
-                                    isVirtual: boolean;
-                                    seatInfo: string | null;
-                                    capacity: number | null;
-                                } | null;
                             }[];
                             totals: {
                                 subtotal: {
@@ -4396,25 +4151,6 @@ export interface operations {
                             fulfillmentStatus: "unfulfilled" | "partially_fulfilled" | "fulfilled" | "returned" | "download_ready" | "license_sent" | "access_granted" | "ticket_issued";
                             /** @enum {string} */
                             productType: "physical" | "digital" | "service" | "event" | "subscription";
-                            digital: {
-                                downloadUrl: string | null;
-                                fileSize: number | null;
-                                fileType: string | null;
-                                licenseKey: string | null;
-                                maxDownloads: number | null;
-                                expiresInHours: number | null;
-                            } | null;
-                            event: {
-                                startDate: string;
-                                endDate: string | null;
-                                venue: {
-                                    [key: string]: string;
-                                } | null;
-                                location: string | null;
-                                isVirtual: boolean;
-                                seatInfo: string | null;
-                                capacity: number | null;
-                            } | null;
                         }[];
                         totals: {
                             subtotal: {
@@ -4634,29 +4370,8 @@ export interface operations {
                                     originalAmount?: number;
                                     discountPercent?: number;
                                 } | null;
-                                attributes: {
-                                    code: string;
-                                    name: {
-                                        [key: string]: string;
-                                    };
-                                    value: {
-                                        [key: string]: string;
-                                    };
-                                }[];
                                 inStock: boolean;
                                 inventoryQuantity: number | null;
-                            }[];
-                            options: {
-                                id: string;
-                                name: {
-                                    [key: string]: string;
-                                };
-                                values: {
-                                    id: string;
-                                    name: {
-                                        [key: string]: string;
-                                    };
-                                }[];
                             }[];
                             attributes: {
                                 code: string;
@@ -4694,54 +4409,6 @@ export interface operations {
                             updatedAt: string;
                             /** @enum {string} */
                             productType: "physical" | "digital" | "service" | "event" | "subscription";
-                            digital: {
-                                downloadUrl: string | null;
-                                fileSize: number | null;
-                                fileType: string | null;
-                                licenseKey: string | null;
-                                maxDownloads: number | null;
-                                expiresInHours: number | null;
-                            } | null;
-                            service: {
-                                durationMinutes: number | null;
-                                requiresBooking: boolean;
-                                /** @enum {string} */
-                                deliveryMode: "in_person" | "remote" | "hybrid";
-                            } | null;
-                            event: {
-                                startDate: string;
-                                endDate: string | null;
-                                venue: {
-                                    [key: string]: string;
-                                } | null;
-                                location: string | null;
-                                isVirtual: boolean;
-                                seatInfo: string | null;
-                                capacity: number | null;
-                            } | null;
-                            subscription: {
-                                /** @enum {string} */
-                                interval: "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
-                                intervalCount: number;
-                                trialDays: number;
-                                recurringPrice: {
-                                    amount: number;
-                                    currency: string;
-                                    formatted: string;
-                                };
-                            } | null;
-                            preOrder: {
-                                enabled: boolean;
-                                releaseDate: string | null;
-                                depositAmount: {
-                                    amount: number;
-                                    currency: string;
-                                    formatted: string;
-                                } | null;
-                                message: {
-                                    [key: string]: string;
-                                } | null;
-                            } | null;
                             requiresShipping: boolean;
                             isDropshipped: boolean;
                             status: string | null;
@@ -4926,29 +4593,8 @@ export interface operations {
                                 originalAmount?: number;
                                 discountPercent?: number;
                             } | null;
-                            attributes: {
-                                code: string;
-                                name: {
-                                    [key: string]: string;
-                                };
-                                value: {
-                                    [key: string]: string;
-                                };
-                            }[];
                             inStock: boolean;
                             inventoryQuantity: number | null;
-                        }[];
-                        options: {
-                            id: string;
-                            name: {
-                                [key: string]: string;
-                            };
-                            values: {
-                                id: string;
-                                name: {
-                                    [key: string]: string;
-                                };
-                            }[];
                         }[];
                         attributes: {
                             code: string;
@@ -4986,54 +4632,6 @@ export interface operations {
                         updatedAt: string;
                         /** @enum {string} */
                         productType: "physical" | "digital" | "service" | "event" | "subscription";
-                        digital: {
-                            downloadUrl: string | null;
-                            fileSize: number | null;
-                            fileType: string | null;
-                            licenseKey: string | null;
-                            maxDownloads: number | null;
-                            expiresInHours: number | null;
-                        } | null;
-                        service: {
-                            durationMinutes: number | null;
-                            requiresBooking: boolean;
-                            /** @enum {string} */
-                            deliveryMode: "in_person" | "remote" | "hybrid";
-                        } | null;
-                        event: {
-                            startDate: string;
-                            endDate: string | null;
-                            venue: {
-                                [key: string]: string;
-                            } | null;
-                            location: string | null;
-                            isVirtual: boolean;
-                            seatInfo: string | null;
-                            capacity: number | null;
-                        } | null;
-                        subscription: {
-                            /** @enum {string} */
-                            interval: "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
-                            intervalCount: number;
-                            trialDays: number;
-                            recurringPrice: {
-                                amount: number;
-                                currency: string;
-                                formatted: string;
-                            };
-                        } | null;
-                        preOrder: {
-                            enabled: boolean;
-                            releaseDate: string | null;
-                            depositAmount: {
-                                amount: number;
-                                currency: string;
-                                formatted: string;
-                            } | null;
-                            message: {
-                                [key: string]: string;
-                            } | null;
-                        } | null;
                         requiresShipping: boolean;
                         isDropshipped: boolean;
                         status: string | null;
@@ -5156,29 +4754,8 @@ export interface operations {
                                 originalAmount?: number;
                                 discountPercent?: number;
                             } | null;
-                            attributes: {
-                                code: string;
-                                name: {
-                                    [key: string]: string;
-                                };
-                                value: {
-                                    [key: string]: string;
-                                };
-                            }[];
                             inStock: boolean;
                             inventoryQuantity: number | null;
-                        }[];
-                        options: {
-                            id: string;
-                            name: {
-                                [key: string]: string;
-                            };
-                            values: {
-                                id: string;
-                                name: {
-                                    [key: string]: string;
-                                };
-                            }[];
                         }[];
                         attributes: {
                             code: string;
@@ -5216,54 +4793,6 @@ export interface operations {
                         updatedAt: string;
                         /** @enum {string} */
                         productType: "physical" | "digital" | "service" | "event" | "subscription";
-                        digital: {
-                            downloadUrl: string | null;
-                            fileSize: number | null;
-                            fileType: string | null;
-                            licenseKey: string | null;
-                            maxDownloads: number | null;
-                            expiresInHours: number | null;
-                        } | null;
-                        service: {
-                            durationMinutes: number | null;
-                            requiresBooking: boolean;
-                            /** @enum {string} */
-                            deliveryMode: "in_person" | "remote" | "hybrid";
-                        } | null;
-                        event: {
-                            startDate: string;
-                            endDate: string | null;
-                            venue: {
-                                [key: string]: string;
-                            } | null;
-                            location: string | null;
-                            isVirtual: boolean;
-                            seatInfo: string | null;
-                            capacity: number | null;
-                        } | null;
-                        subscription: {
-                            /** @enum {string} */
-                            interval: "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
-                            intervalCount: number;
-                            trialDays: number;
-                            recurringPrice: {
-                                amount: number;
-                                currency: string;
-                                formatted: string;
-                            };
-                        } | null;
-                        preOrder: {
-                            enabled: boolean;
-                            releaseDate: string | null;
-                            depositAmount: {
-                                amount: number;
-                                currency: string;
-                                formatted: string;
-                            } | null;
-                            message: {
-                                [key: string]: string;
-                            } | null;
-                        } | null;
                         requiresShipping: boolean;
                         isDropshipped: boolean;
                         status: string | null;
@@ -5513,29 +5042,8 @@ export interface operations {
                                 originalAmount?: number;
                                 discountPercent?: number;
                             } | null;
-                            attributes: {
-                                code: string;
-                                name: {
-                                    [key: string]: string;
-                                };
-                                value: {
-                                    [key: string]: string;
-                                };
-                            }[];
                             inStock: boolean;
                             inventoryQuantity: number | null;
-                        }[];
-                        options: {
-                            id: string;
-                            name: {
-                                [key: string]: string;
-                            };
-                            values: {
-                                id: string;
-                                name: {
-                                    [key: string]: string;
-                                };
-                            }[];
                         }[];
                         attributes: {
                             code: string;
@@ -5573,54 +5081,6 @@ export interface operations {
                         updatedAt: string;
                         /** @enum {string} */
                         productType: "physical" | "digital" | "service" | "event" | "subscription";
-                        digital: {
-                            downloadUrl: string | null;
-                            fileSize: number | null;
-                            fileType: string | null;
-                            licenseKey: string | null;
-                            maxDownloads: number | null;
-                            expiresInHours: number | null;
-                        } | null;
-                        service: {
-                            durationMinutes: number | null;
-                            requiresBooking: boolean;
-                            /** @enum {string} */
-                            deliveryMode: "in_person" | "remote" | "hybrid";
-                        } | null;
-                        event: {
-                            startDate: string;
-                            endDate: string | null;
-                            venue: {
-                                [key: string]: string;
-                            } | null;
-                            location: string | null;
-                            isVirtual: boolean;
-                            seatInfo: string | null;
-                            capacity: number | null;
-                        } | null;
-                        subscription: {
-                            /** @enum {string} */
-                            interval: "daily" | "weekly" | "monthly" | "quarterly" | "yearly";
-                            intervalCount: number;
-                            trialDays: number;
-                            recurringPrice: {
-                                amount: number;
-                                currency: string;
-                                formatted: string;
-                            };
-                        } | null;
-                        preOrder: {
-                            enabled: boolean;
-                            releaseDate: string | null;
-                            depositAmount: {
-                                amount: number;
-                                currency: string;
-                                formatted: string;
-                            } | null;
-                            message: {
-                                [key: string]: string;
-                            } | null;
-                        } | null;
                         requiresShipping: boolean;
                         isDropshipped: boolean;
                         status: string | null;
@@ -6008,25 +5468,6 @@ export interface operations {
                                 fulfillmentStatus: "unfulfilled" | "partially_fulfilled" | "fulfilled" | "returned" | "download_ready" | "license_sent" | "access_granted" | "ticket_issued";
                                 /** @enum {string} */
                                 productType: "physical" | "digital" | "service" | "event" | "subscription";
-                                digital: {
-                                    downloadUrl: string | null;
-                                    fileSize: number | null;
-                                    fileType: string | null;
-                                    licenseKey: string | null;
-                                    maxDownloads: number | null;
-                                    expiresInHours: number | null;
-                                } | null;
-                                event: {
-                                    startDate: string;
-                                    endDate: string | null;
-                                    venue: {
-                                        [key: string]: string;
-                                    } | null;
-                                    location: string | null;
-                                    isVirtual: boolean;
-                                    seatInfo: string | null;
-                                    capacity: number | null;
-                                } | null;
                             }[];
                             totals: {
                                 subtotal: {
@@ -6234,25 +5675,6 @@ export interface operations {
                             fulfillmentStatus: "unfulfilled" | "partially_fulfilled" | "fulfilled" | "returned" | "download_ready" | "license_sent" | "access_granted" | "ticket_issued";
                             /** @enum {string} */
                             productType: "physical" | "digital" | "service" | "event" | "subscription";
-                            digital: {
-                                downloadUrl: string | null;
-                                fileSize: number | null;
-                                fileType: string | null;
-                                licenseKey: string | null;
-                                maxDownloads: number | null;
-                                expiresInHours: number | null;
-                            } | null;
-                            event: {
-                                startDate: string;
-                                endDate: string | null;
-                                venue: {
-                                    [key: string]: string;
-                                } | null;
-                                location: string | null;
-                                isVirtual: boolean;
-                                seatInfo: string | null;
-                                capacity: number | null;
-                            } | null;
                         }[];
                         totals: {
                             subtotal: {
@@ -6937,6 +6359,7 @@ export interface operations {
                         currency: string;
                         locale: string;
                         timezone: string;
+                        country: string;
                         supportedCurrencies: string[];
                         supportedLocales: string[];
                         contactEmail: string | null;
@@ -7019,11 +6442,14 @@ export interface operations {
                     currency?: string;
                     locale?: string;
                     timezone?: string;
+                    country?: string;
                     /** Format: email */
                     contactEmail?: string;
                     contactPhone?: string;
                     address?: string;
-                    socialLinks?: string;
+                    socialLinks?: {
+                        [key: string]: string;
+                    };
                 };
             };
         };
@@ -7046,6 +6472,7 @@ export interface operations {
                         currency: string;
                         locale: string;
                         timezone: string;
+                        country: string;
                         supportedCurrencies: string[];
                         supportedLocales: string[];
                         contactEmail: string | null;
@@ -7246,25 +6673,6 @@ export interface operations {
                                 fulfillmentStatus: "unfulfilled" | "partially_fulfilled" | "fulfilled" | "returned" | "download_ready" | "license_sent" | "access_granted" | "ticket_issued";
                                 /** @enum {string} */
                                 productType: "physical" | "digital" | "service" | "event" | "subscription";
-                                digital: {
-                                    downloadUrl: string | null;
-                                    fileSize: number | null;
-                                    fileType: string | null;
-                                    licenseKey: string | null;
-                                    maxDownloads: number | null;
-                                    expiresInHours: number | null;
-                                } | null;
-                                event: {
-                                    startDate: string;
-                                    endDate: string | null;
-                                    venue: {
-                                        [key: string]: string;
-                                    } | null;
-                                    location: string | null;
-                                    isVirtual: boolean;
-                                    seatInfo: string | null;
-                                    capacity: number | null;
-                                } | null;
                             }[];
                             totals: {
                                 subtotal: {

@@ -8,12 +8,6 @@ import type { AdminListParams, CreateProductInput, UpdateProductInput } from './
 import {
   findProductById,
   findProductBySlug,
-  findProductImages,
-  findProductVariants,
-  findProductAttributes,
-  findProductCategoryIds,
-  findProductTags,
-  findCategoryById,
   insertProduct,
   updateProductById,
   deleteProductById,
@@ -28,93 +22,14 @@ import {
   deleteProductTags,
   setProductCategories,
 } from '../database/index.js'
-import { normalizeLocalizedField, slugifyLocalized, discountablePrice, img } from '../domains/helpers.js'
-
-function mapProduct(row: any, related: {
-  images?: any[]
-  variants?: any[]
-  attributes?: any[]
-  categories?: any[]
-  tags?: string[]
-}, currency: string): Product {
-  const primaryImg = related.images?.find((i: any) => i.isPrimary) ?? related.images?.[0]
-
-  return {
-    id: row.id,
-    sku: row.sku ?? null,
-    name: normalizeLocalizedField(row.name),
-    slug: row.slug,
-    description: normalizeLocalizedField(row.description),
-    shortDescription: normalizeLocalizedField(row.shortDescription),
-    price: discountablePrice(row.price, row.compareAtPrice, row.currency ?? currency),
-    primaryImage: primaryImg ? img(primaryImg.url, primaryImg.altText) : null,
-    gallery: (related.images ?? []).map((i: any) => img(i.url, i.altText)),
-    rating: null,
-    variants: (related.variants ?? []).map((v: any) => ({
-      id: v.id,
-      sku: v.sku ?? null,
-      name: v.name ? normalizeLocalizedField(v.name) : null,
-      price: discountablePrice(v.price, v.compareAtPrice, row.currency ?? currency),
-      attributes: [],
-      inStock: Boolean(v.inStock),
-      inventoryQuantity: v.inventoryQuantity ?? null,
-    })),
-    options: [],
-    attributes: (related.attributes ?? []).map((a: any) => ({
-      code: a.code,
-      name: normalizeLocalizedField(a.name),
-      value: normalizeLocalizedField(a.value),
-    })),
-    quantityLimit: row.quantityLimit ?? null,
-    categories: (related.categories ?? []).map((c: any) => ({
-      id: c.id,
-      name: normalizeLocalizedField(c.name),
-      slug: c.slug,
-      description: c.description ? normalizeLocalizedField(c.description) : null,
-      image: c.image ? img(c.image, null) : null,
-      parentId: c.parentId ?? null,
-      productCount: null,
-    })),
-    inStock: Boolean(row.inStock),
-    vatIncluded: Boolean(row.vatIncluded),
-    vatRate: row.vatRate ?? null,
-    tags: related.tags ?? [],
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-    productType: row.productType ?? 'physical',
-    digital: null,
-    service: null,
-    event: null,
-    subscription: null,
-    preOrder: null,
-    requiresShipping: Boolean(row.requiresShipping),
-    isDropshipped: Boolean(row.isDropshipped),
-    status: row.status ?? 'draft',
-  }
-}
-
-async function fetchProductRelations(productId: string) {
-  const [images, variants, attributes, categoryIds, tags] = await Promise.all([
-    findProductImages(productId),
-    findProductVariants(productId),
-    findProductAttributes(productId),
-    findProductCategoryIds(productId),
-    findProductTags(productId),
-  ])
-
-  const categories = categoryIds.length > 0
-    ? (await Promise.all(categoryIds.map(id => findCategoryById(id)))).filter(Boolean)
-    : []
-
-  return { images, variants, attributes, categories, tags }
-}
+import { slugifyLocalized } from '../domains/helpers.js'
+import { mapProduct } from '../domains/product-mapper.js'
 
 export function createAdminProductsDomain(currency: string) {
   async function fullProduct(id: string): Promise<Product> {
     const row = await findProductById(id)
     if (!row) throw new CommerceError(`Product not found: ${id}`, "NOT_FOUND")
-    const related = await fetchProductRelations(row.id)
-    return mapProduct(row, related, currency)
+    return mapProduct(row)
   }
 
   return {
@@ -303,12 +218,7 @@ export function createAdminProductsDomain(currency: string) {
         offset,
       })
 
-      const products = await Promise.all(
-        rows.map(async (row) => {
-          const related = await fetchProductRelations(row.id)
-          return mapProduct(row, related, currency)
-        }),
-      )
+      const products = await Promise.all(rows.map(mapProduct))
 
       return {
         items: products,

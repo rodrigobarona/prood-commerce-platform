@@ -85,11 +85,12 @@ export async function countOrdersByStatus() {
   return map
 }
 
+/** Money actually received: orders still paid, so a refund takes its order back out. */
 export async function sumOrderRevenue() {
   const [result] = await getDb()
     .select({ total: sql`COALESCE(SUM(total), 0)`.mapWith(Number) })
     .from(schema.orders)
-    .where(tenantCondition(schema.orders))
+    .where(and(eq(schema.orders.paymentStatus, 'paid'), tenantCondition(schema.orders)))
   return result?.total ?? 0
 }
 

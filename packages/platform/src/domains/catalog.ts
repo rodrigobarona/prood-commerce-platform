@@ -16,104 +16,12 @@ import {
   findProductBySlug,
   findProducts,
   findCategories,
-  findProductImages,
-  findProductVariants,
-  findProductAttributes,
-  findProductCategoryIds,
-  findProductTags,
-  findCategoryById,
   findProductIdsByCategory,
 } from '../database/index.js'
-import { normalizeLocalizedField, discountablePrice, img } from './helpers.js'
+import { normalizeLocalizedField, img } from './helpers.js'
+import { mapProduct } from './product-mapper.js'
 
-export function createCatalogDomain(currency: string) {
-  /** Map a raw product row + relations to the unified Product type */
-  function mapProduct(row: any, related: {
-    images?: any[]
-    variants?: any[]
-    attributes?: any[]
-    categories?: any[]
-    tags?: string[]
-  } = {}): Product {
-    const primaryImg = related.images?.find((i: any) => i.isPrimary) ?? related.images?.[0]
-
-    return {
-      id: row.id,
-      sku: row.sku ?? null,
-      name: normalizeLocalizedField(row.name),
-      slug: row.slug,
-      description: normalizeLocalizedField(row.description),
-      shortDescription: normalizeLocalizedField(row.shortDescription),
-      price: discountablePrice(row.price, row.compareAtPrice, currency),
-      primaryImage: primaryImg ? img(primaryImg.url, primaryImg.altText) : null,
-      gallery: (related.images ?? []).map((i: any) => img(i.url, i.altText)),
-      rating: null,
-      variants: (related.variants ?? []).map((v: any) => ({
-        id: v.id,
-        sku: v.sku ?? null,
-        name: v.name ? normalizeLocalizedField(v.name) : null,
-        price: discountablePrice(v.price, v.compareAtPrice, currency),
-        attributes: [],
-        inStock: Boolean(v.inStock),
-        inventoryQuantity: v.inventoryQuantity ?? null,
-      })),
-      options: [],
-      attributes: (related.attributes ?? []).map((a: any) => ({
-        code: a.code,
-        name: normalizeLocalizedField(a.name),
-        value: normalizeLocalizedField(a.value),
-      })),
-      quantityLimit: row.quantityLimit ?? null,
-      categories: (related.categories ?? []).map((c: any) => ({
-        id: c.id,
-        name: normalizeLocalizedField(c.name),
-        slug: c.slug,
-        description: c.description ? normalizeLocalizedField(c.description) : null,
-        image: c.image ? img(c.image, null) : null,
-        parentId: c.parentId ?? null,
-        productCount: null,
-      })),
-      inStock: Boolean(row.inStock),
-      vatIncluded: Boolean(row.vatIncluded),
-      vatRate: row.vatRate ?? null,
-      tags: related.tags ?? [],
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-      productType: row.productType ?? 'physical',
-      digital: null,
-      service: null,
-      event: null,
-      subscription: null,
-      preOrder: null,
-      requiresShipping: Boolean(row.requiresShipping),
-      isDropshipped: Boolean(row.isDropshipped),
-      status: row.status ?? 'draft',
-    }
-  }
-
-  /**
-   * Fetch full product relations.
-   *
-   * Queries are serialized (not parallel) to work around a Drizzle ORM
-   * neon-http driver bug where Promise.all causes "Failed query" errors
-   * on Cloudflare Workers.
-   */
-  async function fetchProductRelations(productId: string) {
-    const images = await findProductImages(productId)
-    const variants = await findProductVariants(productId)
-    const attributes = await findProductAttributes(productId)
-    const categoryIds = await findProductCategoryIds(productId)
-    const tags = await findProductTags(productId)
-
-    const categories: any[] = []
-    for (const id of categoryIds) {
-      const cat = await findCategoryById(id)
-      if (cat) categories.push(cat)
-    }
-
-    return { images, variants, attributes, categories, tags }
-  }
-
+export function createCatalogDomain() {
   return {
     async getProduct(params: GetProductParams): Promise<Product> {
       const row = params.id
@@ -128,8 +36,7 @@ export function createCatalogDomain(currency: string) {
         throw new CommerceError(`Product not found: ${params.id ?? params.slug}`, "NOT_FOUND")
       }
 
-      const related = await fetchProductRelations(row.id)
-      return mapProduct(row, related)
+      return mapProduct(row)
     },
 
     async getProducts(params: SearchParams): Promise<SearchResult> {
@@ -168,13 +75,7 @@ export function createCatalogDomain(currency: string) {
         offset,
       })
 
-      // Serialize product relation fetching — Drizzle neon-http driver
-      // doesn't support parallel queries on CF Workers.
-      const products: Product[] = []
-      for (const row of rows) {
-        const related = await fetchProductRelations(row.id)
-        products.push(mapProduct(row, related))
-      }
+      const products = await Promise.all(rows.map(mapProduct))
 
       return {
         products: {

@@ -10,7 +10,6 @@ import { normalizeLocalizedField } from '../domains/helpers.js'
 function mapStoreSettings(row: any): StoreSettings {
   let supportedCurrencies: string[] = ['EUR']
   let supportedLocales: string[] = ['en']
-  let socialLinks: Record<string, string> | null = null
 
   try {
     if (row.supportedCurrencies) {
@@ -27,13 +26,6 @@ function mapStoreSettings(row: any): StoreSettings {
           ? JSON.parse(row.supportedLocales)
           : [row.locale]
     }
-    if (row.socialLinks) {
-      socialLinks = typeof row.socialLinks === 'object' && !Array.isArray(row.socialLinks)
-        ? row.socialLinks
-        : typeof row.socialLinks === 'string'
-          ? JSON.parse(row.socialLinks)
-          : null
-    }
   } catch {}
 
   return {
@@ -44,12 +36,13 @@ function mapStoreSettings(row: any): StoreSettings {
     currency: row.currency,
     locale: row.locale,
     timezone: row.timezone,
+    country: row.country,
     supportedCurrencies,
     supportedLocales,
     contactEmail: row.contactEmail ?? null,
     contactPhone: row.contactPhone ?? null,
     address: row.address ?? null,
-    socialLinks,
+    socialLinks: row.socialLinks,
   }
 }
 
@@ -70,6 +63,7 @@ export function createAdminStoreDomain() {
       if (input.currency != null) updates.currency = input.currency
       if (input.locale != null) updates.locale = input.locale
       if (input.timezone != null) updates.timezone = input.timezone
+      if (input.country != null) updates.country = input.country
       if (input.contactEmail !== undefined) updates.contactEmail = input.contactEmail
       if (input.contactPhone !== undefined) updates.contactPhone = input.contactPhone
       if (input.address !== undefined) updates.address = input.address

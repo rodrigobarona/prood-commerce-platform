@@ -4,11 +4,12 @@
 // All adapter tests. Each driver test file calls this with its own setup.
 
 import { describe, it, expect, beforeEach } from 'vitest'
+import { sql } from 'drizzle-orm'
 import { createPlatformAdapter } from '../adapter.js'
-import { withTenant } from '../database/drizzle/client.js'
+import { getDb, withTenant } from '../database/drizzle/client.js'
 import { createCustomer } from '../database/drizzle/queries/customers.js'
 import { DEMO_ORG_ID } from '../database/drizzle/seed.js'
-import type { CommerceAdapter, Address, CheckoutAddress } from '@prood/types'
+import type { CommerceAdapter, Address, CheckoutAddress, Order, PaginationParams } from '@prood/types'
 
 /** Helper: create a full Address with all required fields */
 function fullAddress(overrides: Partial<Address> = {}): CheckoutAddress {
@@ -57,6 +58,23 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     return withTenant(DEMO_ORG_ID, async () =>
       createCustomer({ firstName, lastName }),
     )
+  }
+
+  async function placedOrder(options?: { customerId?: string }) {
+    const cart = await adapter.createCart()
+    await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 1 })
+    await adapter.setShippingAddress(cart.id, fullAddress())
+    return adapter.placeOrder(cart.id, options)
+  }
+
+  async function capture(order: Order) {
+    const { amount, currency } = order.totals.total
+    return adapter.applyPaymentEvent(order.id, { outcome: 'captured', amount, currency, provider: 'test' })
+  }
+
+  async function asTenant<T>(fn: (admin: Awaited<ReturnType<typeof createPlatformAdapter>>['admin']) => Promise<T>) {
+    const { admin } = await createPlatformAdapter()
+    return withTenant(DEMO_ORG_ID, () => fn(admin))
   }
 
   // ---- Catalog ----
@@ -121,6 +139,61 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
 
   it('should throw for missing product', async () => {
     await expect(adapter.getProduct({ id: 'does-not-exist' })).rejects.toThrow()
+  })
+
+  it('returns the same product from every read path', async () => {
+    const product = await adapter.getProduct({ id: 'prod-1' })
+    const listed = await adapter.getProducts({ page: 1, perPage: 10 })
+    const admin = await asTenant(async (admin) => ({
+      product: await admin.getProduct('prod-1'),
+      list: await admin.listProducts({}),
+      lowStock: await admin.getLowStockProducts(1000),
+    }))
+
+    expect(typeof product.createdAt).toBe('string')
+    expect(listed.products.items.find(p => p.id === 'prod-1')).toEqual(product)
+    expect(admin.product).toEqual(product)
+    expect(admin.list.items.find(p => p.id === 'prod-1')).toEqual(product)
+    expect(admin.lowStock.find(p => p.id === 'prod-1')).toEqual(product)
+  })
+
+  it('prices a product in its own currency', async () => {
+    await withTenant(DEMO_ORG_ID, () =>
+      getDb().execute(sql`update products set currency = 'USD' where id = 'prod-1'`),
+    )
+    const product = await adapter.getProduct({ id: 'prod-1' })
+    expect(product.price?.currency).toBe('USD')
+    expect(product.variants[0]?.price?.currency).toBe('USD')
+  })
+
+  it('rates a product from its reviews', async () => {
+    const before = await adapter.getProduct({ id: 'prod-1' })
+    expect(before.rating).toEqual({ average: 4.7, count: 3 })
+
+    await adapter.submitReview({ productId: 'prod-1', authorName: 'Rui', rating: 5 })
+    const after = await adapter.getProducts({ page: 1, perPage: 10 })
+    const summary = await adapter.getReviewSummary('prod-1')
+    const rating = after.products.items.find(p => p.id === 'prod-1')?.rating
+    expect(rating).toEqual({ average: summary.averageRating, count: summary.totalCount })
+  })
+
+  it('leaves an unreviewed product unrated', async () => {
+    await withTenant(DEMO_ORG_ID, () =>
+      getDb().execute(sql`delete from reviews where product_id = 'prod-3'`),
+    )
+    expect((await adapter.getProduct({ id: 'prod-3' })).rating).toBeNull()
+  })
+
+  it('exposes no field the platform has no data for', async () => {
+    const product = await adapter.getProduct({ id: 'prod-1' })
+    for (const field of ['options', 'digital', 'service', 'event', 'subscription', 'preOrder']) {
+      expect(product).not.toHaveProperty(field)
+    }
+    expect(product.variants[0]).not.toHaveProperty('attributes')
+
+    const order = await placedOrder()
+    expect(order.items[0]).not.toHaveProperty('digital')
+    expect(order.items[0]).not.toHaveProperty('event')
   })
 
   // ---- Cart ----
@@ -213,17 +286,142 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     expect(order.totals.total.amount).toBeGreaterThan(0)
   })
 
+  describe('checkout methods', () => {
+    async function cartWithItem() {
+      const cart = await adapter.createCart()
+      return adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 1 })
+    }
+
+    it('returns the methods selected on the cart', async () => {
+      const cart = await cartWithItem()
+      const [, express] = await adapter.getShippingMethods(cart.id)
+      const [, cod] = await adapter.getPaymentMethods(cart.id)
+
+      await adapter.setShippingMethod(cart.id, express!.id)
+      await adapter.setPaymentMethod(cart.id, cod!.id)
+
+      const updated = await adapter.getCart(cart.id)
+      expect(updated.shippingMethod).toEqual(express)
+      expect(updated.paymentMethod).toEqual(cod)
+    })
+
+    it('leaves the cart without methods until one is selected', async () => {
+      const cart = await cartWithItem()
+      expect(cart.shippingMethod).toBeNull()
+      expect(cart.paymentMethod).toBeNull()
+      expect(cart.totals.shipping).toBeNull()
+    })
+
+    it('charges in the cart what checkout offers, for every shipping method', async () => {
+      const cart = await cartWithItem()
+      for (const method of await adapter.getShippingMethods(cart.id)) {
+        const updated = await adapter.setShippingMethod(cart.id, method.id)
+        expect(updated.totals.shipping).toEqual(method.price)
+        expect(updated.totals.total.amount).toBe(cart.totals.subtotal.amount + method.price.amount)
+      }
+    })
+
+    it('refuses a method the store does not offer', async () => {
+      const cart = await cartWithItem()
+      await expect(adapter.setShippingMethod(cart.id, 'free-please')).rejects.toMatchObject({ code: 'VALIDATION' })
+      await expect(adapter.setPaymentMethod(cart.id, 'iou')).rejects.toMatchObject({ code: 'VALIDATION' })
+      expect((await adapter.getCart(cart.id)).totals.shipping).toBeNull()
+    })
+
+    it('keeps on the order the methods chosen and the shipping charged', async () => {
+      const cart = await cartWithItem()
+      const [, express] = await adapter.getShippingMethods(cart.id)
+      const [, cod] = await adapter.getPaymentMethods(cart.id)
+      await adapter.setShippingMethod(cart.id, express!.id)
+      await adapter.setPaymentMethod(cart.id, cod!.id)
+      await adapter.setShippingAddress(cart.id, fullAddress())
+
+      const placed = await adapter.placeOrder(cart.id)
+
+      for (const order of [placed, await adapter.getOrder(placed.id)]) {
+        expect(order.shippingMethod).toEqual(express)
+        expect(order.paymentMethod).toEqual(cod)
+        expect(order.totals.shipping).toEqual(express!.price)
+        expect(order.totals.total.amount).toBe(order.totals.subtotal.amount + express!.price.amount)
+      }
+    })
+
+    it('invents no method for an order placed without one', async () => {
+      const order = await adapter.getOrder((await placedOrder()).id)
+      expect(order.shippingMethod).toBeNull()
+      expect(order.paymentMethod).toBeNull()
+    })
+  })
+
+  describe('order reads', () => {
+    it('returns the same order from every read path', async () => {
+      const customerId = await seedCustomer('Read', 'Paths')
+      const cart = await adapter.createCart()
+      await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 1 })
+      await adapter.setShippingMethod(cart.id, 'standard')
+      await adapter.setPaymentMethod(cart.id, 'card')
+      await adapter.setShippingAddress(cart.id, fullAddress())
+      const placed = await adapter.placeOrder(cart.id, { customerId })
+
+      const order = await adapter.getOrder(placed.id)
+      const customerOrders = await adapter.getCustomerOrders({ customerId } as PaginationParams)
+      const admin = await asTenant(async (admin) => ({
+        order: await admin.getOrder(placed.id),
+        list: await admin.listOrders({}),
+        stats: await admin.getDashboardStats(),
+      }))
+
+      expect(typeof order.createdAt).toBe('string')
+      expect(typeof order.placedAt).toBe('string')
+      expect(placed).toEqual(order)
+      expect(customerOrders.items[0]).toEqual(order)
+      expect(admin.order).toEqual(order)
+      expect(admin.list.items[0]).toEqual(order)
+      expect(admin.stats.recentOrders[0]).toEqual(order)
+    })
+
+    it('prices an order in the currency it was charged in', async () => {
+      const placed = await placedOrder()
+      await withTenant(DEMO_ORG_ID, () =>
+        getDb().execute(sql`update orders set currency = 'USD' where id = ${placed.id}`),
+      )
+      const order = await adapter.getOrder(placed.id)
+      expect(order.totals.total.currency).toBe('USD')
+      expect(order.items[0]?.price.currency).toBe('USD')
+    })
+
+    it('counts all of a customer\'s orders, not just the current page', async () => {
+      const customerId = await seedCustomer('Many', 'Orders')
+      const other = await seedCustomer('Other', 'Customer')
+      await placedOrder({ customerId })
+      await placedOrder({ customerId })
+      await placedOrder({ customerId })
+      await placedOrder({ customerId: other })
+
+      const list = (params: PaginationParams) =>
+        adapter.getCustomerOrders({ ...params, customerId } as PaginationParams)
+
+      const first = await list({ page: 1, perPage: 2 })
+      expect(first.items).toHaveLength(2)
+      expect(first).toMatchObject({ total: 3, hasMore: true })
+
+      const last = await list({ page: 2, perPage: 2 })
+      expect(last.items).toHaveLength(1)
+      expect(last).toMatchObject({ total: 3, hasMore: false })
+
+      // A full last page used to report more to come.
+      expect(await list({ page: 1, perPage: 3 })).toMatchObject({ total: 3, hasMore: false })
+    })
+  })
+
   describe('admin aggregates', () => {
     // Postgres returns bigint and numeric aggregates as strings, so the API
     // would send "3" where the contract promises a number.
     it('returns counts and revenue as numbers', async () => {
-      const { admin } = await createPlatformAdapter()
-      const cart = await adapter.createCart()
-      await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 1 })
-      await adapter.setShippingAddress(cart.id, fullAddress())
-      const order = await adapter.placeOrder(cart.id)
+      const order = await placedOrder()
+      await capture(order)
 
-      const { stats, products, orders } = await withTenant(DEMO_ORG_ID, async () => ({
+      const { stats, products, orders } = await asTenant(async (admin) => ({
         stats: await admin.getDashboardStats(),
         products: await admin.listProducts({}),
         orders: await admin.listOrders({}),
@@ -236,19 +434,41 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       expect(stats.totalOrders).toBe(1)
       expect(stats.totalCustomers).toBe(0)
       expect(stats.totalRevenue).toBe(order.totals.total.amount)
-      expect(stats.ordersByStatus).toEqual({ placed: 1 })
+      expect(stats.ordersByStatus).toEqual({ approved: 1 })
+    })
+
+    it('counts as revenue only the money received', async () => {
+      const revenue = () => asTenant(async (admin) => (await admin.getDashboardStats()).totalRevenue)
+
+      const paid = await placedOrder()
+      await capture(paid)
+      const expected = paid.totals.total.amount
+
+      await placedOrder()
+      const cancelled = await placedOrder()
+      await adapter.cancelOrder(cancelled.id)
+      const authorized = await placedOrder()
+      await adapter.applyPaymentEvent(authorized.id, { outcome: 'authorized', amount: null, currency: null, provider: 'test' })
+      expect(await revenue()).toBe(expected)
+
+      const refunded = await placedOrder()
+      await capture(refunded)
+      expect(await revenue()).toBe(expected + refunded.totals.total.amount)
+      await asTenant((admin) => admin.refundOrder(refunded.id))
+      expect(await revenue()).toBe(expected)
+    })
+
+    it('counts a late payment on a cancelled order until it is refunded', async () => {
+      const order = await placedOrder()
+      await adapter.cancelOrder(order.id)
+      await capture(order)
+      const { totalRevenue } = await asTenant((admin) => admin.getDashboardStats())
+      expect(totalRevenue).toBe(order.totals.total.amount)
     })
   })
 
   describe('payment events', () => {
     const provider = 'test'
-
-    async function placedOrder() {
-      const cart = await adapter.createCart()
-      await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 1 })
-      await adapter.setShippingAddress(cart.id, fullAddress())
-      return adapter.placeOrder(cart.id)
-    }
 
     it('captures a payment of the order total, once', async () => {
       const order = await placedOrder()
@@ -385,12 +605,26 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     expect(info.country).toBe('PT')
   })
 
+  it('reads the store country from its stored settings', async () => {
+    const settings = await asTenant((admin) => admin.updateStoreSettings({ country: 'ES' }))
+    expect(settings.country).toBe('ES')
+    expect((await adapter.getStoreInfo()).country).toBe('ES')
+  })
+
+  it('stores social links as the record it returns', async () => {
+    const socialLinks = { instagram: 'https://instagram.com/prood' }
+    const updated = await asTenant((admin) => admin.updateStoreSettings({ socialLinks }))
+    expect(updated.socialLinks).toEqual(socialLinks)
+    expect((await asTenant((admin) => admin.getStoreSettings())).socialLinks).toEqual(socialLinks)
+  })
+
   it('should auto-seed default store info when none exists', async () => {
     // Create fresh DB without seed
     await opts.setupEmpty()
     const freshAdapter = (await createPlatformAdapter()).adapter
     const info = await withTenant(DEMO_ORG_ID, async () => freshAdapter.getStoreInfo())
     expect(info.name.en).toBe('My Store')
+    expect(info.country).toBe('PT')
   })
 
   it('should provision store info when an organization is created', async () => {

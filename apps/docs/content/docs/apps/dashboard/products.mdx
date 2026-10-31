@@ -45,7 +45,6 @@ export async function createProduct(input: CreateProductInput) {
 | `status` | enum | Yes | `draft` or `published` |
 | `categories` | string[] | No | Category IDs |
 | `variants` | VariantInput[] | Yes | At least one variant |
-| `options` | OptionInput[] | No | Configurable options (size, color) |
 | `images` | ImageInput[] | No | Product images (via storage provider) |
 
 ### Variants
@@ -58,7 +57,6 @@ Each product requires at least one variant:
 | `price` | Price in major units (49.90 for €49.90) |
 | `compareAtPrice` | Original price for sale display |
 | `inventory` | Stock quantity |
-| `options` | Selected option values for this variant |
 
 ## Edit product
 

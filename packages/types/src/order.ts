@@ -7,7 +7,7 @@ import type { CheckoutAddress } from './customer.js'
 import type { ShippingMethod } from './shipping.js'
 import type { PaymentMethod } from './payment.js'
 import type { CartTotals } from './cart.js'
-import type { ProductType, DigitalProductMeta, EventProductMeta } from './product.js'
+import type { ProductType } from './product.js'
 
 /** Order status lifecycle (Commerce Layer-inspired) */
 export type OrderStatus =
@@ -59,12 +59,6 @@ export interface OrderItem {
 
   /** Product type — drives post-purchase UX (download button vs tracking) */
   productType: ProductType
-
-  /** Digital fulfillment details (populated after purchase for digital products) */
-  digital: Maybe<DigitalProductMeta>
-
-  /** Event/ticket details (populated for event products) */
-  event: Maybe<EventProductMeta>
 }
 
 /** Order entity */

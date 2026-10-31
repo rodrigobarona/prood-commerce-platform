@@ -752,6 +752,9 @@ importers:
 
   packages/api-client:
     dependencies:
+      '@prood/types':
+        specifier: workspace:*
+        version: link:../types
       openapi-fetch:
         specifier: 'catalog:'
         version: 0.17.0
