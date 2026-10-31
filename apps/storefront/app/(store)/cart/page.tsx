@@ -2,15 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import {
-  ArrowLeftIcon,
-  HeartIcon,
-  LockIcon,
-  ShieldCheckIcon,
-  ShoppingBagIcon,
-  ArrowCounterClockwiseIcon,
-  CreditCardIcon,
-} from "@phosphor-icons/react"
+import { ArrowLeftIcon, HeartIcon, ShoppingBagIcon } from "@phosphor-icons/react"
 import { Button } from "@prood/ui/components/button"
 import { CartItemRow } from "@prood/ui/components/cart-item"
 import { CartSummary } from "@prood/ui/components/cart-summary"
@@ -24,21 +16,6 @@ import {
   type SavedItem,
 } from "@/components/cart/save-for-later"
 import { useCart } from "@/components/providers/cart-provider"
-
-function TrustBadge({
-  icon,
-  label,
-}: {
-  icon: React.ReactNode
-  label: string
-}) {
-  return (
-    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-      {icon}
-      <span>{label}</span>
-    </div>
-  )
-}
 
 export default function CartPage() {
   const { cart, loading, addItem, updateItem, removeItem, applyCoupon, removeCoupon } =
@@ -155,7 +132,7 @@ export default function CartPage() {
             ) : null}
           </div>
 
-          {/* Sidebar: Summary + Coupon + Trust */}
+          {/* Sidebar: Summary + Coupon */}
           <div className="flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start">
 
             <CartSummary cart={cart} />
@@ -168,28 +145,6 @@ export default function CartPage() {
                 error={couponError ?? cart.couponError}
                 onApply={handleApplyCoupon}
                 onRemove={handleRemoveCoupon}
-              />
-            </div>
-
-            <Separator />
-
-            {/* Trust signals */}
-            <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 px-2">
-              <TrustBadge
-                icon={<LockIcon className="size-3.5" />}
-                label="Secure checkout"
-              />
-              <TrustBadge
-                icon={<ShieldCheckIcon className="size-3.5" />}
-                label="Data protection"
-              />
-              <TrustBadge
-                icon={<ArrowCounterClockwiseIcon className="size-3.5" />}
-                label="Easy returns"
-              />
-              <TrustBadge
-                icon={<CreditCardIcon className="size-3.5" />}
-                label="Safe payment"
               />
             </div>
           </div>
