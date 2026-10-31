@@ -102,7 +102,7 @@ The customer is redirected to `apps/checkout/c/{sessionId}`. See [Checkout app](
 
 After successful payment:
 
-1. Checkout app redirects to `/success/{sessionId}`
+1. Checkout app redirects to `/confirm/{sessionId}`
 2. Success page redirects to storefront `returnUrl` (`/order-confirmation?order={id}`)
 3. Order confirmation page fetches order details from API
 

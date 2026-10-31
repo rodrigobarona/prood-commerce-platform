@@ -1,5 +1,6 @@
 import { Suspense } from "react"
 import { Skeleton } from "@prood/ui/components/skeleton"
+import { PAYMENT_DECLINED_PARAM, PAYMENT_DECLINED_VALUE } from "@prood/types"
 import { ConfirmClient } from "./confirm-client"
 
 export default async function ConfirmPage({
@@ -7,10 +8,10 @@ export default async function ConfirmPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<Record<string, string>>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   const { id } = await params
-  const query = await searchParams
+  const declined = (await searchParams)[PAYMENT_DECLINED_PARAM] === PAYMENT_DECLINED_VALUE
 
   return (
     <Suspense
@@ -22,10 +23,7 @@ export default async function ConfirmPage({
         </div>
       }
     >
-      <ConfirmClient
-        sessionId={id}
-        stripeSessionId={query.session_id ?? null}
-      />
+      <ConfirmClient sessionId={id} declined={declined} />
     </Suspense>
   )
 }

@@ -15,7 +15,8 @@
 //                            failed → payment (retry)
 // ---------------------------------------------------------------------------
 
-import type { CheckoutAddress, PaymentProvider, PaymentSession } from '@prood/types'
+import { CommerceError } from '@prood/types'
+import type { CheckoutAddress, PaymentMethodKind, PaymentProvider, PaymentSession } from '@prood/types'
 import { EventEmitter } from './events.js'
 import type {
   CheckoutState,
@@ -51,9 +52,20 @@ function resolveConfig(config: CheckoutSessionConfig): ResolvedCheckoutConfig {
   }
 }
 
+function withoutNulls(data: Record<string, unknown> | null): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(data ?? {}).filter(([, value]) => value !== null && value !== undefined))
+}
+
 // ---------------------------------------------------------------------------
 // CheckoutSession
 // ---------------------------------------------------------------------------
+
+/** A payment link past its deadline. */
+export class CheckoutExpiredError extends CommerceError {
+  constructor() {
+    super('This payment link has expired.', 'VALIDATION', 410)
+  }
+}
 
 /**
  * Universal checkout session — a state machine that orchestrates the
@@ -128,6 +140,33 @@ export class CheckoutSession extends EventEmitter<CheckoutEvents> {
     this._transitions = buildTransitions(this._config.fulfillment)
   }
 
+  /**
+   * Rebuild a session from a stored snapshot, exactly where it left off. A
+   * payment already started keeps its deadline, so it stays confirmable.
+   */
+  static fromSnapshot(
+    snapshot: CheckoutSnapshot,
+    config: Pick<CheckoutSessionConfig, 'paymentProvider' | 'returnUrl' | 'cancelUrl' | 'webhookUrl'>,
+  ): CheckoutSession {
+    const session = new CheckoutSession({
+      ...config,
+      currency: snapshot.currency,
+      amount: snapshot.amount,
+      orderId: snapshot.orderId ?? undefined,
+      channel: snapshot.channel,
+      fulfillment: snapshot.fulfillment,
+    })
+    session._config.expiresAt = snapshot.expiresAt ? new Date(snapshot.expiresAt).getTime() : null
+    session._state = snapshot.state
+    session._customerInfo = snapshot.customerInfo
+    session._shippingAddress = snapshot.shippingAddress
+    session._billingAddress = snapshot.billingAddress
+    session._shippingMethodId = snapshot.shippingMethodId
+    session._paymentSession = snapshot.paymentSession
+    session._error = snapshot.error ? new Error(snapshot.error) : null
+    return session
+  }
+
   // ---------------------------------------------------------------------------
   // Public getters (read-only)
   // ---------------------------------------------------------------------------
@@ -158,6 +197,12 @@ export class CheckoutSession extends EventEmitter<CheckoutEvents> {
     this.assertTransition('info')
     this._customerInfo = info
     this.transition('info')
+  }
+
+  /** Update customer details collected at payment, such as the MB WAY phone. */
+  updateCustomerInfo(info: Partial<CheckoutCustomerInfo>): void {
+    if (!this._customerInfo) throw new Error('Cannot update customer info before it is set')
+    this._customerInfo = { ...this._customerInfo, ...info }
   }
 
   /**
@@ -222,6 +267,7 @@ export class CheckoutSession extends EventEmitter<CheckoutEvents> {
    * @returns The payment session (may include a redirectUrl for 3DS)
    */
   async submitPayment(options: {
+    method?: PaymentMethodKind
     sourceToken?: string
     idempotencyKey?: string
     saveCard?: boolean
@@ -246,6 +292,7 @@ export class CheckoutSession extends EventEmitter<CheckoutEvents> {
       const session = await this.provider.createSession({
         amount: this._amount,
         currency: this._currency,
+        method: options.method,
         sourceToken: options.sourceToken,
         idempotencyKey: options.idempotencyKey,
         orderId: this._config.orderId ?? undefined,
@@ -308,54 +355,77 @@ export class CheckoutSession extends EventEmitter<CheckoutEvents> {
   }
 
   /**
-   * Confirm payment after 3DS redirect or async completion.
-   * Must be in `payment` state.
-   *
-   * @param sessionId - The payment session ID to confirm (from redirect params)
-   * @returns The confirmed payment session
+   * Give up on a payment the customer can no longer complete, such as an MB WAY
+   * request that timed out, so `submitPayment` can start another.
    */
-  async confirmPayment(sessionId?: string): Promise<PaymentSession> {
-    this.assertNotExpired()
+  abandonPayment(): void {
+    if (this._state !== 'payment') {
+      throw new Error(`Cannot abandon payment in "${this._state}" state`)
+    }
+    this._error = new Error('Payment abandoned')
+    this.transition('failed')
+  }
 
+  /**
+   * Ask the provider where a started payment stands. Must be in `payment` state,
+   * and only ever checks the session stored here.
+   *
+   * The session moves to `complete` or `failed` when the provider says so. While
+   * the payment is open it returns to `payment` so the caller can check again,
+   * and a provider that can't be reached says nothing about the payment: the
+   * error is rethrown and the session stays in `payment`.
+   *
+   * @returns The provider's view of the payment session
+   */
+  async confirmPayment(): Promise<PaymentSession> {
     if (this._state !== 'payment') {
       throw new Error(`Cannot confirm payment in "${this._state}" state`)
     }
 
-    const id = sessionId ?? this._paymentSession?.id
+    const id = this._paymentSession?.id
     if (!id) {
       throw new Error('No payment session ID available for confirmation')
     }
 
     this.transition('confirming')
 
+    let confirmed: PaymentSession
     try {
-      const confirmed = await this.provider.confirmSession(id)
-      this._paymentSession = confirmed
-
-      if (confirmed.status === 'captured') {
-        this.transition('complete')
-        this.emit('complete', { paymentSession: confirmed })
-        return confirmed
-      }
-
-      if (confirmed.status === 'failed' || confirmed.status === 'cancelled') {
-        const error = new Error(`Payment ${confirmed.status}`)
-        this._error = error
-        this.transition('failed')
-        this.emit('error', { error, state: this._state })
-        throw error
-      }
-
-      // Still processing — caller should poll or wait for webhook
-      return confirmed
+      confirmed = await this.provider.confirmSession(id)
     }
     catch (err) {
-      const error = err instanceof Error ? err : new Error(String(err))
+      this.transition('payment')
+      throw err
+    }
+
+    // Provider views can omit what only creation knows, such as the reference
+    // or the hosted page, and an omitted field is not a cleared one.
+    const stored = this._paymentSession
+    this._paymentSession = {
+      ...confirmed,
+      method: stored?.method ?? confirmed.method,
+      amount: stored?.amount ?? confirmed.amount,
+      currency: stored?.currency ?? confirmed.currency,
+      createdAt: stored?.createdAt ?? confirmed.createdAt,
+      redirectUrl: confirmed.redirectUrl ?? stored?.redirectUrl ?? null,
+      providerData: { ...stored?.providerData, ...withoutNulls(confirmed.providerData) },
+    }
+
+    if (confirmed.status === 'captured') {
+      this.transition('complete')
+      this.emit('complete', { paymentSession: this._paymentSession })
+    }
+    else if (confirmed.status === 'failed' || confirmed.status === 'cancelled') {
+      const error = new Error(`Payment ${confirmed.status}`)
       this._error = error
       this.transition('failed')
       this.emit('error', { error, state: this._state })
-      throw error
     }
+    else {
+      this.transition('payment')
+    }
+
+    return this._paymentSession
   }
 
   /**
@@ -449,7 +519,7 @@ export class CheckoutSession extends EventEmitter<CheckoutEvents> {
   private assertNotExpired(): void {
     if (this._config.expiresAt && Date.now() > this._config.expiresAt) {
       this.emit('expired', {})
-      throw new Error('Checkout session has expired')
+      throw new CheckoutExpiredError()
     }
   }
 }

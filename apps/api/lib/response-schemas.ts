@@ -22,6 +22,7 @@ import type {
   OrderFulfillmentStatus,
   OrderHistoryEntry,
   OrderItem,
+  OrderPaymentDetails,
   OrderStatus,
   PaginatedResult,
   PaymentEventResult,
@@ -105,12 +106,20 @@ export const healthBody = z.object({ status: z.literal("ok") })
 
 export const webhookAcceptedBody = z.object({
   received: z.literal(true),
-  result: z.enum(["applied", "duplicate", "amount_mismatch", "order_cancelled", "ignored"]),
+  result: z.enum([
+    "applied",
+    "duplicate",
+    "amount_mismatch",
+    "order_cancelled",
+    "stale",
+    "second_payment",
+    "ignored",
+  ]),
 }) satisfies z.ZodType<{ received: true; result: PaymentEventResult | "ignored" }>
 
 export const callerBody = z.object({
   organizationId: z.string(),
-  scopes: z.array(z.enum(["storefront", "admin"])),
+  scopes: z.array(z.enum(["storefront", "staff", "admin"])),
   via: z.enum(["api-key", "session", "host", "agent"]),
 }) satisfies z.ZodType<Pick<ApiCaller, "scopes" | "via"> & { organizationId: string }>
 
@@ -321,6 +330,13 @@ const orderItem = z.object({
   productType,
 }) satisfies z.ZodType<OrderItem>
 
+const orderPaymentDetails = z.object({
+  method: z.enum(["card", "multibanco", "mbway"]),
+  entity: nullableString,
+  reference: nullableString,
+  expiresAt: nullableString,
+}) satisfies z.ZodType<OrderPaymentDetails>
+
 export const order = z.object({
   id: z.string(),
   orderNumber: z.string(),
@@ -333,7 +349,9 @@ export const order = z.object({
   billingAddress: checkoutAddress.nullable(),
   shippingMethod: shippingMethod.nullable(),
   paymentMethod: paymentMethod.nullable(),
+  paymentProvider: nullableString,
   paymentTransactionId: nullableString,
+  paymentDetails: orderPaymentDetails.nullable(),
   couponCode: nullableString,
   trackingNumber: nullableString,
   trackingUrl: nullableString,
@@ -348,6 +366,16 @@ export const order = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
 }) satisfies z.ZodType<Order>
+
+/** An order as its merchant sees it, with how it can be refunded. */
+export const adminOrder = order.extend({
+  refund: z
+    .enum(["provider", "manual"])
+    .nullable()
+    .describe(
+      "`provider`: Prood can send the refund. `manual`: refund in the payment account first. Either way, `recordOnly` records a refund already made there. Null when nothing can be refunded."
+    ),
+})
 
 export const orderHistoryEntry = z.object({
   id: z.string(),

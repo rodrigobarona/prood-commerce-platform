@@ -7,6 +7,7 @@
 // for these tables are generated in packages/platform/drizzle.
 import {
   boolean,
+  index,
   integer,
   jsonb,
   pgTable,
@@ -84,17 +85,24 @@ export const organization = pgTable("organization", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 })
 
-export const member = pgTable("member", {
-  id: text("id").primaryKey(),
-  organizationId: text("organization_id")
-    .notNull()
-    .references(() => organization.id, { onDelete: "cascade" }),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
-  role: text("role").notNull().default("member"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-})
+export const member = pgTable(
+  "member",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    role: text("role").notNull().default("member"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("member_organization_id_user_id_unique").on(table.organizationId, table.userId),
+    index("member_user_id_idx").on(table.userId),
+  ]
+)
 
 export const invitation = pgTable("invitation", {
   id: text("id").primaryKey(),

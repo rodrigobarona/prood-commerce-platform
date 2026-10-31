@@ -1,5 +1,5 @@
 /** Easypay payment method codes. */
-export type EasypayMethod = 'mb' | 'mbw' | 'cc' | 'dd'
+export type EasypayMethod = 'mb' | 'mbw' | 'cc'
 
 /** Configuration for {@link EasypayPaymentProvider}. */
 export interface EasypayConfig {
@@ -12,10 +12,6 @@ export interface EasypayConfig {
    * Use `https://api.test.easypay.pt` for sandbox.
    */
   baseUrl?: string
-  /** Default method when none is supplied via `metadata.method`. Defaults to `mb`. */
-  defaultMethod?: EasypayMethod
-  /** Optional phone country indicative for MB WAY (defaults to `+351`). */
-  phoneIndicative?: string
 }
 
 /** Shape of the Easypay single-payment method block (partial). */
@@ -38,5 +34,20 @@ export interface EasypaySinglePayment {
   payment_status?: string
   currency?: string
   value?: number
-  transactions?: unknown[]
+  /** Captures of this payment; refunds are issued against a capture. */
+  captures?: EasypayCapture[]
+}
+
+/** Shape of an Easypay refund (partial). */
+export interface EasypayRefund {
+  id?: string
+  status?: 'success' | 'pending' | 'failed' | 'waiting'
+  value?: number
+  capture?: { payment_id?: string; value?: number }
+}
+
+/** Shape of a capture on an Easypay single payment (partial). */
+export interface EasypayCapture {
+  id?: string
+  status?: 'delayed' | 'waiting' | 'pending' | 'success' | 'failed' | 'refunded'
 }

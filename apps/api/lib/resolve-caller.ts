@@ -1,15 +1,16 @@
-import { assertFeature } from "@prood/commerce"
 import { CommerceError } from "@prood/types"
 import { getAuth, getSession, resolveActiveOrganizationId } from "@/lib/auth"
 import { getOrganizationLimits } from "@/lib/org-plan"
+import { getMemberRole } from "@prood/auth/membership"
 import { lookupTenantByHost } from "@prood/platform"
-import { resolveOrgForAgent } from "@/lib/agent-org"
+import { resolveAgentAccess } from "@/lib/agent-access"
 import {
   assertCapability,
   operationForRequest,
   REQUEST_TARGET_HEADER,
 } from "@/lib/agent-capability"
-import type { ApiCaller, ApiScope } from "@/lib/auth-tenant"
+import { hasScope, scopesForRole, type ApiScope } from "@/lib/scopes"
+import type { ApiCaller } from "@/lib/auth-tenant"
 
 const API_KEY_HEADER = "x-api-key"
 
@@ -42,21 +43,7 @@ export async function resolveCallerFromHeaders(
       headers: headerList,
     })
     if (agentSession) {
-      const orgId = await resolveOrgForAgent(agentSession)
-      if (!orgId) {
-        throw new CommerceError(
-          "This agent isn't bound to a store. Approve it in your dashboard.",
-          "FORBIDDEN"
-        )
-      }
-      const limits = await getOrganizationLimits(orgId)
-      assertFeature(
-        limits.agentAuthEnabled,
-        "Agent Auth requires a Grow plan or higher",
-      )
-      const capabilities = agentSession.agent.capabilityGrants
-        .filter((grant) => grant.status === "active")
-        .map((grant) => grant.capability)
+      const { orgId, capabilities } = await resolveAgentAccess(agentSession)
       const scopes = scopesFromCapabilities(capabilities)
       if (scopes.length === 0) {
         throw new CommerceError("Agent has no active capability grants", "FORBIDDEN")
@@ -84,15 +71,6 @@ export async function resolveCallerFromHeaders(
   }
 
   const session = await getSession(headerList)
-  const sessionOrgId = await resolveActiveOrganizationId(headerList)
-  if (sessionOrgId && session?.user) {
-    return {
-      orgId: sessionOrgId,
-      scopes: ["admin", "storefront"],
-      via: "session",
-      userId: session.user.id,
-    }
-  }
 
   // Only trust x-storefront-host for tenant resolution — the raw Host header
   // is the API's own hostname (e.g. api-prood.vercel.app) and can never
@@ -104,11 +82,27 @@ export async function resolveCallerFromHeaders(
   if (storefrontHost) {
     const hostOrgId = await lookupTenantByHost(storefrontHost, platformDomain())
     if (hostOrgId) {
+      // The store being visited wins over the session's active store, so a
+      // merchant shopping elsewhere is a shopper there.
+      const role = session?.user ? await getMemberRole(hostOrgId, session.user.id) : null
       return {
         orgId: hostOrgId,
-        scopes: ["storefront"],
+        scopes: role ? scopesForRole(role) : ["storefront"],
         via: session?.user ? "session" : "host",
         userId: session?.user?.id,
+      }
+    }
+  }
+
+  const sessionOrgId = await resolveActiveOrganizationId(headerList)
+  if (sessionOrgId && session?.user) {
+    const role = await getMemberRole(sessionOrgId, session.user.id)
+    if (role) {
+      return {
+        orgId: sessionOrgId,
+        scopes: scopesForRole(role),
+        via: "session",
+        userId: session.user.id,
       }
     }
   }
@@ -131,8 +125,13 @@ export async function requireCallerFromHeaders(
   if (!caller) {
     throw new CommerceError("Authentication required", "UNAUTHORIZED")
   }
-  if (!caller.scopes.includes(scope)) {
-    throw new CommerceError("Insufficient scope for this resource", "FORBIDDEN")
+  if (!hasScope(caller.scopes, scope)) {
+    throw new CommerceError(
+      caller.via === "session"
+        ? "Only store owners and admins can do this."
+        : "Insufficient scope for this resource",
+      "FORBIDDEN"
+    )
   }
   if (caller.capabilities) {
     assertCapability(

@@ -33,24 +33,27 @@ const provider = new IfthenpayPaymentProvider({
 | `mbwayKey` | `IFTHENPAY_MBWAY_KEY` | MB WAY gateway key |
 | `ccKey` | `IFTHENPAY_CC_KEY` | Credit card gateway key |
 
-Each key corresponds to a payment method enabled in your Ifthenpay backoffice.
+`mbKey` is required, since Multibanco is the default method. The other keys are optional, and each one unlocks its method at checkout.
+
+Ifthenpay has no read-only call to test keys with, so they aren't tested on save. It has no refund API either: refunds happen in the Ifthenpay backoffice, then the merchant records them in the dashboard.
 
 ## Selecting a method
 
-Pass `metadata.method` on `createSession()` (defaults to `multibanco`):
+Pass `method` on `createSession()` (defaults to `multibanco`):
 
-| `metadata.method` | Key used | Result |
+| `method` | Key used | Result |
 | --- | --- | --- |
 | `multibanco` | `mbKey` | Entity + reference in `providerData` |
 | `mbway` | `mbwayKey` | MB WAY push; `providerData.requestId` |
-| `creditcard` | `ccKey` | Redirect to Ifthenpay hosted card page |
+| `card` | `ccKey` | Redirect to Ifthenpay hosted card page |
 
 ```ts
 const session = await provider.createSession({
   amount: 49.9,
   currency: 'EUR',
   orderId: 'ord_123',
-  metadata: { method: 'mbway', phone: '912345678' },
+  method: 'mbway',
+  customer: { phone: '912345678' },
 })
 ```
 
@@ -78,11 +81,13 @@ Ifthenpay uses an anti-phishing key to verify webhook authenticity. The provider
 
 ## Webhook setup
 
-Configure callback URL in Ifthenpay backoffice:
+The integration form shows the callback URL for your store. Send it to Ifthenpay with your anti-phishing key:
 
 ```
-URL: https://checkout.example.com/api/webhooks/ifthenpay/{orgId}
+https://checkout.example.com/api/webhooks/ifthenpay/{orgId}?key=[ANTI_PHISHING_KEY]&orderId=[ORDER_ID]&amount=[AMOUNT]&requestId=[REQUEST_ID]
 ```
+
+Order ids are encoded to fit Ifthenpay's 25-character limit and decoded when the callback arrives.
 
 ## Related pages
 

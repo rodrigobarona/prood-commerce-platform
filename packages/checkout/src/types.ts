@@ -37,7 +37,7 @@ export function buildTransitions(fulfillment: CheckoutFulfillment): Record<Check
     info: needsAddress ? ['shipping'] : ['payment'],
     shipping: ['payment'],
     payment: ['confirming', 'failed'],
-    confirming: ['complete', 'failed'],
+    confirming: ['payment', 'complete', 'failed'],
     complete: [],
     failed: ['payment'],
   }

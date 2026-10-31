@@ -186,8 +186,10 @@ The payment status is updated exclusively by webhooks from the payment provider.
 | --- | --- | --- |
 | `checkout.session.completed` / `payment.captured` | `approved` | `paid` |
 | `payment_intent.payment_failed` | `cancelled` | `voided` |
-| `charge.refunded` (full) | `cancelled` | `refunded` |
-| `charge.refunded` (partial) | no change | `partially_refunded` |
+| `payment.refunded` (Stripe `charge.refunded`, Easypay refund notification) | `cancelled` | `refunded` |
+| `payment.partially_refunded` | no change | `partially_refunded` |
+
+A failure or refund about a payment the order no longer uses changes nothing: a shopper's retry replaces the payment on the order, and the abandoned one can still report in. A capture of another payment on an order that already has its money leaves one history note per transaction, because that money may be owed back.
 
 ## Order history
 

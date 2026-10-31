@@ -52,9 +52,9 @@ export async function createCartRemote(): Promise<Cart> {
   return unwrap(api.POST("/carts"))
 }
 
-export async function fetchOrder(id: string): Promise<Order> {
+export async function fetchOrder(id: string, email?: string): Promise<Order> {
   const api = await getCommerceApi()
-  return unwrap(api.GET("/orders/{id}", { params: { path: { id } } }))
+  return unwrap(api.GET("/orders/{id}", { params: { path: { id }, query: { email } } }))
 }
 
 export async function fetchCustomerOrders(

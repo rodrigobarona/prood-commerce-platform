@@ -25,12 +25,14 @@ export function ProviderConfigForm({
   configuredKeys,
   initialEnabled,
   connected,
+  webhookUrl,
 }: {
   provider: ProviderMeta
   initialValues: Record<string, string>
   configuredKeys: string[]
   initialEnabled: boolean
   connected: boolean
+  webhookUrl: string | null
 }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
@@ -45,20 +47,38 @@ export function ProviderConfigForm({
     event.preventDefault()
     startTransition(async () => {
       try {
-        await saveIntegrationAction(provider.id, values, enabled)
-        toast.success(`${provider.name} saved`)
+        const result = await saveIntegrationAction(provider.id, values, enabled)
+        if (!result.ok) {
+          toast.error(result.error)
+          return
+        }
+        toast.success(result.message)
         router.push("/integrations")
         router.refresh()
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Could not save")
+      } catch {
+        toast.error(`We couldn't save ${provider.name}. Nothing changed. Try again.`)
       }
     })
+  }
+
+  async function handleCopyWebhook() {
+    if (!webhookUrl) return
+    try {
+      await navigator.clipboard.writeText(webhookUrl)
+      toast.success("Webhook URL copied.")
+    } catch {
+      toast.error("We couldn't copy the URL. Select it and copy it by hand.")
+    }
   }
 
   function handleDisconnect() {
     startTransition(async () => {
       try {
-        await disconnectIntegrationAction(provider.id)
+        const { error } = await disconnectIntegrationAction(provider.id)
+        if (error) {
+          toast.error(error)
+          return
+        }
         toast.success(`${provider.name} disconnected`)
         router.push("/integrations")
         router.refresh()
@@ -75,6 +95,36 @@ export function ProviderConfigForm({
           <CardTitle>Credentials</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
+          {webhookUrl ? (
+            <div className="flex flex-col gap-1.5 border-b pb-4">
+              <Label htmlFor="webhookUrl">Webhook URL</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="webhookUrl"
+                  readOnly
+                  value={webhookUrl}
+                  className="font-mono text-xs"
+                  onFocus={(event) => event.target.select()}
+                />
+                <Button type="button" variant="outline" onClick={handleCopyWebhook}>
+                  Copy URL
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {provider.webhook.instructions} Orders are only marked as paid
+                when {provider.name} calls this URL.
+              </p>
+              {provider.webhook.events ? (
+                <p className="text-xs text-muted-foreground">
+                  Send these events:{" "}
+                  <span className="font-mono">
+                    {provider.webhook.events.join(", ")}
+                  </span>
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
           {provider.fields.map((field) => {
             const isSetSecret =
               field.type === "password" && configuredKeys.includes(field.key)
@@ -97,25 +147,31 @@ export function ProviderConfigForm({
             )
           })}
 
-          <div className="flex items-center justify-between border-t pt-4">
-            <div>
-              <Label htmlFor="enabled">Enabled</Label>
-              <p className="text-xs text-muted-foreground">
-                Turn this integration on for your store.
-              </p>
+          {connected ? (
+            <div className="flex items-center justify-between border-t pt-4">
+              <div>
+                <Label htmlFor="enabled">Enabled</Label>
+                <p className="text-xs text-muted-foreground">
+                  Turn this integration on for your store.
+                </p>
+              </div>
+              <Switch
+                id="enabled"
+                checked={enabled}
+                onCheckedChange={setEnabled}
+              />
             </div>
-            <Switch
-              id="enabled"
-              checked={enabled}
-              onCheckedChange={setEnabled}
-            />
-          </div>
+          ) : null}
         </CardContent>
       </Card>
 
       <div className="flex items-center gap-3">
         <Button type="submit" disabled={pending}>
-          {pending ? "Saving..." : "Save"}
+          {pending
+            ? `Testing ${provider.name}...`
+            : connected
+              ? "Save changes"
+              : `Connect ${provider.name}`}
         </Button>
         {connected ? (
           <Button

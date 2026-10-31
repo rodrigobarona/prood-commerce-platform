@@ -66,7 +66,7 @@ Payment providers implement the `PaymentProvider` interface. The checkout engine
 interface PaymentProvider {
   createSession(input: CreatePaymentSessionInput): Promise<PaymentSession>
   confirmSession(sessionId: string): Promise<PaymentSession>
-  refund(input: RefundInput): Promise<PaymentSession>
+  refund?(input: RefundInput): Promise<void>
   verifyWebhook(event: PaymentWebhookEvent): Promise<boolean>
 }
 ```

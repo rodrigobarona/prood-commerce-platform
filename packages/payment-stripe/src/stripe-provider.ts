@@ -17,11 +17,16 @@ import type {
   PaymentSession,
   PaymentSessionStatus,
   CreatePaymentSessionInput,
+  CredentialCheck,
   RefundInput,
   PaymentWebhookEvent,
 } from '@prood/types'
 
 import type { StripeConfig } from './types.js'
+
+const CHECK_TIMEOUT_MS = 10_000
+// Under the 30 seconds a checkout session is locked for while its payment starts.
+const CREATE_TIMEOUT_MS = 20_000
 
 // ---------------------------------------------------------------------------
 // Currency helpers
@@ -82,6 +87,7 @@ function sessionToPaymentSession(
     id: session.id,
     providerId,
     status: mapSessionStatus(session),
+    method: 'card',
     amount: fromMinorUnits(session.amount_total ?? 0, session.currency ?? 'usd'),
     currency: (session.currency ?? 'usd').toUpperCase(),
     providerData: {
@@ -140,9 +146,6 @@ function mapEventType(event: Stripe.Event): string {
       return 'payment.cancelled'
     case 'checkout.session.async_payment_failed':
       return 'payment.failed'
-    case 'charge.refunded':
-    case 'refund.created':
-      return 'payment.refunded'
     default:
       return 'payment.updated'
   }
@@ -165,8 +168,13 @@ function mapEventType(event: Stripe.Event): string {
 export class StripePaymentProvider implements PaymentProvider {
   readonly id = 'stripe'
   readonly name = 'Stripe'
+  // The Payment Element offers whatever the merchant enabled in Stripe.
+  readonly methods = ['card'] as const
+  readonly refundableMethods = ['card'] as const
 
   private readonly stripe: Stripe
+  private readonly secretKey: string
+  private readonly publishableKey: string | null
   private readonly webhookSecret: string | null
   private readonly captureMethod: 'automatic' | 'manual'
 
@@ -178,6 +186,8 @@ export class StripePaymentProvider implements PaymentProvider {
           ? { apiVersion: config.apiVersion }
           : {}) as ConstructorParameters<typeof Stripe>[1],
       )
+    this.secretKey = config.secretKey
+    this.publishableKey = config.publishableKey ?? null
     this.webhookSecret = config.webhookSecret ?? null
     this.captureMethod = config.captureMethod ?? 'automatic'
   }
@@ -186,11 +196,12 @@ export class StripePaymentProvider implements PaymentProvider {
 
   async createSession(input: CreatePaymentSessionInput): Promise<PaymentSession> {
     const metadata: Record<string, string> = {}
-    if (input.orderId) metadata.orderId = input.orderId
-    if (input.customerId) metadata.customerId = input.customerId
     for (const [k, v] of Object.entries(input.metadata ?? {})) {
       metadata[k] = typeof v === 'string' ? v : JSON.stringify(v)
     }
+    // Last, so nothing else can claim this payment belongs to another order.
+    if (input.orderId) metadata.orderId = input.orderId
+    if (input.customerId) metadata.customerId = input.customerId
 
     if (!input.returnUrl) {
       throw new Error('returnUrl is required for Stripe Checkout Sessions with ui_mode: elements')
@@ -222,7 +233,11 @@ export class StripePaymentProvider implements PaymentProvider {
           : {}),
         metadata,
       },
-      input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : undefined,
+      {
+        timeout: CREATE_TIMEOUT_MS,
+        maxNetworkRetries: 0,
+        ...(input.idempotencyKey && { idempotencyKey: input.idempotencyKey }),
+      },
     )
 
     return sessionToPaymentSession(session, this.id)
@@ -239,20 +254,21 @@ export class StripePaymentProvider implements PaymentProvider {
 
   // ---- Post-payment operations ----------------------------------------------
 
-  async refund(input: RefundInput): Promise<PaymentSession> {
+  async refund(input: RefundInput): Promise<void> {
     const session = await this.stripe.checkout.sessions.retrieve(input.sessionId)
     const piId = getPaymentIntentId(session)
     if (!piId) throw new Error(`Checkout Session ${input.sessionId} has no PaymentIntent to refund`)
 
-    await this.stripe.refunds.create({
-      payment_intent: piId,
-      ...(input.amount != null && { amount: toMinorUnits(input.amount, session.currency!) }),
-      ...(VALID_REFUND_REASONS.has(input.reason ?? '') && {
-        reason: input.reason as Stripe.RefundCreateParams['reason'],
-      }),
-    })
-
-    return this.getSession(input.sessionId)
+    await this.stripe.refunds.create(
+      {
+        payment_intent: piId,
+        ...(input.amount != null && { amount: toMinorUnits(input.amount, session.currency!) }),
+        ...(VALID_REFUND_REASONS.has(input.reason ?? '') && {
+          reason: input.reason as Stripe.RefundCreateParams['reason'],
+        }),
+      },
+      input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : undefined,
+    )
   }
 
   async captureSession(sessionId: string, amount?: number): Promise<PaymentSession> {
@@ -287,6 +303,39 @@ export class StripePaymentProvider implements PaymentProvider {
     return sessionToPaymentSession(session, this.id)
   }
 
+  // ---- Credentials ----------------------------------------------------------
+
+  async checkCredentials(): Promise<CredentialCheck> {
+    const secretMode = /^[sr]k_(test|live)_\w{10,}$/.exec(this.secretKey)?.[1]
+    if (!secretMode) return { ok: false, reason: 'rejected', field: 'secretKey' }
+
+    if (this.publishableKey !== null) {
+      const publishableMode = /^pk_(test|live)_\w{10,}$/.exec(this.publishableKey)?.[1]
+      if (!publishableMode) return { ok: false, reason: 'rejected', field: 'publishableKey' }
+      if (publishableMode !== secretMode) {
+        return { ok: false, reason: 'mismatched', field: 'publishableKey' }
+      }
+    }
+
+    if (this.webhookSecret !== null && !/^whsec_\w{10,}$/.test(this.webhookSecret)) {
+      return { ok: false, reason: 'rejected', field: 'webhookSecret' }
+    }
+
+    try {
+      await this.stripe.checkout.sessions.list(
+        { limit: 1 },
+        { timeout: CHECK_TIMEOUT_MS, maxNetworkRetries: 0 },
+      )
+      return { ok: true }
+    } catch (err) {
+      const refused = err instanceof Stripe.errors.StripeAuthenticationError
+        || err instanceof Stripe.errors.StripePermissionError
+      return refused
+        ? { ok: false, reason: 'rejected', field: 'secretKey' }
+        : { ok: false, reason: 'unreachable' }
+    }
+  }
+
   // ---- Webhooks -------------------------------------------------------------
 
   async verifyWebhook(
@@ -299,6 +348,7 @@ export class StripePaymentProvider implements PaymentProvider {
 
     const body = typeof payload === 'string' ? payload : Buffer.from(payload)
     const event = await this.stripe.webhooks.constructEventAsync(body, signature, this.webhookSecret)
+    if (event.type === 'charge.refunded') return this.refundEvent(event, event.data.object)
 
     const object = event.data.object as unknown as Record<string, unknown>
     const currency = typeof object.currency === 'string' ? object.currency.toUpperCase() : null
@@ -313,6 +363,29 @@ export class StripePaymentProvider implements PaymentProvider {
       sessionId: extractSessionId(event),
       orderId: metadata?.orderId ?? null,
       amount: minorAmount !== null && currency ? fromMinorUnits(minorAmount, currency) : null,
+      currency,
+      method: 'card',
+      data: event as unknown as Record<string, unknown>,
+    }
+  }
+
+  /**
+   * `charge.refunded` covers refunds made in the Stripe dashboard too, and its
+   * totals say whether anything is left. Orders know the Checkout Session, which
+   * a charge doesn't name, so it is found through the PaymentIntent.
+   */
+  private async refundEvent(event: Stripe.Event, charge: Stripe.Charge): Promise<PaymentWebhookEvent> {
+    const piId = typeof charge.payment_intent === 'string' ? charge.payment_intent : charge.payment_intent?.id
+    const session = piId
+      ? (await this.stripe.checkout.sessions.list({ payment_intent: piId, limit: 1 })).data[0]
+      : undefined
+    const currency = charge.currency.toUpperCase()
+
+    return {
+      type: charge.refunded ? 'payment.refunded' : 'payment.partially_refunded',
+      sessionId: session?.id ?? piId ?? charge.id,
+      orderId: session?.metadata?.orderId ?? null,
+      amount: fromMinorUnits(charge.amount_refunded, currency),
       currency,
       data: event as unknown as Record<string, unknown>,
     }

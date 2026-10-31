@@ -28,13 +28,13 @@ export type { Cart, CartItem, CartTotals } from './cart.js'
 export type { Customer, Address, CheckoutAddress, RegisterInput, UpdateCustomerInput } from './customer.js'
 
 // Order
-export type { Order, OrderItem, OrderStatus, PaymentStatus, OrderFulfillmentStatus, FulfillmentStatus } from './order.js'
+export type { Order, OrderItem, OrderPaymentDetails, OrderStatus, PaymentStatus, OrderFulfillmentStatus, FulfillmentStatus } from './order.js'
 
 // Order Input (for OrderAdapter.createOrder)
 export type { CreateOrderInput, OrderItemInput } from './order-input.js'
 
 // Order Status & History (for OrderAdapter status/timeline methods)
-export type { OrderStatusInfo, OrderHistoryEntry, UpdateOrderStatusInput, PaymentEventInput, PaymentEventResult } from './order-status.js'
+export type { OrderStatusInfo, OrderHistoryEntry, UpdateOrderStatusInput, PaymentEventInput, PaymentEventResult, RecordOrderPaymentInput } from './order-status.js'
 
 // Shipping
 export type { ShippingMethod, ShippingProvider, FulfillmentType } from './shipping.js'
@@ -44,6 +44,8 @@ export type { PaymentMethod, PaymentType, Installment } from './payment.js'
 
 // Payment Provider (pluggable gateway interface)
 export type {
+  CredentialCheck,
+  PaymentMethodKind,
   PaymentProvider,
   PaymentSession,
   PaymentSessionStatus,
@@ -134,5 +136,8 @@ export type {
 
 // Security helpers
 export { safeEqual } from './security.js'
+
+// Order payment state
+export { MBWAY_WINDOW_MS, PAYMENT_DECLINED_PARAM, PAYMENT_DECLINED_VALUE, SETTLED_PAYMENTS, orderOutcome, orderPaymentState, toPortugueseMobile, type OrderOutcome, type OrderPaymentState } from './order-payment.js'
 export { safeRedirectPath } from './redirect.js'
 export { requiredEnv, storeOriginForSlug } from './env.js'

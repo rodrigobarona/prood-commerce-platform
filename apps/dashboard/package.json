@@ -9,7 +9,8 @@
     "start": "next start -p 3002",
     "lint": "eslint --max-warnings 0",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@neondatabase/serverless": "catalog:",
@@ -31,14 +32,15 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@prood/eslint-config": "workspace:^",
+    "@prood/typescript-config": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "@prood/eslint-config": "workspace:^",
-    "@prood/typescript-config": "workspace:*",
     "eslint": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=24"

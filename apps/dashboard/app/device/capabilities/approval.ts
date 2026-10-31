@@ -12,7 +12,7 @@ import {
   approvalRequest,
 } from "@/lib/auth/schema"
 import { getSession } from "@/lib/auth"
-import { requireActiveOrg } from "@/lib/admin"
+import { ADMIN_ONLY_MESSAGE, canManageStore, requireActiveOrg } from "@/lib/admin"
 
 export interface ApprovalRequestDetails {
   id: string
@@ -175,6 +175,9 @@ export async function approveCapabilityRequest(
     const capabilities = parseCapabilities(row.request.capabilities)
     if (capabilities.length === 0) {
       throw new Error("Approval request does not include any capabilities.")
+    }
+    if (capabilities.some((capability) => capability.startsWith("admin")) && !(await canManageStore())) {
+      return { error: ADMIN_ONLY_MESSAGE }
     }
 
     const existing = await authDb

@@ -28,7 +28,9 @@ function mockProvider(overrides: Partial<PaymentProvider> = {}): PaymentProvider
     createSession: vi.fn().mockResolvedValue(mockPaymentSession()),
     confirmSession: vi.fn().mockResolvedValue(mockPaymentSession({ status: 'captured' })),
     getSession: vi.fn().mockResolvedValue(mockPaymentSession()),
-    refund: vi.fn().mockResolvedValue(mockPaymentSession({ status: 'refunded' })),
+    methods: ['card'],
+    refundableMethods: ['card'],
+    refund: vi.fn().mockResolvedValue(undefined),
     ...overrides,
   }
 }
@@ -251,7 +253,7 @@ describe('CheckoutSession', () => {
       const stateChanges: Array<{ from: string; to: string }> = []
       session.on('stateChange', (e) => stateChanges.push(e))
 
-      await session.confirmPayment('ps_test_123')
+      await session.confirmPayment()
 
       expect(session.state).toBe('complete')
       expect(stateChanges).toEqual([
@@ -282,8 +284,102 @@ describe('CheckoutSession', () => {
       session.setShippingMethod('standard')
       await session.submitPayment()
 
-      await expect(session.confirmPayment()).rejects.toThrow('Payment failed')
+      await session.confirmPayment()
       expect(session.state).toBe('failed')
+      expect(session.error?.message).toBe('Payment failed')
+    })
+
+    it('stays open and can be checked again while the payment is pending', async () => {
+      const confirmSession = vi.fn()
+        .mockResolvedValueOnce(mockPaymentSession({ status: 'pending' }))
+        .mockResolvedValueOnce(mockPaymentSession({ status: 'captured' }))
+      session = new CheckoutSession(defaultConfig({ paymentProvider: mockProvider({ confirmSession }) }))
+      session.setCustomerInfo({ email: 'ali@example.com' })
+      session.setShippingAddress(address)
+      await session.submitPayment()
+
+      await session.confirmPayment()
+      expect(session.state).toBe('payment')
+
+      await session.confirmPayment()
+      expect(session.state).toBe('complete')
+    })
+
+    it('stays open when the provider cannot be reached', async () => {
+      const confirmSession = vi.fn().mockRejectedValue(new Error('ECONNRESET'))
+      session = new CheckoutSession(defaultConfig({ paymentProvider: mockProvider({ confirmSession }) }))
+      session.setCustomerInfo({ email: 'ali@example.com' })
+      session.setShippingAddress(address)
+      await session.submitPayment()
+
+      await expect(session.confirmPayment()).rejects.toThrow('ECONNRESET')
+      expect(session.state).toBe('payment')
+    })
+
+    it('keeps what only creation knows when the provider view omits it', async () => {
+      const createSession = vi.fn().mockResolvedValue(mockPaymentSession({
+        method: 'multibanco',
+        redirectUrl: null,
+        providerData: { entity: '11111', reference: '123456789' },
+      }))
+      const confirmSession = vi.fn().mockResolvedValue(mockPaymentSession({
+        amount: 0,
+        redirectUrl: null,
+        providerData: { note: 'pending' },
+      }))
+      session = new CheckoutSession(defaultConfig({
+        paymentProvider: mockProvider({ createSession, confirmSession }),
+      }))
+      session.setCustomerInfo({ email: 'ali@example.com' })
+      session.setShippingAddress(address)
+      await session.submitPayment()
+      await session.confirmPayment()
+
+      expect(session.paymentSession).toMatchObject({
+        method: 'multibanco',
+        amount: 99.99,
+        providerData: { entity: '11111', reference: '123456789' },
+      })
+    })
+
+    it('keeps the hosted page and reference when the provider view has them as null', async () => {
+      const createSession = vi.fn().mockResolvedValue(mockPaymentSession({
+        method: 'card',
+        status: 'requires_action',
+        redirectUrl: 'https://pay.example/card',
+        providerData: { entity: '11111', reference: '123456789' },
+      }))
+      const confirmSession = vi.fn().mockResolvedValue(mockPaymentSession({
+        amount: 0,
+        redirectUrl: null,
+        providerData: { entity: null, reference: null, easypayStatus: 'pending' },
+      }))
+      session = new CheckoutSession(defaultConfig({
+        paymentProvider: mockProvider({ createSession, confirmSession }),
+      }))
+      session.setCustomerInfo({ email: 'ali@example.com' })
+      session.setShippingAddress(address)
+      await session.submitPayment()
+      await session.confirmPayment()
+
+      expect(session.state).toBe('payment')
+      expect(session.paymentSession).toMatchObject({
+        redirectUrl: 'https://pay.example/card',
+        providerData: { entity: '11111', reference: '123456789', easypayStatus: 'pending' },
+      })
+    })
+
+    it('takes what the provider does report', async () => {
+      const confirmSession = vi.fn().mockResolvedValue(mockPaymentSession({
+        redirectUrl: 'https://pay.example/new',
+      }))
+      session = new CheckoutSession(defaultConfig({ paymentProvider: mockProvider({ confirmSession }) }))
+      session.setCustomerInfo({ email: 'ali@example.com' })
+      session.setShippingAddress(address)
+      await session.submitPayment()
+      await session.confirmPayment()
+
+      expect(session.paymentSession?.redirectUrl).toBe('https://pay.example/new')
     })
 
     it('uses stored session ID if none provided', async () => {
@@ -303,7 +399,107 @@ describe('CheckoutSession', () => {
 
     it('throws if not in payment state', async () => {
       session = new CheckoutSession(defaultConfig())
-      await expect(session.confirmPayment('x')).rejects.toThrow('Cannot confirm payment')
+      await expect(session.confirmPayment()).rejects.toThrow('Cannot confirm payment')
+    })
+  })
+
+  // ---- Restoring from a snapshot ----------------------------------------
+
+  describe('fromSnapshot', () => {
+    const restore = (provider = mockProvider(), snapshot = session.toSnapshot()) =>
+      CheckoutSession.fromSnapshot(JSON.parse(JSON.stringify(snapshot)), { paymentProvider: provider })
+
+    it('confirms a started payment after a reload', async () => {
+      session.setCustomerInfo({ email: 'ali@example.com' })
+      session.setShippingAddress(address)
+      await session.submitPayment()
+
+      const provider = mockProvider()
+      const restored = restore(provider)
+      expect(restored.state).toBe('payment')
+      expect(restored.paymentSession?.id).toBe('ps_test_123')
+
+      await restored.confirmPayment()
+      expect(provider.confirmSession).toHaveBeenCalledWith('ps_test_123')
+      expect(restored.state).toBe('complete')
+    })
+
+    it('restores the customer and shipping choices', () => {
+      session.setCustomerInfo({ email: 'ali@example.com', phone: '912345678' })
+      session.setShippingAddress(address)
+      session.setShippingMethod('standard')
+
+      const restored = restore()
+      expect(restored.state).toBe('shipping')
+      expect(restored.customerInfo?.phone).toBe('912345678')
+      expect(restored.shippingMethodId).toBe('standard')
+    })
+
+    it('keeps the original deadline instead of starting a new one', async () => {
+      vi.useFakeTimers()
+      try {
+        const expiring = new CheckoutSession(defaultConfig({ expiresIn: 1000 }))
+        const restored = restore(mockProvider(), expiring.toSnapshot())
+        vi.advanceTimersByTime(2000)
+        await expect(restored.submitPayment()).rejects.toThrow('expired')
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    it('lets a started payment be confirmed after the link expires', async () => {
+      vi.useFakeTimers()
+      try {
+        const expiring = new CheckoutSession(defaultConfig({ expiresIn: 1000, fulfillment: 'none' }))
+        expiring.setCustomerInfo({ email: 'ali@example.com' })
+        await expiring.submitPayment()
+        const restored = restore(mockProvider(), expiring.toSnapshot())
+        vi.advanceTimersByTime(2000)
+        await restored.confirmPayment()
+        expect(restored.state).toBe('complete')
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+  })
+
+  describe('updateCustomerInfo', () => {
+    it('adds the phone number collected at payment', async () => {
+      const createSession = vi.fn().mockResolvedValue(mockPaymentSession())
+      session = new CheckoutSession(defaultConfig({
+        fulfillment: 'none',
+        paymentProvider: mockProvider({ createSession }),
+      }))
+      session.setCustomerInfo({ email: 'ali@example.com' })
+      session.updateCustomerInfo({ phone: '912345678' })
+      await session.submitPayment({ method: 'mbway' })
+
+      expect(createSession).toHaveBeenCalledWith(expect.objectContaining({
+        method: 'mbway',
+        customer: expect.objectContaining({ email: 'ali@example.com', phone: '912345678' }),
+      }))
+    })
+
+    it('throws before customer info is set', () => {
+      expect(() => session.updateCustomerInfo({ phone: '912345678' })).toThrow()
+    })
+  })
+
+  describe('abandonPayment', () => {
+    it('lets a dead payment be started again', async () => {
+      session.setCustomerInfo({ email: 'ali@example.com' })
+      session.setShippingAddress(address)
+      await session.submitPayment()
+
+      session.abandonPayment()
+      expect(session.state).toBe('failed')
+
+      await session.submitPayment()
+      expect(session.state).toBe('payment')
+    })
+
+    it('only applies to a started payment', () => {
+      expect(() => session.abandonPayment()).toThrow('Cannot abandon payment')
     })
   })
 
@@ -549,7 +745,7 @@ describe('CheckoutSession', () => {
       // Advance time past expiry
       vi.advanceTimersByTime(1500)
 
-      await expect(session.submitPayment()).rejects.toThrow('expired')
+      await expect(session.submitPayment()).rejects.toMatchObject({ statusCode: 410 })
       vi.useRealTimers()
     })
 

@@ -3,6 +3,8 @@
 // ---------------------------------------------------------------------------
 
 import type { Maybe } from './common.js'
+import type { OrderPaymentDetails } from './order.js'
+import type { PaymentMethodKind } from './payment-provider.js'
 
 /**
  * Rich order status metadata — for displaying statuses on order tracking pages.
@@ -47,13 +49,30 @@ export interface OrderHistoryEntry {
 
 /** A verified payment gateway outcome to apply to an order. */
 export interface PaymentEventInput {
-  outcome: 'authorized' | 'captured' | 'failed' | 'cancelled'
-  /** Amount reported by the gateway, in major units */
+  outcome: 'authorized' | 'captured' | 'failed' | 'cancelled' | 'refunded' | 'partially_refunded'
+  /**
+   * Amount reported by the gateway, in major units. On a refund with `refundId`
+   * this is that one refund; without it, all the money refunded so far.
+   */
   amount: number | null
   /** ISO 4217 currency reported by the gateway */
   currency: string | null
   /** Gateway id (e.g. 'stripe') — recorded in the order history */
   provider: string
+  /** Gateway's id for the payment, kept on captured orders so they can be refunded */
+  transactionId?: string | null
+  /** How the shopper paid, when the gateway says */
+  method?: PaymentMethodKind | null
+  /** Gateway's id for this refund, set by gateways that report refunds one at a time */
+  refundId?: string | null
+}
+
+/** The payment a shopper started on an order. */
+export interface RecordOrderPaymentInput {
+  provider: string
+  /** Gateway's id for the payment */
+  transactionId: string
+  details: OrderPaymentDetails
 }
 
 /**
@@ -61,8 +80,21 @@ export interface PaymentEventInput {
  * - `applied` — the order moved to the new payment state
  * - `duplicate` — the order already left `unpaid`/`authorized`; nothing changed
  * - `amount_mismatch` — the gateway amount/currency differs from the order total
+ * - `order_cancelled` — money arrived on a cancelled order and is owed back
+ * - `stale` — the event is about a payment this order no longer uses; the order didn't change
+ * - `second_payment` — another payment arrived on an order that has its money
+ * - `refund_completed` — this partial refund brought the total to the whole order
+ * - `refund_before_capture` — a refund came before its capture: redeliver it once the capture lands
  */
-export type PaymentEventResult = 'applied' | 'duplicate' | 'amount_mismatch' | 'order_cancelled'
+export type PaymentEventResult =
+  | 'applied'
+  | 'duplicate'
+  | 'amount_mismatch'
+  | 'order_cancelled'
+  | 'stale'
+  | 'second_payment'
+  | 'refund_completed'
+  | 'refund_before_capture'
 
 /**
  * Input for updating an order's status.

@@ -196,7 +196,7 @@ multi-step checkout, and customer account pages.
 - **Host-based multi-tenancy** — Custom domains (verified in `tenant_domain`
   table) and platform subdomains (`{slug}.prood.app`)
 - **Customer authentication** — Better Auth email/password per store origin,
-  with auto-linking of guest customers on registration
+  with auto-linking of guest customers once the email is verified
 - **Cart persistence** — httpOnly `commerce_cart_id` cookie (30-day expiry)
 - **4-step checkout** — Contact info, shipping address (Geoapify autocomplete),
   shipping method selection, order review
@@ -448,7 +448,6 @@ storefronts to complete payment. Sessions are stored in Upstash Redis with a
 | `/`                | Placeholder (customers are redirected to `/c/*`)  |
 | `/c/[id]`          | Primary payment UI — adapts to payment provider  |
 | `/confirm/[id]`    | Post-Stripe-redirect confirmation + store redirect|
-| `/success/[id]`    | Static success page                              |
 
 #### API Routes
 
@@ -717,7 +716,7 @@ and row-level security. Implements the `CommerceAdapter` interface from
 | ----------- | ---------------------------------------------------------- |
 | Products    | `listProducts`, `getProduct`, `createProduct`, `updateProduct`, `deleteProduct` |
 | Categories  | `createCategory`, `updateCategory`, `deleteCategory`       |
-| Orders      | `listOrders`, `getOrder`, `fulfillOrder`, `refundOrder`    |
+| Orders      | `listOrders`, `getOrder`, `fulfillOrder`, `recordRefund`   |
 | Customers   | `listCustomers`, `getCustomer`, `deleteCustomer`           |
 | Store       | `getStoreSettings`, `updateStoreSettings`                  |
 | Inventory   | `updateInventory` (set/increment/decrement), `getLowStockProducts` |
@@ -727,7 +726,7 @@ and row-level security. Implements the `CommerceAdapter` interface from
 
 - `ensureCustomerForAuthUser` — links Better Auth user to commerce customer
 - `ensureGuestCustomer` — creates guest customer from checkout info
-- `autoLinkGuestCustomers` — on registration, links guest purchases across
+- `autoLinkGuestCustomers` — on email verification, links guest purchases across
   tenants to the new authenticated user
 
 ---
@@ -842,10 +841,10 @@ verification (`stripe-signature` HMAC-SHA256).
 
 **Location:** `packages/payment-easypay`
 
-Portugal-focused provider. Methods via `metadata.method`:
-- `mb` — Multibanco reference (entity + reference for ATM payment)
-- `mbw` — MB WAY (mobile payment)
-- `cc` — Hosted card redirect
+Portugal-focused provider. Methods via `method`:
+- `multibanco` — Multibanco reference (entity + reference for ATM payment)
+- `mbway` — MB WAY (mobile payment)
+- `card` — Hosted card redirect
 
 Async confirmation via webhook. Polls Easypay API for session status.
 

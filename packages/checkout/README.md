@@ -92,7 +92,7 @@ idle → info → shipping → payment → complete
 | `setAmount(amount)` | Update order amount |
 | `setOrderId(orderId)` | Set or update order ID |
 | `submitPayment(options?)` | Create payment session with provider |
-| `confirmPayment(sessionId?)` | Confirm after 3DS redirect |
+| `confirmPayment()` | Check the stored payment with the provider |
 | `handleWebhookUpdate(session)` | Process async webhook events |
 | `toSnapshot()` | Get serializable state snapshot |
 

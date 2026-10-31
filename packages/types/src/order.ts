@@ -6,6 +6,7 @@ import type { Id, Image, LocalizedString, Maybe, Price } from './common.js'
 import type { CheckoutAddress } from './customer.js'
 import type { ShippingMethod } from './shipping.js'
 import type { PaymentMethod } from './payment.js'
+import type { PaymentMethodKind } from './payment-provider.js'
 import type { CartTotals } from './cart.js'
 import type { ProductType } from './product.js'
 
@@ -63,6 +64,17 @@ export interface OrderItem {
   productType: ProductType
 }
 
+/** How the shopper is paying for an order, and what they need to do it */
+export interface OrderPaymentDetails {
+  method: PaymentMethodKind
+  /** Multibanco entity */
+  entity: Maybe<string>
+  /** Multibanco reference */
+  reference: Maybe<string>
+  /** Last moment the payment can be made */
+  expiresAt: Maybe<string>
+}
+
 /** Order entity */
 export interface Order {
   id: Id
@@ -76,8 +88,12 @@ export interface Order {
   billingAddress: Maybe<CheckoutAddress>
   shippingMethod: Maybe<ShippingMethod>
   paymentMethod: Maybe<PaymentMethod>
-  /** Gateway reference of the payment, when the order was created with one */
+  /** Provider the payment went through (e.g. 'stripe') */
+  paymentProvider: Maybe<string>
+  /** Provider's id for the payment, used to refund it */
   paymentTransactionId: Maybe<string>
+  /** Set when the shopper starts paying */
+  paymentDetails: Maybe<OrderPaymentDetails>
   /** Coupon redeemed on this order */
   couponCode: Maybe<string>
   /** Tracking number from shipping provider */

@@ -48,24 +48,37 @@ const provider = new EasypayPaymentProvider({
 
 ## Selecting a method
 
-Pass `metadata.method` on `createSession()` (defaults to `mb`):
+Pass `method` on `createSession()` (defaults to `multibanco`):
 
-| `metadata.method` | Flow |
+| `method` | Flow |
 | --- | --- |
-| `mb` | Multibanco reference (entity + reference) |
-| `mbw` | MB WAY push notification |
-| `cc` | Redirect to Easypay hosted card page |
+| `multibanco` | Multibanco reference (entity + reference, 3-day deadline) |
+| `mbway` | MB WAY push notification; needs a Portuguese mobile number |
+| `card` | Redirect to Easypay hosted card page |
 
 ```ts
 const session = await provider.createSession({
   amount: 29.99,
   currency: 'EUR',
   orderId: 'ord_456',
-  metadata: { method: 'mb' },
+  method: 'multibanco',
 })
 ```
 
 Easypay confirms payments asynchronously via notifications. Use `confirmSession()` after redirect, but treat webhooks as the authoritative completion signal for reference payments.
+
+## Refunds
+
+`refund()` posts to `/2.0/refund/{captureId}`, using the capture of the payment, with a 20 second deadline. MB WAY and card payments can be refunded this way. Multibanco can't: Easypay needs the shopper's IBAN, so those orders use the manual refund path.
+
+Two guards keep a retry from paying twice:
+
+- The `Idempotency-Key` header. Easypay documents it for every POST, not on the refund operation itself, and forgets keys after 24 hours.
+- The capture's status. A capture already marked `refunded` sends nothing.
+
+`transaction_key` is only Easypay's internal reference for the refund. It doesn't deduplicate anything.
+
+Easypay's refund notification carries the refund's id, not the payment's, so `verifyWebhook` reads `/2.0/refund/{id}` to find the payment and its order. Only a refund with status `success` changes the order: a value below the capture is `payment.partially_refunded`, anything else `payment.refunded`.
 
 ## Factory usage
 

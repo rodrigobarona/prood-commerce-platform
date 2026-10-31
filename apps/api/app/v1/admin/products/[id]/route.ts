@@ -11,7 +11,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const { orgId } = await requireCaller("admin")
+    const { orgId } = await requireCaller("staff")
     return NextResponse.json(await admin.getProduct(orgId, id))
   } catch (err) {
     return errorResponse(err)

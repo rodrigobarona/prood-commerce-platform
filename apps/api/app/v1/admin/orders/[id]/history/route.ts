@@ -9,7 +9,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const { orgId } = await requireCaller("admin")
+    const { orgId } = await requireCaller("staff")
     const history = await admin.getOrderHistory(orgId, id)
     return NextResponse.json(history)
   } catch (err) {

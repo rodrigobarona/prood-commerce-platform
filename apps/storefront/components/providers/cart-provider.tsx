@@ -5,6 +5,7 @@ import {
   useCallback,
   use,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -12,6 +13,7 @@ import {
 import type { Cart, CartItem, Product } from "@prood/types"
 import { CartDrawer } from "@prood/ui/components/cart-drawer"
 import { toast } from "sonner"
+import { latestOnly } from "@/lib/latest-only"
 
 interface AddItemInput {
   productId: string
@@ -32,6 +34,8 @@ interface CartContextValue {
   removeItem: (itemId: string) => Promise<void>
   applyCoupon: (code: string) => Promise<void>
   removeCoupon: () => Promise<void>
+  /** Rejects if the cart couldn't be updated, so checkout can stop and say so. */
+  setShippingMethod: (methodId: string) => Promise<void>
   refresh: () => Promise<void>
 }
 
@@ -252,6 +256,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [mutate])
 
+  const setShippingMethod = useMemo(
+    () =>
+      latestOnly((methodId: string) =>
+        mutate(
+          fetch(`${API}/shipping-method`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ methodId }),
+          }),
+        ),
+      ),
+    [mutate],
+  )
+
   return (
     <CartContext
       value={{
@@ -266,6 +284,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         removeItem,
         applyCoupon,
         removeCoupon,
+        setShippingMethod,
         refresh,
       }}
     >

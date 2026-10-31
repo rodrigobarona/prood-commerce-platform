@@ -64,11 +64,6 @@ function createAuth() {
         create: {
           after: async (user) => {
             if (user.email) {
-              // The account already exists here, so a failed link must not
-              // fail the sign-up. Guest orders can be linked later.
-              await autoLinkGuestCustomers(user.id, user.email).catch((err) =>
-                console.error(`[storefront-auth] guest link for ${user.id} failed`, err)
-              )
               sendStoreEmail(user.email, (store) => ({
                 subject: `Welcome to ${store.name}`,
                 template: "welcome",
@@ -93,13 +88,22 @@ function createAuth() {
         }))
       },
     },
+    // Signing in doesn't need a verified email, only claiming guest orders does.
     emailVerification: {
+      sendOnSignUp: true,
       sendVerificationEmail: async ({ user, url }) => {
         sendStoreEmail(user.email, (store) => ({
           subject: `Confirm your email for ${store.name}`,
           template: "activation",
           data: { companyName: store.name, url: onStoreOrigin(url, store) },
         }))
+      },
+      afterEmailVerification: async (user) => {
+        // The email is already verified here, so a failed link must not fail
+        // the request. Guest orders can be linked later.
+        await autoLinkGuestCustomers(user.id, user.email).catch((err) =>
+          console.error(`[storefront-auth] guest link for ${user.id} failed`, err)
+        )
       },
     },
     secret,

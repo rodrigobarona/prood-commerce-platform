@@ -13,6 +13,7 @@ import type {
   UpdateOrderStatusInput,
   PaymentEventInput,
   PaymentEventResult,
+  RecordOrderPaymentInput,
 } from '@prood/types'
 import {
   createOrderHistory,
@@ -23,6 +24,7 @@ import {
   countOrdersForCustomer,
   findOrderHistory,
   transitionOrderPayment,
+  addOrderRefund,
 } from '../database/index.js'
 import { getStoreCurrency } from '../tenant/store-info.js'
 import { requireSellable } from './availability.js'
@@ -30,7 +32,32 @@ import { releaseCoupon } from './coupons.js'
 import { listPaymentMethods, listShippingMethods } from './checkout-methods.js'
 import { normalizeLocalizedField } from './helpers.js'
 import { mapOrder } from './order-mapper.js'
+import { markOrderRefunded } from './order-refund.js'
 import { recordOrder, type OrderLine } from './order-recorder.js'
+
+// The order has its money, so another capture is a second payment, not a retry.
+const MONEY_RECEIVED = ['paid', 'partially_refunded', 'refunded']
+// A refund of these means the capture hasn't reached us yet.
+const AWAITING_MONEY = ['unpaid', 'authorized', 'voided']
+
+// Where an order can go next. Fulfilment and refunds have their own rules, and
+// a refund can still cancel a shipped order.
+const NEXT_STATUSES: Record<string, string[]> = {
+  placed: ['approved', 'fulfilled', 'cancelled'],
+  approved: ['fulfilled', 'cancelled'],
+  fulfilled: [],
+  cancelled: [],
+}
+
+const cents = (amount: number) => Math.round(amount * 100)
+
+/** Add a note to an order once: providers redeliver their webhooks. Returns whether it was added. */
+async function noteOnce(order: { id: string; status: string }, note: string): Promise<boolean> {
+  const history = await findOrderHistory(order.id)
+  if (history.some((entry: { note: string | null }) => entry.note === note)) return false
+  await createOrderHistory({ orderId: order.id, fromStatus: order.status, toStatus: order.status, note })
+  return true
+}
 
 export function createOrdersDomain() {
   return {
@@ -149,6 +176,14 @@ export function createOrdersDomain() {
       const order = await findOrderById(orderId)
       if (!order) throw new CommerceError(`Order not found: ${orderId}`, "NOT_FOUND")
 
+      if (input.status !== order.status && !NEXT_STATUSES[order.status]?.includes(input.status)) {
+        throw new CommerceError(
+          `Order ${order.orderNumber} is ${order.status}, so it can't become ${input.status}.`,
+          'VALIDATION',
+          422,
+        )
+      }
+
       const updates: Record<string, any> = { status: input.status }
       if (input.paymentStatus) updates.paymentStatus = input.paymentStatus
       if (input.fulfillmentStatus) updates.fulfillmentStatus = input.fulfillmentStatus
@@ -182,6 +217,14 @@ export function createOrdersDomain() {
       })
     },
 
+    async recordOrderPayment(orderId: string, input: RecordOrderPaymentInput): Promise<boolean> {
+      return transitionOrderPayment(orderId, ['unpaid'], 'placed', {
+        paymentProvider: input.provider,
+        paymentTransactionId: input.transactionId,
+        paymentDetails: input.details,
+      })
+    },
+
     async applyPaymentEvent(orderId: string, input: PaymentEventInput): Promise<PaymentEventResult> {
       const order = await findOrderById(orderId)
       if (!order) throw new CommerceError(`Order not found: ${orderId}`, "NOT_FOUND")
@@ -203,12 +246,86 @@ export function createOrdersDomain() {
         }
       }
 
+      // The order moved since it was read: decide again from where it is now.
+      const decideAgain = async (): Promise<PaymentEventResult> => {
+        const current = await findOrderById(orderId)
+        const moved = current?.status !== order.status || current?.paymentStatus !== order.paymentStatus
+        return moved ? this.applyPaymentEvent(orderId, input) : 'duplicate'
+      }
+
+      // Applied now, a later capture would still mark this order paid and shippable.
+      const isRefund = input.outcome === 'refunded' || input.outcome === 'partially_refunded'
+      if (isRefund && AWAITING_MONEY.includes(order.paymentStatus)) {
+        await noteOnce(order, `${input.provider} reported a refund before its payment. Waiting for the payment to arrive.`)
+        return 'refund_before_capture'
+      }
+
+      // A retry replaces the payment on the order, so the abandoned one can still report in.
+      const otherPayment = Boolean(
+        input.transactionId && order.paymentTransactionId && input.transactionId !== order.paymentTransactionId,
+      )
+      if (otherPayment && (input.outcome === 'failed' || input.outcome === 'cancelled')) return 'stale'
+      if (otherPayment && input.outcome === 'captured' && MONEY_RECEIVED.includes(order.paymentStatus)) {
+        await noteOnce(
+          order,
+          `${input.provider} captured a second payment (${input.transactionId}) on this order. It may need a refund.`,
+        )
+        return 'second_payment'
+      }
+
+      if (input.outcome === 'refunded' || input.outcome === 'partially_refunded') {
+        if (otherPayment) {
+          await noteOnce(
+            order,
+            `${input.provider} refunded ${input.transactionId}, which isn't the payment this order kept. The order didn't change.`,
+          )
+          return 'stale'
+        }
+        if (order.paymentStatus === 'refunded') return 'duplicate'
+
+        const note = `Refunded in ${input.provider}`
+        if (input.outcome === 'refunded') {
+          return (await markOrderRefunded(order, ['paid', 'partially_refunded'], note)) ? 'applied' : decideAgain()
+        }
+
+        // Added before anything else, so a retry after a crash still counts it.
+        if (input.refundId && input.amount !== null) {
+          const refunds = await addOrderRefund(orderId, input.refundId, input.amount)
+          const refunded = Object.values(refunds).reduce((sum, amount) => sum + cents(amount), 0)
+          if (refunded >= cents(Number(order.total))) {
+            return (await markOrderRefunded(order, ['paid', 'partially_refunded'], note)) ? 'refund_completed' : decideAgain()
+          }
+        }
+
+        // The rest of the money stays with the merchant, so the order carries on.
+        const partial = await transitionOrderPayment(orderId, ['paid'], order.status, { paymentStatus: 'partially_refunded' })
+        if (!partial && order.paymentStatus === 'paid') return decideAgain()
+        const amount = `${input.amount ?? 'unknown amount'} ${input.currency ?? ''}`.trim()
+        const noted = await noteOnce(
+          order,
+          `Partly refunded in ${input.provider}: ${amount}${input.refundId ? ` (${input.refundId})` : ''}`,
+        )
+        return partial || noted ? 'applied' : 'duplicate'
+      }
+
+      // A refund needs to know where the money went.
+      const payment = {
+        paymentProvider: input.provider,
+        ...(input.transactionId && { paymentTransactionId: input.transactionId }),
+        // The one that paid isn't the last one started, so its details don't apply.
+        ...(otherPayment && {
+          paymentDetails: input.method
+            ? { method: input.method, entity: null, reference: null, expiresAt: null }
+            : null,
+        }),
+      }
+
       // Multibanco references stay payable for days, so money can arrive after
       // the order was cancelled. Keep it cancelled and record that it was paid.
       if (order.status === 'cancelled') {
         if (input.outcome === 'authorized') return 'duplicate'
         if (input.outcome === 'captured') {
-          const paid = await transitionOrderPayment(orderId, ['unpaid', 'authorized', 'voided'], 'cancelled', { paymentStatus: 'paid' })
+          const paid = await transitionOrderPayment(orderId, ['unpaid', 'authorized', 'voided'], 'cancelled', { ...payment, paymentStatus: 'paid' })
           if (!paid) return 'duplicate'
           await createOrderHistory({
             orderId,
@@ -228,11 +345,12 @@ export function createOrdersDomain() {
         paymentStatus: 'voided',
         ...(cancels && { status: 'cancelled', cancelledAt: order.cancelledAt ?? now }),
       }
-      const next: Record<PaymentEventInput['outcome'], { note: string; data: Record<string, unknown> }> = {
-        authorized: { note: 'Payment authorized', data: { paymentStatus: 'authorized' } },
+      const next: Record<typeof input.outcome, { note: string; data: Record<string, unknown> }> = {
+        authorized: { note: 'Payment authorized', data: { ...payment, paymentStatus: 'authorized' } },
         captured: {
           note: 'Payment captured',
           data: {
+            ...payment,
             paymentStatus: 'paid',
             ...(advances && { status: 'approved', approvedAt: order.approvedAt ?? now }),
           },
@@ -244,9 +362,7 @@ export function createOrdersDomain() {
       const from = input.outcome === 'authorized' ? ['unpaid'] : ['unpaid', 'authorized']
 
       if (!(await transitionOrderPayment(orderId, from, order.status, target.data))) {
-        // The order moved since it was read: decide again from its new status.
-        const current = await findOrderById(orderId)
-        return current?.status === order.status ? 'duplicate' : this.applyPaymentEvent(orderId, input)
+        return decideAgain()
       }
 
       if (target.data.status === 'cancelled' && order.couponCode) await releaseCoupon(order.couponCode)

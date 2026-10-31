@@ -23,14 +23,18 @@ Each provider card shows connection status (configured / not configured).
 
 **Route:** `/integrations/[provider]`
 
-Dynamic form rendered from the provider registry in `lib/providers.ts`. Each provider defines its configurable fields:
+Dynamic form rendered from the provider registry in `lib/providers.ts`. It shows the store's webhook URL, because orders are only marked as paid when the provider calls it. The dashboard needs `CHECKOUT_URL` to build that URL.
+
+Saving a new provider enables it. Stripe and Easypay keys are tested with a read-only call on save; Ifthenpay has no such call.
+
+Each provider defines its configurable fields:
 
 ### Stripe
 
 | Field | Env fallback | Description |
 | --- | --- | --- |
 | `secretKey` | `STRIPE_SECRET_KEY` | Server-side secret key |
-| `webhookSecret` | `STRIPE_WEBHOOK_SECRET` | Webhook signing secret |
+| `webhookSecret` | `STRIPE_WEBHOOK_SECRET` | Webhook signing secret (required) |
 | `publishableKey` | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Client-side publishable key |
 
 ### Easypay
@@ -46,7 +50,7 @@ Dynamic form rendered from the provider registry in `lib/providers.ts`. Each pro
 | Field | Env fallback | Description |
 | --- | --- | --- |
 | `antiPhishingKey` | `IFTHENPAY_ANTIPHISHING_KEY` | Anti-phishing key |
-| `mbKey` | `IFTHENPAY_MB_KEY` | Multibanco key |
+| `mbKey` | `IFTHENPAY_MB_KEY` | Multibanco key (required) |
 | `mbwayKey` | `IFTHENPAY_MBWAY_KEY` | MB WAY key |
 | `ccKey` | `IFTHENPAY_CC_KEY` | Credit card key |
 

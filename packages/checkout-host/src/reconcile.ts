@@ -18,12 +18,9 @@ export async function forwardPaymentWebhook(
   const secret = process.env.CHECKOUT_API_SECRET?.trim()
   if (!secret) throw new Error('CHECKOUT_API_SECRET is required to forward payment webhooks')
 
-  const params = new URLSearchParams({ org: orgId })
-  if (method === 'GET' && payload) {
-    for (const [key, value] of new URLSearchParams(payload)) {
-      params.set(key, value)
-    }
-  }
+  const params = new URLSearchParams(method === 'GET' ? payload : '')
+  // Last, so a query string can't name another store: only the path says whose this is.
+  params.set('org', orgId)
 
   const url = `${base}/webhooks/payments/${encodeURIComponent(provider)}?${params.toString()}`
 

@@ -72,7 +72,7 @@ export async function verifyPaymentWebhook(
 1. In Stripe Dashboard → Webhooks → Add endpoint
 2. URL: `https://checkout.example.com/api/webhooks/stripe/{orgId}`
 3. Events (11 total):
-   - `checkout.session.completed`, `checkout.session.expired`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`
+   - `checkout.session.completed`, `checkout.session.expired`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `charge.refunded`
    - `payment_intent.succeeded`, `payment_intent.payment_failed`, `payment_intent.canceled`, `payment_intent.processing`, `payment_intent.amount_capturable_updated`
    - `charge.refunded`, `refund.created`
 4. Copy signing secret → dashboard Integrations → Stripe → webhook secret

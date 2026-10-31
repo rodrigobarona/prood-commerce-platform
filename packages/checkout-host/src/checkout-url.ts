@@ -8,9 +8,3 @@ export function buildCheckoutSessionUrl(
   const base = checkoutBaseUrl.replace(/\/$/, '')
   return `${base}${CHECKOUT_SESSION_PATH}/${sessionId}`
 }
-
-export function resolveCheckoutBaseUrl(): string {
-  const url = process.env.CHECKOUT_URL
-  if (!url) throw new Error('CHECKOUT_URL is required')
-  return url.replace(/\/$/, '')
-}

@@ -1,6 +1,5 @@
 import { Suspense } from "react"
 import { notFound } from "next/navigation"
-import type { Order } from "@prood/commerce"
 import type { OrderHistoryEntry } from "@prood/types"
 import { Badge } from "@prood/ui/components/badge"
 import {
@@ -14,14 +13,11 @@ import { Skeleton } from "@prood/ui/components/skeleton"
 import { localized, formatPrice } from "@prood/ui/lib/commerce"
 import { OrderActions } from "@/components/store/order-actions"
 import { getOrder, getOrderHistory } from "@/lib/admin-api"
+import { canFulfillOrder } from "@/lib/order-actions"
 
 export const metadata = { title: "Order" }
 
-const FULFILLABLE = new Set(["placed", "approved"])
 const CANCELLABLE = new Set(["placed", "approved"])
-const REFUNDABLE = new Set(["approved", "fulfilled"])
-// Nothing is owed on these, so they can ship.
-const SETTLED = new Set(["paid", "free"])
 
 type StatusVariant = "default" | "secondary" | "destructive" | "outline"
 
@@ -81,7 +77,7 @@ async function OrderDetail({
 }) {
   const { id } = await params
 
-  let order: Order
+  let order: Awaited<ReturnType<typeof getOrder>>
   let history: OrderHistoryEntry[]
   try {
     ;[order, history] = await Promise.all([
@@ -123,13 +119,10 @@ async function OrderDetail({
         </div>
         <OrderActions
           orderId={order.id}
-          canFulfill={
-            FULFILLABLE.has(order.status) &&
-            SETTLED.has(order.paymentStatus) &&
-            order.fulfillmentStatus !== "not_required"
-          }
+          canFulfill={canFulfillOrder(order)}
           canCancel={CANCELLABLE.has(order.status)}
-          canRefund={REFUNDABLE.has(order.status) && order.paymentStatus === "paid"}
+          refund={order.refund}
+          refundAmount={formatPrice(totals.total)}
         />
       </div>
 

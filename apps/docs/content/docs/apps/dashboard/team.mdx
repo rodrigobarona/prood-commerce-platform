@@ -76,10 +76,11 @@ The Commerce API resolves the tenant from the session's active organization:
 // apps/api/lib/resolve-caller.ts
 const session = await auth.api.getSession({ headers })
 const orgId = session.session.activeOrganizationId
-// → scopes: ['admin', 'storefront']
+// → scopes: ['admin', 'staff', 'storefront'] for owners and admins
+// → scopes: ['staff', 'storefront'] for other members
 ```
 
-All admin endpoints (`/v1/admin/*`) require the `admin` scope, which is granted when a valid session with an active organization is present.
+Admin endpoints (`/v1/admin/*`) that change the store require the `admin` scope, which only owners and admins of the active organization get. Members can read the same data through the `staff` scope. Roles are checked on every request.
 
 ## Auth tables
 

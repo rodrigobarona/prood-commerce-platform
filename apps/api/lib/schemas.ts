@@ -84,6 +84,8 @@ export const adminListOrdersQuery = z.object({
   dateFrom: z.string().optional(),
   dateTo: z.string().optional(),
   search: z.string().optional(),
+  /** Only open orders still waiting for a payment through this provider */
+  awaitingPaymentFrom: z.string().optional(),
 })
 
 const productImageInput = z.object({
@@ -184,6 +186,12 @@ export const fulfillOrderBody = z.object({
 
 export const refundOrderBody = z.object({
   note: z.string().optional(),
+  recordOnly: z
+    .boolean()
+    .optional()
+    .describe(
+      "Record a refund already sent from the payment account. Prood moves no money."
+    ),
 })
 
 /** Checkout address (no id / isDefault). */
@@ -219,4 +227,9 @@ export const listCustomerOrdersQuery = z.object({
 
 export type SearchProductsQuery = z.infer<typeof searchProductsQuery>
 export type AdminListQuery = z.infer<typeof adminListQuery>
+export const getOrderQuery = z.object({
+  /** The email the order was placed with, which shows a guest their payment details */
+  email: z.string().optional(),
+})
+
 export type AdminListOrdersQuery = z.infer<typeof adminListOrdersQuery>

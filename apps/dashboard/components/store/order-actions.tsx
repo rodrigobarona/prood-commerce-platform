@@ -27,12 +27,14 @@ export function OrderActions({
   orderId,
   canFulfill,
   canCancel,
-  canRefund,
+  refund,
+  refundAmount,
 }: {
   orderId: string
   canFulfill: boolean
   canCancel: boolean
-  canRefund: boolean
+  refund: "provider" | "manual" | null
+  refundAmount: string
 }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
@@ -58,14 +60,25 @@ export function OrderActions({
     })
   }
 
-  function handleRefund() {
+  function handleRefund(recordOnly: boolean) {
     startTransition(async () => {
       try {
-        await refundOrderAction(orderId, refundNote || undefined)
-        toast.success("Order refunded")
+        const result = await refundOrderAction(orderId, {
+          note: refundNote || undefined,
+          recordOnly,
+        })
+        if (!result.ok) {
+          toast.error(result.error)
+          return
+        }
+        toast.success(
+          recordOnly
+            ? `Refund of ${refundAmount} recorded.`
+            : `Refund of ${refundAmount} sent to the customer.`
+        )
         router.refresh()
       } catch {
-        toast.error("Could not refund order")
+        toast.error("We couldn't refund this order. Nothing changed. Try again.")
       }
     })
   }
@@ -181,19 +194,22 @@ export function OrderActions({
         </Dialog>
       ) : null}
 
-      {canRefund ? (
+      {refund ? (
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="destructive" size="sm">
-              Refund
+              {refund === "manual" ? "Record refund" : "Refund"}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Refund order</DialogTitle>
+              <DialogTitle>
+                {refund === "manual" ? "Record refund" : "Refund order"}
+              </DialogTitle>
               <DialogDescription>
-                This marks the order as refunded and initiates the refund with
-                the payment provider.
+                {refund === "manual"
+                  ? `Prood can't send this refund. Refund ${refundAmount} in your payment account first, then record it here.`
+                  : `This sends ${refundAmount} back to the customer through your payment provider, cancels the order and emails them. Already refunded it in your payment account? Record it instead, and no money moves.`}
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-1.5">
@@ -209,12 +225,25 @@ export function OrderActions({
               <DialogClose asChild>
                 <Button variant="ghost">Cancel</Button>
               </DialogClose>
+              {refund === "provider" ? (
+                <Button
+                  variant="outline"
+                  disabled={pending}
+                  onClick={() => handleRefund(true)}
+                >
+                  Record refund
+                </Button>
+              ) : null}
               <Button
                 variant="destructive"
                 disabled={pending}
-                onClick={handleRefund}
+                onClick={() => handleRefund(refund === "manual")}
               >
-                {pending ? "Refunding..." : "Refund"}
+                {pending
+                  ? "Refunding..."
+                  : refund === "manual"
+                    ? "Record refund"
+                    : `Refund ${refundAmount}`}
               </Button>
             </DialogFooter>
           </DialogContent>

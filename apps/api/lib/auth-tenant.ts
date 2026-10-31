@@ -4,9 +4,9 @@ import {
   requireCallerFromHeaders,
   resolveCallerFromHeaders,
 } from "@/lib/resolve-caller"
+import type { ApiScope } from "@/lib/scopes"
 
-/** Coarse-grained capability a route requires of the caller. */
-export type ApiScope = "storefront" | "admin"
+export type { ApiScope }
 
 export interface ApiCaller {
   orgId: string

@@ -91,14 +91,15 @@ The API uses the `Host` header for tenant resolution on storefront-scoped routes
 
 ## Scopes
 
-The API enforces two scopes:
+The API enforces three scopes:
 
 | Scope | Access |
 | --- | --- |
 | `storefront` | Catalog reads, cart CRUD, place order, customer orders |
+| `staff` | Read admin data, for every member of a store |
 | `admin` | Full CRUD — products, orders, customers, store settings, inventory, dashboard stats |
 
-Route handlers call `requireCaller('storefront')` or `requireCaller('admin')` to enforce scope.
+Route handlers call `requireCaller('storefront')`, `requireCaller('staff')` or `requireCaller('admin')` to enforce scope.
 
 ## OpenAPI as the contract
 

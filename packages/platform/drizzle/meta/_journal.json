@@ -50,6 +50,27 @@
       "when": 1793436285776,
       "tag": "0006_auth_tables_private",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793444834268,
+      "tag": "0007_chilly_red_shift",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793466069210,
+      "tag": "0008_redundant_justin_hammer",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793467551942,
+      "tag": "0009_brave_ricochet",
+      "breakpoints": true
     }
   ]
 }

@@ -57,6 +57,7 @@ export {
   createOrderHistory,
   findOrderById,
   transitionOrderPayment,
+  addOrderRefund,
   findOrders,
   countOrdersForCustomer,
   countOrdersByShopper,
@@ -171,7 +172,6 @@ export {
 export {
   adminFindAllOrders,
   adminFindAllOrders as findAllOrders,
-  updateOrderTracking,
   countOrdersByStatus,
   countOrders,
   countOrdersThisMonth,

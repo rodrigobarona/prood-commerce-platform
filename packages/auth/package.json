@@ -7,6 +7,8 @@
     ".": "./src/index.ts",
     "./schema": "./src/schema.ts",
     "./db": "./src/db.ts",
+    "./access": "./src/access.ts",
+    "./membership": "./src/membership.ts",
     "./server": "./src/server.ts",
     "./client": "./src/client.ts",
     "./origins": "./src/origins.ts",

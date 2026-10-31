@@ -1,7 +1,7 @@
 import 'server-only'
 import { CheckoutSession, type CheckoutChannel, type CheckoutFulfillment } from '@prood/checkout'
-import { getTenantPaymentProvider } from '@prood/commerce'
-import { buildCheckoutSessionUrl, resolveCheckoutBaseUrl } from './checkout-url'
+import { getTenantPaymentProvider, paymentWebhookUrl, resolveCheckoutBaseUrl } from '@prood/commerce'
+import { buildCheckoutSessionUrl } from './checkout-url'
 import { saveSession, type SessionMeta } from './session-store'
 
 export interface CreateSessionInput {
@@ -50,7 +50,7 @@ async function create(
   // Unguessable: the id is the only credential for the customer-facing /c/{id} page.
   const sessionId = `${kind}_${crypto.randomUUID().replaceAll('-', '')}`
   const checkoutBaseUrl = resolveCheckoutBaseUrl()
-  const webhookUrl = `${checkoutBaseUrl}/api/webhooks/${providerId}/${encodeURIComponent(input.tenantId)}`
+  const webhookUrl = paymentWebhookUrl(providerId, input.tenantId)
   const isLink = kind === 'pl'
 
   const session = new CheckoutSession({
@@ -83,6 +83,7 @@ async function create(
     orderId: input.orderId ?? null,
     customerId: input.customerId ?? null,
     storeName: input.storeName ?? null,
+    methods: [...provider.methods],
   }
 
   const snapshot = session.toSnapshot()

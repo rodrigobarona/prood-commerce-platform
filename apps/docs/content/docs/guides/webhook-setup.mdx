@@ -52,6 +52,7 @@ Replace `{orgId}` with the merchant's organization ID (e.g. `org_demo`).
 | `checkout.session.expired` | Session timed out before payment |
 | `checkout.session.async_payment_succeeded` | Delayed payment confirmed (bank transfers, Boleto, etc.) |
 | `checkout.session.async_payment_failed` | Delayed payment failed |
+| `charge.refunded` | Money went back to the shopper, including refunds made in the Stripe dashboard |
 
 **PaymentIntent events** (Stripe fires these alongside Checkout Session events):
 
@@ -67,8 +68,8 @@ Replace `{orgId}` with the merchant's organization ID (e.g. `org_demo`).
 
 | Event | Purpose |
 | --- | --- |
-| `charge.refunded` | Refund processed |
-| `refund.created` | Refund initiated |
+| `charge.refunded` | Refund processed, including one made in the Stripe dashboard |
+| `refund.created` | Received and ignored: `charge.refunded` already reports the refund |
 
 You can configure all events at once using the provided setup script:
 

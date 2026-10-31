@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { SpinnerGapIcon, TruckIcon } from "@phosphor-icons/react"
@@ -36,7 +36,9 @@ interface ShippingStepProps {
   cartId: string
   locale?: Locale
   defaultValues?: Partial<ShippingMethodValues>
-  onSubmit: (values: ShippingMethodValues) => void
+  /** Puts the method on the cart, so the totals include it straight away. */
+  onSelect: (methodId: string) => Promise<void>
+  onSubmit: () => void
   onBack: () => void
 }
 
@@ -44,17 +46,37 @@ export function ShippingStep({
   cartId,
   locale = "en",
   defaultValues,
+  onSelect,
   onSubmit,
   onBack,
 }: ShippingStepProps) {
   const [methods, setMethods] = useState<ShippingMethod[]>([])
   const [loading, setLoading] = useState(true)
   const [fetchError, setFetchError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState(false)
+  // Choosing a method updates the cart and with it `defaultValues`.
+  const [initialMethodId] = useState(defaultValues?.methodId)
+
+  const choose = useCallback(
+    async (methodId: string) => {
+      setSaving(true)
+      setSaveError(false)
+      try {
+        await onSelect(methodId)
+      } catch {
+        setSaveError(true)
+      } finally {
+        setSaving(false)
+      }
+    },
+    [onSelect],
+  )
 
   const form = useForm<ShippingMethodValues>({
     resolver: zodResolver(shippingMethodSchema),
     mode: "onTouched",
-    defaultValues: { methodId: defaultValues?.methodId ?? "" },
+    defaultValues: { methodId: initialMethodId ?? "" },
   })
 
   useEffect(() => {
@@ -65,8 +87,9 @@ export function ShippingStep({
         const data = (await res.json()) as { methods: ShippingMethod[] }
         setMethods(data.methods ?? [])
         const first = data.methods?.[0]
-        if (data.methods?.length === 1 && !defaultValues?.methodId && first) {
+        if (data.methods?.length === 1 && !initialMethodId && first) {
           form.setValue("methodId", first.id)
+          void choose(first.id)
         }
       } catch {
         setFetchError("Could not load shipping options. Please try again.")
@@ -75,7 +98,7 @@ export function ShippingStep({
       }
     }
     void load()
-  }, [cartId, defaultValues?.methodId, form])
+  }, [cartId, initialMethodId, form, choose])
 
   if (loading) {
     return (
@@ -115,7 +138,7 @@ export function ShippingStep({
 
   return (
     <form
-      onSubmit={form.handleSubmit(onSubmit)}
+      onSubmit={form.handleSubmit(() => onSubmit())}
       className="flex flex-col gap-4"
     >
       <Controller
@@ -126,7 +149,10 @@ export function ShippingStep({
             <RadioGroup
               name={field.name}
               value={field.value}
-              onValueChange={field.onChange}
+              onValueChange={(value) => {
+                field.onChange(value)
+                void choose(value)
+              }}
               className="flex flex-col gap-3"
             >
               {methods.map((method) => (
@@ -177,12 +203,29 @@ export function ShippingStep({
         )}
       />
 
+      {saveError ? (
+        <div className="flex items-center justify-between gap-3">
+          <p role="alert" className="text-sm text-destructive">
+            We couldn&apos;t add this shipping method to your order.
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={saving}
+            onClick={() => void choose(form.getValues("methodId"))}
+          >
+            Try again
+          </Button>
+        </div>
+      ) : null}
+
       <div className="mt-2 flex gap-3">
         <Button type="button" variant="ghost" onClick={onBack}>
           Back
         </Button>
-        <Button type="submit" className="flex-1">
-          Continue to payment
+        <Button type="submit" className="flex-1" disabled={saving || saveError}>
+          Continue to review
         </Button>
       </div>
     </form>

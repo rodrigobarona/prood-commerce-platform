@@ -94,13 +94,16 @@ export async function fulfillOrder(id: string, input: FulfillOrderInput) {
   )
 }
 
-export async function refundOrder(id: string, note?: string) {
+export async function refundOrder(
+  id: string,
+  input: { note?: string; recordOnly?: boolean }
+) {
   await requireActiveOrg()
   const api = await getCommerceApi()
   return unwrap(
     api.POST("/admin/orders/{id}/refund", {
       params: { path: { id } },
-      body: note ? { note } : {},
+      body: input,
     })
   )
 }

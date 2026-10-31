@@ -1080,7 +1080,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       const refunded = await placedOrder()
       await capture(refunded)
       expect(await revenue()).toBe(expected + refunded.totals.total.amount)
-      await asTenant((admin) => admin.refundOrder(refunded.id))
+      await asTenant((admin) => admin.recordRefund(refunded.id))
       expect(await revenue()).toBe(expected)
     })
 
@@ -1103,6 +1103,11 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
 
   describe('payment events', () => {
     const provider = 'test'
+    const startedPayment = (transactionId: string) => ({
+      provider,
+      transactionId,
+      details: { method: 'mbway', entity: null, reference: null, expiresAt: null },
+    } as const)
 
     it('captures a payment of the order total, once', async () => {
       const order = await placedOrder()
@@ -1142,6 +1147,104 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       ).toBe('duplicate')
     })
 
+    it('keeps where the money went, so the order can be refunded', async () => {
+      const order = await placedOrder()
+      const { amount, currency } = order.totals.total
+      await adapter.applyPaymentEvent(order.id, { outcome: 'captured', amount, currency, provider, transactionId: 'tx_1' })
+      expect(await adapter.getOrder(order.id)).toMatchObject({
+        paymentProvider: provider,
+        paymentTransactionId: 'tx_1',
+      })
+    })
+
+    it('keeps where a late payment went, too', async () => {
+      const order = await placedOrder()
+      const { amount, currency } = order.totals.total
+      await adapter.cancelOrder(order.id)
+      await adapter.applyPaymentEvent(order.id, { outcome: 'captured', amount, currency, provider, transactionId: 'tx_2' })
+      expect(await adapter.getOrder(order.id)).toMatchObject({
+        status: 'cancelled',
+        paymentStatus: 'paid',
+        paymentProvider: provider,
+        paymentTransactionId: 'tx_2',
+      })
+    })
+
+    it('does not lose the started payment when a callback has no id', async () => {
+      const order = await placedOrder()
+      const { amount, currency } = order.totals.total
+      await adapter.recordOrderPayment(order.id, {
+        provider,
+        transactionId: 'tx_3',
+        details: { method: 'multibanco', entity: '11111', reference: '123456789', expiresAt: null },
+      })
+      await adapter.applyPaymentEvent(order.id, { outcome: 'captured', amount, currency, provider, transactionId: null })
+      expect((await adapter.getOrder(order.id)).paymentTransactionId).toBe('tx_3')
+    })
+
+    it('ignores a failure of a payment the shopper already replaced', async () => {
+      const order = await placedOrder()
+      await adapter.recordOrderPayment(order.id, startedPayment('tx_old'))
+      await adapter.recordOrderPayment(order.id, startedPayment('tx_new'))
+
+      for (const outcome of ['failed', 'cancelled'] as const) {
+        expect(
+          await adapter.applyPaymentEvent(order.id, { outcome, amount: null, currency: null, provider, transactionId: 'tx_old' }),
+        ).toBe('stale')
+      }
+      expect(await adapter.getOrder(order.id)).toMatchObject({
+        status: 'placed',
+        paymentStatus: 'unpaid',
+        paymentTransactionId: 'tx_new',
+      })
+
+      const { amount, currency } = order.totals.total
+      expect(
+        await adapter.applyPaymentEvent(order.id, { outcome: 'captured', amount, currency, provider, transactionId: 'tx_new' }),
+      ).toBe('applied')
+    })
+
+    it('still cancels the order when the current payment fails', async () => {
+      const order = await placedOrder()
+      await adapter.recordOrderPayment(order.id, startedPayment('tx_1'))
+      expect(
+        await adapter.applyPaymentEvent(order.id, { outcome: 'failed', amount: null, currency: null, provider, transactionId: 'tx_1' }),
+      ).toBe('applied')
+      expect(await adapter.getOrder(order.id)).toMatchObject({ status: 'cancelled', paymentStatus: 'voided' })
+    })
+
+    it('flags a second payment once per transaction, keeping the first', async () => {
+      const order = await placedOrder()
+      const { amount, currency } = order.totals.total
+      const captured = (transactionId: string) => ({ outcome: 'captured' as const, amount, currency, provider, transactionId })
+      const secondPaymentNotes = async () =>
+        (await adapter.getOrderHistory(order.id)).filter((entry) => entry.note?.includes('second payment'))
+
+      await adapter.applyPaymentEvent(order.id, captured('tx_1'))
+      expect(await adapter.applyPaymentEvent(order.id, captured('tx_1'))).toBe('duplicate')
+      expect(await secondPaymentNotes()).toHaveLength(0)
+
+      expect(await adapter.applyPaymentEvent(order.id, captured('tx_2'))).toBe('second_payment')
+      expect(await adapter.applyPaymentEvent(order.id, captured('tx_2'))).toBe('second_payment')
+      expect(await secondPaymentNotes()).toHaveLength(1)
+      expect((await secondPaymentNotes())[0]?.note).toContain('tx_2')
+
+      await adapter.applyPaymentEvent(order.id, captured('tx_3'))
+      expect(await secondPaymentNotes()).toHaveLength(2)
+      expect(await adapter.getOrder(order.id)).toMatchObject({ paymentStatus: 'paid', paymentTransactionId: 'tx_1' })
+    })
+
+    it('flags money arriving on an order that was already refunded', async () => {
+      const order = await placedOrder()
+      const { amount, currency } = order.totals.total
+      await adapter.applyPaymentEvent(order.id, { outcome: 'captured', amount, currency, provider, transactionId: 'tx_1' })
+      await asTenant((admin) => admin.recordRefund(order.id))
+      expect(
+        await adapter.applyPaymentEvent(order.id, { outcome: 'captured', amount, currency, provider, transactionId: 'tx_2' }),
+      ).toBe('second_payment')
+      expect((await adapter.getOrder(order.id)).paymentStatus).toBe('refunded')
+    })
+
     it('never moves a shipped order', async () => {
       const paid = await placedOrder()
       const { amount, currency } = paid.totals.total
@@ -1155,6 +1258,328 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       await adapter.updateOrderStatus(failed.id, { status: 'fulfilled' })
       await adapter.applyPaymentEvent(failed.id, { outcome: 'failed', amount: null, currency: null, provider })
       expect((await adapter.getOrder(failed.id)).status).toBe('fulfilled')
+    })
+  })
+
+  describe('started payments', () => {
+    const payment = {
+      provider: 'easypay',
+      transactionId: 'tx_1',
+      details: { method: 'multibanco', entity: '11111', reference: '123456789', expiresAt: '2026-11-03T23:59' },
+    } as const
+
+    it('records what the shopper needs to finish paying', async () => {
+      const order = await placedOrder()
+      expect(await adapter.recordOrderPayment(order.id, payment)).toBe(true)
+      expect(await adapter.getOrder(order.id)).toMatchObject({
+        paymentStatus: 'unpaid',
+        paymentProvider: 'easypay',
+        paymentTransactionId: 'tx_1',
+        paymentDetails: payment.details,
+      })
+    })
+
+    it('replaces an earlier attempt', async () => {
+      const order = await placedOrder()
+      await adapter.recordOrderPayment(order.id, payment)
+      await adapter.recordOrderPayment(order.id, { ...payment, transactionId: 'tx_2' })
+      expect((await adapter.getOrder(order.id)).paymentTransactionId).toBe('tx_2')
+    })
+
+    it('refuses an order that is no longer waiting for payment', async () => {
+      const paid = await placedOrder()
+      await capture(paid)
+      expect(await adapter.recordOrderPayment(paid.id, payment)).toBe(false)
+
+      const cancelled = await placedOrder()
+      await adapter.cancelOrder(cancelled.id)
+      expect(await adapter.recordOrderPayment(cancelled.id, payment)).toBe(false)
+      expect((await adapter.getOrder(cancelled.id)).paymentProvider).toBeNull()
+    })
+  })
+
+  describe('recording refunds', () => {
+    it('cancels a paid order and marks it refunded', async () => {
+      const order = await placedOrder()
+      await capture(order)
+      await asTenant((admin) => admin.recordRefund(order.id, 'Refunded by Stripe'))
+
+      const after = await adapter.getOrder(order.id)
+      expect(after).toMatchObject({ status: 'cancelled', paymentStatus: 'refunded' })
+      expect(after.cancelledAt).toBeTruthy()
+      const history = await adapter.getOrderHistory(order.id)
+      expect(history.some((entry) => entry.note === 'Refunded by Stripe')).toBe(true)
+    })
+
+    it('refuses an order nobody paid', async () => {
+      const order = await placedOrder()
+      await expect(asTenant((admin) => admin.recordRefund(order.id))).rejects.toThrow('Only paid orders')
+      expect((await adapter.getOrder(order.id)).paymentStatus).toBe('unpaid')
+    })
+
+    it('cannot refund twice', async () => {
+      const order = await placedOrder()
+      await capture(order)
+      await asTenant((admin) => admin.recordRefund(order.id))
+      await expect(asTenant((admin) => admin.recordRefund(order.id))).rejects.toThrow('Only paid orders')
+    })
+
+    it('refunds a late payment on a cancelled order', async () => {
+      const order = await placedOrder()
+      await adapter.cancelOrder(order.id)
+      await capture(order)
+      await asTenant((admin) => admin.recordRefund(order.id))
+      expect((await adapter.getOrder(order.id)).paymentStatus).toBe('refunded')
+    })
+
+    it('releases the coupon', async () => {
+      await seedCoupon('REFUNDED')
+      const cart = await readyCart()
+      await adapter.applyCoupon(cart.id, 'REFUNDED')
+      const order = await adapter.placeOrder(cart.id)
+      await capture(order)
+      expect(await timesUsed('REFUNDED')).toBe(1)
+
+      await asTenant((admin) => admin.recordRefund(order.id))
+      expect(await timesUsed('REFUNDED')).toBe(0)
+    })
+
+    it('does not release the coupon again after a cancelled order is refunded', async () => {
+      await seedCoupon('LATE', {}, { timesUsed: 5 })
+      const cart = await readyCart()
+      await adapter.applyCoupon(cart.id, 'LATE')
+      const order = await adapter.placeOrder(cart.id)
+      await adapter.cancelOrder(order.id)
+      await capture(order)
+      expect(await timesUsed('LATE')).toBe(5)
+
+      await asTenant((admin) => admin.recordRefund(order.id))
+      expect(await timesUsed('LATE')).toBe(5)
+    })
+  })
+
+  describe('refunds reported by the provider', () => {
+    const provider = 'test'
+    const refunded = (transactionId?: string) => ({
+      outcome: 'refunded' as const,
+      amount: null,
+      currency: null,
+      provider,
+      transactionId,
+    })
+
+    async function paidOrder(transactionId = 'tx_1') {
+      const order = await placedOrder()
+      const { amount, currency } = order.totals.total
+      await adapter.applyPaymentEvent(order.id, { outcome: 'captured', amount, currency, provider, transactionId })
+      return order
+    }
+
+    it('refunds and cancels the order, once', async () => {
+      const order = await paidOrder()
+
+      expect(await adapter.applyPaymentEvent(order.id, refunded('tx_1'))).toBe('applied')
+      expect(await adapter.applyPaymentEvent(order.id, refunded('tx_1'))).toBe('duplicate')
+
+      const after = await adapter.getOrder(order.id)
+      expect(after).toMatchObject({ status: 'cancelled', paymentStatus: 'refunded' })
+      expect(after.cancelledAt).toBeTruthy()
+      const history = await adapter.getOrderHistory(order.id)
+      expect(history.filter((entry) => entry.note === 'Refunded in test')).toHaveLength(1)
+    })
+
+    it('agrees with a refund the merchant already recorded', async () => {
+      const order = await paidOrder()
+      await asTenant((admin) => admin.recordRefund(order.id))
+      expect(await adapter.applyPaymentEvent(order.id, refunded('tx_1'))).toBe('duplicate')
+    })
+
+    it('leaves nothing for the merchant to record once the webhook has', async () => {
+      const order = await paidOrder()
+      await adapter.applyPaymentEvent(order.id, refunded('tx_1'))
+      await expect(asTenant((admin) => admin.recordRefund(order.id))).rejects.toThrow('Only paid orders')
+    })
+
+    it('stops a refunded order from shipping', async () => {
+      const order = await paidOrder()
+      await adapter.applyPaymentEvent(order.id, refunded('tx_1'))
+      await expect(asTenant((admin) => admin.fulfillOrder(order.id, {}))).rejects.toThrow("can't be fulfilled")
+      expect((await adapter.getOrder(order.id)).status).toBe('cancelled')
+    })
+
+    it('releases the coupon', async () => {
+      await seedCoupon('WEBHOOK')
+      const cart = await readyCart()
+      await adapter.applyCoupon(cart.id, 'WEBHOOK')
+      const order = await adapter.placeOrder(cart.id)
+      await capture(order)
+      expect(await timesUsed('WEBHOOK')).toBe(1)
+
+      await adapter.applyPaymentEvent(order.id, refunded())
+      expect(await timesUsed('WEBHOOK')).toBe(0)
+    })
+
+    it('leaves the order alone when the refund is for a payment it did not keep', async () => {
+      const order = await paidOrder('tx_1')
+      expect(await adapter.applyPaymentEvent(order.id, refunded('tx_2'))).toBe('stale')
+      expect(await adapter.applyPaymentEvent(order.id, refunded('tx_2'))).toBe('stale')
+
+      expect(await adapter.getOrder(order.id)).toMatchObject({ status: 'approved', paymentStatus: 'paid' })
+      const history = await adapter.getOrderHistory(order.id)
+      expect(history.filter((entry) => entry.note?.includes('tx_2'))).toHaveLength(1)
+    })
+
+    it('waits when a refund comes before any payment', async () => {
+      const order = await placedOrder()
+      expect(await adapter.applyPaymentEvent(order.id, refunded())).toBe('refund_before_capture')
+      expect((await adapter.getOrder(order.id)).status).toBe('placed')
+    })
+
+    it('keeps a partly refunded order going, then finishes it on the full refund', async () => {
+      const order = await paidOrder()
+      const partial = { outcome: 'partially_refunded' as const, amount: 5, currency: 'EUR', provider, transactionId: 'tx_1' }
+
+      expect(await adapter.applyPaymentEvent(order.id, partial)).toBe('applied')
+      expect(await adapter.applyPaymentEvent(order.id, partial)).toBe('duplicate')
+      expect(await adapter.getOrder(order.id)).toMatchObject({ status: 'approved', paymentStatus: 'partially_refunded' })
+
+      expect(await adapter.applyPaymentEvent(order.id, refunded('tx_1'))).toBe('applied')
+      expect(await adapter.getOrder(order.id)).toMatchObject({ status: 'cancelled', paymentStatus: 'refunded' })
+    })
+
+    it('writes a note for each partial refund', async () => {
+      const order = await paidOrder()
+      const partial = { outcome: 'partially_refunded' as const, currency: 'EUR', provider, transactionId: 'tx_1' }
+
+      expect(await adapter.applyPaymentEvent(order.id, { ...partial, amount: 5 })).toBe('applied')
+      expect(await adapter.applyPaymentEvent(order.id, { ...partial, amount: 8 })).toBe('applied')
+
+      const notes = (await adapter.getOrderHistory(order.id)).map((entry) => entry.note)
+      expect(notes).toEqual(expect.arrayContaining([
+        `Partly refunded in ${provider}: 5 EUR`,
+        `Partly refunded in ${provider}: 8 EUR`,
+      ]))
+    })
+
+    it('adds up partial refunds reported one at a time', async () => {
+      const order = await paidOrder()
+      const half = order.totals.total.amount / 2
+      const partial = { outcome: 'partially_refunded' as const, amount: half, currency: 'EUR', provider, transactionId: 'tx_1' }
+
+      expect(await adapter.applyPaymentEvent(order.id, { ...partial, refundId: 'ref_1' })).toBe('applied')
+      expect(await adapter.applyPaymentEvent(order.id, { ...partial, refundId: 'ref_1' })).toBe('duplicate')
+      expect((await adapter.getOrder(order.id)).paymentStatus).toBe('partially_refunded')
+
+      expect(await adapter.applyPaymentEvent(order.id, { ...partial, refundId: 'ref_2' })).toBe('refund_completed')
+      expect(await adapter.getOrder(order.id)).toMatchObject({ status: 'cancelled', paymentStatus: 'refunded' })
+    })
+
+    it('counts refunds reported at the same moment', async () => {
+      const order = await paidOrder()
+      const half = order.totals.total.amount / 2
+      const partial = { outcome: 'partially_refunded' as const, amount: half, currency: 'EUR', provider, transactionId: 'tx_1' }
+
+      await Promise.all([
+        adapter.applyPaymentEvent(order.id, { ...partial, refundId: 'ref_1' }),
+        adapter.applyPaymentEvent(order.id, { ...partial, refundId: 'ref_2' }),
+      ])
+
+      expect((await adapter.getOrder(order.id)).paymentStatus).toBe('refunded')
+    })
+
+    it('holds a refund that overtakes its capture', async () => {
+      const order = await placedOrder()
+
+      expect(await adapter.applyPaymentEvent(order.id, refunded())).toBe('refund_before_capture')
+      expect((await adapter.getOrder(order.id)).paymentStatus).toBe('unpaid')
+
+      const { amount, currency } = order.totals.total
+      await adapter.applyPaymentEvent(order.id, { outcome: 'captured', amount, currency, provider, transactionId: 'tx_1' })
+      expect(await adapter.applyPaymentEvent(order.id, refunded('tx_1'))).toBe('applied')
+      expect(await adapter.getOrder(order.id)).toMatchObject({ status: 'cancelled', paymentStatus: 'refunded' })
+    })
+
+    it('replaces the payment details when another payment is captured', async () => {
+      const order = await placedOrder()
+      const { amount, currency } = order.totals.total
+      await adapter.recordOrderPayment(order.id, {
+        provider,
+        transactionId: 'tx_retry',
+        details: { method: 'multibanco', entity: '12345', reference: '999', expiresAt: null },
+      })
+
+      await adapter.applyPaymentEvent(order.id, { outcome: 'captured', amount, currency, provider, transactionId: 'tx_first', method: 'card' })
+
+      expect(await adapter.getOrder(order.id)).toMatchObject({
+        paymentTransactionId: 'tx_first',
+        paymentDetails: { method: 'card', reference: null },
+      })
+    })
+  })
+
+  describe('fulfilling orders', () => {
+    const provider = 'test'
+    const fulfil = (id: string) => asTenant((admin) => admin.fulfillOrder(id, { trackingNumber: 'T1' }))
+
+    it('ships a paid order and keeps its tracking', async () => {
+      const order = await placedOrder()
+      const { amount, currency } = order.totals.total
+      await adapter.applyPaymentEvent(order.id, { outcome: 'captured', amount, currency, provider, transactionId: 'tx_1' })
+
+      await fulfil(order.id)
+
+      expect(await adapter.getOrder(order.id)).toMatchObject({
+        status: 'fulfilled',
+        fulfillmentStatus: 'fulfilled',
+        trackingNumber: 'T1',
+        paymentStatus: 'paid',
+      })
+    })
+
+    it('refuses an unpaid order', async () => {
+      const order = await placedOrder()
+      await expect(fulfil(order.id)).rejects.toThrow("until it's paid")
+    })
+
+    it('refuses an order with nothing to ship', async () => {
+      const order = await placedOrder()
+      await adapter.updateOrderStatus(order.id, { status: 'approved', paymentStatus: 'paid', fulfillmentStatus: 'not_required' })
+      await expect(fulfil(order.id)).rejects.toThrow('nothing to ship')
+    })
+
+    it('never overwrites a refund that lands first', async () => {
+      const order = await placedOrder()
+      const { amount, currency } = order.totals.total
+      await adapter.applyPaymentEvent(order.id, { outcome: 'captured', amount, currency, provider, transactionId: 'tx_1' })
+
+      await Promise.allSettled([
+        fulfil(order.id),
+        adapter.applyPaymentEvent(order.id, { outcome: 'refunded', amount, currency, provider, transactionId: 'tx_1' }),
+      ])
+
+      const after = await adapter.getOrder(order.id)
+      expect(after.paymentStatus).toBe('refunded')
+      expect(after.status).toBe('cancelled')
+    })
+  })
+
+  describe('order status changes', () => {
+    it('refuses to reopen a cancelled order', async () => {
+      const order = await directOrder()
+      await adapter.cancelOrder(order.id)
+      await expect(adapter.updateOrderStatus(order.id, { status: 'placed' })).rejects.toThrow("can't become placed")
+    })
+
+    it('refuses to cancel a shipped order', async () => {
+      const order = await directOrder()
+      await adapter.updateOrderStatus(order.id, { status: 'fulfilled' })
+      await expect(adapter.cancelOrder(order.id)).rejects.toThrow("can't become cancelled")
+    })
+
+    it('leaves the same status alone', async () => {
+      const order = await directOrder()
+      await adapter.cancelOrder(order.id)
+      await expect(adapter.cancelOrder(order.id)).resolves.toBeUndefined()
     })
   })
 

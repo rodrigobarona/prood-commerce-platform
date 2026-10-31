@@ -356,7 +356,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get order by id */
+        /**
+         * Get order by id
+         * @description The order's address, payment and contact details need the customer who placed it or a store member. The email it was placed with adds the payment details a guest needs to pay.
+         */
         get: operations["getOrder"];
         put?: never;
         post?: never;
@@ -633,7 +636,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Payment webhook GET (IfThenPay) */
+        /** Payment webhook GET (Ifthenpay) */
         get: operations["paymentWebhookGet"];
         put?: never;
         /** Payment webhook (checkout service) */
@@ -712,7 +715,7 @@ export interface operations {
                 content: {
                     "application/json": {
                         organizationId: string;
-                        scopes: ("storefront" | "admin")[];
+                        scopes: ("storefront" | "staff" | "admin")[];
                         /** @enum {string} */
                         via: "api-key" | "session" | "host" | "agent";
                     };
@@ -3849,7 +3852,15 @@ export interface operations {
                             } | null;
                             icon: string | null;
                         } | null;
+                        paymentProvider: string | null;
                         paymentTransactionId: string | null;
+                        paymentDetails: {
+                            /** @enum {string} */
+                            method: "card" | "multibanco" | "mbway";
+                            entity: string | null;
+                            reference: string | null;
+                            expiresAt: string | null;
+                        } | null;
                         couponCode: string | null;
                         trackingNumber: string | null;
                         trackingUrl: string | null;
@@ -4058,7 +4069,15 @@ export interface operations {
                                 } | null;
                                 icon: string | null;
                             } | null;
+                            paymentProvider: string | null;
                             paymentTransactionId: string | null;
+                            paymentDetails: {
+                                /** @enum {string} */
+                                method: "card" | "multibanco" | "mbway";
+                                entity: string | null;
+                                reference: string | null;
+                                expiresAt: string | null;
+                            } | null;
                             couponCode: string | null;
                             trackingNumber: string | null;
                             trackingUrl: string | null;
@@ -4132,7 +4151,9 @@ export interface operations {
     };
     getOrder: {
         parameters: {
-            query?: never;
+            query?: {
+                email?: string;
+            };
             header?: never;
             path: {
                 id: string;
@@ -4270,7 +4291,15 @@ export interface operations {
                             } | null;
                             icon: string | null;
                         } | null;
+                        paymentProvider: string | null;
                         paymentTransactionId: string | null;
+                        paymentDetails: {
+                            /** @enum {string} */
+                            method: "card" | "multibanco" | "mbway";
+                            entity: string | null;
+                            reference: string | null;
+                            expiresAt: string | null;
+                        } | null;
                         couponCode: string | null;
                         trackingNumber: string | null;
                         trackingUrl: string | null;
@@ -5453,6 +5482,7 @@ export interface operations {
                 dateFrom?: string;
                 dateTo?: string;
                 search?: string;
+                awaitingPaymentFrom?: string;
             };
             header?: never;
             path?: never;
@@ -5590,7 +5620,15 @@ export interface operations {
                                 } | null;
                                 icon: string | null;
                             } | null;
+                            paymentProvider: string | null;
                             paymentTransactionId: string | null;
+                            paymentDetails: {
+                                /** @enum {string} */
+                                method: "card" | "multibanco" | "mbway";
+                                entity: string | null;
+                                reference: string | null;
+                                expiresAt: string | null;
+                            } | null;
                             couponCode: string | null;
                             trackingNumber: string | null;
                             trackingUrl: string | null;
@@ -5802,7 +5840,15 @@ export interface operations {
                             } | null;
                             icon: string | null;
                         } | null;
+                        paymentProvider: string | null;
                         paymentTransactionId: string | null;
+                        paymentDetails: {
+                            /** @enum {string} */
+                            method: "card" | "multibanco" | "mbway";
+                            entity: string | null;
+                            reference: string | null;
+                            expiresAt: string | null;
+                        } | null;
                         couponCode: string | null;
                         trackingNumber: string | null;
                         trackingUrl: string | null;
@@ -5816,6 +5862,8 @@ export interface operations {
                         fulfilledAt: string | null;
                         createdAt: string;
                         updatedAt: string;
+                        /** @description `provider`: Prood can send the refund. `manual`: refund in the payment account first. Either way, `recordOnly` records a refund already made there. Null when nothing can be refunded. */
+                        refund: ("provider" | "manual") | null;
                     };
                 };
             };
@@ -6134,6 +6182,8 @@ export interface operations {
             content: {
                 "application/json": {
                     note?: string;
+                    /** @description Record a refund already sent from the payment account. Prood moves no money. */
+                    recordOnly?: boolean;
                 };
             };
         };
@@ -6823,7 +6873,15 @@ export interface operations {
                                 } | null;
                                 icon: string | null;
                             } | null;
+                            paymentProvider: string | null;
                             paymentTransactionId: string | null;
+                            paymentDetails: {
+                                /** @enum {string} */
+                                method: "card" | "multibanco" | "mbway";
+                                entity: string | null;
+                                reference: string | null;
+                                expiresAt: string | null;
+                            } | null;
                             couponCode: string | null;
                             trackingNumber: string | null;
                             trackingUrl: string | null;
@@ -6915,7 +6973,7 @@ export interface operations {
                         /** @constant */
                         received: true;
                         /** @enum {string} */
-                        result: "applied" | "duplicate" | "amount_mismatch" | "order_cancelled" | "ignored";
+                        result: "applied" | "duplicate" | "amount_mismatch" | "order_cancelled" | "stale" | "second_payment" | "ignored";
                     };
                 };
             };
@@ -6990,7 +7048,7 @@ export interface operations {
                         /** @constant */
                         received: true;
                         /** @enum {string} */
-                        result: "applied" | "duplicate" | "amount_mismatch" | "order_cancelled" | "ignored";
+                        result: "applied" | "duplicate" | "amount_mismatch" | "order_cancelled" | "stale" | "second_payment" | "ignored";
                     };
                 };
             };

@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { nextCookies } from "better-auth/next-js"
+import { APIError, createAuthMiddleware } from "better-auth/api"
 import { admin, organization } from "better-auth/plugins"
 import { agentAuth } from "@better-auth/agent-auth"
 import {
@@ -8,6 +9,7 @@ import {
   resolveBetterAuthTrustedOrigins,
   storeApiKey,
 } from "@prood/auth/server"
+import { storeAccess } from "@prood/auth/access"
 import { authDb } from "@prood/auth/db"
 import * as schema from "@prood/auth/schema"
 import { autoLinkGuestCustomers } from "@prood/platform"
@@ -15,6 +17,12 @@ import { organizationHooks } from "./organization-hooks"
 import { getAgentAuthOpenAPIOptions } from "./agent-config"
 import { requiredEnv } from "@prood/types"
 import { getMailer } from "../mailer"
+
+/**
+ * Agents are approved in the dashboard, which checks the approver's role in the
+ * store. These plugin routes would grant capabilities with only a session.
+ */
+const DASHBOARD_ONLY_PATHS = new Set(["/agent/approve-capability", "/agent/grant-capability"])
 
 /**
  * Better Auth for the API app — uses shared env/origin helpers from
@@ -28,23 +36,12 @@ function createAuth() {
 
   return betterAuth({
     database: drizzleAdapter(authDb, { provider: "pg", schema }),
-    databaseHooks: {
-      user: {
-        create: {
-          after: async (user) => {
-            if (user.email) {
-              try {
-                const linked = await autoLinkGuestCustomers(user.id, user.email)
-                if (linked > 0) {
-                  console.log(`[auth] Auto-linked ${linked} guest customer(s) for ${user.email}`)
-                }
-              } catch (err) {
-                console.error("[auth] Guest auto-link failed:", err)
-              }
-            }
-          },
-        },
-      },
+    hooks: {
+      before: createAuthMiddleware(async (ctx) => {
+        if (DASHBOARD_ONLY_PATHS.has(ctx.path)) {
+          throw new APIError("FORBIDDEN", { message: "Approve agents in your dashboard." })
+        }
+      }),
     },
     emailAndPassword: {
       enabled: true,
@@ -57,14 +54,31 @@ function createAuth() {
         })
       },
     },
+    // Signing in doesn't need a verified email, only claiming guest orders does.
     emailVerification: {
+      sendOnSignUp: true,
       sendVerificationEmail: async ({ user, url }) => {
-        void getMailer().send("email", {
-          to: user.email,
-          subject: "Confirm your email address",
-          template: "activation",
-          data: { companyName: "Prood", url },
-        })
+        // Sign-up waits for this, and has to work where email isn't configured.
+        try {
+          await getMailer().send("email", {
+            to: user.email,
+            subject: "Confirm your email address",
+            template: "activation",
+            data: { companyName: "Prood", url },
+          })
+        } catch (err) {
+          console.error(`[auth] verification email for ${user.id} failed:`, err)
+        }
+      },
+      afterEmailVerification: async (user) => {
+        try {
+          const linked = await autoLinkGuestCustomers(user.id, user.email)
+          if (linked > 0) {
+            console.log(`[auth] Auto-linked ${linked} guest customer(s) for ${user.id}`)
+          }
+        } catch (err) {
+          console.error("[auth] Guest auto-link failed:", err)
+        }
       },
     },
     baseURL,
@@ -80,6 +94,7 @@ function createAuth() {
       : undefined,
     plugins: [
       organization({
+        ...storeAccess,
         organizationHooks,
         async sendInvitationEmail(data) {
           const inviteLink = `${dashboardUrl}/invite/${data.id}`
