@@ -13,7 +13,7 @@ describe("StoreClosedNotice", () => {
   it("tells shoppers before they try to buy", () => {
     mocks.cart.canTakeOrders = false
     render(<StoreClosedNotice />)
-    expect(screen.getByRole("status").textContent).toBe("This store isn't taking orders yet.")
+    expect(screen.getByRole("status").textContent).toBe("This store isn't taking paid orders yet.")
   })
 
   it("stays out of the way of a store that can sell", () => {

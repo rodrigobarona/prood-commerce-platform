@@ -36,14 +36,14 @@ describe("AddToCart", () => {
   it("lets shoppers add to a store that can sell", () => {
     render(<AddToCart product={product} available />)
     expect(addButton().disabled).toBe(false)
-    expect(screen.queryByText("This store isn't taking orders yet.")).toBeNull()
+    expect(screen.queryByText("This store isn't taking paid orders yet.")).toBeNull()
   })
 
   it("is disabled, with the reason, while the store can't take orders", () => {
     mocks.cart.canTakeOrders = false
     render(<AddToCart product={product} available />)
     expect(addButton().disabled).toBe(true)
-    expect(screen.getByText("This store isn't taking orders yet.")).toBeTruthy()
+    expect(screen.getByText("This store isn't taking paid orders yet.")).toBeTruthy()
   })
 
   it("lets shoppers add a free product even so, since it needs no payment", () => {
@@ -51,7 +51,7 @@ describe("AddToCart", () => {
     const free = { ...product, price: { amount: 0, currency: "EUR", formatted: "€0.00" } } as Product
     render(<AddToCart product={free} available />)
     expect(addButton().disabled).toBe(false)
-    expect(screen.queryByText("This store isn't taking orders yet.")).toBeNull()
+    expect(screen.queryByText("This store isn't taking paid orders yet.")).toBeNull()
   })
 
   it("goes by the chosen variant's price", () => {
@@ -64,7 +64,7 @@ describe("AddToCart", () => {
   it("still reports stock on its own", () => {
     render(<AddToCart product={product} available={false} />)
     expect(addButton().textContent).toContain("Out of stock")
-    expect(screen.queryByText("This store isn't taking orders yet.")).toBeNull()
+    expect(screen.queryByText("This store isn't taking paid orders yet.")).toBeNull()
   })
 })
 

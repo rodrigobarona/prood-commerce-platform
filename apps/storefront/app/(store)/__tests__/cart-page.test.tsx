@@ -57,7 +57,7 @@ describe("CartPage", () => {
     }
     render(<CartPage />)
     expect(screen.getByRole("link", { name: "Proceed to checkout" }).getAttribute("href")).toBe("/checkout")
-    expect(screen.queryByText("This store isn't taking orders yet.")).toBeNull()
+    expect(screen.queryByText("This store isn't taking paid orders yet.")).toBeNull()
   })
 
   it("shuts both ways to checkout, with the reason, when the store can't take orders", () => {
@@ -67,6 +67,6 @@ describe("CartPage", () => {
     const buttons = screen.getAllByRole("button", { name: "Proceed to checkout" }) as HTMLButtonElement[]
     expect(buttons).toHaveLength(2)
     expect(buttons.every((button) => button.disabled)).toBe(true)
-    expect(screen.getAllByText("This store isn't taking orders yet.")).toHaveLength(2)
+    expect(screen.getAllByText("This store isn't taking paid orders yet.")).toHaveLength(2)
   })
 })

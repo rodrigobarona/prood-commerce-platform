@@ -36,7 +36,7 @@ afterEach(cleanup)
 describe("CheckoutFlow", () => {
   it("stops a shopper at the door when the store can't take orders", () => {
     render(<CheckoutFlow />)
-    expect(screen.getByRole("heading", { name: "This store isn't taking orders yet." })).toBeTruthy()
+    expect(screen.getByRole("heading", { name: "This store isn't taking paid orders yet." })).toBeTruthy()
     expect(screen.queryByText("Contact form")).toBeNull()
   })
 
@@ -50,12 +50,12 @@ describe("CheckoutFlow", () => {
     mocks.cart.cart.totals.total.amount = 0
     render(<CheckoutFlow />)
     expect(screen.getByText("Contact form")).toBeTruthy()
-    expect(screen.queryByRole("heading", { name: "This store isn't taking orders yet." })).toBeNull()
+    expect(screen.queryByRole("heading", { name: "This store isn't taking paid orders yet." })).toBeNull()
   })
 
   it("waits for the cart before deciding", () => {
     mocks.cart.hydrating = true
     render(<CheckoutFlow />)
-    expect(screen.queryByRole("heading", { name: "This store isn't taking orders yet." })).toBeNull()
+    expect(screen.queryByRole("heading", { name: "This store isn't taking paid orders yet." })).toBeNull()
   })
 })

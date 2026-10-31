@@ -65,6 +65,6 @@ describe("the cart drawer", () => {
     await openCart(false)
     expect(screen.queryByRole("link", { name: "Checkout" })).toBeNull()
     expect((screen.getByRole("button", { name: "Checkout" }) as HTMLButtonElement).disabled).toBe(true)
-    expect(screen.getByText("This store isn't taking orders yet.")).toBeTruthy()
+    expect(screen.getByText("This store isn't taking paid orders yet.")).toBeTruthy()
   })
 })
