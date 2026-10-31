@@ -303,6 +303,12 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     expect(updatedCart.totals.subtotal.amount).toBeGreaterThan(0)
   })
 
+  it('reports a cart that is gone as not found, not as a database failure', async () => {
+    await expect(
+      adapter.addToCart('no-such-cart', { productId: 'prod-1', quantity: 1 }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND', message: 'Cart not found: no-such-cart' })
+  })
+
   it('should deduplicate items on add', async () => {
     const cart = await adapter.createCart()
     await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 1 })

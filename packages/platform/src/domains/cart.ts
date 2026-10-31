@@ -122,6 +122,8 @@ export function createCartDomain() {
     },
 
     async addToCart(cartId: string, item: AddToCartInput): Promise<Cart> {
+      if (!(await findCart(cartId))) throw new CommerceError(`Cart not found: ${cartId}`, 'NOT_FOUND')
+
       const product = await findProductById(item.productId)
       if (product?.status !== 'active') {
         throw new CommerceError(`Product not found: ${item.productId}`, 'NOT_FOUND')

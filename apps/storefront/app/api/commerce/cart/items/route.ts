@@ -15,35 +15,32 @@ export async function POST(request: Request) {
     const input = addSchema.parse(await request.json())
     const api = await getCommerceApi()
 
-    let id = (await getCartId()) ?? ""
-    if (!id) {
-      const created = await api.POST("/carts")
-      if (created.error || !created.data) throw created.error
-      const cart = created.data as { id: string }
-      id = cart.id
-      await setCartId(id)
+    const createCart = async () => {
+      const { data, error } = await api.POST("/carts")
+      if (error || !data) throw error ?? new Error("Failed to create cart")
+      await setCartId(data.id)
+      return data.id
     }
 
-    const add = async (cartId: string) => {
-      const { data, error } = await api.POST("/carts/{id}/items", {
+    const add = (cartId: string) =>
+      api.POST("/carts/{id}/items", {
         params: { path: { id: cartId } },
         body: input,
       })
-      if (error) throw error
-      return data
-    }
 
-    try {
-      const cart = await add(id)
-      return NextResponse.json({ cart })
-    } catch {
-      const created = await api.POST("/carts")
-      if (created.error || !created.data) throw created.error
-      const fresh = created.data as { id: string }
-      await setCartId(fresh.id)
-      const cart = await add(fresh.id)
-      return NextResponse.json({ cart })
-    }
+    const id = (await getCartId()) ?? (await createCart())
+    const added = await add(id)
+    if (!added.error) return NextResponse.json({ cart: added.data })
+
+    // A 404 can also mean the product. Only a cart that is really gone is
+    // replaced: any other failure leaves the shopper's cart and cookie alone.
+    if (added.response.status !== 404) throw added.error
+    const current = await api.GET("/carts/{id}", { params: { path: { id } } })
+    if (current.response.status !== 404) throw added.error
+
+    const retried = await add(await createCart())
+    if (retried.error) throw retried.error
+    return NextResponse.json({ cart: retried.data })
   } catch (err) {
     return errorResponse(err)
   }
