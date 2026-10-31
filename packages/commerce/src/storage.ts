@@ -4,43 +4,26 @@ import type {
   StorageUploadResult,
   UploadInput,
 } from '@prood/types'
-import { VercelBlobStorageProvider } from '@prood/storage-vercel-blob'
 import { S3StorageProvider } from '@prood/storage-s3'
-import { getCommerceConfig } from './env'
 
 let cached: StorageProvider | null = null
 
 function required(name: string): string {
   const value = process.env[name]
-  if (!value) throw new Error(`${name} is required for STORAGE_PROVIDER=s3`)
+  if (!value) throw new Error(`${name} is required`)
   return value
 }
 
-/**
- * Get the configured storage provider (singleton).
- * - `vercel-blob` (default): Vercel Blob via BLOB_READ_WRITE_TOKEN
- * - `s3`: any S3-compatible store (AWS, Cloudflare R2, MinIO, ...)
- */
+/** Cloudflare R2 through its S3 API. Objects are public, served by the media Worker. */
 export function getStorage(): StorageProvider {
-  if (cached) return cached
-
-  const { storageProvider } = getCommerceConfig()
-
-  if (storageProvider === 's3') {
-    cached = new S3StorageProvider({
-      endpoint: required('S3_ENDPOINT'),
-      region: process.env.S3_REGION ?? 'auto',
-      bucket: required('S3_BUCKET'),
-      accessKeyId: required('S3_ACCESS_KEY_ID'),
-      secretAccessKey: required('S3_SECRET_ACCESS_KEY'),
-      publicUrl: required('S3_PUBLIC_URL'),
-    })
-  } else {
-    // addRandomSuffix makes public blob URLs unguessable (defense-in-depth on
-    // top of per-tenant key namespacing).
-    cached = new VercelBlobStorageProvider({ addRandomSuffix: true })
-  }
-
+  cached ??= new S3StorageProvider({
+    endpoint: required('S3_ENDPOINT'),
+    region: 'auto',
+    bucket: required('S3_BUCKET'),
+    accessKeyId: required('S3_ACCESS_KEY_ID'),
+    secretAccessKey: required('S3_SECRET_ACCESS_KEY'),
+    publicUrl: required('S3_PUBLIC_URL'),
+  })
   return cached
 }
 
@@ -60,7 +43,8 @@ export function tenantStorageDirectory(
 
 /**
  * Upload a file scoped to a tenant. Keys are prefixed with `org/<orgId>/...`
- * so one merchant can never overwrite or read another merchant's assets.
+ * so one merchant can never overwrite another merchant's assets. Everything
+ * stored here is public through the media Worker, so never store private files.
  */
 export async function uploadForTenant(
   organizationId: string,

@@ -19,7 +19,6 @@
     "@prood/payment-stripe": "workspace:*",
     "@prood/platform": "workspace:*",
     "@prood/storage-s3": "workspace:*",
-    "@prood/storage-vercel-blob": "workspace:*",
     "@prood/types": "workspace:*",
     "server-only": "catalog:",
     "zod": "catalog:"

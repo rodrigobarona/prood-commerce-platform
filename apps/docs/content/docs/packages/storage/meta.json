@@ -1,5 +1,5 @@
 {
-  "title": "Storage Providers",
+  "title": "Storage",
   "icon": "HardDrives",
-  "pages": ["index", "vercel-blob", "s3"]
+  "pages": ["index", "s3"]
 }

@@ -19,6 +19,11 @@ import type {
 
 import type { S3StorageConfig } from './types.js'
 
+/** Encode each path segment, keeping the `/` separators. */
+function encodeKey(key: string): string {
+  return key.split('/').map(encodeURIComponent).join('/')
+}
+
 /**
  * S3-compatible storage provider — works with AWS S3, Cloudflare R2,
  * DigitalOcean Spaces, MinIO, and any S3-protocol service.
@@ -117,7 +122,7 @@ export class S3StorageProvider implements StorageProvider {
 
     if (this.config.publicUrl) {
       const base = this.config.publicUrl.replace(/\/+$/, '')
-      return `${base}/${fullKey}`
+      return `${base}/${encodeKey(fullKey)}`
     }
 
     return this.getObjectUrl(fullKey)
@@ -131,7 +136,7 @@ export class S3StorageProvider implements StorageProvider {
   ): Promise<PresignedUrlResult> {
     const fullKey = this.prefixKey(key)
     const expiresIn = options.expiresIn ?? 3600
-    const url = this.getObjectUrl(fullKey)
+    const url = this.withExpiry(this.getObjectUrl(fullKey), expiresIn)
 
     const headers: Record<string, string> = {}
     if (options.contentType) {
@@ -144,14 +149,10 @@ export class S3StorageProvider implements StorageProvider {
       aws: { signQuery: true },
     })
 
-    // Append X-Amz-Expires to the signed URL
-    const signedUrl = new URL(signed.url)
-    signedUrl.searchParams.set('X-Amz-Expires', String(expiresIn))
-
     const expiresAt = new Date(Date.now() + expiresIn * 1000).toISOString()
 
     return {
-      url: signedUrl.toString(),
+      url: signed.url,
       expiresAt,
       method: 'PUT',
       headers: options.contentType ? { 'Content-Type': options.contentType } : undefined,
@@ -166,20 +167,17 @@ export class S3StorageProvider implements StorageProvider {
   ): Promise<PresignedUrlResult> {
     const fullKey = this.prefixKey(key)
     const expiresIn = options.expiresIn ?? 3600
-    const url = this.getObjectUrl(fullKey)
+    const url = this.withExpiry(this.getObjectUrl(fullKey), expiresIn)
 
     const signed = await this.client.sign(url, {
       method: 'GET',
       aws: { signQuery: true },
     })
 
-    const signedUrl = new URL(signed.url)
-    signedUrl.searchParams.set('X-Amz-Expires', String(expiresIn))
-
     const expiresAt = new Date(Date.now() + expiresIn * 1000).toISOString()
 
     return {
-      url: signedUrl.toString(),
+      url: signed.url,
       expiresAt,
       method: 'GET',
     }
@@ -189,12 +187,15 @@ export class S3StorageProvider implements StorageProvider {
 
   /** Build a unique storage key from filename + optional directory */
   private buildKey(filename: string, directory?: string): string {
+    if (directory?.split('/').some((segment) => segment === '.' || segment === '..')) {
+      throw new Error(`Invalid storage directory: ${directory}`)
+    }
     const uuid = crypto.randomUUID().slice(0, 8)
-    const ext = filename.includes('.') ? filename.slice(filename.lastIndexOf('.')) : ''
-    const baseName = filename.includes('.')
-      ? filename.slice(0, filename.lastIndexOf('.')).replace(/[^a-zA-Z0-9-_]/g, '-')
-      : filename.replace(/[^a-zA-Z0-9-_]/g, '-')
-    const uniqueName = `${baseName}-${uuid}${ext}`
+    const dot = filename.lastIndexOf('.')
+    const safe = (value: string) => value.replace(/[^a-zA-Z0-9-_]/g, '-')
+    const uniqueName = dot === -1
+      ? `${safe(filename)}-${uuid}`
+      : `${safe(filename.slice(0, dot))}-${uuid}.${safe(filename.slice(dot + 1))}`
 
     const parts: string[] = []
     if (this.config.prefix) parts.push(this.config.prefix.replace(/\/+$/, ''))
@@ -213,20 +214,26 @@ export class S3StorageProvider implements StorageProvider {
     return `${prefix}/${key}`
   }
 
+  /** The expiry has to be in the URL before signing, because it's signed too. */
+  private withExpiry(url: string, expiresIn: number): string {
+    return `${url}?X-Amz-Expires=${expiresIn}`
+  }
+
   /** Get the full S3 object URL for a key */
   private getObjectUrl(key: string): string {
+    const path = encodeKey(key)
     const endpoint = this.config.endpoint.replace(/\/+$/, '')
     const bucket = this.config.bucket
 
     if (this.config.forcePathStyle) {
       // Path-style: https://endpoint/bucket/key
-      return `${endpoint}/${bucket}/${key}`
+      return `${endpoint}/${bucket}/${path}`
     }
 
     // Virtual-hosted-style: https://bucket.endpoint/key
     // Parse the endpoint to insert bucket as subdomain
     const url = new URL(endpoint)
     url.hostname = `${bucket}.${url.hostname}`
-    return `${url.origin}/${key}`
+    return `${url.origin}/${path}`
   }
 }

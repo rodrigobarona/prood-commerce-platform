@@ -22,12 +22,12 @@ export const optionalLocalizedFieldSchema = z.record(z.string(), z.string()).opt
 function isServableImageUrl(value: string): boolean {
   if (!URL.canParse(value)) return false
   const url = new URL(value)
-  if (/\.svg$/i.test(url.pathname)) return false
+  // The media Worker decodes paths, so check what it would actually serve.
+  if (/(\.|%2e)svg(%20|\/)*$/i.test(url.pathname)) return false
   const s3PublicUrl = process.env.S3_PUBLIC_URL
   if (s3PublicUrl && value.startsWith(`${s3PublicUrl.replace(/\/$/, "")}/`)) return true
   return (
-    url.protocol === "https:" &&
-    (url.hostname.endsWith(".public.blob.vercel-storage.com") || url.hostname === "placehold.co")
+    url.protocol === "https:" && url.hostname === "placehold.co"
   )
 }
 

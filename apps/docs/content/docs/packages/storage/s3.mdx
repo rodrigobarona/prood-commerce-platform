@@ -11,41 +11,24 @@ description: S3-compatible storage provider for AWS S3, Cloudflare R2, and MinIO
 pnpm add @prood/storage-s3
 ```
 
-Selected when `STORAGE_PROVIDER=s3`.
-
 ## Configuration
 
 | Variable | Required | Description |
 | --- | --- | --- |
 | `S3_ENDPOINT` | Yes | S3-compatible endpoint URL |
-| `S3_REGION` | No | Region (default `auto` for R2) |
 | `S3_BUCKET` | Yes | Bucket name |
 | `S3_ACCESS_KEY_ID` | Yes | Access key |
 | `S3_SECRET_ACCESS_KEY` | Yes | Secret key |
 | `S3_PUBLIC_URL` | Yes | Public URL prefix for uploaded files. The apps allow it in `next/image` |
 
-### Cloudflare R2 example
+### Cloudflare R2
 
 ```bash
-STORAGE_PROVIDER=s3
-S3_ENDPOINT=https://abc123.r2.cloudflarestorage.com
-S3_REGION=auto
-S3_BUCKET=prood-assets
+S3_ENDPOINT=https://<account>.eu.r2.cloudflarestorage.com
+S3_BUCKET=prood-public
 S3_ACCESS_KEY_ID=your_access_key
 S3_SECRET_ACCESS_KEY=your_secret_key
-S3_PUBLIC_URL=https://assets.example.com
-```
-
-### AWS S3 example
-
-```bash
-STORAGE_PROVIDER=s3
-S3_ENDPOINT=https://s3.eu-west-1.amazonaws.com
-S3_REGION=eu-west-1
-S3_BUCKET=prood-assets
-S3_ACCESS_KEY_ID=AKIA...
-S3_SECRET_ACCESS_KEY=...
-S3_PUBLIC_URL=https://prood-assets.s3.eu-west-1.amazonaws.com
+S3_PUBLIC_URL=https://prood-media.rbarona.workers.dev
 ```
 
 ## Usage
@@ -70,7 +53,7 @@ import { S3StorageProvider } from '@prood/storage-s3'
 
 const storage = new S3StorageProvider({
   endpoint: process.env.S3_ENDPOINT!,
-  region: process.env.S3_REGION ?? 'auto',
+  region: 'auto',
   bucket: process.env.S3_BUCKET!,
   accessKeyId: process.env.S3_ACCESS_KEY_ID!,
   secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
@@ -80,7 +63,7 @@ const storage = new S3StorageProvider({
 
 ## Tenant namespacing
 
-Same as Vercel Blob — all keys prefixed with `org/{orgId}/`:
+All keys are prefixed with `org/{orgId}/`:
 
 ```
 org/org_demo/products/prod_abc/image.jpg
@@ -91,6 +74,5 @@ Always upload via `uploadForTenant()` to ensure proper namespacing.
 ## Related pages
 
 <Cards>
-  <Card title="@prood/storage-vercel-blob" href="/docs/packages/storage/vercel-blob" description="Default Vercel Blob provider." />
   <Card title="Environment variables" href="/docs/getting-started/environment" description="Storage env var reference." />
 </Cards>
