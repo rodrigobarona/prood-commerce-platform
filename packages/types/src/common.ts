@@ -83,6 +83,8 @@ export type CommerceErrorCode =
   | 'NETWORK'
   | 'TIMEOUT'
   | 'CONFIGURATION_ERROR'
+  /** The store can't take this order right now; it's the merchant's to fix. */
+  | 'ORDERS_UNAVAILABLE'
   | 'UNKNOWN'
 
 /**

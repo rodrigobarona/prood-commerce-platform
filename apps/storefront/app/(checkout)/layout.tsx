@@ -6,12 +6,12 @@ import { fetchStoreInfo } from "@/lib/commerce-data"
 import { localized } from "@prood/ui/lib/commerce"
 
 async function ResolvedCheckoutHeader() {
-  let storeName = "Commerce"
+  let storeName: string | undefined
   try {
     const store = await fetchStoreInfo()
-    storeName = localized(store.name) || storeName
+    storeName = localized(store.name) || undefined
   } catch {
-    // fall back to default name
+    // CheckoutHeader has its own label
   }
 
   return <CheckoutHeader storeName={storeName} homeHref="/" />

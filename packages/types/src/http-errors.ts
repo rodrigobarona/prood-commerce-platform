@@ -14,6 +14,9 @@ export interface CommerceErrorResponse {
   body: CommerceErrorBody
 }
 
+/** The message on a request that failed schema validation, with details in `errors`. */
+export const VALIDATION_FAILED_MESSAGE = 'Validation failed'
+
 const STATUS_BY_CODE: Record<CommerceErrorCode, number> = {
   NOT_FOUND: 404,
   NOT_SUPPORTED: 501,
@@ -25,6 +28,7 @@ const STATUS_BY_CODE: Record<CommerceErrorCode, number> = {
   NETWORK: 502,
   TIMEOUT: 504,
   CONFIGURATION_ERROR: 500,
+  ORDERS_UNAVAILABLE: 409,
   UNKNOWN: 500,
 }
 
@@ -50,7 +54,7 @@ export function toErrorResponse(err: unknown): CommerceErrorResponse {
       status: 422,
       body: {
         code: 'VALIDATION',
-        message: 'Validation failed',
+        message: VALIDATION_FAILED_MESSAGE,
         errors: err.issues.map((issue) => ({
           path: issue.path.join('.'),
           message: issue.message,

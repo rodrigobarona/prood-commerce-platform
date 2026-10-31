@@ -1084,6 +1084,23 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       expect(await revenue()).toBe(expected)
     })
 
+    it('counts orders that reached paid, even once refunded', async () => {
+      const paidOrders = async () => (await asTenant((admin) => admin.getDashboardStats())).paidOrders
+
+      await placedOrder()
+      const cancelled = await placedOrder()
+      await adapter.cancelOrder(cancelled.id)
+      const authorized = await placedOrder()
+      await adapter.applyPaymentEvent(authorized.id, { outcome: 'authorized', amount: null, currency: null, provider: 'test' })
+      expect(await paidOrders()).toBe(0)
+
+      const order = await placedOrder()
+      await capture(order)
+      expect(await paidOrders()).toBe(1)
+      await asTenant((admin) => admin.recordRefund(order.id))
+      expect(await paidOrders()).toBe(1)
+    })
+
     it('keeps a partly refunded order in revenue', async () => {
       const order = await placedOrder()
       await capture(order)
@@ -1798,6 +1815,23 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     const settings = await asTenant((admin) => admin.updateStoreSettings({ country: 'ES' }))
     expect(settings.country).toBe('ES')
     expect((await adapter.getStoreInfo()).country).toBe('ES')
+  })
+
+  it('exposes the contact email a merchant set', async () => {
+    expect((await adapter.getStoreInfo()).contactEmail).toBeNull()
+    await asTenant((admin) => admin.updateStoreSettings({ contactEmail: 'ola@loja.pt' }))
+    expect((await adapter.getStoreInfo()).contactEmail).toBe('ola@loja.pt')
+  })
+
+  it('removes a contact email and description a merchant cleared', async () => {
+    await asTenant((admin) =>
+      admin.updateStoreSettings({ contactEmail: 'ola@loja.pt', description: { en: 'Cerâmica' } }),
+    )
+    const settings = await asTenant((admin) =>
+      admin.updateStoreSettings({ contactEmail: null, description: null }),
+    )
+    expect(settings).toMatchObject({ contactEmail: null, description: null })
+    expect(await adapter.getStoreInfo()).toMatchObject({ contactEmail: null, description: null })
   })
 
   it('stores social links as the record it returns', async () => {

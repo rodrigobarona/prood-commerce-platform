@@ -1,13 +1,14 @@
 import 'server-only'
-import { CommerceError } from '@prood/types'
+import { CommerceError, type CommerceErrorCode } from '@prood/types'
 
 export function assertLimit(
   current: number,
   max: number | null,
   message: string,
+  code: CommerceErrorCode = 'FORBIDDEN',
 ): void {
   if (max !== null && current >= max) {
-    throw new CommerceError(message, 'FORBIDDEN')
+    throw new CommerceError(message, code)
   }
 }
 

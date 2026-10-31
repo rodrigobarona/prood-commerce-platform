@@ -14,12 +14,14 @@ export function LocalizedFieldInput({
   onChange,
   multiline = false,
   required = false,
+  hint,
 }: {
   label: string
   value: LocalizedField
   onChange: (value: LocalizedField) => void
   multiline?: boolean
   required?: boolean
+  hint?: string
 }) {
   return (
     <div className="flex flex-col gap-3">
@@ -48,6 +50,7 @@ export function LocalizedFieldInput({
           </div>
         )
       })}
+      {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
     </div>
   )
 }

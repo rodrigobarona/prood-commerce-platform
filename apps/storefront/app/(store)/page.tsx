@@ -1,6 +1,5 @@
 import Image from "next/image"
 import Link from "next/link"
-import type { Category, Product } from "@prood/types"
 import { HeroBanner } from "@prood/ui/components/hero-banner"
 import { localized } from "@prood/ui/lib/commerce"
 import { ConnectedProductGrid } from "@/components/commerce/connected-product-grid"
@@ -11,35 +10,20 @@ import {
 } from "@/lib/commerce-data"
 
 export default async function HomePage() {
-  let products: Product[] = []
-  let categories: Category[] = []
-  let storeName = "Commerce"
-  let tagline: string | undefined
-
-  try {
-    const result = await fetchProductList({ perPage: 8 })
-    products = result.products.items
-  } catch {
-    /* DB unavailable */
-  }
-  try {
-    categories = await fetchCategories()
-  } catch {
-    /* DB unavailable */
-  }
-  try {
-    const store = await fetchStoreInfo()
-    storeName = localized(store.name) || storeName
-    tagline = store.description ? localized(store.description) : undefined
-  } catch {
-    /* DB unavailable */
-  }
+  // A failure here belongs in error.tsx: rendered as empty, it reads as a store
+  // with nothing to sell.
+  const [productList, categories, store] = await Promise.all([
+    fetchProductList({ perPage: 8 }),
+    fetchCategories(),
+    fetchStoreInfo(),
+  ])
+  const products = productList.products.items
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-14 px-4 py-8">
       <HeroBanner
-        title={`Welcome to ${storeName}`}
-        subtitle={tagline ?? "Discover our latest products and exclusive offers."}
+        title={`Welcome to ${localized(store.name)}`}
+        subtitle={store.description ? localized(store.description) : undefined}
         primaryLabel="Shop now"
         primaryHref="/products"
         secondaryLabel="Browse categories"

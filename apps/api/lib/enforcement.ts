@@ -20,6 +20,7 @@ export async function assertCanPlaceOrder(orgId: string): Promise<void> {
     count,
     limits.maxOrdersPerMonth,
     "Monthly order limit reached for your plan. Upgrade to accept more orders.",
+    "ORDERS_UNAVAILABLE",
   )
 }
 

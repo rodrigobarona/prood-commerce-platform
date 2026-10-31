@@ -13,8 +13,10 @@ import {
   StatCardsSkeleton,
   RecentOrdersSkeleton,
 } from "@/components/skeletons"
-import type { DashboardStats } from "@prood/commerce"
+import { CopyStoreLink } from "@/components/overview/copy-store-link"
+import { SetupChecklist } from "@/components/overview/setup-checklist"
 import { getDashboardStats, getStoreSettings } from "@/lib/admin-api"
+import { setupChecklist } from "@/lib/setup-checklist"
 
 export const metadata = { title: "Overview" }
 
@@ -29,15 +31,32 @@ function formatCurrency(amount: number, currency: string): string {
   }
 }
 
+async function loadOverview() {
+  try {
+    const [stats, settings] = await Promise.all([
+      getDashboardStats(),
+      getStoreSettings(),
+    ])
+    return { stats, settings }
+  } catch (error) {
+    if (error instanceof Error && "digest" in error) throw error
+    return null
+  }
+}
+
 export default function OverviewPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h2 className="font-heading text-xl font-medium">Overview</h2>
         <p className="text-sm text-muted-foreground">
-          A snapshot of your store&apos;s performance.
+          Orders, customers and products in your store.
         </p>
       </div>
+
+      <Suspense fallback={null}>
+        <StoreSetup />
+      </Suspense>
 
       <Suspense fallback={<StatCardsSkeleton />}>
         <StatsCards />
@@ -50,19 +69,18 @@ export default function OverviewPage() {
   )
 }
 
+async function StoreSetup() {
+  const overview = await loadOverview()
+  if (!overview) return null
+  const { stats, settings } = overview
+  const progress = { ...stats, hasContactEmail: Boolean(settings.contactEmail) }
+  return <SetupChecklist items={setupChecklist(progress, settings.url)} />
+}
+
 async function StatsCards() {
-  let stats: DashboardStats | null = null
-  let currency = "EUR"
-  try {
-    const [dashboard, settings] = await Promise.all([
-      getDashboardStats(),
-      getStoreSettings(),
-    ])
-    stats = dashboard
-    currency = settings.currency
-  } catch (error) {
-    if (error instanceof Error && "digest" in error) throw error
-  }
+  const overview = await loadOverview()
+  const stats = overview?.stats
+  const currency = overview?.settings.currency ?? "EUR"
 
   const cards = [
     {
@@ -92,18 +110,9 @@ async function StatsCards() {
 }
 
 async function RecentOrders() {
-  let stats: DashboardStats | null = null
-  let currency = "EUR"
-  try {
-    const [dashboard, settings] = await Promise.all([
-      getDashboardStats(),
-      getStoreSettings(),
-    ])
-    stats = dashboard
-    currency = settings.currency
-  } catch (error) {
-    if (error instanceof Error && "digest" in error) throw error
-  }
+  const overview = await loadOverview()
+  const stats = overview?.stats
+  const currency = overview?.settings.currency ?? "EUR"
 
   return (
     <Card>
@@ -112,7 +121,11 @@ async function RecentOrders() {
         <CardDescription>Latest activity in your store.</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
-        {stats && stats.recentOrders.length > 0 ? (
+        {!overview ? (
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            We couldn&apos;t load your orders. Refresh the page to try again.
+          </p>
+        ) : stats && stats.recentOrders.length > 0 ? (
           stats.recentOrders.map((order) => (
             <div
               key={order.id}
@@ -139,8 +152,10 @@ async function RecentOrders() {
             className="border-0 py-8"
             icon={ShoppingBag}
             title="No orders yet"
-            description="Recent orders will appear here once you start selling."
-          />
+            description="Orders show up here as soon as a customer checks out. Share your store link to get the first one."
+          >
+            <CopyStoreLink url={overview.settings.url} />
+          </DashboardEmpty>
         )}
       </CardContent>
     </Card>

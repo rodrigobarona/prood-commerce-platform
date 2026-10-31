@@ -175,6 +175,7 @@ export {
   countOrdersByStatus,
   countOrders,
   countOrdersThisMonth,
+  countPaidOrders,
   sumOrderRevenue,
   findRecentOrders,
 } from './admin-orders.js'

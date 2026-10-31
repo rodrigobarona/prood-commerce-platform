@@ -2,15 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import {
-  ArrowLeftIcon,
-  HeartIcon,
-  LockIcon,
-  ShieldCheckIcon,
-  ShoppingBagIcon,
-  ArrowCounterClockwiseIcon,
-  CreditCardIcon,
-} from "@phosphor-icons/react"
+import { ArrowLeftIcon, HeartIcon, ShoppingBagIcon } from "@phosphor-icons/react"
 import { Button } from "@prood/ui/components/button"
 import { CartItemRow } from "@prood/ui/components/cart-item"
 import { CartSummary } from "@prood/ui/components/cart-summary"
@@ -25,25 +17,19 @@ import {
   type SavedItem,
 } from "@/components/cart/save-for-later"
 import { useCart } from "@/components/providers/cart-provider"
-
-function TrustBadge({
-  icon,
-  label,
-}: {
-  icon: React.ReactNode
-  label: string
-}) {
-  return (
-    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-      {icon}
-      <span>{label}</span>
-    </div>
-  )
-}
+import { STORE_CLOSED_MESSAGE, canCheckOut } from "@/lib/store-status"
 
 export default function CartPage() {
-  const { cart, loading, addItem, updateItem, removeItem, applyCoupon, removeCoupon } =
-    useCart()
+  const {
+    cart,
+    canTakeOrders,
+    loading,
+    addItem,
+    updateItem,
+    removeItem,
+    applyCoupon,
+    removeCoupon,
+  } = useCart()
   const { items: savedItems, save: saveItem, remove: removeSaved } = useSavedItems()
   const [couponLoading, setCouponLoading] = useState(false)
   const [couponError, setCouponError] = useState<string | null>(null)
@@ -102,10 +88,11 @@ export default function CartPage() {
   }
 
   const formattedTotal = cart.totals.total.formatted || ""
+  const checkoutOpen = canCheckOut(canTakeOrders, cart)
 
   return (
     <>
-      <div className="mx-auto max-w-7xl px-4 py-8 pb-24 lg:pb-8">
+      <div className="mx-auto max-w-7xl px-4 py-8 pb-32 lg:pb-8">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
             Your cart{" "}
@@ -153,17 +140,20 @@ export default function CartPage() {
                 <Separator />
                 <SaveForLaterSection
                   items={savedItems}
-                  onMoveToCart={(item) => void handleMoveToCart(item)}
+                  onMoveToCart={canTakeOrders ? (item) => void handleMoveToCart(item) : undefined}
                   onRemove={removeSaved}
                 />
               </>
             ) : null}
           </div>
 
-          {/* Sidebar: Summary + Coupon + Trust */}
+          {/* Sidebar: Summary + Coupon */}
           <div className="flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start">
 
-            <CartSummary cart={cart} />
+            <CartSummary
+              cart={cart}
+              checkoutDisabledReason={checkoutOpen ? undefined : STORE_CLOSED_MESSAGE}
+            />
 
             <div className="rounded-2xl border p-5">
               <h3 className="mb-3 text-sm font-medium">Discount code</h3>
@@ -175,39 +165,26 @@ export default function CartPage() {
                 onRemove={handleRemoveCoupon}
               />
             </div>
-
-            <Separator />
-
-            {/* Trust signals */}
-            <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 px-2">
-              <TrustBadge
-                icon={<LockIcon className="size-3.5" />}
-                label="Secure checkout"
-              />
-              <TrustBadge
-                icon={<ShieldCheckIcon className="size-3.5" />}
-                label="Data protection"
-              />
-              <TrustBadge
-                icon={<ArrowCounterClockwiseIcon className="size-3.5" />}
-                label="Easy returns"
-              />
-              <TrustBadge
-                icon={<CreditCardIcon className="size-3.5" />}
-                label="Safe payment"
-              />
-            </div>
           </div>
         </div>
       </div>
 
       {/* Sticky mobile checkout CTA */}
       <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-4 backdrop-blur-sm lg:hidden">
-        <Button asChild className="w-full" size="lg">
-          <Link href="/checkout">
-            Checkout · {formattedTotal}
-          </Link>
-        </Button>
+        {checkoutOpen ? (
+          <Button asChild className="w-full" size="lg">
+            <Link href="/checkout">
+              Checkout · {formattedTotal}
+            </Link>
+          </Button>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <p className="text-muted-foreground text-center text-sm">{STORE_CLOSED_MESSAGE}</p>
+            <Button className="w-full" size="lg" disabled>
+              Proceed to checkout
+            </Button>
+          </div>
+        )}
       </div>
     </>
   )
