@@ -34,7 +34,7 @@ export type { Order, OrderItem, OrderPaymentDetails, OrderStatus, PaymentStatus,
 export type { CreateOrderInput, OrderItemInput } from './order-input.js'
 
 // Order Status & History (for OrderAdapter status/timeline methods)
-export type { OrderStatusInfo, OrderHistoryEntry, UpdateOrderStatusInput, PaymentEventInput, PaymentEventResult } from './order-status.js'
+export type { OrderStatusInfo, OrderHistoryEntry, UpdateOrderStatusInput, PaymentEventInput, PaymentEventResult, RecordOrderPaymentInput } from './order-status.js'
 
 // Shipping
 export type { ShippingMethod, ShippingProvider, FulfillmentType } from './shipping.js'
@@ -138,6 +138,6 @@ export type {
 export { safeEqual } from './security.js'
 
 // Order payment state
-export { orderPaymentState, toPortugueseMobile, type OrderPaymentState } from './order-payment.js'
+export { MBWAY_WINDOW_MS, orderOutcome, orderPaymentState, toPortugueseMobile, type OrderOutcome, type OrderPaymentState } from './order-payment.js'
 export { safeRedirectPath } from './redirect.js'
 export { requiredEnv, storeOriginForSlug } from './env.js'

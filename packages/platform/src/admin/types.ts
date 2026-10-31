@@ -170,7 +170,8 @@ export interface AdminAPI {
   listOrders(params?: AdminListOrdersParams): Promise<PaginatedResult<Order>>
   getOrder(id: string): Promise<Order>
   fulfillOrder(id: string, input: FulfillOrderInput): Promise<void>
-  refundOrder(id: string, note?: string): Promise<void>
+  /** Record a refund already sent; moves no money. */
+  recordRefund(id: string, note?: string): Promise<void>
 
   // Customers (admin view)
   listCustomers(params?: AdminListParams): Promise<PaginatedResult<Customer>>

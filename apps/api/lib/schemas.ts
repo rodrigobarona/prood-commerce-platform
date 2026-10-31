@@ -184,6 +184,12 @@ export const fulfillOrderBody = z.object({
 
 export const refundOrderBody = z.object({
   note: z.string().optional(),
+  recordOnly: z
+    .boolean()
+    .optional()
+    .describe(
+      "Record a refund already sent from the payment account. Only allowed on orders whose `refund` is `manual`: Prood moves no money."
+    ),
 })
 
 /** Checkout address (no id / isDefault). */

@@ -421,7 +421,7 @@ export function buildOpenApiDocument() {
       "/admin/orders/{id}": pathItem("GET", "Get order (admin)", "adminGetOrder", {
         pathTemplate: "/admin/orders/{id}",
         scope: "admin",
-        response: responses.order,
+        response: responses.adminOrder,
       }),
       "/admin/orders/{id}/cancel": pathItem("POST", "Cancel order", "adminCancelOrder", {
         pathTemplate: "/admin/orders/{id}/cancel",

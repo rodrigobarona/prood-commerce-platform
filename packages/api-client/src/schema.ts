@@ -3849,7 +3849,15 @@ export interface operations {
                             } | null;
                             icon: string | null;
                         } | null;
+                        paymentProvider: string | null;
                         paymentTransactionId: string | null;
+                        paymentDetails: {
+                            /** @enum {string} */
+                            method: "card" | "multibanco" | "mbway";
+                            entity: string | null;
+                            reference: string | null;
+                            expiresAt: string | null;
+                        } | null;
                         couponCode: string | null;
                         trackingNumber: string | null;
                         trackingUrl: string | null;
@@ -4058,7 +4066,15 @@ export interface operations {
                                 } | null;
                                 icon: string | null;
                             } | null;
+                            paymentProvider: string | null;
                             paymentTransactionId: string | null;
+                            paymentDetails: {
+                                /** @enum {string} */
+                                method: "card" | "multibanco" | "mbway";
+                                entity: string | null;
+                                reference: string | null;
+                                expiresAt: string | null;
+                            } | null;
                             couponCode: string | null;
                             trackingNumber: string | null;
                             trackingUrl: string | null;
@@ -4270,7 +4286,15 @@ export interface operations {
                             } | null;
                             icon: string | null;
                         } | null;
+                        paymentProvider: string | null;
                         paymentTransactionId: string | null;
+                        paymentDetails: {
+                            /** @enum {string} */
+                            method: "card" | "multibanco" | "mbway";
+                            entity: string | null;
+                            reference: string | null;
+                            expiresAt: string | null;
+                        } | null;
                         couponCode: string | null;
                         trackingNumber: string | null;
                         trackingUrl: string | null;
@@ -5590,7 +5614,15 @@ export interface operations {
                                 } | null;
                                 icon: string | null;
                             } | null;
+                            paymentProvider: string | null;
                             paymentTransactionId: string | null;
+                            paymentDetails: {
+                                /** @enum {string} */
+                                method: "card" | "multibanco" | "mbway";
+                                entity: string | null;
+                                reference: string | null;
+                                expiresAt: string | null;
+                            } | null;
                             couponCode: string | null;
                             trackingNumber: string | null;
                             trackingUrl: string | null;
@@ -5802,7 +5834,15 @@ export interface operations {
                             } | null;
                             icon: string | null;
                         } | null;
+                        paymentProvider: string | null;
                         paymentTransactionId: string | null;
+                        paymentDetails: {
+                            /** @enum {string} */
+                            method: "card" | "multibanco" | "mbway";
+                            entity: string | null;
+                            reference: string | null;
+                            expiresAt: string | null;
+                        } | null;
                         couponCode: string | null;
                         trackingNumber: string | null;
                         trackingUrl: string | null;
@@ -5816,6 +5856,8 @@ export interface operations {
                         fulfilledAt: string | null;
                         createdAt: string;
                         updatedAt: string;
+                        /** @description `provider`: Prood sends the refund. `manual`: refund in the payment account, then record it with `recordOnly`. Null when nothing can be refunded. */
+                        refund: ("provider" | "manual") | null;
                     };
                 };
             };
@@ -6134,6 +6176,8 @@ export interface operations {
             content: {
                 "application/json": {
                     note?: string;
+                    /** @description Record a refund already sent from the payment account. Only allowed on orders whose `refund` is `manual`: Prood moves no money. */
+                    recordOnly?: boolean;
                 };
             };
         };
@@ -6823,7 +6867,15 @@ export interface operations {
                                 } | null;
                                 icon: string | null;
                             } | null;
+                            paymentProvider: string | null;
                             paymentTransactionId: string | null;
+                            paymentDetails: {
+                                /** @enum {string} */
+                                method: "card" | "multibanco" | "mbway";
+                                entity: string | null;
+                                reference: string | null;
+                                expiresAt: string | null;
+                            } | null;
                             couponCode: string | null;
                             trackingNumber: string | null;
                             trackingUrl: string | null;

@@ -1,5 +1,10 @@
 import 'server-only'
-import { CommerceError, type PaymentProvider, type PaymentWebhookEvent } from '@prood/types'
+import {
+  CommerceError,
+  type CredentialCheck,
+  type PaymentProvider,
+  type PaymentWebhookEvent,
+} from '@prood/types'
 import { StripePaymentProvider } from '@prood/payment-stripe'
 import { EasypayPaymentProvider } from '@prood/payment-easypay'
 import { IfthenpayPaymentProvider } from '@prood/payment-ifthenpay'
@@ -26,7 +31,8 @@ function instantiate(id: PaymentProviderId, config: PaymentProviderConfig): Paym
     case 'stripe':
       return new StripePaymentProvider({
         secretKey: required(config, 'secretKey', 'Stripe'),
-        webhookSecret: config.webhookSecret,
+        publishableKey: required(config, 'publishableKey', 'Stripe'),
+        webhookSecret: required(config, 'webhookSecret', 'Stripe'),
       })
     case 'easypay':
       return new EasypayPaymentProvider({
@@ -37,11 +43,35 @@ function instantiate(id: PaymentProviderId, config: PaymentProviderConfig): Paym
     case 'ifthenpay':
       return new IfthenpayPaymentProvider({
         antiPhishingKey: required(config, 'antiPhishingKey', 'Ifthenpay'),
-        mbKey: config.mbKey,
+        mbKey: required(config, 'mbKey', 'Ifthenpay'),
         mbWayKey: config.mbWayKey,
         ccKey: config.ccKey,
       })
   }
+}
+
+/** Base URL of the hosted checkout, where shoppers pay and webhooks arrive. */
+export function resolveCheckoutBaseUrl(): string {
+  const url = process.env.CHECKOUT_URL
+  if (!url) throw new Error('CHECKOUT_URL is required')
+  return url.replace(/\/$/, '')
+}
+
+/** Where a store's payment provider reports payments for that store. */
+export function paymentWebhookUrl(providerId: string, tenantId: string): string {
+  return `${resolveCheckoutBaseUrl()}/api/webhooks/${providerId}/${encodeURIComponent(tenantId)}`
+}
+
+/**
+ * Test credentials before they are saved. Null when the provider has no
+ * read-only call to test them with.
+ */
+export async function checkPaymentCredentials(
+  id: PaymentProviderId,
+  config: PaymentProviderConfig,
+): Promise<CredentialCheck | null> {
+  const provider = instantiate(id, config)
+  return provider.checkCredentials ? provider.checkCredentials() : null
 }
 
 export interface TenantPaymentProvider {

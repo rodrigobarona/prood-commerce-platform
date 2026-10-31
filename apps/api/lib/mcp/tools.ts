@@ -534,8 +534,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     },
     async ({ id, ...body }) => {
       const orgId = requireScope("admin")
-      const { note } = refundOrderBody.parse(body)
-      await admin.refundOrder(orgId, id, note)
+      await admin.refundOrder(orgId, id, refundOrderBody.parse(body))
       return jsonContent({ success: true })
     }
   )

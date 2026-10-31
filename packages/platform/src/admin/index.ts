@@ -58,7 +58,7 @@ export function createAdminAPI(): AdminAPI {
     listOrders: orders.listOrders,
     getOrder: orders.getOrder,
     fulfillOrder: orders.fulfillOrder,
-    refundOrder: orders.refundOrder,
+    recordRefund: orders.recordRefund,
 
     // Customers
     listCustomers: customers.listCustomers,
