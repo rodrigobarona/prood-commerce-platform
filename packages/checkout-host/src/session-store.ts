@@ -1,9 +1,12 @@
 import 'server-only'
 import { Redis } from '@upstash/redis'
 import type { CheckoutSnapshot } from '@prood/checkout'
+import type { PaymentMethodKind } from '@prood/types'
 
 const KEY_PREFIX = 'checkout:session:'
 const DEFAULT_TTL_S = 60 * 60 * 24 // 24 hours
+// A Multibanco reference stays payable for days after the link that made it expires.
+const STARTED_PAYMENT_TTL_S = 60 * 60 * 24 * 7 // 7 days
 
 export interface SessionMeta {
   providerId: string
@@ -16,6 +19,8 @@ export interface SessionMeta {
   orderId?: string | null
   customerId?: string | null
   storeName?: string | null
+  /** Methods the shopper can choose between, from the connected provider. */
+  methods: PaymentMethodKind[]
 }
 
 export interface StoredSession {
@@ -44,6 +49,7 @@ function key(sessionId: string): string {
 }
 
 function computeTtl(snapshot: CheckoutSnapshot): number {
+  if (snapshot.paymentSession) return STARTED_PAYMENT_TTL_S
   if (snapshot.expiresAt) {
     const remaining = Math.ceil((new Date(snapshot.expiresAt).getTime() - Date.now()) / 1000)
     return Math.max(remaining, 60)

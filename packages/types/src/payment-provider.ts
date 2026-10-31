@@ -8,6 +8,10 @@
 // ---------------------------------------------------------------------------
 
 import type { Maybe } from './common.js'
+import type { PaymentType } from './payment.js'
+
+/** A way to pay that a shopper can choose at hosted checkout */
+export type PaymentMethodKind = Extract<PaymentType, 'card' | 'multibanco' | 'mbway'>
 
 // ---- Session status --------------------------------------------------------
 
@@ -38,6 +42,8 @@ export interface PaymentSession {
   providerId: string
   /** Current status */
   status: PaymentSessionStatus
+  /** The method the shopper is paying with */
+  method?: PaymentMethodKind
   /** Payment amount (in major currency units, e.g., 99.99) */
   amount: number
   /** ISO 4217 currency code */
@@ -58,6 +64,8 @@ export interface CreatePaymentSessionInput {
   amount: number
   /** ISO 4217 currency code (e.g., 'EUR', 'USD') */
   currency: string
+  /** Method to charge; defaults to the provider's first method */
+  method?: PaymentMethodKind
   /** Client-side token from gateway SDK (e.g., Tap tok_xxx, Stripe pm_xxx) */
   sourceToken?: string
   /** Order ID to associate with this payment */
@@ -93,7 +101,18 @@ export interface RefundInput {
   amount?: number
   /** Reason for the refund */
   reason?: string
+  /** Idempotency key so a retried refund can't send the money twice */
+  idempotencyKey?: string
 }
+
+/**
+ * Result of testing a store's credentials with a read-only provider call:
+ * - `rejected`: the provider refused them; `field` names the credential at fault
+ * - `unreachable`: the provider didn't answer, so nothing is known about them
+ */
+export type CredentialCheck =
+  | { ok: true }
+  | { ok: false; reason: 'rejected' | 'unreachable'; field?: string }
 
 // ---- Webhook event ---------------------------------------------------------
 
@@ -142,6 +161,11 @@ export interface PaymentProvider {
   /** Human-readable provider name (e.g., 'Stripe', 'Tap Payments') */
   readonly name: string
 
+  /** Methods this provider can really charge with the configured account */
+  readonly methods: readonly PaymentMethodKind[]
+  /** Methods `refund` can pay back; empty when refunds happen in the provider's own account */
+  readonly refundableMethods: readonly PaymentMethodKind[]
+
   /** Create a payment session (charge or redirect) */
   createSession(input: CreatePaymentSessionInput): Promise<PaymentSession>
 
@@ -151,14 +175,17 @@ export interface PaymentProvider {
   /** Get current status of a payment session */
   getSession(sessionId: string): Promise<PaymentSession>
 
-  /** Refund a captured payment (full or partial) */
-  refund(input: RefundInput): Promise<PaymentSession>
+  /** Refund a captured payment (full or partial), for providers with a refund API */
+  refund?(input: RefundInput): Promise<PaymentSession>
 
   /** Capture an authorized payment — only for auth+capture gateways */
   captureSession?(sessionId: string, amount?: number): Promise<PaymentSession>
 
   /** Cancel/void a pending or authorized session */
   cancelSession?(sessionId: string): Promise<PaymentSession>
+
+  /** Test the credentials with a read-only call, for providers that have one */
+  checkCredentials?(): Promise<CredentialCheck>
 
   /** Verify webhook signature and parse event (server-side only) */
   verifyWebhook?(payload: string | Uint8Array, signature: string): Promise<PaymentWebhookEvent>
