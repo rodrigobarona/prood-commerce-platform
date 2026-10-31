@@ -27,7 +27,7 @@ interface CartContextValue {
   openDrawer: () => void
   /** Resolves to whether the item was added; a refusal is shown as a toast. */
   addItem: (input: AddItemInput) => Promise<boolean>
-  addProduct: (product: Product, quantity?: number) => Promise<void>
+  addProduct: (product: Product, quantity?: number) => Promise<boolean>
   updateItem: (itemId: string, quantity: number) => Promise<void>
   removeItem: (itemId: string) => Promise<void>
   applyCoupon: (code: string) => Promise<void>
