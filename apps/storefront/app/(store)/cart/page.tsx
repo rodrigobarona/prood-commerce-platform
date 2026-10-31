@@ -87,7 +87,7 @@ export default function CartPage() {
 
   return (
     <>
-      <div className="mx-auto max-w-7xl px-4 py-8 pb-24 lg:pb-8">
+      <div className="mx-auto max-w-7xl px-4 py-8 pb-32 lg:pb-8">
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
             Your cart{" "}
