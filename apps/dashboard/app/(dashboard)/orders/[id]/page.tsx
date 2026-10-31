@@ -123,7 +123,11 @@ async function OrderDetail({
         </div>
         <OrderActions
           orderId={order.id}
-          canFulfill={FULFILLABLE.has(order.status) && SETTLED.has(order.paymentStatus)}
+          canFulfill={
+            FULFILLABLE.has(order.status) &&
+            SETTLED.has(order.paymentStatus) &&
+            order.fulfillmentStatus !== "not_required"
+          }
           canCancel={CANCELLABLE.has(order.status)}
           canRefund={REFUNDABLE.has(order.status) && order.paymentStatus === "paid"}
         />

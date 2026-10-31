@@ -115,11 +115,12 @@ export function CheckoutSidebar({
         )}
       >
         <SummaryRow label="Subtotal" value={formatPrice(t.subtotal, locale)} />
-        {t.shipping ? (
-          <SummaryRow label="Shipping" value={formatPrice(t.shipping, locale)} />
-        ) : (
-          <SummaryRow label="Shipping" value="Calculated next" />
-        )}
+        {cart.requiresShipping ? (
+          <SummaryRow
+            label="Shipping"
+            value={t.shipping ? formatPrice(t.shipping, locale) : "Calculated next"}
+          />
+        ) : null}
         {t.tax ? (
           <SummaryRow label="Tax" value={formatPrice(t.tax, locale)} />
         ) : null}

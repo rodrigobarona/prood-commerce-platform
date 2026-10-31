@@ -82,7 +82,7 @@ export function ProductForm({
     productType: initial?.productType ?? "physical",
     status: initial?.status ?? "active",
     inStock: initial?.inStock ?? true,
-    requiresShipping: initial?.requiresShipping ?? true,
+    requiresShipping: initial?.requiresShipping ?? initial?.productType !== "digital",
   }))
 
   function set<K extends keyof ProductFormValues>(
@@ -198,7 +198,13 @@ export function ProductForm({
               <Label htmlFor="productType">Type</Label>
               <Select
                 value={values.productType}
-                onValueChange={(value) => set("productType", value as ProductType)}
+                onValueChange={(value) =>
+                  setValues((prev) => ({
+                    ...prev,
+                    productType: value as ProductType,
+                    requiresShipping: value !== "digital",
+                  }))
+                }
               >
                 <SelectTrigger id="productType">
                   <SelectValue />

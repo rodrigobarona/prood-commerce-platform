@@ -662,6 +662,19 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       expect(order.totals.total.amount).toBe(149)
     })
 
+    it('defaults shipping from the product type', async () => {
+      const name = { en: 'Ebook' }
+      const created = await Promise.all([
+        asTenant((admin) => admin.createProduct({ name, slug: 'ebook', productType: 'digital' })),
+        asTenant((admin) => admin.createProduct({ name, slug: 'poster', productType: 'physical' })),
+        asTenant((admin) => admin.createProduct({ name, slug: 'kit', productType: 'digital', requiresShipping: true })),
+      ])
+      expect(created.map(product => product.requiresShipping)).toEqual([false, true, true])
+
+      const changed = await asTenant((admin) => admin.updateProduct(created[1].id, { productType: 'digital' }))
+      expect(changed.requiresShipping).toBe(false)
+    })
+
     it('needs shipping as soon as one item ships', async () => {
       await setProducts(`requires_shipping = false`, `'prod-3'`)
       const cart = await adapter.createCart()

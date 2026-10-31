@@ -59,7 +59,7 @@ export function createAdminProductsDomain() {
         quantityLimit: input.quantityLimit ?? null,
         vatIncluded: input.vatIncluded ?? true,
         vatRate: input.vatRate ?? null,
-        requiresShipping: input.requiresShipping ?? true,
+        requiresShipping: input.requiresShipping ?? input.productType !== 'digital',
         isDropshipped: input.isDropshipped ?? false,
       })
 
@@ -137,6 +137,7 @@ export function createAdminProductsDomain() {
       if (input.vatIncluded != null) updates.vatIncluded = input.vatIncluded
       if (input.vatRate !== undefined) updates.vatRate = input.vatRate
       if (input.requiresShipping != null) updates.requiresShipping = input.requiresShipping
+      else if (input.productType === 'digital') updates.requiresShipping = false
       if (input.isDropshipped != null) updates.isDropshipped = input.isDropshipped
 
       await updateProductById(id, updates)
