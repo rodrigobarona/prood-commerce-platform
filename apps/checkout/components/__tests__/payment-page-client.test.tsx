@@ -177,3 +177,29 @@ describe("coming back from a hosted card page", () => {
     expect(screen.getByText(/123\s?456\s?789/)).toBeTruthy()
   })
 })
+
+describe("when the provider holds the money", () => {
+  it("says the payment is pending instead of offering Stripe's form again", async () => {
+    stubFetch({
+      "/api/sessions/s1": () =>
+        json({
+          ...session,
+          state: "pending",
+          payable: false,
+          publishableKey: "pk_test",
+          paymentSession: {
+            id: "cs_1",
+            status: "authorized",
+            method: "card",
+            providerData: { clientSecret: "secret" },
+            createdAt: new Date().toISOString(),
+          },
+        }),
+    })
+    await open()
+
+    expect(screen.getByText("Payment pending")).toBeTruthy()
+    expect(screen.queryByText("Stripe form")).toBeNull()
+    expect(screen.queryByRole("button", { name: /^Pay / })).toBeNull()
+  })
+})

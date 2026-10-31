@@ -50,7 +50,7 @@ export function MbWayPayment({
         // A failed check says nothing about the payment: keep waiting.
         if (!res.ok || !active) return
         const { state, payable } = (await res.json()) as { state: string; payable: boolean }
-        if (state === "complete") window.location.href = `/confirm/${sessionId}`
+        if (state === "complete" || state === "pending") window.location.href = `/confirm/${sessionId}`
         if (state === "failed") onEnd("failed", payable)
       } catch {
         // Same: the next check decides.

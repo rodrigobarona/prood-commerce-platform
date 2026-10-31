@@ -38,7 +38,7 @@ export function orderPaymentState(
     case 'voided':
       return { kind: 'failed' }
     case 'authorized':
-      return { kind: 'awaiting_payment' }
+      return order.status === 'cancelled' ? { kind: 'failed' } : { kind: 'awaiting_payment' }
     case 'unpaid': {
       if (order.status === 'cancelled') return { kind: 'failed' }
       const details = order.paymentDetails
@@ -50,8 +50,8 @@ export function orderPaymentState(
 }
 
 export interface OrderOutcome {
-  /** How the order says the payment ended, if it has */
-  state: 'complete' | 'failed' | null
+  /** How the order says the payment ended, or `pending` while the provider holds it */
+  state: 'complete' | 'failed' | 'pending' | null
   /** Whether a new payment may start */
   payable: boolean
 }
@@ -66,6 +66,10 @@ export function orderOutcome(
   if (!order) return { state: null, payable: true }
   if (order.paymentStatus === 'paid' || order.paymentStatus === 'free') {
     return { state: 'complete', payable: false }
+  }
+  // Same answer as orderPaymentState: authorized funds are still being confirmed.
+  if (order.paymentStatus === 'authorized' && order.status !== 'cancelled') {
+    return { state: 'pending', payable: false }
   }
   const payable = order.status === 'placed' && order.paymentStatus === 'unpaid'
   return { state: payable ? null : 'failed', payable }

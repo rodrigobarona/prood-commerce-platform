@@ -29,7 +29,7 @@ export async function POST(
     return NextResponse.json({
       sessionId: id,
       providerId: meta.providerId,
-      state: snapshot.state,
+      state: outcome.state === "pending" ? "pending" : snapshot.state,
       payable: outcome.payable,
       orderId: snapshot.orderId,
       returnUrl: meta.returnUrl,
