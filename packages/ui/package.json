@@ -46,7 +46,11 @@
   },
   "exports": {
     "./globals.css": "./src/styles/globals.css",
+    "./themes/*": "./src/styles/themes/*",
     "./postcss.config": "./postcss.config.mjs",
+    "./brand/colors": "./src/brand/colors.ts",
+    "./brand/geometry": "./src/brand/geometry.ts",
+    "./brand/og-image": "./src/brand/og-image.tsx",
     "./lib/*": "./src/lib/*.ts",
     "./components/*": "./src/components/*.tsx",
     "./hooks/*": "./src/hooks/*.ts"

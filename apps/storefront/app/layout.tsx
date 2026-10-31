@@ -4,11 +4,12 @@ import { Suspense } from "react"
 
 import "@geoapify/geocoder-autocomplete/styles/minimal.css"
 import "@prood/ui/globals.css"
+import "@prood/ui/themes/neutral.css"
 import { cn } from "@prood/ui/lib/utils"
 import { AppProviders } from "@/components/providers/app-providers"
 
-const fontSans = Inter({ subsets: ["latin"], variable: "--font-sans" })
-const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
+const fontSans = Inter({ subsets: ["latin"], variable: "--font-family-sans" })
+const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-family-mono" })
 
 export const metadata: Metadata = {
   title: {

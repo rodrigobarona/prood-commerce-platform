@@ -1,20 +1,27 @@
 import type { Metadata } from "next"
-import { Geist_Mono, Inter } from "next/font/google"
+import { Bricolage_Grotesque, Geist_Mono, Instrument_Sans } from "next/font/google"
 import { Suspense } from "react"
 
 import "@prood/ui/globals.css"
+import "@prood/ui/themes/prood.css"
 import { cn } from "@prood/ui/lib/utils"
 import { AppProviders } from "@/components/providers/app-providers"
 
-const fontSans = Inter({ subsets: ["latin"], variable: "--font-sans" })
-const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
+const fontSans = Instrument_Sans({ subsets: ["latin"], variable: "--font-family-sans" })
+const fontHeading = Bricolage_Grotesque({
+  subsets: ["latin"],
+  axes: ["opsz"],
+  variable: "--font-family-heading",
+})
+const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-family-mono" })
 
 export const metadata: Metadata = {
   title: {
-    default: "Admin Console",
-    template: "%s · Admin Console",
+    default: "Prood Admin",
+    template: "%s · Prood Admin",
   },
-  description: "Platform administration console.",
+  description: "Platform operations console for Prood.",
+  robots: { index: false, follow: false },
 }
 
 export default function RootLayout({
@@ -29,6 +36,7 @@ export default function RootLayout({
       className={cn(
         "antialiased",
         fontSans.variable,
+        fontHeading.variable,
         fontMono.variable,
         "font-sans"
       )}
