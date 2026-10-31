@@ -41,3 +41,6 @@ _context/repo-clone/
 # Drizzle generated SQL snapshots kept, but local db files ignored
 *.db
 .secrets
+
+# Cloudflare Wrangler
+.wrangler/

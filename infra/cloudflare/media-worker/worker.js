@@ -44,7 +44,12 @@ export default {
     }
 
     const url = new URL(request.url)
-    const key = decodeURIComponent(url.pathname.slice(1))
+    let key
+    try {
+      key = decodeURIComponent(url.pathname.slice(1))
+    } catch {
+      key = ""
+    }
     if (!key || key.endsWith("/")) {
       return new Response("Not found", { status: 404, headers: withBase() })
     }
@@ -93,13 +98,19 @@ export default {
       headers.set("cache-control", DEFAULT_CACHE_CONTROL)
     }
     if (!("body" in object)) {
-      return new Response(null, { status: 304, headers })
+      const failedPrecondition =
+        request.headers.has("if-match") || request.headers.has("if-unmodified-since")
+      return new Response(null, { status: failedPrecondition ? 412 : 304, headers })
     }
 
     if (isRange && object.range) {
       const { offset, length, suffix } = object.range
-      const start = suffix !== undefined ? object.size - suffix : (offset ?? 0)
-      const size = suffix ?? length ?? object.size - start
+      const start =
+        suffix !== undefined ? Math.max(object.size - suffix, 0) : (offset ?? 0)
+      const size = Math.min(
+        suffix ?? length ?? object.size - start,
+        object.size - start
+      )
       headers.set(
         "content-range",
         `bytes ${start}-${start + size - 1}/${object.size}`

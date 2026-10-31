@@ -39,9 +39,9 @@ function mockProviderFetch(
 
 function mockProviderSign(
   provider: S3StorageProvider,
-  signedUrl = 'https://test-bucket.s3.us-east-1.amazonaws.com/test-key?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=abc123',
 ) {
-  const mockSign = vi.fn().mockResolvedValue(new Request(signedUrl))
+  // Echoes the URL it's given, so a test sees exactly what was signed.
+  const mockSign = vi.fn(async (url: string) => new Request(url))
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const client = (provider as any).client
@@ -245,6 +245,31 @@ describe('S3StorageProvider', () => {
 
       const url = cdnProvider.getUrl('products/hero.jpg')
       expect(url).toBe('https://cdn.example.com/products/hero.jpg')
+    })
+  })
+
+  // ---- keys ---------------------------------------------------------------
+
+  describe('keys', () => {
+    it('encodes keys in public URLs', () => {
+      const provider = new S3StorageProvider({ ...BASE_CONFIG, publicUrl: 'https://cdn.example.com' })
+      expect(provider.getUrl('org/1/100%.jpg')).toBe('https://cdn.example.com/org/1/100%25.jpg')
+      expect(provider.getUrl('org/1/a#b.jpg')).toBe('https://cdn.example.com/org/1/a%23b.jpg')
+    })
+
+    it('keeps the extension to safe characters', async () => {
+      const provider = new S3StorageProvider(BASE_CONFIG)
+      mockProviderFetch(provider)
+      const { key } = await provider.upload({ filename: 'a.p%g', mimeType: 'image/png', content: new Uint8Array() })
+      expect(key).toMatch(/^a-[0-9a-f]{8}\.p-g$/)
+    })
+
+    it('refuses a directory that climbs out of its tenant', async () => {
+      const provider = new S3StorageProvider(BASE_CONFIG)
+      mockProviderFetch(provider)
+      await expect(
+        provider.upload({ filename: 'a.png', mimeType: 'image/png', content: new Uint8Array(), directory: 'org/a/../../org/b' }),
+      ).rejects.toThrow('Invalid storage directory')
     })
   })
 

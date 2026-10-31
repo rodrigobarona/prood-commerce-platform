@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { updateStoreBody } from "../schemas"
+import { updateProductBody, updateStoreBody } from "../schemas"
 
 describe("updateStoreBody currency", () => {
   it("accepts a real currency in either case", () => {
@@ -18,5 +18,22 @@ describe("updateStoreBody currency", () => {
     expect(() =>
       new Intl.NumberFormat("en-IE", { style: "currency", currency }).format(1)
     ).not.toThrow()
+  })
+})
+
+describe("product image URLs", () => {
+  const accepts = (url: string) => updateProductBody.safeParse({ images: [{ url }] }).success
+
+  it.each([
+    "https://placehold.co/a.svg",
+    "https://placehold.co/a%2Esvg",
+    "https://placehold.co/a.svg%20",
+    "https://placehold.co/a.svg/",
+  ])("refuses %s", (url) => {
+    expect(accepts(url)).toBe(false)
+  })
+
+  it("doesn't throw on a malformed path", () => {
+    expect(accepts("https://placehold.co/a%")).toBe(true)
   })
 })

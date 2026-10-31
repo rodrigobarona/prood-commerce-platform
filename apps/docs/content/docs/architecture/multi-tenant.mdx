@@ -134,7 +134,7 @@ uploadForTenant(orgId, input)       // key: org/<orgId>/...
 tenantStorageDirectory(orgId, ...)  // directory prefix
 ```
 
-Merchants cannot collide with or read each other's assets. Uploaded filenames get a random prefix.
+Merchants cannot collide with each other's assets. Every object is public through the media Worker, and uploaded filenames get a short random suffix.
 
 ## Package security posture
 

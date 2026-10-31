@@ -43,7 +43,8 @@ export function tenantStorageDirectory(
 
 /**
  * Upload a file scoped to a tenant. Keys are prefixed with `org/<orgId>/...`
- * so one merchant can never overwrite or read another merchant's assets.
+ * so one merchant can never overwrite another merchant's assets. Everything
+ * stored here is public through the media Worker, so never store private files.
  */
 export async function uploadForTenant(
   organizationId: string,

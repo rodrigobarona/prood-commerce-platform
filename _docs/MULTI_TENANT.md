@@ -156,7 +156,7 @@ Every package was reviewed for cross-tenant leakage. Posture by package:
 2. **Storage key namespacing.** `uploadForTenant(orgId, input)` and
    `tenantStorageDirectory(orgId, …)` prefix every key with `org/<orgId>/…` so
    merchants can't collide with each other's assets. Uploaded filenames get a
-   random prefix. Always upload via these helpers.
+   short random suffix, and every object is public. Always upload via these helpers.
 3. **Per-tenant webhooks.** Provider webhooks are routed per tenant at
    `/api/webhooks/[provider]/[org]`; `verifyPaymentWebhook(payload, sig,
    provider, org)` verifies against the merchant's stored secret (configured env defaults

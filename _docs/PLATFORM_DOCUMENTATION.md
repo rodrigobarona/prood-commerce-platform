@@ -861,7 +861,7 @@ Callback verified via anti-phishing key.
 
 #### Storage Providers
 
-Both implement the `StorageProvider` interface from `@prood/types`.
+It implements the `StorageProvider` interface from `@prood/types`.
 
 
 ##### `@prood/storage-s3`
@@ -1300,7 +1300,7 @@ Limits are enforced at the API level:
    dashboard/storefront origins allowed.
 
 6. **Storage namespacing** — All tenant uploads prefixed `org/{orgId}/` via
-   `uploadForTenant()`. Uploaded filenames get a random prefix.
+   `uploadForTenant()`. Uploaded filenames get a short random suffix.
 
 7. **Session validation** — Admin app validates sessions directly from database,
    bypassing Better Auth origin checks.
@@ -1394,8 +1394,7 @@ API. Templates are React Email components from `@prood/email`.
 
 ### Provider Architecture
 
-Storage providers implement `StorageProvider` from `@prood/types`. Selected via
-Storage is Cloudflare R2 through `@prood/storage-s3`, configured with the `S3_*` variables.
+Storage providers implement `StorageProvider` from `@prood/types`. Storage is Cloudflare R2 through `@prood/storage-s3`, configured with the `S3_*` variables.
 
 ### Tenant Namespacing
 

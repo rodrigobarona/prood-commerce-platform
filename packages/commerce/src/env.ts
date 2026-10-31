@@ -1,7 +1,5 @@
 import 'server-only'
 
-/** Storage provider identifiers. */
-
 /** Resolved commerce runtime configuration, read from environment. */
 export interface CommerceConfig {
   databaseUrl: string
