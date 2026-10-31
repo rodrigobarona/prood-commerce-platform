@@ -2,16 +2,19 @@
 // EasypayPaymentProvider — Easypay 2.0 (Portugal)
 // ---------------------------------------------------------------------------
 //
-// Methods (selected via input.metadata.method, default 'mb'):
-//   - mb  : Multibanco reference  -> providerData { entity, reference }
-//   - mbw : MB WAY push to phone  -> providerData { status: pending }
-//   - cc  : Credit card           -> redirectUrl (Easypay hosted card page)
+// Methods (selected via input.method, default 'multibanco'):
+//   - multibanco : reference     -> providerData { entity, reference, expiresAt }
+//   - mbway      : push to phone -> providerData { status: pending }
+//   - card       : hosted page   -> redirectUrl (Easypay hosted card page)
 //
 // Easypay confirms payments asynchronously via notifications; the GET endpoint
 // is the server-side source of truth. Amounts are major units (EUR).
 // ---------------------------------------------------------------------------
 
+import { toPortugueseMobile } from '@prood/types'
 import type {
+  CredentialCheck,
+  PaymentMethodKind,
   PaymentProvider,
   PaymentSession,
   PaymentSessionStatus,
@@ -27,6 +30,27 @@ import type {
 } from './types.js'
 
 const EASYPAY_PROD = 'https://api.prod.easypay.pt'
+const EASYPAY_HOSTS = [EASYPAY_PROD, 'https://api.test.easypay.pt']
+const REFERENCE_DAYS = 3
+const CHECK_TIMEOUT_MS = 10_000
+
+const METHOD_CODES: Record<PaymentMethodKind, EasypayMethod> = {
+  multibanco: 'mb',
+  mbway: 'mbw',
+  card: 'cc',
+}
+
+function methodFromCode(code: string | undefined): PaymentMethodKind | undefined {
+  return (Object.keys(METHOD_CODES) as PaymentMethodKind[]).find(
+    (kind) => METHOD_CODES[kind] === code?.toLowerCase(),
+  )
+}
+
+/** Easypay's `YYYY-MM-DD HH:MM`, a little over `days` from now. */
+function deadline(days: number): string {
+  const date = new Date(Date.now() + days * 24 * 60 * 60 * 1000)
+  return date.toISOString().slice(0, 16).replace('T', ' ')
+}
 
 /** Map an Easypay status string to a normalized PaymentSessionStatus. */
 function mapEasypayStatus(status: string | undefined): PaymentSessionStatus {
@@ -67,7 +91,7 @@ function readStatus(p: EasypaySinglePayment): string | undefined {
 function paymentToSession(
   p: EasypaySinglePayment,
   providerId: string,
-  method: EasypayMethod,
+  method: PaymentMethodKind | undefined,
   amount: number,
   currency: string,
 ): PaymentSession {
@@ -76,13 +100,13 @@ function paymentToSession(
     id: String(p.id ?? ''),
     providerId,
     status: mapEasypayStatus(statusStr),
+    ...(method && { method }),
     amount: p.value ?? amount,
     currency: (p.currency ?? currency).toUpperCase(),
     providerData: {
-      method,
       entity: p.method?.entity ?? null,
       reference: p.method?.reference ?? null,
-      expiresAt: p.method?.expiration_time ?? null,
+      expiresAt: p.method?.expiration_time?.replace(' ', 'T') ?? null,
       easypayStatus: statusStr ?? null,
       raw: p as unknown as Record<string, unknown>,
     },
@@ -102,7 +126,7 @@ function paymentToSession(
  *   apiKey: process.env.EASYPAY_API_KEY!,
  * })
  * const session = await easypay.createSession({
- *   amount: 49.9, currency: 'EUR', metadata: { method: 'mb' },
+ *   amount: 49.9, currency: 'EUR', method: 'multibanco',
  * })
  * // session.providerData.entity / .reference -> show the Multibanco reference
  * ```
@@ -110,28 +134,34 @@ function paymentToSession(
 export class EasypayPaymentProvider implements PaymentProvider {
   readonly id = 'easypay'
   readonly name = 'Easypay'
+  readonly methods = ['multibanco', 'mbway', 'card'] as const
+  // Easypay needs the shopper's IBAN to pay back a Multibanco reference.
+  readonly refundableMethods = ['mbway', 'card'] as const
 
   private readonly accountId: string
   private readonly apiKey: string
   private readonly baseUrl: string
-  private readonly defaultMethod: EasypayMethod
-  private readonly phoneIndicative: string
 
   constructor(config: EasypayConfig) {
     this.accountId = config.accountId
     this.apiKey = config.apiKey
-    this.baseUrl = config.baseUrl ?? EASYPAY_PROD
-    this.defaultMethod = config.defaultMethod ?? 'mb'
-    this.phoneIndicative = config.phoneIndicative ?? '+351'
+    // Easypay documents base URLs with the version; paths here carry it.
+    this.baseUrl = (config.baseUrl ?? EASYPAY_PROD).replace(/\/+$/, '').replace(/\/2\.0$/, '')
   }
 
   async createSession(input: CreatePaymentSessionInput): Promise<PaymentSession> {
-    const method = (input.metadata?.method as EasypayMethod | undefined) ?? this.defaultMethod
+    const method = input.method ?? 'multibanco'
     const reference = input.orderId ?? input.idempotencyKey ?? `cart-${Date.now()}`
+
+    const phone = method === 'mbway' ? toPortugueseMobile(input.customer?.phone) : input.customer?.phone
+    if (method === 'mbway' && !phone) {
+      throw new Error('Easypay: a Portuguese mobile number is required for MB WAY')
+    }
 
     const body: Record<string, unknown> = {
       type: 'sale',
-      method,
+      method: METHOD_CODES[method],
+      ...(method === 'multibanco' && { expiration_time: deadline(REFERENCE_DAYS) }),
       currency: input.currency.toUpperCase(),
       key: reference,
       value: input.amount,
@@ -142,16 +172,19 @@ export class EasypayPaymentProvider implements PaymentProvider {
       customer: {
         name: [input.customer?.firstName, input.customer?.lastName].filter(Boolean).join(' ') || 'Customer',
         email: input.customer?.email ?? '',
-        phone: input.customer?.phone ?? '',
-        phone_indicative: this.phoneIndicative,
+        phone: phone ?? '',
+        phone_indicative: '+351',
         key: input.customerId ?? reference,
         language: 'PT',
       },
     }
 
     const created = await this.request<EasypaySinglePayment>('POST', '/2.0/single', body)
-    // Re-read to normalize the freshly created payment shape.
-    return paymentToSession(created, this.id, method, input.amount, input.currency)
+    const session = paymentToSession(created, this.id, method, input.amount, input.currency)
+    if (method === 'multibanco' && !session.providerData?.reference) {
+      throw new Error('Easypay: no Multibanco reference was returned')
+    }
+    return session
   }
 
   async confirmSession(sessionId: string): Promise<PaymentSession> {
@@ -160,17 +193,38 @@ export class EasypayPaymentProvider implements PaymentProvider {
 
   async getSession(sessionId: string): Promise<PaymentSession> {
     const p = await this.request<EasypaySinglePayment>('GET', `/2.0/single/${sessionId}`)
-    const method = (p.method?.type as EasypayMethod | undefined) ?? this.defaultMethod
-    return paymentToSession(p, this.id, method, p.value ?? 0, p.currency ?? 'EUR')
+    return paymentToSession(p, this.id, methodFromCode(p.method?.type), p.value ?? 0, p.currency ?? 'EUR')
   }
 
   async refund(input: RefundInput): Promise<PaymentSession> {
-    const current = await this.getSession(input.sessionId)
-    await this.request('POST', `/2.0/single/${input.sessionId}/refund`, {
-      amount: input.amount ?? current.amount,
-      reason: input.reason ?? 'requested_by_customer',
+    const payment = await this.request<EasypaySinglePayment>('GET', `/2.0/single/${input.sessionId}`)
+    const captureId = payment.transactions?.[0]?.id
+    if (!captureId) throw new Error(`Easypay: payment ${input.sessionId} has no capture to refund`)
+
+    await this.request('POST', `/2.0/refund/${captureId}`, {
+      value: input.amount ?? payment.value,
+      ...(input.idempotencyKey && { transaction_key: input.idempotencyKey }),
+      ...(input.reason && { descriptive: input.reason }),
     })
     return this.getSession(input.sessionId)
+  }
+
+  async checkCredentials(): Promise<CredentialCheck> {
+    if (!EASYPAY_HOSTS.includes(this.baseUrl)) {
+      return { ok: false, reason: 'rejected', field: 'baseUrl' }
+    }
+    try {
+      const res = await fetch(`${this.baseUrl}/2.0/single?limit=1`, {
+        headers: this.headers(),
+        signal: AbortSignal.timeout(CHECK_TIMEOUT_MS),
+      })
+      if (res.ok) return { ok: true }
+      return res.status === 401 || res.status === 403
+        ? { ok: false, reason: 'rejected', field: 'apiKey' }
+        : { ok: false, reason: 'unreachable' }
+    } catch {
+      return { ok: false, reason: 'unreachable' }
+    }
   }
 
   async verifyWebhook(
@@ -200,15 +254,19 @@ export class EasypayPaymentProvider implements PaymentProvider {
     }
   }
 
+  private headers(): Record<string, string> {
+    return {
+      'AccountId': this.accountId,
+      'ApiKey': this.apiKey,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    }
+  }
+
   private async request<T>(method: string, path: string, body?: unknown): Promise<T> {
     const res = await fetch(`${this.baseUrl}${path}`, {
       method,
-      headers: {
-        'AccountId': this.accountId,
-        'ApiKey': this.apiKey,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
+      headers: this.headers(),
       ...(body ? { body: JSON.stringify(body) } : {}),
     })
 

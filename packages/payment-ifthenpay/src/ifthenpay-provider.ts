@@ -2,28 +2,31 @@
 // IfthenpayPaymentProvider — Ifthenpay (Portugal)
 // ---------------------------------------------------------------------------
 //
-// Methods (selected via input.metadata.method, default 'multibanco'):
-//   - multibanco : reference        -> providerData { entity, reference }
+// Methods (selected via input.method, default 'multibanco'), offered only when
+// the store has the key for them:
+//   - multibanco : reference        -> providerData { entity, reference, expiresAt }
 //   - mbway      : push to phone    -> providerData { requestId, status }
-//   - creditcard : hosted card page -> redirectUrl (PaymentUrl)
+//   - card       : hosted card page -> redirectUrl (PaymentUrl)
 //
 // Ifthenpay confirms payments by calling your callback URL with an
 // anti-phishing key; `verifyWebhook` validates that key. Reference-based
 // methods have no synchronous capture, so the callback is the source of truth.
+// There is no refund API and no read-only call to test keys with: refunds happen
+// in the Ifthenpay backoffice, so this provider has neither `refund` nor
+// `checkCredentials`.
 // ---------------------------------------------------------------------------
 
 import type {
+  PaymentMethodKind,
   PaymentProvider,
   PaymentSession,
   CreatePaymentSessionInput,
-  RefundInput,
   PaymentWebhookEvent,
 } from '@prood/types'
-import { safeEqual } from '@prood/types'
+import { safeEqual, toPortugueseMobile } from '@prood/types'
 
 import type {
   IfthenpayConfig,
-  IfthenpayMethod,
   IfthenpayMbResponse,
   IfthenpayMbWayResponse,
   IfthenpayCcResponse,
@@ -31,8 +34,35 @@ import type {
 
 const IFTHENPAY_BASE = 'https://api.ifthenpay.com'
 
+const REFERENCE_DAYS = 3
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 function formatAmount(amount: number): string {
   return amount.toFixed(2)
+}
+
+/** Ifthenpay caps `orderId` at 25 characters; a UUID fits in base 36. */
+export function encodeOrderId(orderId: string): string {
+  if (!UUID.test(orderId)) return orderId
+  return BigInt(`0x${orderId.replaceAll('-', '')}`).toString(36)
+}
+
+/** The order id behind a callback's `orderId`, undoing {@link encodeOrderId}. */
+export function decodeOrderId(encoded: string): string {
+  if (encoded.length > 25 || !/^[0-9a-z]+$/.test(encoded) || UUID.test(encoded)) return encoded
+  let value = 0n
+  for (const char of encoded) value = value * 36n + BigInt(Number.parseInt(char, 36))
+  const hex = value.toString(16).padStart(32, '0')
+  if (hex.length !== 32) return encoded
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+}
+
+/** The last day a reference made today can be paid, from `DD-MM-YYYY` when given. */
+function referenceDeadline(expiryDate: string | undefined): string {
+  const given = /^(\d{2})-(\d{2})-(\d{4})$/.exec(expiryDate ?? '')
+  if (given) return `${given[3]}-${given[2]}-${given[1]}T23:59`
+  const date = new Date(Date.now() + REFERENCE_DAYS * 24 * 60 * 60 * 1000)
+  return `${date.toISOString().slice(0, 10)}T23:59`
 }
 
 /**
@@ -46,28 +76,32 @@ function formatAmount(amount: number): string {
  *   antiPhishingKey: process.env.IFTHENPAY_ANTIPHISHING_KEY!,
  * })
  * const session = await ifthenpay.createSession({
- *   amount: 49.9, currency: 'EUR', orderId: 'ord_123',
- *   metadata: { method: 'multibanco' },
+ *   amount: 49.9, currency: 'EUR', orderId: 'ord_123', method: 'multibanco',
  * })
  * ```
  */
 export class IfthenpayPaymentProvider implements PaymentProvider {
   readonly id = 'ifthenpay'
   readonly name = 'Ifthenpay'
+  readonly methods: readonly PaymentMethodKind[]
+  readonly refundableMethods = []
 
   private readonly cfg: IfthenpayConfig
   private readonly baseUrl: string
-  private readonly defaultMethod: IfthenpayMethod
 
   constructor(config: IfthenpayConfig) {
     this.cfg = config
     this.baseUrl = config.baseUrl ?? IFTHENPAY_BASE
-    this.defaultMethod = config.defaultMethod ?? 'multibanco'
+    this.methods = [
+      ...(config.mbKey ? (['multibanco'] as const) : []),
+      ...(config.mbWayKey ? (['mbway'] as const) : []),
+      ...(config.ccKey ? (['card'] as const) : []),
+    ]
   }
 
   async createSession(input: CreatePaymentSessionInput): Promise<PaymentSession> {
-    const method = (input.metadata?.method as IfthenpayMethod | undefined) ?? this.defaultMethod
-    const orderId = input.orderId ?? input.idempotencyKey ?? `cart-${Date.now()}`
+    const method = input.method ?? 'multibanco'
+    const orderId = encodeOrderId(input.orderId ?? input.idempotencyKey ?? `cart-${Date.now()}`)
     const amount = formatAmount(input.amount)
     const createdAt = new Date().toISOString()
 
@@ -80,17 +114,22 @@ export class IfthenpayPaymentProvider implements PaymentProvider {
           amount,
           description: `Order ${orderId}`,
           email: input.customer?.email,
+          expiryDays: REFERENCE_DAYS,
         })
+        if (!res.Reference) {
+          throw new Error(`Ifthenpay: no Multibanco reference was returned: ${res.Message ?? res.Status ?? 'no reason given'}`)
+        }
         return {
           id: res.RequestId ?? orderId,
           providerId: this.id,
           status: 'pending',
+          method,
           amount: input.amount,
           currency: input.currency.toUpperCase(),
           providerData: {
-            method,
             entity: res.Entity ?? null,
-            reference: res.Reference ?? null,
+            reference: res.Reference,
+            expiresAt: referenceDeadline(res.ExpiryDate),
             requestId: res.RequestId ?? null,
             raw: res as unknown as Record<string, unknown>,
           },
@@ -101,24 +140,27 @@ export class IfthenpayPaymentProvider implements PaymentProvider {
 
       case 'mbway': {
         if (!this.cfg.mbWayKey) throw new Error('Ifthenpay: mbWayKey is required for MB WAY')
-        const phone = input.customer?.phone
-        if (!phone) throw new Error('Ifthenpay: customer.phone is required for MB WAY')
+        const phone = toPortugueseMobile(input.customer?.phone)
+        if (!phone) throw new Error('Ifthenpay: a Portuguese mobile number is required for MB WAY')
         const res = await this.request<IfthenpayMbWayResponse>('POST', '/spg/payment/mbway', {
-          MbWayKey: this.cfg.mbWayKey,
+          mbWayKey: this.cfg.mbWayKey,
           orderId,
           amount,
-          mobileNumber: phone,
+          mobileNumber: `351#${phone}`,
           email: input.customer?.email,
           description: `Order ${orderId}`,
         })
+        if (res.Status !== '000') {
+          throw new Error(`Ifthenpay: MB WAY request refused: ${res.Message ?? res.Status ?? 'no reason given'}`)
+        }
         return {
           id: res.RequestId ?? orderId,
           providerId: this.id,
           status: 'pending',
+          method,
           amount: input.amount,
           currency: input.currency.toUpperCase(),
           providerData: {
-            method,
             requestId: res.RequestId ?? null,
             ifthenpayStatus: res.Status ?? null,
             message: res.Message ?? null,
@@ -129,28 +171,32 @@ export class IfthenpayPaymentProvider implements PaymentProvider {
         }
       }
 
-      case 'creditcard': {
+      case 'card': {
         if (!this.cfg.ccKey) throw new Error('Ifthenpay: ccKey is required for credit card')
         const res = await this.request<IfthenpayCcResponse>('POST', `/creditcard/init/${this.cfg.ccKey}`, {
           orderId,
           amount,
-          successUrl: input.returnUrl ?? this.cfg.successUrl,
-          cancelUrl: input.cancelUrl ?? this.cfg.cancelUrl,
-          errorUrl: this.cfg.errorUrl,
+          // Every outcome returns to the confirm page, which reports the real state.
+          successUrl: input.returnUrl,
+          cancelUrl: input.cancelUrl ?? input.returnUrl,
+          errorUrl: input.returnUrl,
           description: `Order ${orderId}`,
         })
+        if (!res.PaymentUrl) {
+          throw new Error(`Ifthenpay: no card payment page was returned: ${res.Message ?? res.Status ?? 'no reason given'}`)
+        }
         return {
           id: res.RequestId ?? orderId,
           providerId: this.id,
           status: 'requires_action',
+          method,
           amount: input.amount,
           currency: input.currency.toUpperCase(),
           providerData: {
-            method,
             requestId: res.RequestId ?? null,
             raw: res as unknown as Record<string, unknown>,
           },
-          redirectUrl: res.PaymentUrl ?? null,
+          redirectUrl: res.PaymentUrl,
           createdAt,
         }
       }
@@ -180,10 +226,6 @@ export class IfthenpayPaymentProvider implements PaymentProvider {
     }
   }
 
-  async refund(_input: RefundInput): Promise<PaymentSession> {
-    throw new Error('Ifthenpay: refunds are processed in the Ifthenpay backoffice, not via API')
-  }
-
   async verifyWebhook(
     payload: string | Uint8Array,
     _signature: string,
@@ -198,10 +240,11 @@ export class IfthenpayPaymentProvider implements PaymentProvider {
 
     // A valid callback from Ifthenpay signals a completed payment.
     const amount = Number.parseFloat(params.amount ?? params.valor ?? '')
+    const orderId = params.orderId ?? params.id
     return {
       type: 'payment.captured',
       sessionId: String(params.requestId ?? params.orderId ?? params.id ?? ''),
-      orderId: params.orderId ?? params.id ?? null,
+      orderId: orderId ? decodeOrderId(orderId) : null,
       amount: Number.isFinite(amount) ? amount : null,
       currency: 'EUR',
       data: params,

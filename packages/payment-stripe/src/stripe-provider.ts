@@ -17,6 +17,7 @@ import type {
   PaymentSession,
   PaymentSessionStatus,
   CreatePaymentSessionInput,
+  CredentialCheck,
   RefundInput,
   PaymentWebhookEvent,
 } from '@prood/types'
@@ -82,6 +83,7 @@ function sessionToPaymentSession(
     id: session.id,
     providerId,
     status: mapSessionStatus(session),
+    method: 'card',
     amount: fromMinorUnits(session.amount_total ?? 0, session.currency ?? 'usd'),
     currency: (session.currency ?? 'usd').toUpperCase(),
     providerData: {
@@ -165,8 +167,13 @@ function mapEventType(event: Stripe.Event): string {
 export class StripePaymentProvider implements PaymentProvider {
   readonly id = 'stripe'
   readonly name = 'Stripe'
+  // The Payment Element offers whatever the merchant enabled in Stripe.
+  readonly methods = ['card'] as const
+  readonly refundableMethods = ['card'] as const
 
   private readonly stripe: Stripe
+  private readonly secretKey: string
+  private readonly publishableKey: string | null
   private readonly webhookSecret: string | null
   private readonly captureMethod: 'automatic' | 'manual'
 
@@ -178,6 +185,8 @@ export class StripePaymentProvider implements PaymentProvider {
           ? { apiVersion: config.apiVersion }
           : {}) as ConstructorParameters<typeof Stripe>[1],
       )
+    this.secretKey = config.secretKey
+    this.publishableKey = config.publishableKey ?? null
     this.webhookSecret = config.webhookSecret ?? null
     this.captureMethod = config.captureMethod ?? 'automatic'
   }
@@ -244,13 +253,16 @@ export class StripePaymentProvider implements PaymentProvider {
     const piId = getPaymentIntentId(session)
     if (!piId) throw new Error(`Checkout Session ${input.sessionId} has no PaymentIntent to refund`)
 
-    await this.stripe.refunds.create({
-      payment_intent: piId,
-      ...(input.amount != null && { amount: toMinorUnits(input.amount, session.currency!) }),
-      ...(VALID_REFUND_REASONS.has(input.reason ?? '') && {
-        reason: input.reason as Stripe.RefundCreateParams['reason'],
-      }),
-    })
+    await this.stripe.refunds.create(
+      {
+        payment_intent: piId,
+        ...(input.amount != null && { amount: toMinorUnits(input.amount, session.currency!) }),
+        ...(VALID_REFUND_REASONS.has(input.reason ?? '') && {
+          reason: input.reason as Stripe.RefundCreateParams['reason'],
+        }),
+      },
+      input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : undefined,
+    )
 
     return this.getSession(input.sessionId)
   }
@@ -285,6 +297,36 @@ export class StripePaymentProvider implements PaymentProvider {
 
     // Already expired — return as-is
     return sessionToPaymentSession(session, this.id)
+  }
+
+  // ---- Credentials ----------------------------------------------------------
+
+  async checkCredentials(): Promise<CredentialCheck> {
+    const secretMode = /^[sr]k_(test|live)_\w{10,}$/.exec(this.secretKey)?.[1]
+    if (!secretMode) return { ok: false, reason: 'rejected', field: 'secretKey' }
+
+    if (this.publishableKey !== null) {
+      const publishableMode = /^pk_(test|live)_\w{10,}$/.exec(this.publishableKey)?.[1]
+      if (!publishableMode) return { ok: false, reason: 'rejected', field: 'publishableKey' }
+      if (publishableMode !== secretMode) {
+        return { ok: false, reason: 'mismatched', field: 'publishableKey' }
+      }
+    }
+
+    if (this.webhookSecret !== null && !/^whsec_\w{10,}$/.test(this.webhookSecret)) {
+      return { ok: false, reason: 'rejected', field: 'webhookSecret' }
+    }
+
+    try {
+      await this.stripe.checkout.sessions.list({ limit: 1 })
+      return { ok: true }
+    } catch (err) {
+      const refused = err instanceof Stripe.errors.StripeAuthenticationError
+        || err instanceof Stripe.errors.StripePermissionError
+      return refused
+        ? { ok: false, reason: 'rejected', field: 'secretKey' }
+        : { ok: false, reason: 'unreachable' }
+    }
   }
 
   // ---- Webhooks -------------------------------------------------------------

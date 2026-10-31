@@ -1,24 +1,15 @@
-/** Ifthenpay payment method codes. */
-export type IfthenpayMethod = 'multibanco' | 'mbway' | 'creditcard'
-
 /** Configuration for {@link IfthenpayPaymentProvider}. */
 export interface IfthenpayConfig {
-  /** Multibanco backoffice key (required for `multibanco`). */
+  /** Multibanco backoffice key. */
   mbKey?: string
-  /** MB WAY backoffice key (required for `mbway`). */
+  /** MB WAY backoffice key. */
   mbWayKey?: string
-  /** Credit card backoffice key (required for `creditcard`). */
+  /** Credit card backoffice key. */
   ccKey?: string
   /** Anti-phishing key used to validate inbound callbacks. */
   antiPhishingKey: string
   /** API base URL. Defaults to `https://api.ifthenpay.com`. */
   baseUrl?: string
-  /** Default method when none supplied via `metadata.method`. Defaults to `multibanco`. */
-  defaultMethod?: IfthenpayMethod
-  /** Optional success/cancel/error URLs for the credit-card hosted page. */
-  successUrl?: string
-  cancelUrl?: string
-  errorUrl?: string
 }
 
 /** Multibanco reference response (partial). */
@@ -26,6 +17,7 @@ export interface IfthenpayMbResponse {
   Entity?: string
   Reference?: string
   Amount?: string
+  ExpiryDate?: string
   RequestId?: string
   Message?: string
   Status?: string
