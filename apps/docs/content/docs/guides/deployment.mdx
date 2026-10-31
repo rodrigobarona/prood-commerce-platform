@@ -37,7 +37,7 @@ flowchart TB
   subgraph shared [Shared services]
     NEON[(Neon Postgres)]
     REDIS[(Upstash Redis)]
-    BLOB[(Vercel Blob)]
+    BLOB[(Cloudflare R2)]
   end
 
   SF --> NEON
@@ -95,8 +95,11 @@ AUTH_COOKIE_DOMAIN=.prood.com
 NEXT_PUBLIC_DASHBOARD_URL=https://dashboard.prood.com
 API_PUBLIC_URL=https://api.prood.com
 DEFAULT_PAYMENT_PROVIDER=stripe
-STORAGE_PROVIDER=vercel-blob
-BLOB_READ_WRITE_TOKEN=...
+S3_ENDPOINT=https://<account>.eu.r2.cloudflarestorage.com
+S3_BUCKET=prood-public
+S3_ACCESS_KEY_ID=...
+S3_SECRET_ACCESS_KEY=...
+S3_PUBLIC_URL=https://prood-media.rbarona.workers.dev
 STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 CHECKOUT_API_SECRET=<shared secret>

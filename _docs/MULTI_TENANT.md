@@ -139,7 +139,7 @@ Every package was reviewed for cross-tenant leakage. Posture by package:
 | `checkout-host` | Yes — checkout sessions | `tenantId` stored on session; provider rebuilt per tenant |
 | `checkout` | Per-session state machine | New instance per session; no module-level mutable state |
 | `payment-stripe` / `-easypay` / `-ifthenpay` | Credentials only | Stateless; config injected per tenant via the factory |
-| `storage-vercel-blob` / `storage-s3` | File uploads | Tenant-namespaced via `uploadForTenant()` |
+| `storage-s3` (Cloudflare R2) | File uploads | Tenant-namespaced via `uploadForTenant()` |
 | `types`, `ui`, `eslint-config`, `typescript-config` | No | Safe |
 
 > Legacy/dead packages `@prood/core` and `@prood/webhook-verifier`, and
@@ -155,8 +155,8 @@ Every package was reviewed for cross-tenant leakage. Posture by package:
    `enc:v1:` prefix are treated as plaintext (dev / migration).
 2. **Storage key namespacing.** `uploadForTenant(orgId, input)` and
    `tenantStorageDirectory(orgId, …)` prefix every key with `org/<orgId>/…` so
-   merchants can't collide with or read each other's assets; Vercel Blob uploads
-   use `addRandomSuffix` for unguessable URLs. Always upload via these helpers.
+   merchants can't collide with each other's assets. Uploaded filenames get a
+   random prefix. Always upload via these helpers.
 3. **Per-tenant webhooks.** Provider webhooks are routed per tenant at
    `/api/webhooks/[provider]/[org]`; `verifyPaymentWebhook(payload, sig,
    provider, org)` verifies against the merchant's stored secret (configured env defaults

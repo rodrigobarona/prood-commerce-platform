@@ -1,16 +1,9 @@
 ---
-title: Storage Providers
-description: Pluggable file upload backends for product images and merchant assets — Vercel Blob and S3-compatible storage.
+title: Storage
+description: File storage for product images and merchant assets, on Cloudflare R2.
 ---
 
-Prood uploads are handled by the `StorageProvider` interface from `@prood/types`. The active provider is selected with `STORAGE_PROVIDER` and all uploads go through `@prood/commerce` tenant helpers.
-
-## Selection
-
-| Provider | Env value | Best for |
-| --- | --- | --- |
-| [Vercel Blob](/docs/packages/storage/vercel-blob) | `vercel-blob` (default) | Vercel deployments, zero-config CDN |
-| [S3-compatible](/docs/packages/storage/s3) | `s3` | AWS S3, Cloudflare R2, MinIO |
+Prood stores files in Cloudflare R2 through `@prood/storage-s3`, which implements the `StorageProvider` interface from `@prood/types`. Public files are served by the `prood-media` Worker in `infra/cloudflare/media-worker`.
 
 ## Tenant namespacing
 
@@ -32,13 +25,11 @@ await uploadForTenant(orgId, {
 
 Set in root `.env.local` (see [Environment variables](/docs/getting-started/environment)):
 
-- `STORAGE_PROVIDER` — `vercel-blob` or `s3`
-- Provider-specific credentials (`BLOB_READ_WRITE_TOKEN` or `S3_*` vars)
+- The `S3_*` variables. The key is scoped to the `prood-public` bucket only.
 
 ## Related pages
 
 <Cards>
-  <Card title="Vercel Blob" href="/docs/packages/storage/vercel-blob" description="Default storage on Vercel." />
   <Card title="S3 / R2" href="/docs/packages/storage/s3" description="S3-compatible object storage." />
   <Card title="Dashboard products" href="/docs/apps/dashboard/products" description="Where product images are uploaded." />
 </Cards>

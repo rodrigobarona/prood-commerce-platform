@@ -80,8 +80,7 @@ Product images are uploaded via the storage provider configured in the environme
 
 | Provider | Upload path |
 | --- | --- |
-| Vercel Blob | `uploadForTenant(orgId, file)` → CDN URL |
-| S3 / R2 | `uploadForTenant(orgId, file)` → public URL |
+| Cloudflare R2 | `uploadForTenant(orgId, file)` → public URL |
 
 Images are namespaced per tenant: `org/{orgId}/products/{productId}/...`
 
@@ -101,6 +100,6 @@ All endpoints require `admin` scope (session with active organization).
 ## Related pages
 
 <Cards>
-  <Card title="Storage providers" href="/docs/packages/storage" description="Vercel Blob and S3 upload configuration." />
+  <Card title="Storage providers" href="/docs/packages/storage" description="R2 upload configuration." />
   <Card title="Admin API endpoints" href="/docs/apps/api/endpoints" description="Full admin endpoint reference." />
 </Cards>

@@ -120,7 +120,7 @@ docs.prood.com (Docs)
   `@prood/api-client`. No direct commerce database access from frontend apps.
 
 - **Pluggable providers:** Payment (Stripe, Easypay, Ifthenpay), storage
-  (Vercel Blob, S3), and notification (Resend) providers are swappable per a
+  (Cloudflare R2), and notification (Resend) providers are swappable per a
   shared TypeScript interface defined in `@prood/types`.
 
 - **Encrypted tenant credentials:** Per-merchant payment keys are stored with
@@ -863,12 +863,6 @@ Callback verified via anti-phishing key.
 
 Both implement the `StorageProvider` interface from `@prood/types`.
 
-##### `@prood/storage-vercel-blob`
-
-**Location:** `packages/storage-vercel-blob`
-
-Default provider. Uses `@vercel/blob` for uploads with `addRandomSuffix: true`.
-Supports `createClientUploadToken()` for browser-direct uploads.
 
 ##### `@prood/storage-s3`
 
@@ -1306,7 +1300,7 @@ Limits are enforced at the API level:
    dashboard/storefront origins allowed.
 
 6. **Storage namespacing** — All tenant uploads prefixed `org/{orgId}/` via
-   `uploadForTenant()`. Vercel Blob uses `addRandomSuffix` for unguessable URLs.
+   `uploadForTenant()`. Uploaded filenames get a random prefix.
 
 7. **Session validation** — Admin app validates sessions directly from database,
    bypassing Better Auth origin checks.
@@ -1401,7 +1395,7 @@ API. Templates are React Email components from `@prood/email`.
 ### Provider Architecture
 
 Storage providers implement `StorageProvider` from `@prood/types`. Selected via
-`STORAGE_PROVIDER` environment variable (`vercel-blob` default, or `s3`).
+Storage is Cloudflare R2 through `@prood/storage-s3`, configured with the `S3_*` variables.
 
 ### Tenant Namespacing
 
@@ -1413,7 +1407,6 @@ cross-tenant file access.
 
 | Provider              | Backend                | Presigned URLs | Browser Upload |
 | --------------------- | ---------------------- | -------------- | -------------- |
-| Vercel Blob (default) | Vercel Blob Storage    | No (direct)    | Yes (token)    |
 | S3                    | AWS S3 / R2 / MinIO    | Yes            | Yes (presigned)|
 
 ---
@@ -1665,7 +1658,7 @@ the editing experience.
 | **Database**       | Neon Postgres (serverless), Drizzle ORM, Row-Level Security |
 | **Auth**           | Better Auth (email/password, organizations, API keys, Agent Auth) |
 | **Payments**       | Stripe, Easypay, Ifthenpay (pluggable interface)          |
-| **Storage**        | Vercel Blob (default), S3-compatible (pluggable)          |
+| **Storage**        | Cloudflare R2                                             |
 | **Cache/Sessions** | Upstash Redis                                             |
 | **Email**          | Resend + React Email                                      |
 | **Deployment**     | Vercel (edge + serverless), 7 independent projects        |

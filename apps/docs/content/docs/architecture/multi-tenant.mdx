@@ -134,7 +134,7 @@ uploadForTenant(orgId, input)       // key: org/<orgId>/...
 tenantStorageDirectory(orgId, ...)  // directory prefix
 ```
 
-Merchants cannot collide with or read each other's assets. Vercel Blob uploads use `addRandomSuffix` for unguessable URLs.
+Merchants cannot collide with or read each other's assets. Uploaded filenames get a random prefix.
 
 ## Package security posture
 

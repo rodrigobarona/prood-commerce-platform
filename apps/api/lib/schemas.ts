@@ -26,8 +26,7 @@ function isServableImageUrl(value: string): boolean {
   const s3PublicUrl = process.env.S3_PUBLIC_URL
   if (s3PublicUrl && value.startsWith(`${s3PublicUrl.replace(/\/$/, "")}/`)) return true
   return (
-    url.protocol === "https:" &&
-    (url.hostname.endsWith(".public.blob.vercel-storage.com") || url.hostname === "placehold.co")
+    url.protocol === "https:" && url.hostname === "placehold.co"
   )
 }
 

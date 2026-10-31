@@ -96,7 +96,6 @@ catalog:
 
   # Platform & storage
   "@upstash/redis": ^1.40.0
-  "@vercel/blob": ^2.8.2
   "@vercel/sdk": ^1.28.54
   aws4fetch: ^1.0.20
 
