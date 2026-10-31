@@ -448,7 +448,6 @@ storefronts to complete payment. Sessions are stored in Upstash Redis with a
 | `/`                | Placeholder (customers are redirected to `/c/*`)  |
 | `/c/[id]`          | Primary payment UI — adapts to payment provider  |
 | `/confirm/[id]`    | Post-Stripe-redirect confirmation + store redirect|
-| `/success/[id]`    | Static success page                              |
 
 #### API Routes
 

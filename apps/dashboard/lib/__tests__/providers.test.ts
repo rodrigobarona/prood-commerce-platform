@@ -33,13 +33,13 @@ describe("provider registry", () => {
 describe("credentialErrorMessage", () => {
   it("says what happened, why and what to do", () => {
     expect(credentialErrorMessage(stripe, { ok: false, reason: "rejected", field: "secretKey" })).toBe(
-      "We couldn't connect to Stripe. The secret key looks incomplete. Paste the full key from your Stripe dashboard and try again."
+      "We couldn't connect to Stripe. It didn't accept that secret key. Copy it again from your Stripe account and try again."
     )
   })
 
   it("keeps acronyms capitalized", () => {
     expect(credentialErrorMessage(easypay, { ok: false, reason: "rejected", field: "apiKey" })).toContain(
-      "The API key looks incomplete."
+      "It didn't accept that API key."
     )
   })
 
@@ -63,7 +63,7 @@ describe("connectedMessage", () => {
 
   it("names only the methods the keys unlock, and says Ifthenpay wasn't tested", () => {
     expect(connectedMessage(ifthenpay, { mbKey: "a" }, true)).toBe(
-      "IfThenPay connected. Your store can take Multibanco payments. IfThenPay can't test keys, so place a small order to check them."
+      "Ifthenpay connected. Your store can take Multibanco payments. Ifthenpay can't test keys, so place a small order to check them."
     )
     expect(connectedMessage(ifthenpay, { mbKey: "a", mbWayKey: "b", ccKey: "c" }, true)).toContain(
       "Multibanco, MB WAY and card payments"

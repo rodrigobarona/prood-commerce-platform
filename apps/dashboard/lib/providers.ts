@@ -62,6 +62,7 @@ export const providerRegistry: ProviderMeta[] = [
         "checkout.session.async_payment_succeeded",
         "checkout.session.async_payment_failed",
         "checkout.session.expired",
+        "charge.refunded",
       ],
     },
     testable: true,
@@ -69,10 +70,10 @@ export const providerRegistry: ProviderMeta[] = [
   },
   {
     id: "easypay",
-    name: "EasyPay",
+    name: "Easypay",
     type: "payment",
     description:
-      "Portuguese payments — Multibanco, MB WAY, and card payments via EasyPay.",
+      "Portuguese payments — Multibanco, MB WAY, and card payments via Easypay.",
     docsUrl: "https://docs.easypay.pt",
     fields: [
       { key: "accountId", label: "Account ID", type: "text", required: true },
@@ -88,10 +89,10 @@ export const providerRegistry: ProviderMeta[] = [
   },
   {
     id: "ifthenpay",
-    name: "IfThenPay",
+    name: "Ifthenpay",
     type: "payment",
     description:
-      "Portuguese payments — Multibanco, MB WAY, Payshop, and credit card via IfThenPay.",
+      "Portuguese payments — Multibanco, MB WAY, and card payments via Ifthenpay.",
     docsUrl: "https://www.ifthenpay.com",
     fields: [
       { key: "antiPhishingKey", label: "Anti-phishing key", type: "password", required: true },
@@ -136,7 +137,7 @@ export function credentialErrorMessage(
   }
   const field = meta.fields.find((candidate) => candidate.key === check.field)
   const name = field ? inSentence(field.label) : "key"
-  return `We couldn't connect to ${meta.name}. The ${name} looks incomplete. Paste the full key from your ${meta.name} dashboard and try again.`
+  return `We couldn't connect to ${meta.name}. It didn't accept that ${name}. Copy it again from your ${meta.name} account and try again.`
 }
 
 /** The message a merchant sees after saving a provider. */
