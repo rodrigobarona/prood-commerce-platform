@@ -10,5 +10,6 @@ move later, change `S3_PUBLIC_URL`, rebuild, and rewrite stored image URLs.
 
 Deploy with `npx wrangler deploy` from this folder.
 
-Responses are cached for a day unless the object sets `Cache-Control`, so a
-deleted object can stay reachable for up to 24 hours.
+Responses send a one-day `Cache-Control` unless the object sets its own, so a
+deleted object can stay reachable in caches for up to 24 hours. Edge caching on
+`workers.dev` isn't guaranteed, so expect some requests to reach R2 directly.
