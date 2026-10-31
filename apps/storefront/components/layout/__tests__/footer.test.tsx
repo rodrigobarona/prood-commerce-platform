@@ -28,6 +28,13 @@ describe("Footer", () => {
     expect(screen.getByText(/Loja da Ana\. All rights reserved\./)).toBeTruthy()
   })
 
+  it("says store, not shop", async () => {
+    mocks.fetchStoreInfo.mockResolvedValue(store)
+    const { container } = render(await Footer())
+    expect(screen.getByText("Store")).toBeTruthy()
+    expect(container.textContent).not.toMatch(/Shop/)
+  })
+
   it("has no template copy and no newsletter column", async () => {
     mocks.fetchStoreInfo.mockResolvedValue(store)
     const { container } = render(await Footer())

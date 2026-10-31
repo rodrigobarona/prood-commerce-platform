@@ -3,7 +3,7 @@ import { cacheLife } from "next/cache"
 import { localized } from "@prood/ui/lib/commerce"
 import { fetchStoreInfo } from "@/lib/commerce-data"
 
-const SHOP = [
+const STORE_LINKS = [
   { href: "/products", label: "All products" },
   { href: "/cart", label: "Cart" },
   { href: "/account/orders", label: "Orders" },
@@ -46,8 +46,8 @@ export async function Footer() {
           ) : null}
         </div>
         <div className="flex flex-col gap-2">
-          <span className="text-sm font-semibold">Shop</span>
-          {SHOP.map((l) => (
+          <span className="text-sm font-semibold">Store</span>
+          {STORE_LINKS.map((l) => (
             <Link key={l.href} href={l.href} className="text-muted-foreground hover:text-foreground text-sm">
               {l.label}
             </Link>

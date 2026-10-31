@@ -64,7 +64,9 @@ describe("CartPage", () => {
     mocks.cart.canTakeOrders = false
     render(<CartPage />)
     expect(screen.queryByRole("link", { name: /checkout/i })).toBeNull()
-    expect((screen.getByRole("button", { name: "Proceed to checkout" }) as HTMLButtonElement).disabled).toBe(true)
+    const buttons = screen.getAllByRole("button", { name: "Proceed to checkout" }) as HTMLButtonElement[]
+    expect(buttons).toHaveLength(2)
+    expect(buttons.every((button) => button.disabled)).toBe(true)
     expect(screen.getAllByText("This store isn't taking orders yet.")).toHaveLength(2)
   })
 })

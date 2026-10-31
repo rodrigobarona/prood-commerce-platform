@@ -39,7 +39,15 @@ describe("setupChecklist", () => {
     expect(item(fresh, "product").href).toBe("/products/new")
   })
 
-  it("doesn't count a draft, which shoppers can't buy", () => {
+  it("calls the people buying from the store customers", () => {
+    const copy = setupChecklist({ ...fresh, totalProducts: 1 }, STORE_URL)
+      .concat(setupChecklist(fresh, STORE_URL))
+      .map((entry) => entry.description)
+      .join(" ")
+    expect(copy).not.toMatch(/shopper/i)
+  })
+
+  it("doesn't count a draft, which customers can't buy", () => {
     const product = item({ ...fresh, totalProducts: 2 }, "product")
     expect(product.done).toBe(false)
     expect(product.href).toBe("/products")

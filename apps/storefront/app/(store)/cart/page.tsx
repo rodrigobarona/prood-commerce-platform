@@ -173,9 +173,12 @@ export default function CartPage() {
             </Link>
           </Button>
         ) : (
-          <Button className="w-full" size="lg" disabled>
-            {STORE_CLOSED_MESSAGE}
-          </Button>
+          <div className="flex flex-col gap-2">
+            <p className="text-muted-foreground text-center text-sm">{STORE_CLOSED_MESSAGE}</p>
+            <Button className="w-full" size="lg" disabled>
+              Proceed to checkout
+            </Button>
+          </div>
         )}
       </div>
     </>

@@ -19,7 +19,7 @@ export interface SetupProgress {
   hasContactEmail: boolean
 }
 
-/** What's left before a store can sell. Only published products count: shoppers can't buy a draft. */
+/** What's left before a store can sell. Only published products count: customers can't buy a draft. */
 export function setupChecklist(progress: SetupProgress, storeUrl: string): SetupItem[] {
   const hasDraft = progress.totalProducts > 0
   const canBuy = progress.activeProducts > 0 && progress.canTakeOrders
@@ -28,8 +28,8 @@ export function setupChecklist(progress: SetupProgress, storeUrl: string): Setup
       id: "product",
       title: "Add a product",
       description: hasDraft
-        ? "Your products are still drafts. Publish one so shoppers can buy it."
-        : "Shoppers need something to buy.",
+        ? "Your products are still drafts. Publish one so customers can buy it."
+        : "Customers need something to buy.",
       done: progress.activeProducts > 0,
       action: hasDraft ? "Publish a product" : "Add product",
       href: hasDraft ? "/products" : "/products/new",
