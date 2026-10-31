@@ -631,6 +631,27 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       await expect(adapter.placeOrder(retry.id, { contactEmail: 'ana@example.com' })).resolves.toBeTruthy()
     })
 
+    it('takes no use from an order it gave nothing, and gives none back', async () => {
+      await seedCoupon('NOSHIP', { discountType: 'free_shipping', discountValue: '0', usageLimitPerCustomer: 1 })
+      await setProducts(`requires_shipping = false, product_type = 'digital'`, `'prod-3'`)
+      const placeDigital = async () => {
+        const cart = await adapter.createCart()
+        await adapter.addToCart(cart.id, { productId: 'prod-3', quantity: 1 })
+        await adapter.applyCoupon(cart.id, 'NOSHIP')
+        return adapter.placeOrder(cart.id, { contactEmail: 'ana@example.com' })
+      }
+
+      const order = await placeDigital()
+      expect(order.couponCode).toBeNull()
+      expect(await timesUsed('NOSHIP')).toBe(0)
+
+      // The per-customer limit of one has not been touched either.
+      await expect(placeDigital()).resolves.toMatchObject({ couponCode: null })
+
+      await adapter.cancelOrder(order.id)
+      expect(await timesUsed('NOSHIP')).toBe(0)
+    })
+
     it('gives the use back when the payment fails', async () => {
       await seedCoupon('DECLINED')
       const cart = await readyCart()

@@ -106,7 +106,9 @@ export async function recordOrder(draft: OrderDraft): Promise<Order> {
     shippingMethod,
     paymentMethod: draft.paymentMethod ?? null,
     paymentTransactionId: draft.paymentTransactionId ?? null,
-    couponCode: draft.couponCode ?? null,
+    // Only a coupon that took a use is on the order: cancelling gives that use
+    // back, and per-customer limits count it.
+    couponCode: discount > 0 ? draft.couponCode : null,
     note: draft.note ?? null,
     requiresShipping,
     placedAt: now,
