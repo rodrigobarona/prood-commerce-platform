@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { CommerceError } from "@prood/types"
+import { CommerceError, toErrorResponse } from "@prood/types"
 
 const mocks = await vi.hoisted(async () => ({
   tenantScope: new (await import("node:async_hooks")).AsyncLocalStorage<string>(),
@@ -149,6 +149,16 @@ describe("placing an order", () => {
       code: "ORDERS_UNAVAILABLE",
       message: "This store has no payment provider connected yet.",
     })
+  })
+
+  it.each([
+    ["unknown", 'Unknown payment provider "paypal".', "paypal"],
+    ["unconnected", "stripe is not connected for this store.", "stripe"],
+  ])("refuses an %s provider as bad input", async (_, message, providerId) => {
+    const refusal = new CommerceError(message, "VALIDATION", 422)
+    mocks.getTenantPaymentProvider.mockRejectedValue(refusal)
+    await expect(checkout.assertPayable("org-1", "cart-1", providerId)).rejects.toBe(refusal)
+    expect(toErrorResponse(refusal).status).toBe(422)
   })
 
   it("passes through a failure that isn't about the store's setup", async () => {

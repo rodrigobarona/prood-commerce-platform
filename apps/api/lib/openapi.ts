@@ -352,6 +352,10 @@ export function buildOpenApiDocument() {
             description: "`ORDERS_UNAVAILABLE`: the store has no usable payment provider, or reached its monthly order limit",
             schema: responses.errorBody,
           },
+          "422": {
+            description: "`VALIDATION`: the request or cart is invalid, or `providerId` isn't connected to this store",
+            schema: responses.errorBody,
+          },
         },
       }),
       "/orders": pathItem("GET", "List customer orders", "listOrders", {

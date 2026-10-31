@@ -3922,7 +3922,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Validation error */
+            /** @description `VALIDATION`: the request or cart is invalid, or `providerId` isn't connected to this store */
             422: {
                 headers: {
                     [name: string]: unknown;

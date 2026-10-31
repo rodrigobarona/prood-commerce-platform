@@ -12470,7 +12470,7 @@
             }
           },
           "422": {
-            "description": "Validation error",
+            "description": "`VALIDATION`: the request or cart is invalid, or `providerId` isn't connected to this store",
             "content": {
               "application/json": {
                 "schema": {

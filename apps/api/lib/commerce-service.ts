@@ -169,14 +169,18 @@ export const checkout = {
     setBillingAddress(cartId, address, orgId),
   setShippingMethod: (orgId: string, cartId: string, methodId: string) =>
     setShippingMethod(cartId, methodId, orgId),
-  /** Placing an order consumes the cart, so check payment can be taken first. */
+  /**
+   * Placing an order consumes the cart, so check payment can be taken first. A
+   * store with nothing connected is unavailable; naming a provider it doesn't
+   * have is the caller's mistake, and stays a 422.
+   */
   assertPayable: async (orgId: string, cartId: string, providerId?: string) => {
     const cart = await getCart(cartId, orgId)
     if (cart.totals.total.amount <= 0) return
     try {
       await getTenantPaymentProvider(orgId, providerId)
     } catch (err) {
-      if (isCommerceError(err) && err.code === "VALIDATION") {
+      if (!providerId && isCommerceError(err) && err.code === "VALIDATION") {
         throw new CommerceError(err.message, "ORDERS_UNAVAILABLE")
       }
       throw err
