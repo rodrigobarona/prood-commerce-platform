@@ -90,6 +90,18 @@ describe("an empty store", () => {
   })
 })
 
+describe("the products page", () => {
+  it.each(["-1", "0", "1.5", "abc", "", "1e400"])("reads page=%s as page 1", async (page) => {
+    await products({ page })
+    expect(mocks.fetchProductList).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1 }))
+  })
+
+  it("keeps a real page number", async () => {
+    await products({ page: "3" })
+    expect(mocks.fetchProductList).toHaveBeenLastCalledWith(expect.objectContaining({ page: 3 }))
+  })
+})
+
 describe("the error page", () => {
   it("shows shoppers a calm sentence, not the raw error", () => {
     vi.spyOn(console, "error").mockImplementation(() => {})

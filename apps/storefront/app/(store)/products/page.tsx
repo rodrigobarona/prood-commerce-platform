@@ -21,13 +21,19 @@ function parseSort(sort: string | undefined): SearchParams["sort"] {
   return { field, direction: direction === "asc" ? "asc" : "desc" }
 }
 
+/** Anything but a positive integer is a bad link, which the API would refuse. */
+function parsePage(page: string | undefined): number {
+  const parsed = Number(page)
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : 1
+}
+
 export default async function ProductsPage({
   searchParams,
 }: {
   searchParams: Promise<PageSearchParams>
 }) {
   const sp = await searchParams
-  const page = Number(sp.page) || 1
+  const page = parsePage(sp.page)
   const perPage = 12
   const result = await fetchProductList({
     query: sp.q,
