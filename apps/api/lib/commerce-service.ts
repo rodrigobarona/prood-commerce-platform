@@ -144,6 +144,8 @@ export const checkout = {
     } catch {
       // Cache invalidation is best-effort; never block the order response
     }
+    // Nothing to pay means no payment webhook will ever confirm it.
+    if (order.totals.total.amount === 0) queueOrderEmail(orgId, order.id, "confirmed")
     return order
   },
 }
