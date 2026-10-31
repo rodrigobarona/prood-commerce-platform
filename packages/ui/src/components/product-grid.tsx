@@ -12,6 +12,8 @@ export interface ProductGridProps {
   onAddToCart?: (product: Product) => void
   emptyTitle?: string
   emptyDescription?: string
+  emptyActionLabel?: string
+  emptyActionHref?: string
   className?: string
 }
 
@@ -28,8 +30,10 @@ export function ProductGrid({
   columns = 4,
   locale = "en",
   onAddToCart,
-  emptyTitle = "No products found",
-  emptyDescription = "Try adjusting your filters or search.",
+  emptyTitle = "No products yet",
+  emptyDescription = "This store is adding products. Check back soon.",
+  emptyActionLabel,
+  emptyActionHref,
   className,
 }: ProductGridProps) {
   if (products.length === 0) {
@@ -38,6 +42,8 @@ export function ProductGrid({
         icon={<ShoppingBagIcon />}
         title={emptyTitle}
         description={emptyDescription}
+        actionLabel={emptyActionLabel}
+        actionHref={emptyActionHref}
       />
     )
   }

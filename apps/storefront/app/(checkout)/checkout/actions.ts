@@ -1,12 +1,13 @@
 "use server"
 
 import type { CheckoutAddress } from "@prood/types"
-import { isCommerceApiError, unwrap } from "@prood/api-client"
+import { unwrap } from "@prood/api-client"
 import { headers } from "next/headers"
 import { clearCartId, getCartId } from "@/lib/cart-cookie"
 import { getCommerceApi } from "@/lib/commerce-api"
 import { resolveTenantId } from "@/lib/tenant"
 import { fetchStoreInfo } from "@/lib/commerce-data"
+import { checkoutErrorMessage } from "@/lib/checkout-error"
 import { localized } from "@prood/ui/lib/commerce"
 
 export interface CheckoutResult {
@@ -25,7 +26,7 @@ export interface StartCheckoutInput {
 export async function startCheckout(input: StartCheckoutInput): Promise<CheckoutResult> {
   try {
     const cartId = await getCartId()
-    if (!cartId) return { ok: false, error: "Your cart is empty. Add something to it, then check out." }
+    if (!cartId) return { ok: false, error: "Your cart is empty." }
 
     const checkoutUrl = process.env.CHECKOUT_URL
     const checkoutSecret = process.env.CHECKOUT_API_SECRET
@@ -129,9 +130,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
 
     return { ok: true, orderId: order.id, checkoutUrl: session.checkoutUrl }
   } catch (err) {
-    // API errors are written for shoppers. Anything else is ours to read, not theirs.
-    if (isCommerceApiError(err)) return { ok: false, error: err.message }
-    console.error("[checkout] could not start checkout", err)
-    return { ok: false, error: "We couldn't start checkout. Try again, or contact the store." }
+    console.error("[checkout] failed to start", err)
+    return { ok: false, error: checkoutErrorMessage(err) }
   }
 }

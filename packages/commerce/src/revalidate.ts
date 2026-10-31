@@ -15,9 +15,9 @@ export function revalidateCategories(tenantId?: string): void {
   revalidateTag(scoped('categories', tenantId), 'max')
 }
 
-/** Background SWR invalidation for store metadata. */
+/** Drop cached store info at once, so a merchant sees their own edit. */
 export function revalidateStore(tenantId?: string): void {
-  revalidateTag(scoped('store', tenantId), 'max')
+  revalidateTag(scoped('store', tenantId), { expire: 0 })
 }
 
 /** Invalidate both catalog tags (admin bulk updates, deploy hooks). */

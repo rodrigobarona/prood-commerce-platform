@@ -1427,6 +1427,9 @@ export interface operations {
                             isDefault: boolean;
                         }[];
                         country: string;
+                        contactEmail: string | null;
+                        /** @description True when a payment provider is connected, or when that couldn't be checked. Paid orders are refused without one, whatever this says. */
+                        canTakeOrders: boolean;
                     };
                 };
             };
@@ -3909,7 +3912,23 @@ export interface operations {
                     };
                 };
             };
-            /** @description Validation error */
+            /** @description `ORDERS_UNAVAILABLE`: the store has no usable payment provider, or reached its monthly order limit */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description `VALIDATION`: the request or cart is invalid, or `providerId` isn't connected to this store */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -6481,6 +6500,8 @@ export interface operations {
                             [key: string]: string;
                         } | null;
                         currencyLocked: boolean;
+                        /** @description Public origin of the store: its primary verified domain, or its slug subdomain. Null if it couldn't be read. */
+                        url: string | null;
                     };
                 };
             };
@@ -6547,17 +6568,18 @@ export interface operations {
                     name?: {
                         [key: string]: string;
                     };
+                    /** @description Shown on the store. Send null to remove it. */
                     description?: {
                         [key: string]: string;
-                    };
+                    } | null;
                     logo?: string | "";
                     favicon?: string;
                     currency?: string;
                     locale?: string;
                     timezone?: string;
                     country?: string;
-                    /** Format: email */
-                    contactEmail?: string;
+                    /** @description Shown on the store and to customers. Send null to remove it. */
+                    contactEmail?: string | null;
                     contactPhone?: string;
                     address?: string;
                     socialLinks?: {
@@ -6748,6 +6770,8 @@ export interface operations {
                         totalProducts: number;
                         activeProducts: number;
                         totalOrders: number;
+                        /** @description Orders that reached paid, even if later refunded. */
+                        paidOrders: number;
                         totalRevenue: number;
                         totalCustomers: number;
                         recentOrders: {
@@ -6899,6 +6923,8 @@ export interface operations {
                         ordersByStatus: {
                             [key: string]: number;
                         };
+                        /** @description True when a payment provider is connected, or when that couldn't be checked. Paid orders are refused without one, whatever this says. */
+                        canTakeOrders: boolean;
                     };
                 };
             };

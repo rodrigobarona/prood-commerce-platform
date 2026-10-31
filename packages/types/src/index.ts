@@ -9,7 +9,7 @@ export { DEFAULT_LOCALE, DEFAULT_LOCALES, LOCALE_META } from './locale.js'
 export type { SupportedLocale } from './locale.js'
 export { CommerceError, isCommerceError } from './common.js'
 export type { CommerceErrorBody, CommerceErrorResponse } from './http-errors.js'
-export { toErrorResponse } from './http-errors.js'
+export { VALIDATION_FAILED_MESSAGE, toErrorResponse } from './http-errors.js'
 
 // Product
 export type { Product, ProductVariant, Attribute, ProductType } from './product.js'
@@ -64,7 +64,7 @@ export type { Wishlist, WishlistItem } from './wishlist.js'
 export type { Review, ReviewInput, ReviewSummary } from './review.js'
 
 // Store
-export type { StoreInfo, StoreCurrency, StoreLocale } from './store.js'
+export type { StoreInfo, StorefrontStore, StoreCurrency, StoreLocale } from './store.js'
 
 // Country
 export type { Country } from './country.js'

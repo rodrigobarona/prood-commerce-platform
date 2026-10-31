@@ -10,7 +10,7 @@ import { Search } from "@/components/layout/search"
 import { ThemeToggle } from "@/components/layout/theme-toggle"
 export async function Header() {
   let categories: Category[] = []
-  let storeName = "Commerce"
+  let storeName: string | null = null
 
   try {
     categories = await fetchCategories()
@@ -19,9 +19,9 @@ export async function Header() {
   }
   try {
     const store = await fetchStoreInfo()
-    storeName = localized(store.name) || storeName
+    storeName = localized(store.name) || null
   } catch {
-    // ignore — fall back to default name
+    // Header renders without the name rather than taking the page down.
   }
 
   const navLinks: NavLink[] = [
@@ -37,9 +37,11 @@ export async function Header() {
     <header className="bg-background/80 sticky top-0 z-40 border-b backdrop-blur">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4">
         <MobileMenu links={navLinks} />
-        <Link href="/" className="text-lg font-bold tracking-tight">
-          {storeName}
-        </Link>
+        {storeName ? (
+          <Link href="/" className="text-lg font-bold tracking-tight">
+            {storeName}
+          </Link>
+        ) : null}
         <nav className="hidden items-center gap-5 md:flex">
           {navLinks.map((link) => (
             <Link

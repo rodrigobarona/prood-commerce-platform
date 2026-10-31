@@ -245,7 +245,7 @@ export function buildOpenApiDocument() {
       }),
       "/store": pathItem("GET", "Store metadata", "getStore", {
         scope: "storefront",
-        response: responses.storeInfo,
+        response: responses.storefrontStore,
       }),
       "/countries": pathItem("GET", "Countries (shared reference data)", "listCountries", {
         scope: "storefront",
@@ -350,7 +350,17 @@ export function buildOpenApiDocument() {
         description: "Guests must send an email; a signed-in customer doesn't need to.",
         scope: "storefront",
         body: placeOrderBody,
-        responses: { "201": { description: "Order created", schema: responses.order } },
+        responses: {
+          "201": { description: "Order created", schema: responses.order },
+          "409": {
+            description: "`ORDERS_UNAVAILABLE`: the store has no usable payment provider, or reached its monthly order limit",
+            schema: responses.errorBody,
+          },
+          "422": {
+            description: "`VALIDATION`: the request or cart is invalid, or `providerId` isn't connected to this store",
+            schema: responses.errorBody,
+          },
+        },
       }),
       "/orders": pathItem("GET", "List customer orders", "listOrders", {
         scope: "storefront",
@@ -466,7 +476,7 @@ export function buildOpenApiDocument() {
       "/admin/store": {
         ...pathItem("GET", "Store settings", "adminGetStore", {
           scope: "admin",
-          response: responses.adminStoreSettings,
+          response: responses.adminStore,
         }),
         ...pathItem("PATCH", "Update store settings", "adminUpdateStore", {
           scope: "admin",
@@ -481,7 +491,7 @@ export function buildOpenApiDocument() {
       }),
       "/admin/dashboard": pathItem("GET", "Dashboard stats", "adminGetDashboard", {
         scope: "admin",
-        response: responses.adminDashboardStats,
+        response: responses.adminDashboard,
       }),
       "/webhooks/payments/{provider}": {
         ...pathItem("POST", "Payment webhook (checkout service)", "paymentWebhook", {

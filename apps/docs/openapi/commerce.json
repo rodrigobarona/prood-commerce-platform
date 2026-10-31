@@ -2813,6 +2813,16 @@
                     },
                     "country": {
                       "type": "string"
+                    },
+                    "contactEmail": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "canTakeOrders": {
+                      "type": "boolean",
+                      "description": "True when a payment provider is connected, or when that couldn't be checked. Paid orders are refused without one, whatever this says."
                     }
                   },
                   "required": [
@@ -2821,7 +2831,9 @@
                     "logo",
                     "currencies",
                     "locales",
-                    "country"
+                    "country",
+                    "contactEmail",
+                    "canTakeOrders"
                   ],
                   "additionalProperties": false
                 }
@@ -12416,8 +12428,51 @@
               }
             }
           },
+          "409": {
+            "description": "`ORDERS_UNAVAILABLE`: the store has no usable payment provider, or reached its monthly order limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "422": {
-            "description": "Validation error",
+            "description": "`VALIDATION`: the request or cart is invalid, or `providerId` isn't connected to this store",
             "content": {
               "application/json": {
                 "schema": {
@@ -21879,6 +21934,13 @@
                     },
                     "currencyLocked": {
                       "type": "boolean"
+                    },
+                    "url": {
+                      "description": "Public origin of the store: its primary verified domain, or its slug subdomain. Null if it couldn't be read.",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     }
                   },
                   "required": [
@@ -21896,7 +21958,8 @@
                     "contactPhone",
                     "address",
                     "socialLinks",
-                    "currencyLocked"
+                    "currencyLocked",
+                    "url"
                   ],
                   "additionalProperties": false
                 }
@@ -22329,13 +22392,21 @@
                     }
                   },
                   "description": {
-                    "type": "object",
-                    "propertyNames": {
-                      "type": "string"
-                    },
-                    "additionalProperties": {
-                      "type": "string"
-                    }
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {
+                          "type": "string"
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Shown on the store. Send null to remove it."
                   },
                   "logo": {
                     "anyOf": [
@@ -22367,9 +22438,17 @@
                     "pattern": "^[A-Za-z]{2}$"
                   },
                   "contactEmail": {
-                    "type": "string",
-                    "format": "email",
-                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                    "description": "Shown on the store and to customers. Send null to remove it.",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "email",
+                        "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   },
                   "contactPhone": {
                     "type": "string"
@@ -22639,6 +22718,10 @@
                     },
                     "totalOrders": {
                       "type": "number"
+                    },
+                    "paidOrders": {
+                      "type": "number",
+                      "description": "Orders that reached paid, even if later refunded."
                     },
                     "totalRevenue": {
                       "type": "number"
@@ -23416,16 +23499,22 @@
                       "additionalProperties": {
                         "type": "number"
                       }
+                    },
+                    "canTakeOrders": {
+                      "type": "boolean",
+                      "description": "True when a payment provider is connected, or when that couldn't be checked. Paid orders are refused without one, whatever this says."
                     }
                   },
                   "required": [
                     "totalProducts",
                     "activeProducts",
                     "totalOrders",
+                    "paidOrders",
                     "totalRevenue",
                     "totalCustomers",
                     "recentOrders",
-                    "ordersByStatus"
+                    "ordersByStatus",
+                    "canTakeOrders"
                   ],
                   "additionalProperties": false
                 }

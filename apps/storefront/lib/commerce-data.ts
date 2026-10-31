@@ -1,4 +1,5 @@
 import "server-only"
+import { cache } from "react"
 import type {
   Cart,
   Category,
@@ -6,7 +7,7 @@ import type {
   PaginatedResult,
   Product,
   SearchResult,
-  StoreInfo,
+  StorefrontStore,
 } from "@prood/types"
 import { isCommerceApiError, unwrap } from "@prood/api-client"
 import { getCommerceApi } from "@/lib/commerce-api"
@@ -37,10 +38,10 @@ export async function fetchCategories(
   return unwrap(api.GET("/categories", { params: { query } }))
 }
 
-export async function fetchStoreInfo(): Promise<StoreInfo> {
+export const fetchStoreInfo = cache(async function fetchStoreInfo(): Promise<StorefrontStore> {
   const api = await getCommerceApi()
   return unwrap(api.GET("/store"))
-}
+})
 
 export async function fetchCart(id: string): Promise<Cart> {
   const api = await getCommerceApi()

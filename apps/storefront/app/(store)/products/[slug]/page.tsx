@@ -1,6 +1,6 @@
+import { cache } from "react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import type { Product } from "@prood/types"
 import { fetchProductBySlug } from "@/lib/commerce-data"
 import {
   Breadcrumb,
@@ -15,13 +15,7 @@ import { ReviewStars } from "@prood/ui/components/review-stars"
 import { localized } from "@prood/ui/lib/commerce"
 import { ProductPurchase } from "@/components/commerce/product-purchase"
 
-async function loadProduct(slug: string): Promise<Product | null> {
-  try {
-    return await fetchProductBySlug(slug)
-  } catch {
-    return null
-  }
-}
+const loadProduct = cache(fetchProductBySlug)
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params

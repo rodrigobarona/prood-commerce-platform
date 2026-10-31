@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import type { Category, Product } from "@prood/types"
+import type { Category } from "@prood/types"
 import { localized } from "@prood/ui/lib/commerce"
 import { ConnectedProductGrid } from "@/components/commerce/connected-product-grid"
 import { fetchCategories, fetchProductList } from "@/lib/commerce-data"
@@ -26,24 +26,13 @@ export default async function CategoryPage({
 }) {
   const { slug } = await params
 
-  let category: Category | null = null
-  try {
-    category = findBySlug(await fetchCategories(), slug)
-  } catch {
-    /* DB unavailable */
-  }
+  const category = findBySlug(await fetchCategories(), slug)
   if (!category) notFound()
 
-  let products: Product[] = []
-  try {
-    const result = await fetchProductList({
-      categoryId: category.id,
-      perPage: 24,
-    })
-    products = result.products.items
-  } catch {
-    /* DB unavailable */
-  }
+  const result = await fetchProductList({
+    categoryId: category.id,
+    perPage: 24,
+  })
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8">
@@ -53,7 +42,12 @@ export default async function CategoryPage({
           <p className="text-muted-foreground">{localized(category.description)}</p>
         ) : null}
       </div>
-      <ConnectedProductGrid products={products} columns={4} />
+      <ConnectedProductGrid
+        products={result.products.items}
+        columns={4}
+        emptyTitle="No products in this category yet"
+        emptyDescription="Check back soon, or browse the rest of the store."
+      />
     </div>
   )
 }

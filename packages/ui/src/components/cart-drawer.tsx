@@ -22,6 +22,8 @@ export interface CartDrawerProps {
   cart: Cart | null
   loading?: boolean
   locale?: Locale
+  /** Why the shopper can't check out right now. Omit when they can. */
+  checkoutDisabledReason?: string
   onUpdateQuantity: (itemId: string, quantity: number) => void
   onRemove: (itemId: string) => void
 }
@@ -32,6 +34,7 @@ export function CartDrawer({
   cart,
   loading = false,
   locale = "en",
+  checkoutDisabledReason,
   onUpdateQuantity,
   onRemove,
 }: CartDrawerProps) {
@@ -77,9 +80,16 @@ export function CartDrawer({
                 </div>
               ) : null}
               <div className="flex flex-col gap-2">
-                <Button asChild onClick={() => onOpenChange(false)}>
-                  <Link href="/checkout">Checkout</Link>
-                </Button>
+                {checkoutDisabledReason ? (
+                  <>
+                    <p className="text-muted-foreground text-sm">{checkoutDisabledReason}</p>
+                    <Button disabled>Checkout</Button>
+                  </>
+                ) : (
+                  <Button asChild onClick={() => onOpenChange(false)}>
+                    <Link href="/checkout">Checkout</Link>
+                  </Button>
+                )}
                 <Button asChild variant="outline" onClick={() => onOpenChange(false)}>
                   <Link href="/cart">View cart</Link>
                 </Button>

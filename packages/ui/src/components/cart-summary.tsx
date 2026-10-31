@@ -10,6 +10,8 @@ export interface CartSummaryProps {
   showCheckout?: boolean
   checkoutLabel?: string
   checkoutHref?: string
+  /** Why the shopper can't check out right now. Omit when they can. */
+  checkoutDisabledReason?: string
   locale?: Locale
   className?: string
 }
@@ -28,6 +30,7 @@ export function CartSummary({
   showCheckout = true,
   checkoutLabel = "Proceed to checkout",
   checkoutHref = "/checkout",
+  checkoutDisabledReason,
   locale = "en",
   className,
 }: CartSummaryProps) {
@@ -48,7 +51,15 @@ export function CartSummary({
         <span>Total</span>
         <span>{formatPrice(t.total, locale)}</span>
       </div>
-      {showCheckout ? (
+      {showCheckout && checkoutDisabledReason ? (
+        <>
+          <p className="text-muted-foreground mt-2 text-sm">{checkoutDisabledReason}</p>
+          <Button className="w-full" disabled>
+            {checkoutLabel}
+          </Button>
+        </>
+      ) : null}
+      {showCheckout && !checkoutDisabledReason ? (
         <Button asChild className="mt-2 w-full" disabled={cart.itemCount === 0}>
           <Link href={checkoutHref}>{checkoutLabel}</Link>
         </Button>

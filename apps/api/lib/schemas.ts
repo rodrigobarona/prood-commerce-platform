@@ -160,7 +160,9 @@ const CURRENCY_MESSAGE = "That isn't a currency code. Use an ISO 4217 code, like
 
 export const updateStoreBody = z.object({
   name: optionalLocalizedFieldSchema,
-  description: optionalLocalizedFieldSchema,
+  description: optionalLocalizedFieldSchema
+    .nullable()
+    .describe("Shown on the store. Send null to remove it."),
   logo: optionalImageUrl,
   favicon: z.string().optional(),
   currency: z
@@ -172,7 +174,11 @@ export const updateStoreBody = z.object({
   locale: z.string().optional(),
   timezone: z.string().optional(),
   country: z.string().regex(/^[A-Za-z]{2}$/, "Use a two-letter country code, like PT.").toUpperCase().optional(),
-  contactEmail: z.email().optional(),
+  contactEmail: z
+    .email()
+    .nullable()
+    .optional()
+    .describe("Shown on the store and to customers. Send null to remove it."),
   contactPhone: z.string().optional(),
   address: z.string().optional(),
   socialLinks: z.record(z.string(), z.string()).optional(),

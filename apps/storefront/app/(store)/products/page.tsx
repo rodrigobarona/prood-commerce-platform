@@ -1,8 +1,9 @@
 import Link from "next/link"
-import type { Product, SearchParams } from "@prood/types"
+import type { SearchParams } from "@prood/types"
 import { Button } from "@prood/ui/components/button"
 import { ConnectedProductGrid } from "@/components/commerce/connected-product-grid"
 import { fetchProductList } from "@/lib/commerce-data"
+import { productListEmptyCopy } from "@/lib/product-empty-copy"
 
 export const metadata = { title: "Products" }
 
@@ -20,30 +21,30 @@ function parseSort(sort: string | undefined): SearchParams["sort"] {
   return { field, direction: direction === "asc" ? "asc" : "desc" }
 }
 
+/** Anything but a positive integer is a bad link, which the API would refuse. */
+function parsePage(page: string | undefined): number {
+  const parsed = Number(page)
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : 1
+}
+
 export default async function ProductsPage({
   searchParams,
 }: {
   searchParams: Promise<PageSearchParams>
 }) {
   const sp = await searchParams
-  const page = Number(sp.page) || 1
+  const page = parsePage(sp.page)
   const perPage = 12
-  let products: Product[] = []
-  let total = 0
-  try {
-    const result = await fetchProductList({
-      query: sp.q,
-      categoryId: sp.category,
-      page,
-      perPage,
-      sortField: parseSort(sp.sort)?.field,
-      sortDirection: parseSort(sp.sort)?.direction,
-    })
-    products = result.products.items
-    total = result.products.total
-  } catch {
-    /* DB unavailable */
-  }
+  const result = await fetchProductList({
+    query: sp.q,
+    categoryId: sp.category,
+    page,
+    perPage,
+    sortField: parseSort(sp.sort)?.field,
+    sortDirection: parseSort(sp.sort)?.direction,
+  })
+  const products = result.products.items
+  const total = result.products.total
 
   const hasMore = page * perPage < total
   const buildHref = (p: number) => {
@@ -64,7 +65,16 @@ export default async function ProductsPage({
         <span className="text-muted-foreground text-sm">{total} products</span>
       </div>
 
-      <ConnectedProductGrid products={products} columns={4} />
+      <ConnectedProductGrid
+        products={products}
+        columns={4}
+        {...productListEmptyCopy({
+          query: sp.q,
+          categoryId: sp.category,
+          total,
+          firstPageHref: buildHref(1),
+        })}
+      />
 
       {(page > 1 || hasMore) && products.length > 0 ? (
         <div className="flex items-center justify-center gap-3">
