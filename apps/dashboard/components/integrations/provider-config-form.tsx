@@ -74,7 +74,11 @@ export function ProviderConfigForm({
   function handleDisconnect() {
     startTransition(async () => {
       try {
-        await disconnectIntegrationAction(provider.id)
+        const { error } = await disconnectIntegrationAction(provider.id)
+        if (error) {
+          toast.error(error)
+          return
+        }
         toast.success(`${provider.name} disconnected`)
         router.push("/integrations")
         router.refresh()

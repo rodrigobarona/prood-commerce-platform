@@ -22,16 +22,20 @@ export function isPaymentProviderId(id: string): id is PaymentProviderId {
   return (PAYMENT_PROVIDER_IDS as readonly string[]).includes(id)
 }
 
-/** A store's decrypted credentials for one enabled provider, or null. */
+/**
+ * A store's decrypted credentials for one provider, or null. Disabled providers
+ * only count with `includeDisabled`, for payments started before they were disabled.
+ */
 export async function getTenantIntegrationConfig(
   organizationId: string,
   provider: string,
+  { includeDisabled = false }: { includeDisabled?: boolean } = {},
 ): Promise<Record<string, string> | null> {
   const rows = (await db()`
     SELECT config FROM integration_config
     WHERE organization_id = ${organizationId}
       AND provider = ${provider}
-      AND enabled = true
+      AND (enabled = true OR ${includeDisabled}::boolean)
     LIMIT 1
   `) as { config: Record<string, string> | null }[]
   const row = rows[0]

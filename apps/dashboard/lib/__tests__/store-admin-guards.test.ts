@@ -20,6 +20,7 @@ const mocks = vi.hoisted(() => ({
     deleteProduct: vi.fn(),
   },
   getIntegration: vi.fn(),
+  listOrders: vi.fn(),
   listDomains: vi.fn(),
   findDomain: vi.fn(),
 }))
@@ -58,6 +59,7 @@ vi.mock("@/lib/vercel", () => ({
 }))
 vi.mock("@/lib/billing", () => ({ getActiveOrganizationPlan: vi.fn() }))
 vi.mock("@/lib/admin-api", () => ({
+  listOrders: mocks.listOrders,
   fulfillOrder: mocks.writes.fulfillOrder,
   refundOrder: mocks.writes.refundOrder,
   cancelOrder: mocks.writes.cancelOrder,
@@ -112,6 +114,7 @@ const keyForm = () => {
 
 const returnsDenial: [string, () => Promise<unknown>, unknown][] = [
   ["saveIntegrationAction", () => saveIntegrationAction("stripe", {}, true), { ok: false, error: ADMIN_ONLY_MESSAGE }],
+  ["disconnectIntegrationAction", () => disconnectIntegrationAction("stripe"), { error: ADMIN_ONLY_MESSAGE }],
   ["refundOrderAction", () => refundOrderAction("order-1", {}), { ok: false, error: ADMIN_ONLY_MESSAGE }],
   ["cancelOrderAction", () => cancelOrderAction("order-1"), { error: ADMIN_ONLY_MESSAGE }],
   ["updateStoreSettingsAction", () => updateStoreSettingsAction({} as never), { error: ADMIN_ONLY_MESSAGE }],
@@ -120,7 +123,6 @@ const returnsDenial: [string, () => Promise<unknown>, unknown][] = [
 ]
 
 const throwsDenial: [string, () => Promise<unknown>][] = [
-  ["disconnectIntegrationAction", () => disconnectIntegrationAction("stripe")],
   ["fulfillOrderAction", () => fulfillOrderAction("order-1", {} as never)],
   ["createProductAction", () => createProductAction({} as never)],
   ["updateProductAction", () => updateProductAction("product-1", {} as never)],
@@ -151,13 +153,43 @@ describe.each(["member", null])("a merchant with role %s", (role) => {
 })
 
 describe("a store admin", () => {
-  it.each(["owner", "admin"])("%s can disconnect a provider", async (role) => {
+  beforeEach(() => {
     vi.clearAllMocks()
     mocks.getActiveOrganizationId.mockResolvedValue("org-1")
+    mocks.getActiveMemberRole.mockResolvedValue("admin")
+  })
+
+  it.each(["owner", "admin"])("%s can disconnect a provider", async (role) => {
     mocks.getActiveMemberRole.mockResolvedValue(role)
+    mocks.listOrders.mockResolvedValue({ total: 0 })
 
-    await disconnectIntegrationAction("stripe")
+    await expect(disconnectIntegrationAction("stripe")).resolves.toEqual({})
 
+    expect(mocks.listOrders).toHaveBeenCalledWith({ awaitingPaymentFrom: "stripe", perPage: 1 })
     expect(mocks.writes.deleteIntegration).toHaveBeenCalledWith("org-1", "stripe")
+  })
+
+  it("can't disconnect a provider an order is waiting on", async () => {
+    mocks.listOrders.mockResolvedValue({ total: 2 })
+
+    const { error } = await disconnectIntegrationAction("stripe")
+
+    expect(error).toContain("2 orders are still waiting")
+    expect(mocks.writes.deleteIntegration).not.toHaveBeenCalled()
+  })
+
+  it("clears an emptied optional field and keeps an emptied secret", async () => {
+    mocks.getIntegration.mockResolvedValue({
+      config: { accountId: "a", apiKey: "stored", baseUrl: "https://api.test.easypay.pt" },
+    })
+
+    await saveIntegrationAction("easypay", { accountId: "a", apiKey: "", baseUrl: "" }, false)
+
+    expect(mocks.writes.upsertIntegration).toHaveBeenCalledWith(
+      "org-1",
+      "easypay",
+      { accountId: "a", apiKey: "stored" },
+      false,
+    )
   })
 })

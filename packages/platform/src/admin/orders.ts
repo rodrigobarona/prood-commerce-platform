@@ -33,6 +33,7 @@ export function createAdminOrdersDomain() {
         dateFrom: params?.dateFrom,
         dateTo: params?.dateTo,
         search: params?.search,
+        awaitingPaymentFrom: params?.awaitingPaymentFrom,
         limit: perPage,
         offset,
       })

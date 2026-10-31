@@ -29,15 +29,20 @@ export interface LoadedSession {
 
 /**
  * Load a session from Redis, hydrate it, and return all pieces.
- * Returns null if not found.
+ * Returns null if not found. Pass `includeDisabled` to read a payment that's
+ * already under way on a provider the store has since disabled.
  */
-export async function loadAndHydrate(sessionId: string): Promise<LoadedSession | null> {
+export async function loadAndHydrate(
+  sessionId: string,
+  options?: { includeDisabled?: boolean },
+): Promise<LoadedSession | null> {
   const stored = await loadSession(sessionId)
   if (!stored) return null
 
   const { provider } = await getTenantPaymentProvider(
     stored.meta.tenantId,
     stored.meta.providerId,
+    options,
   )
   const session = hydrateSession(stored.snapshot, stored.meta, provider, sessionId)
 

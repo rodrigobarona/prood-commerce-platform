@@ -31,6 +31,7 @@ export async function adminFindAllOrders(opts: {
   dateFrom?: string
   dateTo?: string
   search?: string
+  awaitingPaymentFrom?: string
 }) {
   const db = getDb()
   const conditions: any[] = [tenantCondition(schema.orders)]
@@ -40,6 +41,13 @@ export async function adminFindAllOrders(opts: {
   if (opts.dateFrom) conditions.push(gte(schema.orders.createdAt, new Date(opts.dateFrom)))
   if (opts.dateTo) conditions.push(lte(schema.orders.createdAt, new Date(opts.dateTo)))
   if (opts.search) conditions.push(like(schema.orders.orderNumber, `%${opts.search}%`))
+  if (opts.awaitingPaymentFrom) {
+    conditions.push(
+      eq(schema.orders.paymentProvider, opts.awaitingPaymentFrom),
+      eq(schema.orders.status, 'placed'),
+      inArray(schema.orders.paymentStatus, ['unpaid', 'authorized']),
+    )
+  }
 
   const where = and(...conditions)
 

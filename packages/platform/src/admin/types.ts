@@ -83,6 +83,8 @@ export interface AdminListOrdersParams extends PaginationParams {
   dateFrom?: string
   dateTo?: string
   search?: string
+  /** Only open orders still waiting for a payment through this provider */
+  awaitingPaymentFrom?: string
 }
 
 export interface FulfillOrderInput {

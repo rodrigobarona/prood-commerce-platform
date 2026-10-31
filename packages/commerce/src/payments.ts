@@ -86,11 +86,13 @@ export interface TenantPaymentProvider {
  * Payments always settle into the merchant's account, so there is no
  * platform-level fallback: a store without the provider connected gets a
  * validation error. When `providerId` is omitted, the store's first connected
- * provider is used.
+ * provider is used. Disabling a provider stops new payments, not the ones under
+ * way: pass `includeDisabled` to finish those.
  */
 export async function getTenantPaymentProvider(
   tenantId: string,
   providerId?: string,
+  options?: { includeDisabled?: boolean },
 ): Promise<TenantPaymentProvider> {
   const id = providerId ?? (await listTenantPaymentProviders(tenantId))[0]
   if (!id) {
@@ -99,21 +101,24 @@ export async function getTenantPaymentProvider(
   if (!isPaymentProviderId(id)) {
     throw new CommerceError(`Unknown payment provider "${id}".`, 'VALIDATION', 422)
   }
-  const config = await getTenantIntegrationConfig(tenantId, id)
+  const config = await getTenantIntegrationConfig(tenantId, id, options)
   if (!config) {
     throw new CommerceError(`${id} is not connected for this store.`, 'VALIDATION', 422)
   }
   return { id, provider: instantiate(id, config), config }
 }
 
-/** Verify a webhook against the store's own credentials and normalize it. */
+/**
+ * Verify a webhook against the store's own credentials and normalize it. A
+ * provider that was disabled still reports on payments it took before then.
+ */
 export async function verifyPaymentWebhook(
   payload: string | Uint8Array,
   signature: string,
   providerId: string,
   tenantId: string,
 ): Promise<PaymentWebhookEvent> {
-  const { provider } = await getTenantPaymentProvider(tenantId, providerId)
+  const { provider } = await getTenantPaymentProvider(tenantId, providerId, { includeDisabled: true })
   if (!provider.verifyWebhook) {
     throw new Error(`Provider '${provider.id}' does not support webhook verification`)
   }
