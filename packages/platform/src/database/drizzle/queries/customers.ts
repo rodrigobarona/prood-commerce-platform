@@ -125,7 +125,7 @@ export async function findGuestCustomersByEmail(email: string) {
 
 /**
  * Link a guest customer to an auth user (cross-tenant).
- * Bypasses tenant scope — used only by the registration auto-link hook.
+ * Bypasses tenant scope — used only by the email verification auto-link hook.
  */
 export async function linkGuestCustomerToAuthUser(customerId: string, authUserId: string) {
   await getDb()

@@ -43,24 +43,6 @@ function createAuth() {
         }
       }),
     },
-    databaseHooks: {
-      user: {
-        create: {
-          after: async (user) => {
-            if (user.email) {
-              try {
-                const linked = await autoLinkGuestCustomers(user.id, user.email)
-                if (linked > 0) {
-                  console.log(`[auth] Auto-linked ${linked} guest customer(s) for ${user.email}`)
-                }
-              } catch (err) {
-                console.error("[auth] Guest auto-link failed:", err)
-              }
-            }
-          },
-        },
-      },
-    },
     emailAndPassword: {
       enabled: true,
       sendResetPassword: async ({ user, url }) => {
@@ -72,14 +54,31 @@ function createAuth() {
         })
       },
     },
+    // Signing in doesn't need a verified email, only claiming guest orders does.
     emailVerification: {
+      sendOnSignUp: true,
       sendVerificationEmail: async ({ user, url }) => {
-        void getMailer().send("email", {
-          to: user.email,
-          subject: "Confirm your email address",
-          template: "activation",
-          data: { companyName: "Prood", url },
-        })
+        // Sign-up waits for this, and has to work where email isn't configured.
+        try {
+          await getMailer().send("email", {
+            to: user.email,
+            subject: "Confirm your email address",
+            template: "activation",
+            data: { companyName: "Prood", url },
+          })
+        } catch (err) {
+          console.error(`[auth] verification email for ${user.id} failed:`, err)
+        }
+      },
+      afterEmailVerification: async (user) => {
+        try {
+          const linked = await autoLinkGuestCustomers(user.id, user.email)
+          if (linked > 0) {
+            console.log(`[auth] Auto-linked ${linked} guest customer(s) for ${user.id}`)
+          }
+        } catch (err) {
+          console.error("[auth] Guest auto-link failed:", err)
+        }
       },
     },
     baseURL,

@@ -64,9 +64,10 @@ export async function linkAuthUserToCustomer(customerId: string, authUserId: str
 }
 
 /**
- * Auto-link all guest customer rows that match a newly-registered user's email.
+ * Auto-link all guest customer rows that match a user's email. Anyone can sign
+ * up with any address, so call this only once the user has verified it.
  * Runs cross-tenant (no withTenant needed) — a buyer may have guest orders in
- * multiple stores, and all should be linked when they create an account.
+ * multiple stores, and all should be linked when they verify their account.
  */
 export async function autoLinkGuestCustomers(
   authUserId: string,
