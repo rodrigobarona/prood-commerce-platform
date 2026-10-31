@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react"
 import { CheckIcon } from "@phosphor-icons/react"
 import { EmptyState } from "@prood/ui/components/empty-state"
+import { localized } from "@prood/ui/lib/commerce"
 import { cn } from "@prood/ui/lib/utils"
 import { useCart } from "@/components/providers/cart-provider"
 import { startCheckout } from "@/app/(checkout)/checkout/actions"
@@ -11,7 +12,7 @@ import { ContactStep } from "./steps/contact-step"
 import { AddressStep } from "./steps/address-step"
 import { ShippingStep } from "./steps/shipping-step"
 import { ReviewStep } from "./steps/review-step"
-import type { AddressValues, ContactValues, ShippingMethodValues } from "./schemas"
+import type { AddressValues, ContactValues } from "./schemas"
 
 const STEPS = [
   { id: "contact", title: "Contact" },
@@ -23,8 +24,6 @@ const STEPS = [
 interface CheckoutData {
   contact?: ContactValues
   address?: AddressValues & { useSameForBilling?: boolean }
-  shippingMethod?: ShippingMethodValues
-  shippingMethodName?: string
 }
 
 function StepHeader({
@@ -84,7 +83,7 @@ function StepHeader({
 }
 
 export function CheckoutFlow({ geoCountry }: { geoCountry?: string }) {
-  const { cart, hydrating } = useCart()
+  const { cart, hydrating, setShippingMethod } = useCart()
   const [activeStep, setActiveStep] = useState(0)
   const [data, setData] = useState<CheckoutData>({})
 
@@ -137,14 +136,6 @@ export function CheckoutFlow({ geoCountry }: { geoCountry?: string }) {
     goTo(cart?.requiresShipping ? 2 : 3)
   }
 
-  function handleShippingSubmit(values: ShippingMethodValues) {
-    setData((prev) => ({
-      ...prev,
-      shippingMethod: values,
-    }))
-    goTo(3)
-  }
-
   async function handleFinalSubmit() {
     if (!data.contact || !data.address) return
 
@@ -161,7 +152,6 @@ export function CheckoutFlow({ geoCountry }: { geoCountry?: string }) {
         postalCode: data.address.postalCode || undefined,
         country: data.address.country,
       },
-      shippingMethodId: data.shippingMethod?.methodId,
     })
 
     if (!res.ok) {
@@ -180,7 +170,7 @@ export function CheckoutFlow({ geoCountry }: { geoCountry?: string }) {
         if (!data.address) return null
         return `${data.address.firstName} ${data.address.lastName}, ${data.address.city}`
       case 2:
-        return data.shippingMethodName ?? "Selected"
+        return cart?.shippingMethod ? localized(cart.shippingMethod.name) : null
       default:
         return null
     }
@@ -237,8 +227,11 @@ export function CheckoutFlow({ geoCountry }: { geoCountry?: string }) {
                     {i === 2 && (
                       <ShippingStep
                         cartId={cart.id}
-                        defaultValues={data.shippingMethod}
-                        onSubmit={handleShippingSubmit}
+                        defaultValues={
+                          cart.shippingMethod ? { methodId: cart.shippingMethod.id } : undefined
+                        }
+                        onSelect={setShippingMethod}
+                        onSubmit={() => goTo(3)}
                         onBack={() => goTo(1)}
                       />
                     )}
@@ -246,7 +239,8 @@ export function CheckoutFlow({ geoCountry }: { geoCountry?: string }) {
                       <ReviewStep
                         contact={data.contact}
                         address={data.address}
-                        shippingMethodName={data.shippingMethodName}
+                        shippingMethod={cart.shippingMethod}
+                        total={cart.totals.total}
                         onSubmit={handleFinalSubmit}
                         onBack={() => goTo(cart.requiresShipping ? 2 : 1)}
                         onEditStep={goTo}
