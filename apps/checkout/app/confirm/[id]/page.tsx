@@ -4,13 +4,10 @@ import { ConfirmClient } from "./confirm-client"
 
 export default async function ConfirmPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<Record<string, string>>
 }) {
   const { id } = await params
-  const query = await searchParams
 
   return (
     <Suspense
@@ -22,10 +19,7 @@ export default async function ConfirmPage({
         </div>
       }
     >
-      <ConfirmClient
-        sessionId={id}
-        stripeSessionId={query.session_id ?? null}
-      />
+      <ConfirmClient sessionId={id} />
     </Suspense>
   )
 }

@@ -2,9 +2,8 @@ import 'server-only'
 import { CheckoutSession } from '@prood/checkout'
 import type { CheckoutSnapshot } from '@prood/checkout'
 import type { PaymentProvider } from '@prood/types'
-import { getTenantPaymentProvider } from '@prood/commerce'
+import { getTenantPaymentProvider, resolveCheckoutBaseUrl } from '@prood/commerce'
 import { loadSession, saveSession, type SessionMeta } from './session-store'
-import { resolveCheckoutBaseUrl } from './checkout-url'
 
 /** Rebuild a live CheckoutSession from its Redis-stored snapshot. */
 export function hydrateSession(
