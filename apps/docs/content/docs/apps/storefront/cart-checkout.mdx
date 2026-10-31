@@ -110,10 +110,10 @@ After successful payment:
 
 | Error | Handling |
 | --- | --- |
-| Cart not found | BFF creates new cart, retries operation |
-| Out of stock | API returns 409; client shows toast |
+| Cart not found when adding an item | BFF creates a new cart and retries; any other refusal leaves the cart as it was |
+| Out of stock, or more than is left | API returns 422; client shows toast |
 | Invalid coupon | API returns 422; form shows error message |
-| Coupon stops applying (expired, below minimum) | `cart.couponError` says why, the discount is gone, and placing the order is refused until it is removed |
+| Coupon stops applying (expired, below minimum) | `cart.couponError` says why, the discount is gone, and placing the order returns 422 until it is removed. Per-customer limits depend on who is ordering, so they only show up as that 422 |
 | Checkout session creation fails | Server action throws; checkout page shows error |
 | Payment failed | Checkout app shows retry UI; order stays `pending` |
 
