@@ -18,7 +18,13 @@ describe('checkCredentials', () => {
   it('accepts keys Stripe accepts, with a read-only call', async () => {
     const list = vi.fn().mockResolvedValue({ data: [] })
     await expect(provider({}, list).checkCredentials()).resolves.toEqual({ ok: true })
-    expect(list).toHaveBeenCalledWith({ limit: 1 })
+    expect(list).toHaveBeenCalledWith({ limit: 1 }, expect.anything())
+  })
+
+  it('gives up after ten seconds, without retrying', async () => {
+    const list = vi.fn().mockResolvedValue({ data: [] })
+    await provider({}, list).checkCredentials()
+    expect(list).toHaveBeenCalledWith(expect.anything(), { timeout: 10_000, maxNetworkRetries: 0 })
   })
 
   it.each([

@@ -24,6 +24,8 @@ import type {
 
 import type { StripeConfig } from './types.js'
 
+const CHECK_TIMEOUT_MS = 10_000
+
 // ---------------------------------------------------------------------------
 // Currency helpers
 // ---------------------------------------------------------------------------
@@ -314,7 +316,10 @@ export class StripePaymentProvider implements PaymentProvider {
     }
 
     try {
-      await this.stripe.checkout.sessions.list({ limit: 1 })
+      await this.stripe.checkout.sessions.list(
+        { limit: 1 },
+        { timeout: CHECK_TIMEOUT_MS, maxNetworkRetries: 0 },
+      )
       return { ok: true }
     } catch (err) {
       const refused = err instanceof Stripe.errors.StripeAuthenticationError
