@@ -20,6 +20,7 @@ import { Separator } from "@prood/ui/components/separator"
 import {
   SaveForLaterSection,
   cartItemToSaved,
+  savedItemKey,
   useSavedItems,
   type SavedItem,
 } from "@/components/cart/save-for-later"
@@ -54,9 +55,13 @@ export default function CartPage() {
     void removeItem(itemId)
   }
 
-  function handleMoveToCart(saved: SavedItem) {
-    void addItem({ productId: saved.productId, variantId: saved.variantId, quantity: 1 })
-    removeSaved(saved.productId)
+  async function handleMoveToCart(saved: SavedItem) {
+    const added = await addItem({
+      productId: saved.productId,
+      variantId: saved.variantId,
+      quantity: 1,
+    })
+    if (added) removeSaved(savedItemKey(saved))
   }
 
   async function handleApplyCoupon(code: string) {
@@ -148,7 +153,7 @@ export default function CartPage() {
                 <Separator />
                 <SaveForLaterSection
                   items={savedItems}
-                  onMoveToCart={handleMoveToCart}
+                  onMoveToCart={(item) => void handleMoveToCart(item)}
                   onRemove={removeSaved}
                 />
               </>

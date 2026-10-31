@@ -25,6 +25,11 @@ export interface SavedItem {
   savedAt: string
 }
 
+/** Variants of a product are saved separately, as cart lines are. */
+export function savedItemKey(item: Pick<SavedItem, "productId" | "variantId">): string {
+  return `${item.productId}:${item.variantId ?? ""}`
+}
+
 function readSaved(): SavedItem[] {
   if (typeof window === "undefined") return []
   try {
@@ -105,13 +110,13 @@ export function useSavedItems() {
 
   const save = useCallback((item: SavedItem) => {
     const prev = getSavedSnapshot()
-    const exists = prev.some((s) => s.productId === item.productId)
+    const exists = prev.some((s) => savedItemKey(s) === savedItemKey(item))
     if (exists) return
     persistSavedItems([item, ...prev])
   }, [])
 
-  const remove = useCallback((productId: string) => {
-    persistSavedItems(getSavedSnapshot().filter((s) => s.productId !== productId))
+  const remove = useCallback((key: string) => {
+    persistSavedItems(getSavedSnapshot().filter((s) => savedItemKey(s) !== key))
   }, [])
 
   return { items, save, remove }
@@ -120,7 +125,7 @@ export function useSavedItems() {
 interface SavedItemRowProps {
   item: SavedItem
   onMoveToCart: (item: SavedItem) => void
-  onRemove: (productId: string) => void
+  onRemove: (key: string) => void
 }
 
 function SavedItemRow({ item, onMoveToCart, onRemove }: SavedItemRowProps) {
@@ -174,7 +179,7 @@ function SavedItemRow({ item, onMoveToCart, onRemove }: SavedItemRowProps) {
           type="button"
           variant="ghost"
           size="icon"
-          onClick={() => onRemove(item.productId)}
+          onClick={() => onRemove(savedItemKey(item))}
           aria-label="Remove saved item"
         >
           <TrashIcon className="size-4" />
@@ -187,7 +192,7 @@ function SavedItemRow({ item, onMoveToCart, onRemove }: SavedItemRowProps) {
 interface SaveForLaterSectionProps {
   items: SavedItem[]
   onMoveToCart: (item: SavedItem) => void
-  onRemove: (productId: string) => void
+  onRemove: (key: string) => void
 }
 
 export function SaveForLaterSection({
@@ -211,7 +216,7 @@ export function SaveForLaterSection({
       <div className="flex flex-col gap-4 rounded-2xl border p-5">
         {items.map((item) => (
           <SavedItemRow
-            key={item.productId}
+            key={savedItemKey(item)}
             item={item}
             onMoveToCart={onMoveToCart}
             onRemove={onRemove}
