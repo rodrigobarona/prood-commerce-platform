@@ -45,7 +45,10 @@
     "@types/react-dom": "catalog:",
     "eslint": "catalog:",
     "typescript": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "jsdom": "catalog:",
+    "@testing-library/dom": "catalog:",
+    "@testing-library/react": "catalog:"
   },
   "engines": {
     "node": ">=24"

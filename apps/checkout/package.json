@@ -9,7 +9,8 @@
     "start": "next start -p 3004",
     "lint": "eslint --max-warnings 0",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@phosphor-icons/react": "catalog:",
@@ -33,7 +34,11 @@
     "@prood/eslint-config": "workspace:^",
     "@prood/typescript-config": "workspace:*",
     "eslint": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "jsdom": "catalog:",
+    "@testing-library/dom": "catalog:",
+    "@testing-library/react": "catalog:"
   },
   "engines": {
     "node": ">=24"

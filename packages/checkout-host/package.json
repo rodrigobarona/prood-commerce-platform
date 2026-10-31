@@ -11,7 +11,8 @@
     "./reconcile": "./src/reconcile.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@prood/checkout": "workspace:*",
@@ -28,6 +29,7 @@
     "@types/node": "catalog:",
     "@prood/typescript-config": "workspace:*",
     "next": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }
