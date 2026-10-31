@@ -26,7 +26,7 @@ export interface StartCheckoutInput {
 export async function startCheckout(input: StartCheckoutInput): Promise<CheckoutResult> {
   try {
     const cartId = await getCartId()
-    if (!cartId) return { ok: false, error: "No active cart" }
+    if (!cartId) return { ok: false, error: "Your cart is empty." }
 
     const checkoutUrl = process.env.CHECKOUT_URL
     const checkoutSecret = process.env.CHECKOUT_API_SECRET
