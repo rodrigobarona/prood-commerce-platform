@@ -28,8 +28,8 @@ export function ProductGrid({
   columns = 4,
   locale = "en",
   onAddToCart,
-  emptyTitle = "No products found",
-  emptyDescription = "Try adjusting your filters or search.",
+  emptyTitle = "No products yet",
+  emptyDescription = "This store is adding products. Check back soon.",
   className,
 }: ProductGridProps) {
   if (products.length === 0) {

@@ -64,4 +64,10 @@ describe("ConnectedProductGrid", () => {
     render(<ConnectedProductGrid products={[product]} />)
     expect(screen.queryByRole("button", { name: "Add to cart" })).toBeNull()
   })
+
+  it("says an empty store is adding products, not that a filter is wrong", () => {
+    const { container } = render(<ConnectedProductGrid products={[]} />)
+    expect(container.textContent).toContain("This store is adding products. Check back soon.")
+    expect(container.textContent).not.toContain("filters")
+  })
 })

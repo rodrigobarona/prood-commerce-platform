@@ -5,10 +5,10 @@ import { Button } from "@prood/ui/components/button"
 
 export default function Error({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string }
-  reset: () => void
+  retry: () => void
 }) {
   useEffect(() => {
     console.error(error)
@@ -18,9 +18,9 @@ export default function Error({
     <div className="mx-auto flex max-w-md flex-col items-center gap-4 px-4 py-24 text-center">
       <h1 className="text-2xl font-bold">Something went wrong</h1>
       <p className="text-muted-foreground text-sm">
-        {error.message || "An unexpected error occurred."}
+        We couldn&apos;t load this page. Try again in a moment.
       </p>
-      <Button onClick={reset}>Try again</Button>
+      <Button onClick={() => retry()}>Try again</Button>
     </div>
   )
 }
