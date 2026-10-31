@@ -162,7 +162,7 @@ export const updateStoreBody = z.object({
   currency: z.string().optional(),
   locale: z.string().optional(),
   timezone: z.string().optional(),
-  country: z.string().length(2).toUpperCase().optional(),
+  country: z.string().regex(/^[A-Za-z]{2}$/, "Use a two-letter country code, like PT.").toUpperCase().optional(),
   contactEmail: z.email().optional(),
   contactPhone: z.string().optional(),
   address: z.string().optional(),

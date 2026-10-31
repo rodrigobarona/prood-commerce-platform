@@ -159,6 +159,9 @@ export function SettingsForm({ initial }: { initial: SettingsFormValues }) {
                 id="country"
                 maxLength={2}
                 value={values.country}
+                required
+                pattern="[A-Za-z]{2}"
+                title="Use a two-letter country code, like PT."
                 onChange={(event) => set("country", event.target.value)}
               />
             </div>

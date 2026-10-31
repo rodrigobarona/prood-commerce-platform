@@ -928,13 +928,12 @@ dialog, sheet, popover, dropdown-menu, command, tooltip, table, pagination,
 breadcrumb, sidebar, scroll-area, empty-state, sonner
 
 **Commerce-specific (33+):** product-card, product-grid, product-gallery,
-product-price, product-options, product-type-badge, category-filter, cart-item,
+product-price, product-type-badge, category-filter, cart-item,
 cart-drawer, cart-summary, quantity-selector, coupon-input, free-shipping-bar,
 address-form, checkout-header, checkout-footer, checkout-stepper, order-card,
 order-timeline, review-stars, review-card, wishlist-grid, search-palette,
 hero-banner, promo-banner
 
-**Specialized product types:** event-card, subscription-card
 
 **Utility exports:**
 - `@prood/ui/lib/utils` — `cn()` class merging
@@ -1011,7 +1010,7 @@ The commerce data model follows an e-commerce standard with product-centric
 catalog, cart-to-order conversion, and customer identity management.
 
 **Catalog domain:**
-- Products have images, variants, options (with values), attributes, tags
+- Products have images, variants, attributes, tags
 - Products belong to categories (many-to-many) and brands
 - Categories form a tree via `parent_id`
 

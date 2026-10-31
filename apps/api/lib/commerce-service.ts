@@ -26,6 +26,7 @@ import {
   verifyPaymentWebhook,
   getTenantPaymentProvider,
   revalidateProducts,
+  revalidateStore,
 } from "@prood/commerce"
 import type { CheckoutAddress, PaymentEventInput, PaymentEventResult } from "@prood/types"
 import { getStorefrontIdentity } from "@prood/platform"
@@ -336,8 +337,11 @@ export const admin = {
     withTenant(orgId, async () => (await getAdmin()).getCustomer(id)),
   getStoreSettings: (orgId: string) =>
     withTenant(orgId, async () => (await getAdmin()).getStoreSettings()),
-  updateStoreSettings: (orgId: string, input: UpdateStoreInput) =>
-    withTenant(orgId, async () => (await getAdmin()).updateStoreSettings(input)),
+  updateStoreSettings: async (orgId: string, input: UpdateStoreInput) => {
+    const settings = await withTenant(orgId, async () => (await getAdmin()).updateStoreSettings(input))
+    revalidateStore(orgId)
+    return settings
+  },
   updateInventory: (orgId: string, input: UpdateInventoryInput) =>
     withTenant(orgId, async () => (await getAdmin()).updateInventory(input)),
   dashboardStats: (orgId: string) =>

@@ -15,6 +15,11 @@ export function revalidateCategories(tenantId?: string): void {
   revalidateTag(scoped('categories', tenantId), 'max')
 }
 
+/** Background SWR invalidation for store metadata. */
+export function revalidateStore(tenantId?: string): void {
+  revalidateTag(scoped('store', tenantId), 'max')
+}
+
 /** Invalidate both catalog tags (admin bulk updates, deploy hooks). */
 export function revalidateCatalog(tenantId?: string): void {
   revalidateProducts(tenantId)
