@@ -1121,6 +1121,56 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     expect(cancelled.status).toBe('cancelled')
   })
 
+  describe('status races', () => {
+    it('gives a coupon use back once when two cancels race', async () => {
+      await seedCoupon('RACED')
+      const place = async () => {
+        const cart = await readyCart()
+        await adapter.applyCoupon(cart.id, 'RACED')
+        return adapter.placeOrder(cart.id)
+      }
+      const order = await place()
+      await place()
+      expect(await timesUsed('RACED')).toBe(2)
+
+      await Promise.all([adapter.cancelOrder(order.id), adapter.cancelOrder(order.id)])
+
+      expect((await adapter.getOrder(order.id)).status).toBe('cancelled')
+      expect(await timesUsed('RACED')).toBe(1)
+      const history = await adapter.getOrderHistory(order.id)
+      expect(history.filter(entry => entry.action === 'cancelled')).toHaveLength(1)
+    })
+
+    it('refuses a cancel that lost to a capture, and leaves the capture alone', async () => {
+      const order = await directOrder()
+      let commitCapture = () => {}
+      const held = new Promise<void>(resolve => { commitCapture = resolve })
+      let captureWritten = () => {}
+      const written = new Promise<void>(resolve => { captureWritten = resolve })
+
+      // Hold the capture's row lock so the cancel reads 'placed', then waits on the update.
+      const capturing = withTenant(DEMO_ORG_ID, async () => {
+        await getDb().execute(sql`
+          update orders set status = 'approved', payment_status = 'paid' where id = ${order.id}
+        `)
+        captureWritten()
+        await held
+      })
+      await written
+      const cancelling = adapter.cancelOrder(order.id)
+      const refused = expect(cancelling).rejects.toMatchObject({
+        statusCode: 409,
+        message: expect.stringContaining('It is now approved with payment paid'),
+      })
+      await new Promise(resolve => setTimeout(resolve, 2_000))
+      commitCapture()
+      await capturing
+      await refused
+
+      expect(await adapter.getOrder(order.id)).toMatchObject({ status: 'approved', paymentStatus: 'paid' })
+    })
+  })
+
   it('should duplicate an order', async () => {
     const order = await directOrder()
     const dup = await adapter.duplicateOrder(order.id)

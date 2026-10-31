@@ -5927,6 +5927,22 @@ export interface operations {
                     };
                 };
             };
+            /** @description The order changed while cancelling */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
             /** @description Validation error */
             422: {
                 headers: {

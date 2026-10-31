@@ -23,7 +23,6 @@ import {
   countOrdersForCustomer,
   findOrderHistory,
   transitionOrderPayment,
-  updateOrder,
 } from '../database/index.js'
 import { getStoreCurrency } from '../tenant/store-info.js'
 import { requireSellable } from './availability.js'
@@ -159,7 +158,18 @@ export function createOrdersDomain() {
       if (input.status === 'cancelled' && !order.cancelledAt) updates.cancelledAt = now
       if (input.status === 'fulfilled' && !order.fulfilledAt) updates.fulfilledAt = now
 
-      await updateOrder(orderId, updates)
+      if (!(await transitionOrderPayment(orderId, [order.paymentStatus], order.status, updates))) {
+        // The order moved since it was read: never apply this on top of that.
+        const current = await findOrderById(orderId)
+        if (current?.status === input.status) return
+        throw new CommerceError(
+          `Order ${order.orderNumber} changed while this update ran. ` +
+            `It is now ${current?.status} with payment ${current?.paymentStatus}. Review it and try again.`,
+          'VALIDATION',
+          409,
+        )
+      }
+
       if (input.status === 'cancelled' && order.status !== 'cancelled' && order.couponCode) {
         await releaseCoupon(order.couponCode)
       }

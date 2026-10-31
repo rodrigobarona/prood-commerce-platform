@@ -425,6 +425,9 @@ export function buildOpenApiDocument() {
         scope: "admin",
         body: cancelOrderBody,
         response: responses.successBody,
+        responses: {
+          "409": { description: "The order changed while cancelling", schema: responses.errorBody },
+        },
       }),
       "/admin/orders/{id}/history": pathItem("GET", "Get order history", "adminGetOrderHistory", {
         pathTemplate: "/admin/orders/{id}/history",
