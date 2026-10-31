@@ -51,6 +51,10 @@ function resolveConfig(config: CheckoutSessionConfig): ResolvedCheckoutConfig {
   }
 }
 
+function withoutNulls(data: Record<string, unknown> | null): Record<string, unknown> {
+  return Object.fromEntries(Object.entries(data ?? {}).filter(([, value]) => value !== null && value !== undefined))
+}
+
 // ---------------------------------------------------------------------------
 // CheckoutSession
 // ---------------------------------------------------------------------------
@@ -386,15 +390,17 @@ export class CheckoutSession extends EventEmitter<CheckoutEvents> {
       throw err
     }
 
-    // Provider views can omit what only creation knows, such as the reference.
-    const providerData = { ...this._paymentSession?.providerData, ...confirmed.providerData }
+    // Provider views can omit what only creation knows, such as the reference
+    // or the hosted page, and an omitted field is not a cleared one.
+    const stored = this._paymentSession
     this._paymentSession = {
       ...confirmed,
-      method: this._paymentSession?.method ?? confirmed.method,
-      amount: this._paymentSession?.amount ?? confirmed.amount,
-      currency: this._paymentSession?.currency ?? confirmed.currency,
-      createdAt: this._paymentSession?.createdAt ?? confirmed.createdAt,
-      providerData,
+      method: stored?.method ?? confirmed.method,
+      amount: stored?.amount ?? confirmed.amount,
+      currency: stored?.currency ?? confirmed.currency,
+      createdAt: stored?.createdAt ?? confirmed.createdAt,
+      redirectUrl: confirmed.redirectUrl ?? stored?.redirectUrl ?? null,
+      providerData: { ...stored?.providerData, ...withoutNulls(confirmed.providerData) },
     }
 
     if (confirmed.status === 'captured') {

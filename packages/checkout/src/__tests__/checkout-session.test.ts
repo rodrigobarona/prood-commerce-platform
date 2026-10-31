@@ -342,6 +342,46 @@ describe('CheckoutSession', () => {
       })
     })
 
+    it('keeps the hosted page and reference when the provider view has them as null', async () => {
+      const createSession = vi.fn().mockResolvedValue(mockPaymentSession({
+        method: 'card',
+        status: 'requires_action',
+        redirectUrl: 'https://pay.example/card',
+        providerData: { entity: '11111', reference: '123456789' },
+      }))
+      const confirmSession = vi.fn().mockResolvedValue(mockPaymentSession({
+        amount: 0,
+        redirectUrl: null,
+        providerData: { entity: null, reference: null, easypayStatus: 'pending' },
+      }))
+      session = new CheckoutSession(defaultConfig({
+        paymentProvider: mockProvider({ createSession, confirmSession }),
+      }))
+      session.setCustomerInfo({ email: 'ali@example.com' })
+      session.setShippingAddress(address)
+      await session.submitPayment()
+      await session.confirmPayment()
+
+      expect(session.state).toBe('payment')
+      expect(session.paymentSession).toMatchObject({
+        redirectUrl: 'https://pay.example/card',
+        providerData: { entity: '11111', reference: '123456789', easypayStatus: 'pending' },
+      })
+    })
+
+    it('takes what the provider does report', async () => {
+      const confirmSession = vi.fn().mockResolvedValue(mockPaymentSession({
+        redirectUrl: 'https://pay.example/new',
+      }))
+      session = new CheckoutSession(defaultConfig({ paymentProvider: mockProvider({ confirmSession }) }))
+      session.setCustomerInfo({ email: 'ali@example.com' })
+      session.setShippingAddress(address)
+      await session.submitPayment()
+      await session.confirmPayment()
+
+      expect(session.paymentSession?.redirectUrl).toBe('https://pay.example/new')
+    })
+
     it('uses stored session ID if none provided', async () => {
       const confirmSession = vi.fn().mockResolvedValue(
         mockPaymentSession({ status: 'captured' }),
