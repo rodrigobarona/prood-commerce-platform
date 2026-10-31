@@ -82,8 +82,8 @@ Commerce tables carry `organization_id` and a `tenant_isolation` RLS policy.
 `withTenant(orgId, fn)` opens a transaction, sets `app.current_org_id` and runs
 `SET LOCAL ROLE prood_app` (NOLOGIN, NOBYPASSRLS, DML grants only), so queries
 on those tables are filtered by the policy even though the connecting role
-bypasses RLS. Auth-owned tables such as `member` and `integration_config` have
-no policy, so always filter them by organization. Code outside `withTenant()` (migrations, seed, tenant resolution
+bypasses RLS. `prood_app` has no access to auth-owned tables at all; they are
+read through the connecting role, so always filter those by organization. Code outside `withTenant()` (migrations, seed, tenant resolution
 from the host, Better Auth) runs as the connecting role.
 
 ## Deployment

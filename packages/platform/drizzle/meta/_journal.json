@@ -43,6 +43,13 @@
       "when": 1793348648452,
       "tag": "0005_order_records",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793436285776,
+      "tag": "0006_auth_tables_private",
+      "breakpoints": true
     }
   ]
 }
