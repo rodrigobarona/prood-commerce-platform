@@ -7,6 +7,7 @@ import { Label } from "@prood/ui/components/label"
 import { RadioGroup, RadioGroupItem } from "@prood/ui/components/radio-group"
 import { Skeleton } from "@prood/ui/components/skeleton"
 import { toPortugueseMobile, type PaymentMethodKind } from "@prood/types"
+import { storeUrl } from "@/lib/store-url"
 import { useCheckoutContext } from "./checkout-context"
 import { MbWayPayment, type MbWayEnd } from "./mbway-payment"
 import { StripePayment } from "./stripe-payment"
@@ -63,11 +64,20 @@ interface SessionData {
   } | null
 }
 
-function Notice({ title, children }: { title: string; children: React.ReactNode }) {
+function Notice({
+  title,
+  children,
+  action,
+}: {
+  title: string
+  children: React.ReactNode
+  action?: React.ReactNode
+}) {
   return (
     <div className="flex flex-col items-center gap-3 text-center">
       <h2 className="text-lg font-semibold">{title}</h2>
       <p className="text-muted-foreground text-sm">{children}</p>
+      {action}
     </div>
   )
 }
@@ -133,9 +143,11 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
     }
   }, [expiresAt])
 
-  const handleMbWayEnd = useCallback((end: MbWayEnd) => {
+  const handleMbWayEnd = useCallback((end: MbWayEnd, payable?: boolean) => {
     setNotice(end === "timed_out" ? TIMED_OUT_NOTICE : FAILED_NOTICE)
-    setData((prev) => (prev ? { ...prev, state: "failed" } : prev))
+    setData((prev) =>
+      prev ? { ...prev, state: "failed", payable: payable ?? prev.payable } : prev,
+    )
   }, [])
 
   async function handlePay(chosen: PaymentMethodKind) {
@@ -160,6 +172,12 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
           method: chosen,
         }),
       })
+      if (res.status === 409) {
+        // The order stopped waiting for payment, so another try can't work.
+        setData((prev) => (prev ? { ...prev, payable: false } : prev))
+        setPaying(false)
+        return
+      }
       if (!res.ok) {
         setPayError(PAY_ERROR)
         setPaying(false)
@@ -258,8 +276,18 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
   }
 
   if (!data.payable) {
+    const backToStore = storeUrl(data)
     return (
-      <Notice title="This order can&apos;t be paid">
+      <Notice
+        title="This order can&apos;t be paid"
+        action={
+          backToStore ? (
+            <Button asChild variant="outline" className="mt-1">
+              <a href={backToStore}>Back to the store</a>
+            </Button>
+          ) : null
+        }
+      >
         It&apos;s no longer waiting for payment. Contact the store for help.
       </Notice>
     )

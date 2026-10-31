@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Button } from "@prood/ui/components/button"
+import { storeUrl } from "@/lib/store-url"
 
 type ConfirmStatus = "loading" | "complete" | "pending" | "failed" | "closed" | "unknown"
 
@@ -19,13 +20,6 @@ function statusFor(result: ConfirmResult): ConfirmStatus {
   if (result.state === "payment" || result.state === "confirming") return "pending"
   // Nothing was started, so there's nothing to confirm yet.
   return "failed"
-}
-
-function storeUrl(result: ConfirmResult): string | null {
-  if (!result.returnUrl) return null
-  const url = new URL(result.returnUrl)
-  if (result.orderId) url.searchParams.set("orderId", result.orderId)
-  return url.toString()
 }
 
 function Panel({

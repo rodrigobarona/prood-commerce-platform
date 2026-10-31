@@ -22,7 +22,8 @@ export function MbWayPayment({
   sessionId: string
   phone?: string
   startedAt: string
-  onEnd: (end: MbWayEnd) => void
+  /** `payable` is what the check found; a timeout didn't ask. */
+  onEnd: (end: MbWayEnd, payable?: boolean) => void
 }) {
   const deadline = new Date(startedAt).getTime() + MBWAY_WINDOW_MS + GRACE_MS
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null)
@@ -48,9 +49,9 @@ export function MbWayPayment({
         const res = await fetch(`/api/sessions/${sessionId}/confirm`, { method: "POST" })
         // A failed check says nothing about the payment: keep waiting.
         if (!res.ok || !active) return
-        const { state } = (await res.json()) as { state: string }
+        const { state, payable } = (await res.json()) as { state: string; payable: boolean }
         if (state === "complete") window.location.href = `/confirm/${sessionId}`
-        if (state === "failed") onEnd("failed")
+        if (state === "failed") onEnd("failed", payable)
       } catch {
         // Same: the next check decides.
       }
