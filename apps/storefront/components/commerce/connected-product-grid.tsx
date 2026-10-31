@@ -9,11 +9,15 @@ export function ConnectedProductGrid({
   columns = 4,
   emptyTitle,
   emptyDescription,
+  emptyActionLabel,
+  emptyActionHref,
 }: {
   products: Product[]
   columns?: 2 | 3 | 4 | 5 | 6
   emptyTitle?: string
   emptyDescription?: string
+  emptyActionLabel?: string
+  emptyActionHref?: string
 }) {
   const { addProduct, canTakeOrders } = useCart()
   return (
@@ -23,6 +27,8 @@ export function ConnectedProductGrid({
       onAddToCart={canTakeOrders ? addProduct : undefined}
       emptyTitle={emptyTitle}
       emptyDescription={emptyDescription}
+      emptyActionLabel={emptyActionLabel}
+      emptyActionHref={emptyActionHref}
     />
   )
 }

@@ -102,6 +102,17 @@ describe("the products page", () => {
   })
 })
 
+describe("a page past the end of the products", () => {
+  it("links back to the first page of the same search", async () => {
+    mocks.fetchProductList.mockResolvedValue({ products: { items: [], total: 30 } })
+    render(await products({ q: "taça", page: "9" }))
+    expect(screen.getByText("No more products")).toBeTruthy()
+    expect(screen.getByRole("link", { name: "Go to page 1" }).getAttribute("href")).toBe(
+      "/products?q=ta%C3%A7a&page=1",
+    )
+  })
+})
+
 describe("the error page", () => {
   it("shows shoppers a calm sentence, not the raw error", () => {
     vi.spyOn(console, "error").mockImplementation(() => {})

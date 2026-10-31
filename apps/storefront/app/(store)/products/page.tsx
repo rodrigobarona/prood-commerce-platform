@@ -68,7 +68,12 @@ export default async function ProductsPage({
       <ConnectedProductGrid
         products={products}
         columns={4}
-        {...productListEmptyCopy({ query: sp.q, categoryId: sp.category, total })}
+        {...productListEmptyCopy({
+          query: sp.q,
+          categoryId: sp.category,
+          total,
+          firstPageHref: buildHref(1),
+        })}
       />
 
       {(page > 1 || hasMore) && products.length > 0 ? (
