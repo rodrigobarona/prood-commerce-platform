@@ -34,7 +34,7 @@ function connect(overrides: Partial<PaymentProvider> = {}) {
     id: "stripe",
     name: "Stripe",
     refundableMethods: ["card"],
-    refund: vi.fn().mockResolvedValue({}),
+    refund: vi.fn().mockResolvedValue(undefined),
   }
   mocks.getTenantPaymentProvider.mockResolvedValue({ provider: { ...provider, ...overrides } })
   return provider
@@ -55,7 +55,6 @@ describe("refundOrder", () => {
     const order: string[] = []
     provider.refund.mockImplementation(async () => {
       order.push("money")
-      return {}
     })
     mocks.recordRefund.mockImplementation(async () => {
       order.push("record")

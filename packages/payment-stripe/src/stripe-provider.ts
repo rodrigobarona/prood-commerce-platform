@@ -248,7 +248,7 @@ export class StripePaymentProvider implements PaymentProvider {
 
   // ---- Post-payment operations ----------------------------------------------
 
-  async refund(input: RefundInput): Promise<PaymentSession> {
+  async refund(input: RefundInput): Promise<void> {
     const session = await this.stripe.checkout.sessions.retrieve(input.sessionId)
     const piId = getPaymentIntentId(session)
     if (!piId) throw new Error(`Checkout Session ${input.sessionId} has no PaymentIntent to refund`)
@@ -263,8 +263,6 @@ export class StripePaymentProvider implements PaymentProvider {
       },
       input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : undefined,
     )
-
-    return this.getSession(input.sessionId)
   }
 
   async captureSession(sessionId: string, amount?: number): Promise<PaymentSession> {
