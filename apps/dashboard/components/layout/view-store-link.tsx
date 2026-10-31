@@ -9,7 +9,7 @@ import { getStoreSettings } from "@/lib/admin-api"
 export async function ViewStoreLink() {
   // A sidebar link isn't worth failing every dashboard page over.
   const store = await getStoreSettings().catch(() => null)
-  if (!store) return null
+  if (!store?.url) return null
 
   return (
     <SidebarMenu>

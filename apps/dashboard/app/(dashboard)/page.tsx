@@ -15,6 +15,7 @@ import {
 } from "@/components/skeletons"
 import { CopyStoreLink } from "@/components/overview/copy-store-link"
 import { SetupChecklist } from "@/components/overview/setup-checklist"
+import { canManageStore } from "@/lib/admin"
 import { getDashboardStats, getStoreSettings } from "@/lib/admin-api"
 import { setupChecklist } from "@/lib/setup-checklist"
 
@@ -70,8 +71,8 @@ export default function OverviewPage() {
 }
 
 async function StoreSetup() {
-  const overview = await loadOverview()
-  if (!overview) return null
+  const [overview, canManage] = await Promise.all([loadOverview(), canManageStore()])
+  if (!overview || !canManage) return null
   const { stats, settings } = overview
   const progress = { ...stats, hasContactEmail: Boolean(settings.contactEmail) }
   return <SetupChecklist items={setupChecklist(progress, settings.url)} />
@@ -154,7 +155,7 @@ async function RecentOrders() {
             title="No orders yet"
             description="Orders show up here as soon as a customer checks out. Share your store link to get the first one."
           >
-            <CopyStoreLink url={overview.settings.url} />
+            {overview.settings.url ? <CopyStoreLink url={overview.settings.url} /> : null}
           </DashboardEmpty>
         )}
       </CardContent>

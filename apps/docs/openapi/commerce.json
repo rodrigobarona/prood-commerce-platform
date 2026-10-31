@@ -21936,8 +21936,11 @@
                       "type": "boolean"
                     },
                     "url": {
-                      "type": "string",
-                      "description": "Public origin of the store: its primary verified domain, or its slug subdomain."
+                      "description": "Public origin of the store: its primary verified domain, or its slug subdomain. Null if it couldn't be read.",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     }
                   },
                   "required": [

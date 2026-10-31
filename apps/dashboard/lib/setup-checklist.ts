@@ -20,7 +20,7 @@ export interface SetupProgress {
 }
 
 /** What's left before a store can sell. Only published products count: customers can't buy a draft. */
-export function setupChecklist(progress: SetupProgress, storeUrl: string): SetupItem[] {
+export function setupChecklist(progress: SetupProgress, storeUrl: string | null): SetupItem[] {
   const hasDraft = progress.totalProducts > 0
   const canBuy = progress.activeProducts > 0 && progress.canTakeOrders
   return [
@@ -58,9 +58,9 @@ export function setupChecklist(progress: SetupProgress, storeUrl: string): Setup
         : "Publish a product and connect a payment provider first.",
       done: progress.paidOrders > 0,
       action: "Open your store",
-      href: storeUrl,
+      href: storeUrl ?? "",
       external: true,
-      blocked: !canBuy,
+      blocked: !canBuy || !storeUrl,
     },
   ]
 }

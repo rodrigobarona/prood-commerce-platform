@@ -57,7 +57,7 @@ export default async function OrderConfirmationPage({
   const copy = orderStatusCopy(paymentState, {
     couldNotOpenPayment: sp.payment === "failed",
     orderNumber: order.orderNumber,
-    contactEmail: store?.contactEmail ?? null,
+    contactEmail: store ? store.contactEmail : undefined,
   })
   const customerEmail = sp.email ?? undefined
   const customerName = [order.shippingAddress?.firstName, order.shippingAddress?.lastName]

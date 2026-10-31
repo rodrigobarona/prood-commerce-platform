@@ -462,7 +462,8 @@ export const adminStoreSettings = z.object({
 export const adminStore = adminStoreSettings.extend({
   url: z
     .string()
-    .describe("Public origin of the store: its primary verified domain, or its slug subdomain."),
+    .nullable()
+    .describe("Public origin of the store: its primary verified domain, or its slug subdomain. Null if it couldn't be read."),
 })
 
 export const adminDashboardStats = z.object({

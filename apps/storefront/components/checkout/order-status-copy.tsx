@@ -4,7 +4,8 @@ import type { OrderPaymentState } from "@prood/types"
 interface OrderStatusContext {
   couldNotOpenPayment: boolean
   orderNumber: string
-  contactEmail: string | null
+  /** `undefined` when the store couldn't be read, which isn't the same as none listed. */
+  contactEmail: string | null | undefined
 }
 
 interface OrderStatusCopy {
@@ -30,6 +31,8 @@ export function orderStatusCopy(
   state: OrderPaymentState,
   { couldNotOpenPayment, orderNumber, contactEmail }: OrderStatusContext,
 ): OrderStatusCopy {
+  const noEmail =
+    contactEmail === null ? "This store hasn't listed a contact email." : "Contact the store if you have any questions."
   const contact = contactEmail ? (
     <EmailStore orderNumber={orderNumber} contactEmail={contactEmail} />
   ) : null
@@ -49,7 +52,7 @@ export function orderStatusCopy(
                 We couldn&apos;t open payment. Your order is saved. {contact} with order #{orderNumber}.
               </>
             ) : (
-              `We couldn't open payment. Your order #${orderNumber} is saved and the store can see it, but it hasn't listed a contact email. Keep this number.`
+              `We couldn't open payment. Your order #${orderNumber} is saved and the store can see it. ${noEmail} Keep this number.`
             ),
           }
         : {
@@ -77,7 +80,7 @@ export function orderStatusCopy(
         detail: contact ? (
           <>{contact} if you have any questions.</>
         ) : (
-          "This store hasn't listed a contact email."
+          noEmail
         ),
       }
     case "partially_refunded":

@@ -514,11 +514,15 @@ export const admin = {
   getCustomer: (orgId: string, id: string) =>
     withTenant(orgId, async () => (await getAdmin()).getCustomer(id)),
   getStoreSettings: async (orgId: string) => {
-    const [settings, store] = await Promise.all([
-      withTenant(orgId, async () => (await getAdmin()).getStoreSettings()),
-      getStorefrontIdentity(orgId, storefrontUrl()),
-    ])
-    return { ...settings, url: store.origin }
+    const settings = await withTenant(orgId, async () => (await getAdmin()).getStoreSettings())
+    // The address is only for display, so it can't take the settings down with it.
+    const url = await getStorefrontIdentity(orgId, storefrontUrl())
+      .then((store) => store.origin)
+      .catch((err: unknown) => {
+        console.error(`[store] no address for ${orgId}`, err)
+        return null
+      })
+    return { ...settings, url }
   },
   updateStoreSettings: async (orgId: string, input: UpdateStoreInput) => {
     const settings = await withTenant(orgId, async () =>

@@ -6500,8 +6500,8 @@ export interface operations {
                             [key: string]: string;
                         } | null;
                         currencyLocked: boolean;
-                        /** @description Public origin of the store: its primary verified domain, or its slug subdomain. */
-                        url: string;
+                        /** @description Public origin of the store: its primary verified domain, or its slug subdomain. Null if it couldn't be read. */
+                        url: string | null;
                     };
                 };
             };

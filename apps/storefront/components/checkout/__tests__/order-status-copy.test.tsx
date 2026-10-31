@@ -24,12 +24,18 @@ describe("orderStatusCopy", () => {
     )
   })
 
+  it("doesn't say a store has no email when the store couldn't be read", () => {
+    expect(detail({ kind: "refunded" }, { contactEmail: undefined })).toBe(
+      "Contact the store if you have any questions.",
+    )
+  })
+
   describe("for a store with no contact email", () => {
     const noEmail = { contactEmail: null }
 
     it("gives the shopper their order number without sending them to contact anyone", () => {
       expect(detail({ kind: "awaiting_payment" }, noEmail)).toBe(
-        "We couldn't open payment. Your order #1042 is saved and the store can see it, but it hasn't listed a contact email. Keep this number.",
+        "We couldn't open payment. Your order #1042 is saved and the store can see it. This store hasn't listed a contact email. Keep this number.",
       )
     })
 
