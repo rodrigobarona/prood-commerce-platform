@@ -50,6 +50,18 @@ describe('orderOutcome', () => {
     expect(orderOutcome({ status: 'cancelled', paymentStatus: 'unpaid' })).toEqual({ state: 'failed', payable: false })
   })
 
+  it('waits on authorized funds, in step with orderPaymentState', () => {
+    const authorized = { status: 'placed', paymentStatus: 'authorized', paymentDetails: null } as const
+    expect(orderOutcome(authorized)).toEqual({ state: 'pending', payable: false })
+    expect(orderPaymentState(authorized).kind).toBe('awaiting_payment')
+  })
+
+  it('treats authorized funds on a cancelled order as failed, in both', () => {
+    const cancelled = { status: 'cancelled', paymentStatus: 'authorized', paymentDetails: null } as const
+    expect(orderOutcome(cancelled)).toEqual({ state: 'failed', payable: false })
+    expect(orderPaymentState(cancelled).kind).toBe('failed')
+  })
+
   it('keeps sessions without an order payable', () => {
     expect(orderOutcome(null)).toEqual({ state: null, payable: true })
   })

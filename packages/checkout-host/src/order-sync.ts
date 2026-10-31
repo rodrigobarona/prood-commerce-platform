@@ -14,7 +14,7 @@ export async function loadSessionOrder(meta: SessionMeta): Promise<Order | null>
 /** Move a session to the outcome its order already reached. */
 export function syncSessionWithOrder(session: CheckoutSession, outcome: OrderOutcome): void {
   const payment = session.paymentSession
-  if (!payment || !outcome.state || session.state === outcome.state) return
+  if (!payment || !outcome.state || outcome.state === 'pending' || session.state === outcome.state) return
   session.handleWebhookUpdate({
     ...payment,
     status: outcome.state === 'complete' ? 'captured' : 'failed',

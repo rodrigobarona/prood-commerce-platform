@@ -235,6 +235,14 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
     return <Notice title="Payment complete">Thank you for your purchase.</Notice>
   }
 
+  if (data.state === "pending") {
+    return (
+      <Notice title="Payment pending">
+        We&apos;re waiting for your payment. We&apos;ll email you when it arrives.
+      </Notice>
+    )
+  }
+
   const formatted = formatAmount(data.amount, data.currency)
   const started = data.state === "payment" ? data.paymentSession : null
   const startedData = started?.providerData

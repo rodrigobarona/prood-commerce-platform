@@ -13,8 +13,9 @@ interface ConfirmResult {
   orderId: string | null
 }
 
-function statusFor(result: ConfirmResult): ConfirmStatus {
+export function statusFor(result: Pick<ConfirmResult, "state" | "payable">): ConfirmStatus {
   if (result.state === "complete") return "complete"
+  if (result.state === "pending") return "pending"
   if (!result.payable) return "closed"
   if (result.state === "failed") return "failed"
   if (result.state === "payment" || result.state === "confirming") return "pending"
