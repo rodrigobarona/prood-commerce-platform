@@ -19,7 +19,6 @@ export interface CheckoutResult {
 export interface StartCheckoutInput {
   email?: string
   address?: Partial<CheckoutAddress>
-  shippingMethodId?: string
   providerId?: string
 }
 
@@ -62,15 +61,6 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
         api.PUT("/carts/{id}/billing-address", {
           params: { path: { id: cartId } },
           body: addressBody,
-        })
-      )
-    }
-
-    if (input.shippingMethodId) {
-      await unwrap(
-        api.PATCH("/carts/{id}/shipping-method", {
-          params: { path: { id: cartId } },
-          body: { methodId: input.shippingMethodId },
         })
       )
     }

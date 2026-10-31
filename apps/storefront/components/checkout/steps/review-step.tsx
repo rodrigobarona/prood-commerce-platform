@@ -3,13 +3,16 @@
 import { useState } from "react"
 import Link from "next/link"
 import { SpinnerGapIcon } from "@phosphor-icons/react"
+import type { Price, ShippingMethod } from "@prood/types"
 import { Button } from "@prood/ui/components/button"
+import { formatPrice, localized } from "@prood/ui/lib/commerce"
 import type { ContactValues, AddressValues } from "../schemas"
 
 interface ReviewStepProps {
   contact: ContactValues
   address: AddressValues
-  shippingMethodName?: string
+  shippingMethod: ShippingMethod | null
+  total: Price
   onSubmit: () => Promise<void>
   onBack: () => void
   onEditStep: (step: number) => void
@@ -44,7 +47,8 @@ function SectionSummary({
 export function ReviewStep({
   contact,
   address,
-  shippingMethodName,
+  shippingMethod,
+  total,
   onSubmit,
   onBack,
   onEditStep,
@@ -84,11 +88,21 @@ export function ReviewStep({
         <p>{address.country}</p>
       </SectionSummary>
 
-      {shippingMethodName ? (
+      {shippingMethod ? (
         <SectionSummary title="Shipping method" onEdit={() => onEditStep(2)}>
-          <p>{shippingMethodName}</p>
+          <p className="flex justify-between gap-3">
+            <span>{localized(shippingMethod.name)}</span>
+            <span className="text-foreground">
+              {shippingMethod.price.amount === 0 ? "Free" : formatPrice(shippingMethod.price)}
+            </span>
+          </p>
         </SectionSummary>
       ) : null}
+
+      <div className="flex justify-between px-1 text-base font-semibold">
+        <span>Total</span>
+        <span>{formatPrice(total)}</span>
+      </div>
 
       {error ? (
         <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
