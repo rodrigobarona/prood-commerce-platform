@@ -25,16 +25,20 @@ import {
   getAdapter,
   verifyPaymentWebhook,
   getTenantPaymentProvider,
+  listTenantPaymentProviders,
   revalidateProducts,
+  revalidateStore,
 } from "@prood/commerce"
 import {
   CommerceError,
   isCommerceError,
+  requiredEnv,
   type CheckoutAddress,
   type Order,
   type PaymentEventInput,
   type PaymentEventResult,
   type PaymentProvider,
+  type StorefrontStore,
 } from "@prood/types"
 import { getStorefrontIdentity } from "@prood/platform"
 import { after } from "next/server"
@@ -103,6 +107,19 @@ function toAdminListOrdersParams(q: AdminListOrdersQuery): AdminListOrdersParams
   }
 }
 
+/**
+ * Read live rather than with the cached store info, so connecting a provider
+ * counts at once. Must stay outside `withTenant`: `prood_app` can't read
+ * `integration_config`.
+ */
+async function canTakeOrders(orgId: string): Promise<boolean> {
+  return (await listTenantPaymentProviders(orgId)).length > 0
+}
+
+function storefrontUrl(): string {
+  return requiredEnv(process.env.NEXT_PUBLIC_STOREFRONT_URL, "NEXT_PUBLIC_STOREFRONT_URL")
+}
+
 export const catalog = {
   searchProducts: (orgId: string, q: SearchProductsQuery) =>
     getProducts(toSearchParams(q), orgId),
@@ -110,7 +127,10 @@ export const catalog = {
   getProductBySlug: (orgId: string, slug: string) => getProduct({ slug }, orgId),
   listCategories: (orgId: string, params: GetCategoriesParams) =>
     getCategories(params, orgId),
-  getStore: (orgId: string) => getStoreInfo(orgId),
+  getStore: async (orgId: string): Promise<StorefrontStore> => {
+    const [store, payable] = await Promise.all([getStoreInfo(orgId), canTakeOrders(orgId)])
+    return { ...store, canTakeOrders: payable }
+  },
   listCountries: () => getCountries(),
 }
 
@@ -142,7 +162,15 @@ export const checkout = {
   /** Placing an order consumes the cart, so check payment can be taken first. */
   assertPayable: async (orgId: string, cartId: string, providerId?: string) => {
     const cart = await getCart(cartId, orgId)
-    if (cart.totals.total.amount > 0) await getTenantPaymentProvider(orgId, providerId)
+    if (cart.totals.total.amount <= 0) return
+    try {
+      await getTenantPaymentProvider(orgId, providerId)
+    } catch (err) {
+      if (isCommerceError(err) && err.code === "VALIDATION") {
+        throw new CommerceError(err.message, "ORDERS_UNAVAILABLE")
+      }
+      throw err
+    }
   },
   placeOrder: async (orgId: string, cartId: string, customerId?: string, contactEmail?: string) => {
     const order = await placeOrder(cartId, orgId, customerId, contactEmail)
@@ -174,9 +202,6 @@ type OrderEmail = "confirmed" | "payment_failed" | "shipped" | "refunded"
 
 /** Email the shopper about their order, branded as the store. Run via `after()`. */
 async function sendOrderEmail(orgId: string, orderId: string, kind: OrderEmail) {
-  const storefrontUrl = process.env.NEXT_PUBLIC_STOREFRONT_URL
-  if (!storefrontUrl) throw new Error("NEXT_PUBLIC_STOREFRONT_URL is required")
-
   const adminApi = await getAdmin()
   const order = await withTenant(orgId, () => adminApi.getOrder(orderId))
   const customer = order.customerId
@@ -186,7 +211,7 @@ async function sendOrderEmail(orgId: string, orderId: string, kind: OrderEmail) 
   const email = customer?.email ?? order.contactEmail
   if (!email) return
 
-  const store = await getStorefrontIdentity(orgId, storefrontUrl)
+  const store = await getStorefrontIdentity(orgId, storefrontUrl())
   const base = {
     companyName: store.name,
     customerName: [customer?.firstName, customer?.lastName].filter(Boolean).join(" ") || "there",
@@ -423,12 +448,27 @@ export const admin = {
     withTenant(orgId, async () => (await getAdmin()).listCustomers(toAdminListParams(q))),
   getCustomer: (orgId: string, id: string) =>
     withTenant(orgId, async () => (await getAdmin()).getCustomer(id)),
-  getStoreSettings: (orgId: string) =>
-    withTenant(orgId, async () => (await getAdmin()).getStoreSettings()),
-  updateStoreSettings: (orgId: string, input: UpdateStoreInput) =>
-    withTenant(orgId, async () => (await getAdmin()).updateStoreSettings(input)),
+  getStoreSettings: async (orgId: string) => {
+    const [settings, store] = await Promise.all([
+      withTenant(orgId, async () => (await getAdmin()).getStoreSettings()),
+      getStorefrontIdentity(orgId, storefrontUrl()),
+    ])
+    return { ...settings, url: store.origin }
+  },
+  updateStoreSettings: async (orgId: string, input: UpdateStoreInput) => {
+    const settings = await withTenant(orgId, async () =>
+      (await getAdmin()).updateStoreSettings(input),
+    )
+    try { revalidateStore(orgId) } catch { /* best-effort */ }
+    return settings
+  },
   updateInventory: (orgId: string, input: UpdateInventoryInput) =>
     withTenant(orgId, async () => (await getAdmin()).updateInventory(input)),
-  dashboardStats: (orgId: string) =>
-    withTenant(orgId, async () => (await getAdmin()).getDashboardStats()),
+  dashboardStats: async (orgId: string) => {
+    const [stats, payable] = await Promise.all([
+      withTenant(orgId, async () => (await getAdmin()).getDashboardStats()),
+      canTakeOrders(orgId),
+    ])
+    return { ...stats, canTakeOrders: payable }
+  },
 }

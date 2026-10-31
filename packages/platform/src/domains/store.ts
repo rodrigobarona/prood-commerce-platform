@@ -39,6 +39,7 @@ export function createStoreDomain() {
           isDefault: l === row.locale,
         })),
         country: row.country,
+        contactEmail: row.contactEmail,
       }
     },
   }

@@ -64,7 +64,7 @@ export type { Wishlist, WishlistItem } from './wishlist.js'
 export type { Review, ReviewInput, ReviewSummary } from './review.js'
 
 // Store
-export type { StoreInfo, StoreCurrency, StoreLocale } from './store.js'
+export type { StoreInfo, StorefrontStore, StoreCurrency, StoreLocale } from './store.js'
 
 // Country
 export type { Country } from './country.js'

@@ -39,4 +39,12 @@ export interface StoreInfo {
   locales: StoreLocale[]
   /** Store's country (ISO 3166-1 alpha-2) */
   country: string
+  /** Where shoppers can reach the store */
+  contactEmail: Maybe<string>
+}
+
+/** A store as the storefront API returns it. */
+export interface StorefrontStore extends StoreInfo {
+  /** True when a payment provider is connected */
+  canTakeOrders: boolean
 }

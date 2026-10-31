@@ -2812,6 +2812,16 @@
                     },
                     "country": {
                       "type": "string"
+                    },
+                    "contactEmail": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "canTakeOrders": {
+                      "type": "boolean",
+                      "description": "True when a payment provider is connected. Paid orders are refused without one."
                     }
                   },
                   "required": [
@@ -2820,7 +2830,9 @@
                     "logo",
                     "currencies",
                     "locales",
-                    "country"
+                    "country",
+                    "contactEmail",
+                    "canTakeOrders"
                   ],
                   "additionalProperties": false
                 }
@@ -12414,6 +12426,49 @@
               }
             }
           },
+          "409": {
+            "description": "`ORDERS_UNAVAILABLE`: the store has no usable payment provider, or reached its monthly order limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "422": {
             "description": "Validation error",
             "content": {
@@ -21816,6 +21871,10 @@
                           "type": "null"
                         }
                       ]
+                    },
+                    "url": {
+                      "type": "string",
+                      "description": "Public origin of the store: its primary verified domain, or its slug subdomain."
                     }
                   },
                   "required": [
@@ -21832,7 +21891,8 @@
                     "contactEmail",
                     "contactPhone",
                     "address",
-                    "socialLinks"
+                    "socialLinks",
+                    "url"
                   ],
                   "additionalProperties": false
                 }
@@ -23350,6 +23410,10 @@
                       "additionalProperties": {
                         "type": "number"
                       }
+                    },
+                    "canTakeOrders": {
+                      "type": "boolean",
+                      "description": "True when a payment provider is connected. Paid orders are refused without one."
                     }
                   },
                   "required": [
@@ -23359,7 +23423,8 @@
                     "totalRevenue",
                     "totalCustomers",
                     "recentOrders",
-                    "ordersByStatus"
+                    "ordersByStatus",
+                    "canTakeOrders"
                   ],
                   "additionalProperties": false
                 }

@@ -1421,6 +1421,9 @@ export interface operations {
                             isDefault: boolean;
                         }[];
                         country: string;
+                        contactEmail: string | null;
+                        /** @description True when a payment provider is connected. Paid orders are refused without one. */
+                        canTakeOrders: boolean;
                     };
                 };
             };
@@ -3889,6 +3892,22 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description `ORDERS_UNAVAILABLE`: the store has no usable payment provider, or reached its monthly order limit */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6455,6 +6474,8 @@ export interface operations {
                         socialLinks: {
                             [key: string]: string;
                         } | null;
+                        /** @description Public origin of the store: its primary verified domain, or its slug subdomain. */
+                        url: string;
                     };
                 };
             };
@@ -6872,6 +6893,8 @@ export interface operations {
                         ordersByStatus: {
                             [key: string]: number;
                         };
+                        /** @description True when a payment provider is connected. Paid orders are refused without one. */
+                        canTakeOrders: boolean;
                     };
                 };
             };

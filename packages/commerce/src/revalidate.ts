@@ -15,6 +15,11 @@ export function revalidateCategories(tenantId?: string): void {
   revalidateTag(scoped('categories', tenantId), 'max')
 }
 
+/** Drop cached store info at once, so a merchant sees their own edit. */
+export function revalidateStore(tenantId?: string): void {
+  revalidateTag(scoped('store', tenantId), { expire: 0 })
+}
+
 /** Invalidate both catalog tags (admin bulk updates, deploy hooks). */
 export function revalidateCatalog(tenantId?: string): void {
   revalidateProducts(tenantId)

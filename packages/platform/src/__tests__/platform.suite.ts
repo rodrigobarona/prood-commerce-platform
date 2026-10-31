@@ -1505,6 +1505,12 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     expect((await adapter.getStoreInfo()).country).toBe('ES')
   })
 
+  it('exposes the contact email a merchant set', async () => {
+    expect((await adapter.getStoreInfo()).contactEmail).toBeNull()
+    await asTenant((admin) => admin.updateStoreSettings({ contactEmail: 'ola@loja.pt' }))
+    expect((await adapter.getStoreInfo()).contactEmail).toBe('ola@loja.pt')
+  })
+
   it('stores social links as the record it returns', async () => {
     const socialLinks = { instagram: 'https://instagram.com/prood' }
     const updated = await asTenant((admin) => admin.updateStoreSettings({ socialLinks }))

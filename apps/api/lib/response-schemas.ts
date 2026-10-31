@@ -36,6 +36,7 @@ import type {
   ShippingMethod,
   StoreCurrency,
   StoreInfo,
+  StorefrontStore,
   StoreLocale,
 } from "@prood/types"
 import type { ApiCaller } from "./auth-tenant"
@@ -417,7 +418,14 @@ export const storeInfo = z.object({
   currencies: z.array(storeCurrency),
   locales: z.array(storeLocale),
   country: z.string(),
+  contactEmail: nullableString,
 }) satisfies z.ZodType<StoreInfo>
+
+const canTakeOrders = z
+  .boolean()
+  .describe("True when a payment provider is connected. Paid orders are refused without one.")
+
+export const storefrontStore = storeInfo.extend({ canTakeOrders })
 
 export const country = z.object({
   id: z.string(),
@@ -447,6 +455,13 @@ export const adminStoreSettings = z.object({
   socialLinks: z.record(z.string(), z.string()).nullable(),
 }) satisfies z.ZodType<StoreSettings>
 
+/** Store settings as the merchant reads them, with the store's public address. */
+export const adminStore = adminStoreSettings.extend({
+  url: z
+    .string()
+    .describe("Public origin of the store: its primary verified domain, or its slug subdomain."),
+})
+
 export const adminDashboardStats = z.object({
   totalProducts: z.number(),
   activeProducts: z.number(),
@@ -456,6 +471,9 @@ export const adminDashboardStats = z.object({
   recentOrders: z.array(order),
   ordersByStatus: z.record(z.string(), z.number()),
 }) satisfies z.ZodType<DashboardStats>
+
+/** Dashboard stats, plus what the setup checklist needs from outside the tenant scope. */
+export const adminDashboard = adminDashboardStats.extend({ canTakeOrders })
 
 // `satisfies` only proves a schema is assignable to its domain type: a schema
 // that gains a field, or drops an optional one, still passes. Identity checks
@@ -477,6 +495,7 @@ export type ExactSchemas = [
   Check<Exact<typeof orderHistoryEntry, OrderHistoryEntry>>,
   Check<Exact<typeof customer, Customer>>,
   Check<Exact<typeof storeInfo, StoreInfo>>,
+  Check<Exact<typeof storefrontStore, StorefrontStore>>,
   Check<Exact<typeof country, Country>>,
   Check<Exact<typeof adminStoreSettings, StoreSettings>>,
   Check<Exact<typeof adminDashboardStats, DashboardStats>>,

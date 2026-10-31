@@ -25,6 +25,7 @@ const STATUS_BY_CODE: Record<CommerceErrorCode, number> = {
   NETWORK: 502,
   TIMEOUT: 504,
   CONFIGURATION_ERROR: 500,
+  ORDERS_UNAVAILABLE: 409,
   UNKNOWN: 500,
 }
 
