@@ -11,7 +11,9 @@ import {
   updateOrderTracking,
   updateOrder,
   createOrderHistory,
+  transitionOrderPayment,
 } from '../database/index.js'
+import { releaseCoupon } from '../domains/coupons.js'
 import { mapOrder } from '../domains/order-mapper.js'
 
 export function createAdminOrdersDomain() {
@@ -73,15 +75,28 @@ export function createAdminOrdersDomain() {
       })
     },
 
-    async refundOrder(id: string, note?: string): Promise<void> {
+    /**
+     * Record that a paid order's money went back to the shopper. Sending the
+     * money is the caller's job, and this moves none: call it only afterwards.
+     */
+    async recordRefund(id: string, note?: string): Promise<void> {
       const order = await findOrderById(id)
       if (!order) throw new CommerceError(`Order not found: ${id}`, "NOT_FOUND")
+      if (order.paymentStatus !== 'paid') {
+        throw new CommerceError('Only paid orders can be refunded.', 'VALIDATION', 422)
+      }
 
-      await updateOrder(id, {
+      const recorded = await transitionOrderPayment(id, ['paid'], order.status, {
         status: 'cancelled',
         paymentStatus: 'refunded',
-        cancelledAt: new Date(),
+        cancelledAt: order.cancelledAt ?? new Date(),
       })
+      if (!recorded) {
+        throw new CommerceError('This order changed while it was being refunded.', 'VALIDATION', 409)
+      }
+
+      // Cancelling already released it, so a late payment must not release it again.
+      if (order.status !== 'cancelled' && order.couponCode) await releaseCoupon(order.couponCode)
 
       await createOrderHistory({
         orderId: id,

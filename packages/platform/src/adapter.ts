@@ -140,6 +140,7 @@ export async function createPlatformAdapter(config: PlatformConfig = {}): Promis
     getOrderStatuses: orders.getOrderStatuses,
     updateOrderStatus: orders.updateOrderStatus,
     cancelOrder: orders.cancelOrder,
+    recordOrderPayment: orders.recordOrderPayment,
     applyPaymentEvent: orders.applyPaymentEvent,
     duplicateOrder: orders.duplicateOrder,
     getOrderHistory: orders.getOrderHistory,

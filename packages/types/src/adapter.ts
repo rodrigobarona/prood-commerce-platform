@@ -15,7 +15,7 @@ import type { Category } from './category.js'
 import type { Cart } from './cart.js'
 import type { Customer, Address, CheckoutAddress, RegisterInput, UpdateCustomerInput } from './customer.js'
 import type { Order } from './order.js'
-import type { PaymentEventInput, PaymentEventResult } from './order-status.js'
+import type { PaymentEventInput, PaymentEventResult, RecordOrderPaymentInput } from './order-status.js'
 import type { ShippingMethod } from './shipping.js'
 import type { PaymentMethod } from './payment.js'
 import type { SearchParams, SearchResult } from './search.js'
@@ -202,6 +202,12 @@ export interface OrderAdapter<TOrder extends Order = Order> {
 
   /** Cancel an order (convenience — calls updateOrderStatus with 'canceled') */
   cancelOrder(orderId: string, note?: string): Promise<void>
+
+  /**
+   * Record the payment a shopper started on an order. Returns false, recording
+   * nothing, unless the order is still placed and unpaid.
+   */
+  recordOrderPayment(orderId: string, input: RecordOrderPaymentInput): Promise<boolean>
 
   /**
    * Apply a verified payment gateway event. Idempotent and race-safe: only an

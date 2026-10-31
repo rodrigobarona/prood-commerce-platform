@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { orderPaymentState, toPortugueseMobile } from '../order-payment.js'
+import { orderOutcome, orderPaymentState, toPortugueseMobile } from '../order-payment.js'
 import type { Order } from '../order.js'
 
 const details = { method: 'multibanco', entity: '11111', reference: '123456789', expiresAt: null } as const
@@ -33,6 +33,25 @@ describe('orderPaymentState', () => {
     expect(state({ paymentStatus: 'refunded', status: 'cancelled' }).kind).toBe('refunded')
     expect(state({ paymentStatus: 'partially_refunded', status: 'approved' }).kind).toBe('refunded')
     expect(state({ paymentStatus: 'paid', status: 'cancelled' }).kind).toBe('cancelled_paid')
+  })
+})
+
+describe('orderOutcome', () => {
+  it('leaves an order that is waiting for payment open', () => {
+    expect(orderOutcome({ status: 'placed', paymentStatus: 'unpaid' })).toEqual({ state: null, payable: true })
+  })
+
+  it('completes a session whose order was paid, whatever the provider API says', () => {
+    expect(orderOutcome({ status: 'approved', paymentStatus: 'paid' })).toEqual({ state: 'complete', payable: false })
+  })
+
+  it('stops a cancelled order from being paid again', () => {
+    expect(orderOutcome({ status: 'cancelled', paymentStatus: 'voided' })).toEqual({ state: 'failed', payable: false })
+    expect(orderOutcome({ status: 'cancelled', paymentStatus: 'unpaid' })).toEqual({ state: 'failed', payable: false })
+  })
+
+  it('keeps sessions without an order payable', () => {
+    expect(orderOutcome(null)).toEqual({ state: null, payable: true })
   })
 })
 

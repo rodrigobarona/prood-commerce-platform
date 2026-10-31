@@ -12167,10 +12167,61 @@
                         }
                       ]
                     },
+                    "paymentProvider": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "paymentTransactionId": {
                       "type": [
                         "string",
                         "null"
+                      ]
+                    },
+                    "paymentDetails": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "method": {
+                              "type": "string",
+                              "enum": [
+                                "card",
+                                "multibanco",
+                                "mbway"
+                              ]
+                            },
+                            "entity": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "reference": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "expiresAt": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "method",
+                            "entity",
+                            "reference",
+                            "expiresAt"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
                       ]
                     },
                     "couponCode": {
@@ -12255,7 +12306,9 @@
                     "billingAddress",
                     "shippingMethod",
                     "paymentMethod",
+                    "paymentProvider",
                     "paymentTransactionId",
+                    "paymentDetails",
                     "couponCode",
                     "trackingNumber",
                     "trackingUrl",
@@ -13082,10 +13135,61 @@
                               }
                             ]
                           },
+                          "paymentProvider": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
                           "paymentTransactionId": {
                             "type": [
                               "string",
                               "null"
+                            ]
+                          },
+                          "paymentDetails": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "method": {
+                                    "type": "string",
+                                    "enum": [
+                                      "card",
+                                      "multibanco",
+                                      "mbway"
+                                    ]
+                                  },
+                                  "entity": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "reference": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "expiresAt": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "method",
+                                  "entity",
+                                  "reference",
+                                  "expiresAt"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "null"
+                              }
                             ]
                           },
                           "couponCode": {
@@ -13170,7 +13274,9 @@
                           "billingAddress",
                           "shippingMethod",
                           "paymentMethod",
+                          "paymentProvider",
                           "paymentTransactionId",
+                          "paymentDetails",
                           "couponCode",
                           "trackingNumber",
                           "trackingUrl",
@@ -13983,10 +14089,61 @@
                         }
                       ]
                     },
+                    "paymentProvider": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "paymentTransactionId": {
                       "type": [
                         "string",
                         "null"
+                      ]
+                    },
+                    "paymentDetails": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "method": {
+                              "type": "string",
+                              "enum": [
+                                "card",
+                                "multibanco",
+                                "mbway"
+                              ]
+                            },
+                            "entity": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "reference": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "expiresAt": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "method",
+                            "entity",
+                            "reference",
+                            "expiresAt"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
                       ]
                     },
                     "couponCode": {
@@ -14071,7 +14228,9 @@
                     "billingAddress",
                     "shippingMethod",
                     "paymentMethod",
+                    "paymentProvider",
                     "paymentTransactionId",
+                    "paymentDetails",
                     "couponCode",
                     "trackingNumber",
                     "trackingUrl",
@@ -18819,10 +18978,61 @@
                               }
                             ]
                           },
+                          "paymentProvider": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
                           "paymentTransactionId": {
                             "type": [
                               "string",
                               "null"
+                            ]
+                          },
+                          "paymentDetails": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "method": {
+                                    "type": "string",
+                                    "enum": [
+                                      "card",
+                                      "multibanco",
+                                      "mbway"
+                                    ]
+                                  },
+                                  "entity": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "reference": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "expiresAt": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "method",
+                                  "entity",
+                                  "reference",
+                                  "expiresAt"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "null"
+                              }
                             ]
                           },
                           "couponCode": {
@@ -18907,7 +19117,9 @@
                           "billingAddress",
                           "shippingMethod",
                           "paymentMethod",
+                          "paymentProvider",
                           "paymentTransactionId",
+                          "paymentDetails",
                           "couponCode",
                           "trackingNumber",
                           "trackingUrl",
@@ -19717,10 +19929,61 @@
                         }
                       ]
                     },
+                    "paymentProvider": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "paymentTransactionId": {
                       "type": [
                         "string",
                         "null"
+                      ]
+                    },
+                    "paymentDetails": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "method": {
+                              "type": "string",
+                              "enum": [
+                                "card",
+                                "multibanco",
+                                "mbway"
+                              ]
+                            },
+                            "entity": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "reference": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "expiresAt": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "method",
+                            "entity",
+                            "reference",
+                            "expiresAt"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
                       ]
                     },
                     "couponCode": {
@@ -19791,6 +20054,21 @@
                     },
                     "updatedAt": {
                       "type": "string"
+                    },
+                    "refund": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "enum": [
+                            "provider",
+                            "manual"
+                          ]
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "`provider`: Prood sends the refund. `manual`: refund in the payment account, then record it with `recordOnly`. Null when nothing can be refunded."
                     }
                   },
                   "required": [
@@ -19805,7 +20083,9 @@
                     "billingAddress",
                     "shippingMethod",
                     "paymentMethod",
+                    "paymentProvider",
                     "paymentTransactionId",
+                    "paymentDetails",
                     "couponCode",
                     "trackingNumber",
                     "trackingUrl",
@@ -19818,7 +20098,8 @@
                     "cancelledAt",
                     "fulfilledAt",
                     "createdAt",
-                    "updatedAt"
+                    "updatedAt",
+                    "refund"
                   ],
                   "additionalProperties": false
                 }
@@ -20754,6 +21035,10 @@
                 "properties": {
                   "note": {
                     "type": "string"
+                  },
+                  "recordOnly": {
+                    "description": "Record a refund already sent from the payment account. Only allowed on orders whose `refund` is `manual`: Prood moves no money.",
+                    "type": "boolean"
                   }
                 },
                 "additionalProperties": false
@@ -22898,10 +23183,61 @@
                               }
                             ]
                           },
+                          "paymentProvider": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
                           "paymentTransactionId": {
                             "type": [
                               "string",
                               "null"
+                            ]
+                          },
+                          "paymentDetails": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "method": {
+                                    "type": "string",
+                                    "enum": [
+                                      "card",
+                                      "multibanco",
+                                      "mbway"
+                                    ]
+                                  },
+                                  "entity": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "reference": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "expiresAt": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "method",
+                                  "entity",
+                                  "reference",
+                                  "expiresAt"
+                                ],
+                                "additionalProperties": false
+                              },
+                              {
+                                "type": "null"
+                              }
                             ]
                           },
                           "couponCode": {
@@ -22986,7 +23322,9 @@
                           "billingAddress",
                           "shippingMethod",
                           "paymentMethod",
+                          "paymentProvider",
                           "paymentTransactionId",
+                          "paymentDetails",
                           "couponCode",
                           "trackingNumber",
                           "trackingUrl",

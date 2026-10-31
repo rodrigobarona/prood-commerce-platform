@@ -22,6 +22,7 @@ import type {
   OrderFulfillmentStatus,
   OrderHistoryEntry,
   OrderItem,
+  OrderPaymentDetails,
   OrderStatus,
   PaginatedResult,
   PaymentEventResult,
@@ -321,6 +322,13 @@ const orderItem = z.object({
   productType,
 }) satisfies z.ZodType<OrderItem>
 
+const orderPaymentDetails = z.object({
+  method: z.enum(["card", "multibanco", "mbway"]),
+  entity: nullableString,
+  reference: nullableString,
+  expiresAt: nullableString,
+}) satisfies z.ZodType<OrderPaymentDetails>
+
 export const order = z.object({
   id: z.string(),
   orderNumber: z.string(),
@@ -333,7 +341,9 @@ export const order = z.object({
   billingAddress: checkoutAddress.nullable(),
   shippingMethod: shippingMethod.nullable(),
   paymentMethod: paymentMethod.nullable(),
+  paymentProvider: nullableString,
   paymentTransactionId: nullableString,
+  paymentDetails: orderPaymentDetails.nullable(),
   couponCode: nullableString,
   trackingNumber: nullableString,
   trackingUrl: nullableString,
@@ -348,6 +358,16 @@ export const order = z.object({
   createdAt: z.string(),
   updatedAt: z.string(),
 }) satisfies z.ZodType<Order>
+
+/** An order as its merchant sees it, with how it can be refunded. */
+export const adminOrder = order.extend({
+  refund: z
+    .enum(["provider", "manual"])
+    .nullable()
+    .describe(
+      "`provider`: Prood sends the refund. `manual`: refund in the payment account, then record it with `recordOnly`. Null when nothing can be refunded."
+    ),
+})
 
 export const orderHistoryEntry = z.object({
   id: z.string(),

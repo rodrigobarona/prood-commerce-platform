@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import type { Maybe } from './common.js'
+import type { OrderPaymentDetails } from './order.js'
 
 /**
  * Rich order status metadata — for displaying statuses on order tracking pages.
@@ -56,6 +57,14 @@ export interface PaymentEventInput {
   provider: string
   /** Gateway's id for the payment, kept on captured orders so they can be refunded */
   transactionId?: string | null
+}
+
+/** The payment a shopper started on an order. */
+export interface RecordOrderPaymentInput {
+  provider: string
+  /** Gateway's id for the payment */
+  transactionId: string
+  details: OrderPaymentDetails
 }
 
 /**

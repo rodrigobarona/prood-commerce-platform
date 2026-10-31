@@ -12,8 +12,7 @@ export async function POST(
   try {
     const { id } = await params
     const { orgId } = await requireCaller("admin")
-    const { note } = await readBody(req, refundOrderBody)
-    await admin.refundOrder(orgId, id, note)
+    await admin.refundOrder(orgId, id, await readBody(req, refundOrderBody))
     return NextResponse.json({ success: true })
   } catch (err) {
     return errorResponse(err)

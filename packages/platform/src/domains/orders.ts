@@ -13,6 +13,7 @@ import type {
   UpdateOrderStatusInput,
   PaymentEventInput,
   PaymentEventResult,
+  RecordOrderPaymentInput,
 } from '@prood/types'
 import {
   createOrderHistory,
@@ -172,6 +173,14 @@ export function createOrdersDomain() {
       })
     },
 
+    async recordOrderPayment(orderId: string, input: RecordOrderPaymentInput): Promise<boolean> {
+      return transitionOrderPayment(orderId, ['unpaid'], 'placed', {
+        paymentProvider: input.provider,
+        paymentTransactionId: input.transactionId,
+        paymentDetails: input.details,
+      })
+    },
+
     async applyPaymentEvent(orderId: string, input: PaymentEventInput): Promise<PaymentEventResult> {
       const order = await findOrderById(orderId)
       if (!order) throw new CommerceError(`Order not found: ${orderId}`, "NOT_FOUND")
@@ -193,12 +202,18 @@ export function createOrdersDomain() {
         }
       }
 
+      // A refund needs to know where the money went.
+      const payment = {
+        paymentProvider: input.provider,
+        ...(input.transactionId && { paymentTransactionId: input.transactionId }),
+      }
+
       // Multibanco references stay payable for days, so money can arrive after
       // the order was cancelled. Keep it cancelled and record that it was paid.
       if (order.status === 'cancelled') {
         if (input.outcome === 'authorized') return 'duplicate'
         if (input.outcome === 'captured') {
-          const paid = await transitionOrderPayment(orderId, ['unpaid', 'authorized', 'voided'], 'cancelled', { paymentStatus: 'paid' })
+          const paid = await transitionOrderPayment(orderId, ['unpaid', 'authorized', 'voided'], 'cancelled', { ...payment, paymentStatus: 'paid' })
           if (!paid) return 'duplicate'
           await createOrderHistory({
             orderId,
@@ -219,10 +234,11 @@ export function createOrdersDomain() {
         ...(cancels && { status: 'cancelled', cancelledAt: order.cancelledAt ?? now }),
       }
       const next: Record<PaymentEventInput['outcome'], { note: string; data: Record<string, unknown> }> = {
-        authorized: { note: 'Payment authorized', data: { paymentStatus: 'authorized' } },
+        authorized: { note: 'Payment authorized', data: { ...payment, paymentStatus: 'authorized' } },
         captured: {
           note: 'Payment captured',
           data: {
+            ...payment,
             paymentStatus: 'paid',
             ...(advances && { status: 'approved', approvedAt: order.approvedAt ?? now }),
           },

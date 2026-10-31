@@ -27,7 +27,15 @@ import {
   getTenantPaymentProvider,
   revalidateProducts,
 } from "@prood/commerce"
-import type { CheckoutAddress, PaymentEventInput, PaymentEventResult } from "@prood/types"
+import {
+  CommerceError,
+  isCommerceError,
+  type CheckoutAddress,
+  type Order,
+  type PaymentEventInput,
+  type PaymentEventResult,
+  type PaymentProvider,
+} from "@prood/types"
 import { getStorefrontIdentity } from "@prood/platform"
 import { after } from "next/server"
 import { getMailer } from "./mailer"
@@ -172,12 +180,14 @@ async function sendOrderEmail(orgId: string, orderId: string, kind: OrderEmail) 
   const customer = order.customerId
     ? await withTenant(orgId, () => adminApi.getCustomer(order.customerId!))
     : null
-  if (!customer?.email) return
+  // Guests have no customer record, only the email they gave at checkout.
+  const email = customer?.email ?? order.contactEmail
+  if (!email) return
 
   const store = await getStorefrontIdentity(orgId, storefrontUrl)
   const base = {
     companyName: store.name,
-    customerName: [customer.firstName, customer.lastName].filter(Boolean).join(" ") || "there",
+    customerName: [customer?.firstName, customer?.lastName].filter(Boolean).join(" ") || "there",
     orderNumber: order.orderNumber,
   }
   const total = formatMoney(order.totals.total.amount, order.totals.total.currency)
@@ -212,7 +222,7 @@ async function sendOrderEmail(orgId: string, orderId: string, kind: OrderEmail) 
   }
 
   const message = messages[kind]
-  await getMailer().send("email", { to: customer.email, ...message })
+  await getMailer().send("email", { to: email, ...message })
 }
 
 /** Queue an order email to send after the response, logging failures. */
@@ -247,6 +257,7 @@ export const webhooks = {
         amount: event.amount,
         currency: event.currency,
         provider,
+        transactionId: event.sessionId || null,
       })
     )
 
@@ -271,6 +282,28 @@ export const orders = {
   get: (orgId: string, id: string) => getOrder(id, orgId),
   list: (orgId: string, params?: PaginationParams & { customerId?: string }) =>
     getCustomerOrders(params, orgId),
+}
+
+/** How an order can be refunded: by Prood, by hand in the payment account, or not at all. */
+export type RefundOption = "provider" | "manual" | null
+
+/** The connected provider that can send this order's refund, if there is one. */
+async function refundProvider(orgId: string, order: Order): Promise<PaymentProvider | null> {
+  const method = order.paymentDetails?.method
+  if (!order.paymentProvider || !order.paymentTransactionId || !method) return null
+  try {
+    const { provider } = await getTenantPaymentProvider(orgId, order.paymentProvider)
+    return provider.refund && provider.refundableMethods.includes(method) ? provider : null
+  } catch (err) {
+    // The store disconnected the provider, so the refund has to happen over there.
+    if (isCommerceError(err)) return null
+    throw err
+  }
+}
+
+async function refundOption(orgId: string, order: Order): Promise<RefundOption> {
+  if (order.paymentStatus !== "paid") return null
+  return (await refundProvider(orgId, order)) ? "provider" : "manual"
 }
 
 export const admin = {
@@ -310,15 +343,69 @@ export const admin = {
     withTenant(orgId, async () =>
       (await getAdmin()).listOrders(toAdminListOrdersParams(q))
     ),
-  getOrder: (orgId: string, id: string) =>
-    withTenant(orgId, async () => (await getAdmin()).getOrder(id)),
+  getOrder: async (orgId: string, id: string) => {
+    const order = await withTenant(orgId, async () => (await getAdmin()).getOrder(id))
+    return { ...order, refund: await refundOption(orgId, order) }
+  },
   fulfillOrder: async (orgId: string, id: string, input: FulfillOrderInput) => {
     await withTenant(orgId, async () => (await getAdmin()).fulfillOrder(id, input))
 
     queueOrderEmail(orgId, id, "shipped")
   },
-  refundOrder: async (orgId: string, id: string, note?: string) => {
-    await withTenant(orgId, async () => (await getAdmin()).refundOrder(id, note))
+  /**
+   * Refund an order and tell the shopper, in that order: nothing is recorded or
+   * sent until the money has moved. Where Prood can't send the refund, the
+   * merchant sends it themselves and confirms with `recordOnly`.
+   */
+  refundOrder: async (orgId: string, id: string, input: { note?: string; recordOnly?: boolean }) => {
+    const adminApi = await getAdmin()
+    const order = await withTenant(orgId, () => adminApi.getOrder(id))
+    if (order.paymentStatus !== "paid") {
+      throw new CommerceError("Only paid orders can be refunded.", "VALIDATION", 422)
+    }
+
+    const { amount, currency } = order.totals.total
+    const provider = await refundProvider(orgId, order)
+    if (provider && input.recordOnly) {
+      throw new CommerceError(
+        "Prood can send this refund, so send it instead of recording it.",
+        "VALIDATION",
+        422
+      )
+    }
+    if (!provider && !input.recordOnly) {
+      throw new CommerceError(
+        `Prood can't send this refund. Refund ${formatMoney(amount, currency)} in your payment account first, then record it here.`,
+        "VALIDATION",
+        422
+      )
+    }
+
+    // The checks above run outside any transaction: a provider call must not hold one.
+    try {
+      await provider?.refund?.({
+        sessionId: order.paymentTransactionId!,
+        amount,
+        idempotencyKey: `refund-${id}`,
+      })
+    } catch (err) {
+      console.error(`[refund] ${provider?.id} refused the refund for order ${id}`, err)
+      throw new CommerceError(
+        `We couldn't send this refund through ${provider?.name}. Nothing was recorded. Check your ${provider?.name} account, then try again.`,
+        "PLATFORM_ERROR"
+      )
+    }
+
+    try {
+      await withTenant(orgId, () => adminApi.recordRefund(id, input.note))
+    } catch (err) {
+      if (!provider) throw err
+      console.error(`[refund] ${provider.id} refunded order ${id} but recording it failed`, err)
+      throw new CommerceError(
+        `${formatMoney(amount, currency)} went back to the customer, but we couldn't record it. Don't send it again.`,
+        "PLATFORM_ERROR"
+      )
+    }
 
     queueOrderEmail(orgId, id, "refunded")
   },
