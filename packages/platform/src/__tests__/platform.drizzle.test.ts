@@ -24,6 +24,7 @@ import { migrate } from 'drizzle-orm/neon-serverless/migrator'
 import { initDrizzle, closeDrizzle, getDb, withTenant } from '../database/drizzle/client.js'
 import { seedDrizzle, DEMO_ORG_ID } from '../database/drizzle/seed.js'
 import { createPlatformAdapter } from '../adapter.js'
+import { createCustomer } from '../database/drizzle/queries/customers.js'
 import { platformTestSuite } from './platform.suite.js'
 
 const SERVER_URL = process.env.DATABASE_URL
@@ -171,6 +172,32 @@ describe('@prood/platform [drizzle]', () => {
       })
     })
 
+    it('reads customers and their emails inside a tenant scope', async () => {
+      const { admin } = await createPlatformAdapter()
+      await withTenant(DEMO_ORG_ID, async () => {
+        const id = await createCustomer({ email: 'guest@example.com', firstName: 'Guest' })
+        expect((await admin.getCustomer(id)).email).toBe('guest@example.com')
+        const { items } = await admin.listCustomers({ search: 'guest@example.com' })
+        expect(items.map((customer) => customer.id)).toContain(id)
+        await admin.deleteCustomer(id)
+      })
+    })
+
+    it('cannot read other columns of the user table', async () => {
+      await expect(
+        withTenant(DEMO_ORG_ID, () => getDb().execute(sql`select name from "user" limit 1`)),
+      ).rejects.toMatchObject({ cause: expect.objectContaining({ code: '42501' }) })
+    })
+
+    it.each(['account', 'session', 'apikey', 'integration_config', 'member'])(
+      'cannot read %s inside a tenant scope',
+      async (table) => {
+        await expect(
+          withTenant(DEMO_ORG_ID, () => getDb().execute(sql.raw(`select 1 from "${table}" limit 1`))),
+        ).rejects.toMatchObject({ cause: expect.objectContaining({ code: '42501' }) })
+      },
+    )
+
     it('rejects inserts outside a tenant scope', async () => {
       await expect(
         getDb().execute(sql`insert into products (id, name, slug) values ('prod-orphan', '{}', 'orphan')`),
@@ -216,12 +243,12 @@ describe('@prood/platform [drizzle]', () => {
       const { adapter } = await createPlatformAdapter()
       await withTenant(DEMO_ORG_ID, async () => {
         const cart = await adapter.createCart()
-        await adapter.addToCart(cart.id, { productId: 'prod-1', quantity: 1 })
-        await getDb().execute(sql`update products set status = 'archived' where id = 'prod-1'`)
+        await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 1 })
+        await getDb().execute(sql`update products set status = 'archived' where id = 'prod-2'`)
         await expect(adapter.placeOrder(cart.id)).rejects.toMatchObject({ code: 'VALIDATION' })
         const another = await adapter.createCart()
         await expect(
-          adapter.addToCart(another.id, { productId: 'prod-1', quantity: 1 }),
+          adapter.addToCart(another.id, { productId: 'prod-2', quantity: 1 }),
         ).rejects.toMatchObject({ code: 'NOT_FOUND' })
       })
     })

@@ -8,6 +8,13 @@ import { Button } from "@prood/ui/components/button"
 import { Input } from "@prood/ui/components/input"
 import { Label } from "@prood/ui/components/label"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@prood/ui/components/select"
+import {
   Card,
   CardContent,
   CardHeader,
@@ -17,6 +24,8 @@ import { updateStoreSettingsAction } from "@/app/(dashboard)/settings/actions"
 import {
   LocalizedFieldInput,
 } from "@/components/store/localized-field-input"
+
+const CURRENCIES = Intl.supportedValuesOf("currency")
 
 export interface SettingsFormValues {
   name: LocalizedField
@@ -39,7 +48,13 @@ function trimLocalizedField(field: LocalizedField): LocalizedField | undefined {
   return Object.keys(trimmed).length > 0 ? trimmed : undefined
 }
 
-export function SettingsForm({ initial }: { initial: SettingsFormValues }) {
+export function SettingsForm({
+  initial,
+  currencyLocked,
+}: {
+  initial: SettingsFormValues
+  currencyLocked: boolean
+}) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [values, setValues] = useState<SettingsFormValues>(initial)
@@ -55,17 +70,21 @@ export function SettingsForm({ initial }: { initial: SettingsFormValues }) {
     event.preventDefault()
     startTransition(async () => {
       try {
-        await updateStoreSettingsAction({
+        const { error } = await updateStoreSettingsAction({
           name: trimLocalizedField(values.name),
           description: trimLocalizedField(values.description),
           contactEmail: values.contactEmail || undefined,
           contactPhone: values.contactPhone || undefined,
-          currency: values.currency || undefined,
+          currency: currencyLocked ? undefined : values.currency || undefined,
           locale: values.locale || undefined,
           timezone: values.timezone || undefined,
           country: values.country || undefined,
           address: values.address || undefined,
         })
+        if (error) {
+          toast.error(error)
+          return
+        }
         toast.success("Settings saved")
         router.refresh()
       } catch {
@@ -131,11 +150,36 @@ export function SettingsForm({ initial }: { initial: SettingsFormValues }) {
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="currency">Currency</Label>
-              <Input
-                id="currency"
-                value={values.currency}
-                onChange={(event) => set("currency", event.target.value)}
-              />
+              {currencyLocked ? (
+                <>
+                  <Input
+                    id="currency"
+                    value={values.currency}
+                    readOnly
+                    aria-describedby="currency-locked"
+                  />
+                  <p id="currency-locked" className="text-xs text-muted-foreground">
+                    Your store has orders, and they keep the currency they were
+                    charged in, so this can&apos;t change.
+                  </p>
+                </>
+              ) : (
+                <Select
+                  value={values.currency}
+                  onValueChange={(currency) => set("currency", currency)}
+                >
+                  <SelectTrigger id="currency">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CURRENCIES.map((code) => (
+                      <SelectItem key={code} value={code}>
+                        {code}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="locale">Locale</Label>

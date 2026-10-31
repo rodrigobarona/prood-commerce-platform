@@ -41,6 +41,14 @@ export async function ensureDefaultStoreInfo(
   return row
 }
 
+/**
+ * The tenant's currency, the only one it trades in: products, carts, shipping
+ * and new orders all use it. Must run inside withTenant.
+ */
+export async function getStoreCurrency(): Promise<string> {
+  return (await ensureDefaultStoreInfo()).currency
+}
+
 /** Create the commerce store_info row for a new organization (idempotent). */
 export async function provisionOrganizationStore(
   organizationId: string,

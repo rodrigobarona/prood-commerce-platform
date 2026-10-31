@@ -55,12 +55,14 @@ export default function SettingsPage() {
 
 async function SettingsFormLoader() {
   let initial = EMPTY
+  let currencyLocked = false
   try {
     const settings = await getStoreSettings()
     initial = toFormValues(settings)
+    currencyLocked = settings.currencyLocked
   } catch (error) {
     if (error instanceof Error && "digest" in error) throw error
   }
 
-  return <SettingsForm initial={initial} />
+  return <SettingsForm initial={initial} currencyLocked={currencyLocked} />
 }

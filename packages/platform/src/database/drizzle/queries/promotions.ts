@@ -2,7 +2,7 @@
 // Drizzle: Promotions queries
 // ---------------------------------------------------------------------------
 
-import { eq, and } from 'drizzle-orm'
+import { eq, and, sql } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
 import { tenantCondition, requireOrgId } from './tenant-filter.js'
@@ -18,6 +18,29 @@ export async function findCouponByCode(code: string) {
   const [row] = await getDb().select().from(schema.coupons)
     .where(and(eq(schema.coupons.code, code), tenantCondition(schema.coupons)))
   return row ?? null
+}
+
+/**
+ * Lock a coupon until the transaction ends, so redemptions of one coupon run
+ * one at a time and each sees the usage the previous one recorded.
+ */
+export async function lockCouponByCode(code: string) {
+  const [row] = await getDb().select().from(schema.coupons)
+    .where(and(eq(schema.coupons.code, code), tenantCondition(schema.coupons)))
+    .for('update')
+  return row ?? null
+}
+
+export async function incrementCouponUsage(id: string) {
+  await getDb().update(schema.coupons)
+    .set({ timesUsed: sql`${schema.coupons.timesUsed} + 1` })
+    .where(and(eq(schema.coupons.id, id), tenantCondition(schema.coupons)))
+}
+
+export async function decrementCouponUsage(id: string) {
+  await getDb().update(schema.coupons)
+    .set({ timesUsed: sql`greatest(${schema.coupons.timesUsed} - 1, 0)` })
+    .where(and(eq(schema.coupons.id, id), tenantCondition(schema.coupons)))
 }
 
 export async function findPromotionById(id: string) {

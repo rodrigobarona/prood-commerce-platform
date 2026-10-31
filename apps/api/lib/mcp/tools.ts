@@ -51,20 +51,16 @@ async function placeOrderForCaller(cartId: string, email?: string, providerId?: 
   if (caller.userId) {
     customerId = await ensureCustomer(orgId, caller.userId)
   } else {
+    if (!email) {
+      throw new CommerceError("An email is required to place a guest order", "VALIDATION", 422)
+    }
     const cart = await getCart(cartId, orgId)
     const addr = cart.billingAddress ?? cart.shippingAddress
-    if (!addr) {
-      throw new CommerceError(
-        "Cannot place a guest order without a shipping or billing address",
-        "VALIDATION",
-        400
-      )
-    }
     customerId = await createGuestCustomer(orgId, {
       email: email ?? null,
-      firstName: addr.firstName ?? null,
-      lastName: addr.lastName ?? null,
-      phone: addr.phone ?? null,
+      firstName: addr?.firstName ?? null,
+      lastName: addr?.lastName ?? null,
+      phone: addr?.phone ?? null,
     })
   }
   return checkout.placeOrder(orgId, cartId, customerId, email)
@@ -336,6 +332,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     "placeOrder",
     {
       title: "Place order",
+      description: "Turn a cart into an order. Guests must send an email.",
       inputSchema: z.object({ cartId: z.string().min(1), ...placeOrderBody.shape }),
     },
     async ({ cartId, ...body }) => {

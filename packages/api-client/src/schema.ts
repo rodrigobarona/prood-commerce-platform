@@ -321,7 +321,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Place order from cart */
+        /**
+         * Place order from cart
+         * @description Guests must send an email; a signed-in customer doesn't need to.
+         */
         post: operations["placeOrder"];
         delete?: never;
         options?: never;
@@ -1684,6 +1687,8 @@ export interface operations {
                             icon: string | null;
                         } | null;
                         couponCode: string | null;
+                        couponError: string | null;
+                        requiresShipping: boolean;
                         customerId: string | null;
                         itemCount: number;
                         createdAt: string;
@@ -1874,6 +1879,8 @@ export interface operations {
                             icon: string | null;
                         } | null;
                         couponCode: string | null;
+                        couponError: string | null;
+                        requiresShipping: boolean;
                         customerId: string | null;
                         itemCount: number;
                         createdAt: string;
@@ -2072,6 +2079,8 @@ export interface operations {
                             icon: string | null;
                         } | null;
                         couponCode: string | null;
+                        couponError: string | null;
+                        requiresShipping: boolean;
                         customerId: string | null;
                         itemCount: number;
                         createdAt: string;
@@ -2263,6 +2272,8 @@ export interface operations {
                             icon: string | null;
                         } | null;
                         couponCode: string | null;
+                        couponError: string | null;
+                        requiresShipping: boolean;
                         customerId: string | null;
                         itemCount: number;
                         createdAt: string;
@@ -2460,6 +2471,8 @@ export interface operations {
                             icon: string | null;
                         } | null;
                         couponCode: string | null;
+                        couponError: string | null;
+                        requiresShipping: boolean;
                         customerId: string | null;
                         itemCount: number;
                         createdAt: string;
@@ -2656,6 +2669,8 @@ export interface operations {
                             icon: string | null;
                         } | null;
                         couponCode: string | null;
+                        couponError: string | null;
+                        requiresShipping: boolean;
                         customerId: string | null;
                         itemCount: number;
                         createdAt: string;
@@ -2846,6 +2861,8 @@ export interface operations {
                             icon: string | null;
                         } | null;
                         couponCode: string | null;
+                        couponError: string | null;
+                        requiresShipping: boolean;
                         customerId: string | null;
                         itemCount: number;
                         createdAt: string;
@@ -3221,6 +3238,8 @@ export interface operations {
                             icon: string | null;
                         } | null;
                         couponCode: string | null;
+                        couponError: string | null;
+                        requiresShipping: boolean;
                         customerId: string | null;
                         itemCount: number;
                         createdAt: string;
@@ -3425,6 +3444,8 @@ export interface operations {
                             icon: string | null;
                         } | null;
                         couponCode: string | null;
+                        couponError: string | null;
+                        requiresShipping: boolean;
                         customerId: string | null;
                         itemCount: number;
                         createdAt: string;
@@ -3621,6 +3642,8 @@ export interface operations {
                             icon: string | null;
                         } | null;
                         couponCode: string | null;
+                        couponError: string | null;
+                        requiresShipping: boolean;
                         customerId: string | null;
                         itemCount: number;
                         createdAt: string;
@@ -3719,6 +3742,9 @@ export interface operations {
                             name: {
                                 [key: string]: string;
                             };
+                            variantName: {
+                                [key: string]: string;
+                            } | null;
                             image: {
                                 url: string;
                                 alt: string;
@@ -3823,6 +3849,8 @@ export interface operations {
                             } | null;
                             icon: string | null;
                         } | null;
+                        paymentTransactionId: string | null;
+                        couponCode: string | null;
                         trackingNumber: string | null;
                         trackingUrl: string | null;
                         note: string | null;
@@ -3923,6 +3951,9 @@ export interface operations {
                                 name: {
                                     [key: string]: string;
                                 };
+                                variantName: {
+                                    [key: string]: string;
+                                } | null;
                                 image: {
                                     url: string;
                                     alt: string;
@@ -4027,6 +4058,8 @@ export interface operations {
                                 } | null;
                                 icon: string | null;
                             } | null;
+                            paymentTransactionId: string | null;
+                            couponCode: string | null;
                             trackingNumber: string | null;
                             trackingUrl: string | null;
                             note: string | null;
@@ -4130,6 +4163,9 @@ export interface operations {
                             name: {
                                 [key: string]: string;
                             };
+                            variantName: {
+                                [key: string]: string;
+                            } | null;
                             image: {
                                 url: string;
                                 alt: string;
@@ -4234,6 +4270,8 @@ export interface operations {
                             } | null;
                             icon: string | null;
                         } | null;
+                        paymentTransactionId: string | null;
+                        couponCode: string | null;
                         trackingNumber: string | null;
                         trackingUrl: string | null;
                         note: string | null;
@@ -4492,7 +4530,6 @@ export interface operations {
                     };
                     price?: number;
                     compareAtPrice?: number;
-                    currency?: string;
                     sku?: string;
                     /** @enum {string} */
                     productType?: "physical" | "digital" | "service" | "event" | "subscription";
@@ -4941,7 +4978,6 @@ export interface operations {
                     };
                     price?: number;
                     compareAtPrice?: number;
-                    currency?: string;
                     sku?: string;
                     /** @enum {string} */
                     productType?: "physical" | "digital" | "service" | "event" | "subscription";
@@ -5447,6 +5483,9 @@ export interface operations {
                                 name: {
                                     [key: string]: string;
                                 };
+                                variantName: {
+                                    [key: string]: string;
+                                } | null;
                                 image: {
                                     url: string;
                                     alt: string;
@@ -5551,6 +5590,8 @@ export interface operations {
                                 } | null;
                                 icon: string | null;
                             } | null;
+                            paymentTransactionId: string | null;
+                            couponCode: string | null;
                             trackingNumber: string | null;
                             trackingUrl: string | null;
                             note: string | null;
@@ -5654,6 +5695,9 @@ export interface operations {
                             name: {
                                 [key: string]: string;
                             };
+                            variantName: {
+                                [key: string]: string;
+                            } | null;
                             image: {
                                 url: string;
                                 alt: string;
@@ -5758,6 +5802,8 @@ export interface operations {
                             } | null;
                             icon: string | null;
                         } | null;
+                        paymentTransactionId: string | null;
+                        couponCode: string | null;
                         trackingNumber: string | null;
                         trackingUrl: string | null;
                         note: string | null;
@@ -5870,6 +5916,22 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description The order changed while cancelling */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6368,6 +6430,7 @@ export interface operations {
                         socialLinks: {
                             [key: string]: string;
                         } | null;
+                        currencyLocked: boolean;
                     };
                 };
             };
@@ -6481,6 +6544,7 @@ export interface operations {
                         socialLinks: {
                             [key: string]: string;
                         } | null;
+                        currencyLocked: boolean;
                     };
                 };
             };
@@ -6652,6 +6716,9 @@ export interface operations {
                                 name: {
                                     [key: string]: string;
                                 };
+                                variantName: {
+                                    [key: string]: string;
+                                } | null;
                                 image: {
                                     url: string;
                                     alt: string;
@@ -6756,6 +6823,8 @@ export interface operations {
                                 } | null;
                                 icon: string | null;
                             } | null;
+                            paymentTransactionId: string | null;
+                            couponCode: string | null;
                             trackingNumber: string | null;
                             trackingUrl: string | null;
                             note: string | null;

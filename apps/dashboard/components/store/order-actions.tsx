@@ -73,7 +73,12 @@ export function OrderActions({
   function handleCancel() {
     startTransition(async () => {
       try {
-        await cancelOrderAction(orderId, cancelNote || undefined)
+        const { error } = await cancelOrderAction(orderId, cancelNote || undefined)
+        if (error) {
+          toast.error(error)
+          router.refresh()
+          return
+        }
         toast.success("Order cancelled")
         router.refresh()
       } catch {

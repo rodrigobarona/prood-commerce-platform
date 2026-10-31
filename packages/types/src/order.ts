@@ -51,6 +51,8 @@ export interface OrderItem {
   productId: Id
   variantId: Maybe<Id>
   name: LocalizedString
+  /** Display name of the variant bought (e.g. "Black / XL") */
+  variantName: Maybe<LocalizedString>
   image: Maybe<Image>
   quantity: number
   price: Price
@@ -74,6 +76,10 @@ export interface Order {
   billingAddress: Maybe<CheckoutAddress>
   shippingMethod: Maybe<ShippingMethod>
   paymentMethod: Maybe<PaymentMethod>
+  /** Gateway reference of the payment, when the order was created with one */
+  paymentTransactionId: Maybe<string>
+  /** Coupon redeemed on this order */
+  couponCode: Maybe<string>
   /** Tracking number from shipping provider */
   trackingNumber: Maybe<string>
   /** Tracking URL */

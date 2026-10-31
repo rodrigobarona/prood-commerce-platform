@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import { pgTable, text, integer, boolean, numeric, jsonb, timestamp, index, unique } from 'drizzle-orm/pg-core'
-import type { LocalizedField, PaymentMethod, ShippingMethod } from '@prood/types'
+import type { CheckoutAddress, LocalizedField, PaymentMethod, ShippingMethod } from '@prood/types'
 import { customers } from './customers.js'
 import { organizationId, tenantIsolation } from './tenant.js'
 
@@ -28,12 +28,14 @@ export const orders = pgTable('orders', {
   currency: text('currency').notNull().default('EUR'),
 
   // Addresses (JSON snapshots)
-  shippingAddress: jsonb('shipping_address'),
-  billingAddress: jsonb('billing_address'),
+  shippingAddress: jsonb('shipping_address').$type<CheckoutAddress>(),
+  billingAddress: jsonb('billing_address').$type<CheckoutAddress>(),
 
   // Shipping and payment (JSON snapshots of the methods chosen at checkout)
   shippingMethod: jsonb('shipping_method').$type<ShippingMethod>(),
   paymentMethod: jsonb('payment_method').$type<PaymentMethod>(),
+  paymentTransactionId: text('payment_transaction_id'),
+  couponCode: text('coupon_code'),
   trackingNumber: text('tracking_number'),
   trackingUrl: text('tracking_url'),
 
@@ -62,6 +64,7 @@ export const orderItems = pgTable('order_items', {
 
   // Snapshot at time of purchase
   name: jsonb('name').$type<LocalizedField>().notNull().default({}),
+  variantName: jsonb('variant_name').$type<LocalizedField>(),
   image: text('image'),
   quantity: integer('quantity').notNull(),
   price: numeric('price', { precision: 12, scale: 2 }).notNull(),

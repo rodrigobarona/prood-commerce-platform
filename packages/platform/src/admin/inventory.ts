@@ -12,6 +12,7 @@ import {
   findProductVariants,
 } from '../database/index.js'
 import { mapProduct } from '../domains/product-mapper.js'
+import { getStoreCurrency } from '../tenant/store-info.js'
 
 export function createAdminInventoryDomain() {
   return {
@@ -64,7 +65,8 @@ export function createAdminInventoryDomain() {
 
       const rows = await adminFindLowStockProducts(limit, 50)
 
-      return Promise.all(rows.map(mapProduct))
+      const currency = await getStoreCurrency()
+      return Promise.all(rows.map(row => mapProduct(row, currency)))
     },
   }
 }

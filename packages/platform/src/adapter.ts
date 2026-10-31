@@ -2,7 +2,7 @@
 // PlatformAdapter — native commerce engine implementing CommerceAdapter
 // ---------------------------------------------------------------------------
 
-import type { CommerceAdapter, AdapterDomain } from '@prood/types'
+import type { CommerceAdapter, ReturnRequest } from '@prood/types'
 import type { PlatformConfig } from './types.js'
 import type { AdminAPI } from './admin/types.js'
 import { createAdminAPI } from './admin/index.js'
@@ -42,10 +42,18 @@ async function initDatabase(connectionString: string) {
   initDrizzle(connectionString)
 }
 
+/** The platform's CommerceAdapter, plus what only the native engine offers. */
+export interface PlatformAdapter extends CommerceAdapter {
+  /** Set the customer that address-book and profile calls act for */
+  setCurrentCustomer(id: string | null): void
+  /** All return requests of an order */
+  getOrderReturns(orderId: string): Promise<ReturnRequest[]>
+}
+
 /** Result of createPlatformAdapter — storefront adapter + admin API */
 export interface PlatformAdapterResult {
   /** Storefront adapter implementing CommerceAdapter */
-  adapter: CommerceAdapter
+  adapter: PlatformAdapter
   /** Admin API for merchant operations (platform-only) */
   admin: AdminAPI
 }
@@ -59,22 +67,20 @@ export interface PlatformAdapterResult {
  * ```ts
  * const { adapter, admin } = await createPlatformAdapter({
  *   connectionString: process.env.DATABASE_URL,
- *   currency: 'EUR',
  * })
  * ```
  */
 export async function createPlatformAdapter(config: PlatformConfig = {}): Promise<PlatformAdapterResult> {
-  const currency = config.currency ?? 'EUR'
   const connectionString = resolveConnectionString(config)
 
   // Auto-initialize the database
   await initDatabase(connectionString)
 
   const catalog = createCatalogDomain()
-  const cart = createCartDomain(currency)
-  const checkout = createCheckoutDomain(currency)
+  const cart = createCartDomain()
+  const checkout = createCheckoutDomain()
   const customers = createCustomersDomain()
-  const orders = createOrdersDomain(currency)
+  const orders = createOrdersDomain()
   const store = createStoreDomain()
   const brands = createBrandsDomain()
   const countries = createCountriesDomain()
@@ -84,11 +90,11 @@ export async function createPlatformAdapter(config: PlatformConfig = {}): Promis
   const returnsDomain = createReturnsDomain()
 
   // Build the admin API
-  const admin = createAdminAPI(currency)
+  const admin = createAdminAPI()
 
-  const adapter = {
+  const adapter: PlatformAdapter = {
     name: 'prood',
-    capabilities: ['catalog', 'cart', 'checkout', 'orders', 'customers', 'store', 'brands', 'countries', 'wishlist', 'reviews', 'promotions', 'returns'] as AdapterDomain[],
+    capabilities: ['catalog', 'cart', 'checkout', 'orders', 'customers', 'store', 'brands', 'countries', 'wishlist', 'reviews', 'promotions', 'returns'],
 
     // ---- Catalog ----
     getProduct: catalog.getProduct,
@@ -111,8 +117,7 @@ export async function createPlatformAdapter(config: PlatformConfig = {}): Promis
     setShippingMethod: checkout.setShippingMethod,
     getPaymentMethods: checkout.getPaymentMethods,
     setPaymentMethod: checkout.setPaymentMethod,
-    placeOrder: (cartId: string, options?: { customerId?: string }) =>
-      checkout.placeOrder(cartId, options),
+    placeOrder: checkout.placeOrder,
 
     // ---- Customers ----
     login: customers.login,
@@ -168,7 +173,7 @@ export async function createPlatformAdapter(config: PlatformConfig = {}): Promis
     getReturns: returnsDomain.getReturns,
     getOrderReturns: returnsDomain.getOrderReturns,
     cancelReturn: returnsDomain.cancelReturn,
-  } as CommerceAdapter
+  }
 
   return { adapter, admin }
 }

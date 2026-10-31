@@ -2,7 +2,6 @@
 // Drizzle: Query barrel export
 // ---------------------------------------------------------------------------
 // All query functions are exported here. Domains import from this barrel.
-// To switch drivers, change the import path to '../prisma/queries/index.js'.
 
 // Catalog
 export {
@@ -23,6 +22,7 @@ export {
 export {
   createCart,
   findCart,
+  findCartItem,
   findCartItems,
   findExistingCartItem,
   insertCartItem,
@@ -59,6 +59,7 @@ export {
   transitionOrderPayment,
   findOrders,
   countOrdersForCustomer,
+  countOrdersByShopper,
   findOrderItems,
   findOrderHistory,
   updateOrder,
@@ -108,6 +109,9 @@ export {
   findCouponByCode,
   findPromotionById,
   insertPromotion,
+  lockCouponByCode,
+  incrementCouponUsage,
+  decrementCouponUsage,
 } from './promotions.js'
 
 // Returns

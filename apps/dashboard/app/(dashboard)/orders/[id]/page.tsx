@@ -20,6 +20,8 @@ export const metadata = { title: "Order" }
 const FULFILLABLE = new Set(["placed", "approved"])
 const CANCELLABLE = new Set(["placed", "approved"])
 const REFUNDABLE = new Set(["approved", "fulfilled"])
+// Nothing is owed on these, so they can ship.
+const SETTLED = new Set(["paid", "free"])
 
 type StatusVariant = "default" | "secondary" | "destructive" | "outline"
 
@@ -121,7 +123,11 @@ async function OrderDetail({
         </div>
         <OrderActions
           orderId={order.id}
-          canFulfill={FULFILLABLE.has(order.status) && order.paymentStatus === "paid"}
+          canFulfill={
+            FULFILLABLE.has(order.status) &&
+            SETTLED.has(order.paymentStatus) &&
+            order.fulfillmentStatus !== "not_required"
+          }
           canCancel={CANCELLABLE.has(order.status)}
           canRefund={REFUNDABLE.has(order.status) && order.paymentStatus === "paid"}
         />
@@ -143,6 +149,11 @@ async function OrderDetail({
                   <span className="text-sm font-medium">
                     {localized(item.name)}
                   </span>
+                  {item.variantName ? (
+                    <span className="text-xs text-muted-foreground">
+                      {localized(item.variantName)}
+                    </span>
+                  ) : null}
                   <span className="text-xs text-muted-foreground">
                     Qty {item.quantity} · {formatPrice(item.price)}
                   </span>

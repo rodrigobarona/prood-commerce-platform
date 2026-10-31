@@ -25,8 +25,9 @@ interface CartContextValue {
   loading: boolean
   hydrating: boolean
   openDrawer: () => void
-  addItem: (input: AddItemInput) => Promise<void>
-  addProduct: (product: Product, quantity?: number) => Promise<void>
+  /** Resolves to whether the item was added; a refusal is shown as a toast. */
+  addItem: (input: AddItemInput) => Promise<boolean>
+  addProduct: (product: Product, quantity?: number) => Promise<boolean>
   updateItem: (itemId: string, quantity: number) => Promise<void>
   removeItem: (itemId: string) => Promise<void>
   applyCoupon: (code: string) => Promise<void>
@@ -169,15 +170,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
           }),
         )
         setOpen(true)
+        return true
       } catch (err) {
         toast.error((err as Error).message)
+        return false
       }
     },
     [mutate],
   )
 
   const addProduct = useCallback(
-    (product: Product, quantity = 1) => addItem({ productId: product.id, quantity }),
+    (product: Product, quantity = 1) =>
+      addItem({ productId: product.id, variantId: product.variants[0]?.id, quantity }),
     [addItem],
   )
 

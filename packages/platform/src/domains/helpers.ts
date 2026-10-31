@@ -43,22 +43,21 @@ export function slugifyLocalized(name: LocalizedField): string {
     || crypto.randomUUID().slice(0, 8)
 }
 
-/**
- * Convert a Prisma Decimal (or number) to a plain number.
- * Prisma returns Decimal fields as `Prisma.Decimal` objects which have `.toNumber()`.
- */
+/** Convert a numeric column, which Drizzle returns as a string, to a number. */
 export function toNumber(value: any): number {
-  if (value == null) return 0
-  if (typeof value === 'number') return value
-  if (typeof value?.toNumber === 'function') return value.toNumber()
-  return Number(value)
+  return value == null ? 0 : Number(value)
+}
+
+/** Round to cents, the precision orders store and gateways charge. */
+export function roundMoney(amount: number): number {
+  return Math.round(amount * 100) / 100
 }
 
 function formatAmount(amount: number, currency: string): string {
   return new Intl.NumberFormat('en-IE', { style: 'currency', currency }).format(amount)
 }
 
-/** Create a Price from a numeric/Decimal value + currency */
+/** Create a Price from a numeric value + currency */
 export function price(amount: any, currency: string): Maybe<Price> {
   if (amount == null) return null
   return priceRequired(amount, currency)
@@ -93,6 +92,11 @@ export function discountablePrice(
   return base
 }
 
+/** Whether a product or variant can be sold: a tracked quantity of 0 means no. */
+export function isInStock(row: { inStock: boolean; inventoryQuantity: number | null }): boolean {
+  return row.inStock && row.inventoryQuantity !== 0
+}
+
 /** Round an average star rating to one decimal, as shown to shoppers. */
 export function roundRating(average: number): number {
   return Math.round(average * 10) / 10
@@ -109,20 +113,6 @@ export function img(url: string, altText: string | null): Image {
     url,
     alt: altText ?? '',
   }
-}
-
-/**
- * Safely parse a JSON field from the database.
- * With PostgreSQL native Json type, Prisma returns objects directly.
- * This also handles legacy string values for compatibility.
- */
-export function parseJsonField(value: unknown): any {
-  if (value == null) return null
-  if (typeof value === 'string') {
-    try { return JSON.parse(value) }
-    catch { return value }
-  }
-  return value
 }
 
 /** Generate an order number like ORD-20260211-XXXX */

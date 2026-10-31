@@ -116,7 +116,6 @@ export const createProductBody = z.object({
   shortDescription: optionalLocalizedFieldSchema,
   price: z.number().optional(),
   compareAtPrice: z.number().optional(),
-  currency: z.string().optional(),
   sku: z.string().optional(),
   productType: z.enum(["physical", "digital", "service", "event", "subscription"]).optional(),
   status: z.enum(["draft", "active", "archived"]).optional(),
@@ -154,12 +153,20 @@ export const updateInventoryBody = z.object({
   adjustment: z.enum(["set", "increment", "decrement"]).optional(),
 })
 
+const CURRENCIES = new Set(Intl.supportedValuesOf("currency"))
+const CURRENCY_MESSAGE = "That isn't a currency code. Use an ISO 4217 code, like EUR."
+
 export const updateStoreBody = z.object({
   name: optionalLocalizedFieldSchema,
   description: optionalLocalizedFieldSchema,
   logo: optionalImageUrl,
   favicon: z.string().optional(),
-  currency: z.string().optional(),
+  currency: z
+    .string()
+    .regex(/^[A-Za-z]{3}$/, CURRENCY_MESSAGE)
+    .toUpperCase()
+    .refine((code) => CURRENCIES.has(code), CURRENCY_MESSAGE)
+    .optional(),
   locale: z.string().optional(),
   timezone: z.string().optional(),
   country: z.string().regex(/^[A-Za-z]{2}$/, "Use a two-letter country code, like PT.").toUpperCase().optional(),

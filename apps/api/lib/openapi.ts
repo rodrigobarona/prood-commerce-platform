@@ -79,6 +79,7 @@ function pathItem(
   operationId: string,
   options: {
     pathTemplate?: string
+    description?: string
     query?: z.ZodType
     body?: z.ZodType
     scope: "storefront" | "admin"
@@ -109,6 +110,7 @@ function pathItem(
   const op: Record<string, unknown> = {
     operationId,
     summary,
+    description: options.description,
     tags: [options.tag ?? (options.scope === "admin" ? "Admin" : "Storefront")],
     security: options.public
       ? []
@@ -344,6 +346,7 @@ export function buildOpenApiDocument() {
       ),
       "/carts/{id}/place-order": pathItem("POST", "Place order from cart", "placeOrder", {
         pathTemplate: "/carts/{id}/place-order",
+        description: "Guests must send an email; a signed-in customer doesn't need to.",
         scope: "storefront",
         body: placeOrderBody,
         responses: { "201": { description: "Order created", schema: responses.order } },
@@ -425,6 +428,9 @@ export function buildOpenApiDocument() {
         scope: "admin",
         body: cancelOrderBody,
         response: responses.successBody,
+        responses: {
+          "409": { description: "The order changed while cancelling", schema: responses.errorBody },
+        },
       }),
       "/admin/orders/{id}/history": pathItem("GET", "Get order history", "adminGetOrderHistory", {
         pathTemplate: "/admin/orders/{id}/history",

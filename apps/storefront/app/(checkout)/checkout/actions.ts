@@ -1,7 +1,7 @@
 "use server"
 
 import type { CheckoutAddress } from "@prood/types"
-import { unwrap } from "@prood/api-client"
+import { isCommerceApiError, unwrap } from "@prood/api-client"
 import { headers } from "next/headers"
 import { clearCartId, getCartId } from "@/lib/cart-cookie"
 import { getCommerceApi } from "@/lib/commerce-api"
@@ -21,7 +21,6 @@ export interface StartCheckoutInput {
   address?: Partial<CheckoutAddress>
   shippingMethodId?: string
   providerId?: string
-  expressPayment?: "apple" | "google"
 }
 
 export async function startCheckout(input: StartCheckoutInput): Promise<CheckoutResult> {
@@ -67,15 +66,11 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
       )
     }
 
-    const methods = await unwrap(
-      api.GET("/carts/{id}/shipping-methods", { params: { path: { id: cartId } } })
-    )
-    const methodId = input.shippingMethodId ?? methods[0]?.id
-    if (methodId) {
+    if (input.shippingMethodId) {
       await unwrap(
         api.PATCH("/carts/{id}/shipping-method", {
           params: { path: { id: cartId } },
-          body: { methodId },
+          body: { methodId: input.shippingMethodId },
         })
       )
     }
@@ -144,6 +139,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
 
     return { ok: true, orderId: order.id, checkoutUrl: session.checkoutUrl }
   } catch (err) {
-    return { ok: false, error: err instanceof Error ? err.message : "Checkout failed" }
+    const message = err instanceof Error || isCommerceApiError(err) ? err.message : null
+    return { ok: false, error: message ?? "Checkout failed" }
   }
 }

@@ -200,8 +200,6 @@ multi-step checkout, and customer account pages.
 - **Cart persistence** — httpOnly `commerce_cart_id` cookie (30-day expiry)
 - **4-step checkout** — Contact info, shipping address (Geoapify autocomplete),
   shipping method selection, order review
-- **Express checkout** — Apple Pay / Google Pay buttons trigger `startCheckout()`
-  directly
 - **Commerce data** — All product/order data fetched via `@prood/api-client`
   against `apps/api`, not direct DB access
 - **Payment handoff** — Orders placed through API, payment session created at

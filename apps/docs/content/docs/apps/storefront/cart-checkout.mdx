@@ -74,7 +74,7 @@ The `/checkout` page renders `CheckoutFlow` which collects:
 `app/checkout/actions.ts` → `startCheckout()`:
 
 1. PUT shipping and billing addresses on the cart via the Commerce API
-2. Select the first available shipping method
+2. Set the shipping method the shopper chose; a cart with items that ship cannot be ordered without an address and a method, and a cart without any skips that step
 3. `POST /v1/carts/{id}/place-order` — creates order with internal `customerId` (guest UUID or logged-in buyer)
 4. `POST` checkout app `/api/sessions` with `orderId`, `customerId`, amount, `tenantId`, and `returnUrl` (no email in Redis metadata)
 5. Redirect client to `checkoutUrl` from the session response
@@ -110,9 +110,10 @@ After successful payment:
 
 | Error | Handling |
 | --- | --- |
-| Cart not found | BFF creates new cart, retries operation |
-| Out of stock | API returns 409; client shows toast |
-| Invalid coupon | API returns 400; form shows error message |
+| Cart not found when adding an item | BFF creates a new cart and retries; any other refusal leaves the cart as it was |
+| Out of stock, or more than is left | API returns 422; client shows toast |
+| Invalid coupon | API returns 422; form shows error message |
+| Coupon stops applying (expired, below minimum) | `cart.couponError` says why, the discount is gone, and placing the order returns 422 until it is removed. Per-customer limits depend on who is ordering, so they only show up as that 422 |
 | Checkout session creation fails | Server action throws; checkout page shows error |
 | Payment failed | Checkout app shows retry UI; order stays `pending` |
 

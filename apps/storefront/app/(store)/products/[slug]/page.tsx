@@ -11,10 +11,9 @@ import {
   BreadcrumbSeparator,
 } from "@prood/ui/components/breadcrumb"
 import { ProductGallery } from "@prood/ui/components/product-gallery"
-import { ProductPrice } from "@prood/ui/components/product-price"
 import { ReviewStars } from "@prood/ui/components/review-stars"
 import { localized } from "@prood/ui/lib/commerce"
-import { AddToCart } from "@/components/commerce/add-to-cart"
+import { ProductPurchase } from "@/components/commerce/product-purchase"
 
 async function loadProduct(slug: string): Promise<Product | null> {
   try {
@@ -73,23 +72,26 @@ export default async function ProductDetailPage({
         <ProductGallery images={images} alt={localized(product.name)} />
 
         <div className="flex flex-col gap-5">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-3xl font-bold tracking-tight">{localized(product.name)}</h1>
-            {product.rating ? (
-              <ReviewStars
-                rating={product.rating.average}
-                count={product.rating.count}
-                showValue
-              />
-            ) : null}
-            <ProductPrice price={product.price} size="lg" />
-          </div>
-
-          {product.shortDescription ? (
-            <p className="text-muted-foreground">{localized(product.shortDescription)}</p>
-          ) : null}
-
-          <AddToCart product={product} />
+          <ProductPurchase
+            product={product}
+            heading={
+              <>
+                <h1 className="text-3xl font-bold tracking-tight">{localized(product.name)}</h1>
+                {product.rating ? (
+                  <ReviewStars
+                    rating={product.rating.average}
+                    count={product.rating.count}
+                    showValue
+                  />
+                ) : null}
+              </>
+            }
+            summary={
+              product.shortDescription ? (
+                <p className="text-muted-foreground">{localized(product.shortDescription)}</p>
+              ) : null
+            }
+          />
 
           {product.description ? (
             <div className="border-t pt-5">

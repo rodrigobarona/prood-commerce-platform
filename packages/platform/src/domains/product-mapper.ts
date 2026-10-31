@@ -13,7 +13,8 @@ import {
   findCategoryById,
   getReviewSummaryByProduct,
 } from '../database/index.js'
-import { normalizeLocalizedField, discountablePrice, img, roundRating } from './helpers.js'
+import { mapCategory } from './category-mapper.js'
+import { normalizeLocalizedField, discountablePrice, img, isInStock, roundRating } from './helpers.js'
 
 async function fetchProductRelations(productId: string) {
   const [images, variants, attributes, categoryIds, tags, reviews] = await Promise.all([
@@ -26,14 +27,14 @@ async function fetchProductRelations(productId: string) {
   ])
 
   const categories = categoryIds.length > 0
-    ? (await Promise.all(categoryIds.map(id => findCategoryById(id)))).filter(Boolean)
+    ? (await Promise.all(categoryIds.map(id => findCategoryById(id)))).filter(c => c !== null)
     : []
 
   return { images, variants, attributes, categories, tags, reviews }
 }
 
-/** Prices use the product's own currency, whoever reads it. */
-export async function mapProduct(row: typeof products.$inferSelect): Promise<Product> {
+/** Prices are in `currency`, the store's: a product has none of its own. */
+export async function mapProduct(row: typeof products.$inferSelect, currency: string): Promise<Product> {
   const related = await fetchProductRelations(row.id)
   const primaryImg = related.images.find((i: any) => i.isPrimary) ?? related.images[0]
 
@@ -44,7 +45,7 @@ export async function mapProduct(row: typeof products.$inferSelect): Promise<Pro
     slug: row.slug,
     description: normalizeLocalizedField(row.description),
     shortDescription: normalizeLocalizedField(row.shortDescription),
-    price: discountablePrice(row.price, row.compareAtPrice, row.currency),
+    price: discountablePrice(row.price, row.compareAtPrice, currency),
     primaryImage: primaryImg ? img(primaryImg.url, primaryImg.altText) : null,
     gallery: related.images.map((i: any) => img(i.url, i.altText)),
     rating: related.reviews.totalReviews > 0
@@ -54,8 +55,8 @@ export async function mapProduct(row: typeof products.$inferSelect): Promise<Pro
       id: v.id,
       sku: v.sku ?? null,
       name: v.name ? normalizeLocalizedField(v.name) : null,
-      price: discountablePrice(v.price, v.compareAtPrice, row.currency),
-      inStock: Boolean(v.inStock),
+      price: discountablePrice(v.price, v.compareAtPrice, currency),
+      inStock: isInStock(v),
       inventoryQuantity: v.inventoryQuantity ?? null,
     })),
     attributes: related.attributes.map((a: any) => ({
@@ -64,16 +65,8 @@ export async function mapProduct(row: typeof products.$inferSelect): Promise<Pro
       value: normalizeLocalizedField(a.value),
     })),
     quantityLimit: row.quantityLimit,
-    categories: related.categories.map((c: any) => ({
-      id: c.id,
-      name: normalizeLocalizedField(c.name),
-      slug: c.slug,
-      description: c.description ? normalizeLocalizedField(c.description) : null,
-      image: c.image ? img(c.image, null) : null,
-      parentId: c.parentId ?? null,
-      productCount: null,
-    })),
-    inStock: row.inStock,
+    categories: related.categories.map(mapCategory),
+    inStock: isInStock(row),
     vatIncluded: row.vatIncluded,
     vatRate: row.vatRate,
     tags: related.tags,

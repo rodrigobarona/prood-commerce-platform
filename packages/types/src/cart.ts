@@ -44,6 +44,10 @@ export interface Cart {
   shippingMethod: Maybe<ShippingMethod>
   paymentMethod: Maybe<PaymentMethod>
   couponCode: Maybe<string>
+  /** Why the coupon on the cart gives no discount right now; placing the order is refused until it is removed */
+  couponError: Maybe<string>
+  /** Whether any item ships. If so, an order needs a shipping address and method */
+  requiresShipping: boolean
   /** Associated customer (null for guest carts) */
   customerId: Maybe<Id>
   itemCount: number

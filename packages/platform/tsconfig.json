@@ -10,6 +10,5 @@
     "declarationMap": true,
     "emitDeclarationOnly": false
   },
-  "include": ["src"],
-  "exclude": ["src/database/prisma/**", "src/__tests__/**"]
+  "include": ["src"]
 }

@@ -2,7 +2,7 @@
 // Reviews domain — product reviews and ratings
 // ---------------------------------------------------------------------------
 
-import type { Review, ReviewSummary, PaginatedResult } from '@prood/types'
+import type { Review, ReviewInput, ReviewSummary, PaginatedResult } from '@prood/types'
 import {
   findReviewsByProduct,
   getReviewSummaryByProduct,
@@ -53,13 +53,7 @@ export function createReviewsDomain() {
       }
     },
 
-    async submitReview(data: {
-      productId: string
-      authorName: string
-      rating: number
-      title?: string
-      body?: string
-    }): Promise<Review> {
+    async submitReview(data: ReviewInput): Promise<Review> {
       await insertReview(data)
       const reviews = await findReviewsByProduct(data.productId)
       const latest = reviews[0]

@@ -29,6 +29,27 @@
       "when": 1793346427022,
       "tag": "0003_order_method_snapshots",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793347965207,
+      "tag": "0004_store_currency",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793348648452,
+      "tag": "0005_order_records",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793436285776,
+      "tag": "0006_auth_tables_private",
+      "breakpoints": true
     }
   ]
 }

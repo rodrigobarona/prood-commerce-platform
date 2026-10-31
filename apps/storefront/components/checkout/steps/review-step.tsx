@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { SpinnerGapIcon } from "@phosphor-icons/react"
 import { Button } from "@prood/ui/components/button"
 import type { ContactValues, AddressValues } from "../schemas"
@@ -91,7 +92,10 @@ export function ReviewStep({
 
       {error ? (
         <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
-          {error}
+          {error}{" "}
+          <Link href="/cart" className="underline">
+            Back to cart
+          </Link>
         </p>
       ) : null}
 

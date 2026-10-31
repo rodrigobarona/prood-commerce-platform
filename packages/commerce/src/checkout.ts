@@ -4,6 +4,7 @@ import type {
   CheckoutAddress,
   Coupon,
   Country,
+  CustomerOrdersParams,
   Order,
   PaginatedResult,
   PaginationParams,
@@ -90,7 +91,7 @@ export async function getOrder(orderId: string, tenantId?: string): Promise<Orde
 }
 
 export async function getCustomerOrders(
-  params?: PaginationParams & { customerId?: string },
+  params?: CustomerOrdersParams,
   tenantId?: string,
 ): Promise<PaginatedResult<Order>> {
   return runScoped(tenantId, async () => (await getAdapter()).getCustomerOrders(params))
@@ -107,7 +108,7 @@ export async function getActivePromotions(tenantId?: string): Promise<Promotion[
   return runScoped(tenantId, async () => (await getAdapter()).getActivePromotions())
 }
 
-export async function validateCoupon(code: string, tenantId?: string): Promise<Coupon> {
+export async function validateCoupon(code: string, tenantId?: string): Promise<Coupon | null> {
   return runScoped(tenantId, async () => (await getAdapter()).validateCoupon(code))
 }
 

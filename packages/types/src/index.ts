@@ -13,6 +13,7 @@ export { toErrorResponse } from './http-errors.js'
 
 // Product
 export type { Product, ProductVariant, Attribute, ProductType } from './product.js'
+export { canQuickAdd, firstAvailableVariant, variantPrice } from './variant.js'
 
 // Category
 export type { Category } from './category.js'
@@ -96,6 +97,8 @@ export type {
   GetProductParams,
   GetCategoriesParams,
   AddToCartInput,
+  AddressInput,
+  CustomerOrdersParams,
   AdapterDomain,
 } from './adapter.js'
 
