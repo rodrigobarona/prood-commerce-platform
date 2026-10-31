@@ -54,6 +54,8 @@ export interface PaymentEventInput {
   currency: string | null
   /** Gateway id (e.g. 'stripe') — recorded in the order history */
   provider: string
+  /** Gateway's id for the payment, kept on captured orders so they can be refunded */
+  transactionId?: string | null
 }
 
 /**

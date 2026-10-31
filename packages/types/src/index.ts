@@ -28,7 +28,7 @@ export type { Cart, CartItem, CartTotals } from './cart.js'
 export type { Customer, Address, CheckoutAddress, RegisterInput, UpdateCustomerInput } from './customer.js'
 
 // Order
-export type { Order, OrderItem, OrderStatus, PaymentStatus, OrderFulfillmentStatus, FulfillmentStatus } from './order.js'
+export type { Order, OrderItem, OrderPaymentDetails, OrderStatus, PaymentStatus, OrderFulfillmentStatus, FulfillmentStatus } from './order.js'
 
 // Order Input (for OrderAdapter.createOrder)
 export type { CreateOrderInput, OrderItemInput } from './order-input.js'
@@ -44,6 +44,8 @@ export type { PaymentMethod, PaymentType, Installment } from './payment.js'
 
 // Payment Provider (pluggable gateway interface)
 export type {
+  CredentialCheck,
+  PaymentMethodKind,
   PaymentProvider,
   PaymentSession,
   PaymentSessionStatus,
@@ -134,5 +136,8 @@ export type {
 
 // Security helpers
 export { safeEqual } from './security.js'
+
+// Order payment state
+export { orderPaymentState, toPortugueseMobile, type OrderPaymentState } from './order-payment.js'
 export { safeRedirectPath } from './redirect.js'
 export { requiredEnv, storeOriginForSlug } from './env.js'
