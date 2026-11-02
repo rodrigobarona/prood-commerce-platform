@@ -113,7 +113,7 @@ describe('@prood/platform [drizzle]', () => {
       await withTenant(OTHER_ORG_ID, async () => {
         await getDb().execute(sql`
           insert into products (id, name, slug, status)
-          values ('prod-other', '{"en":"Other"}', 'premium-cotton-t-shirt', 'active')
+          values ('prod-other', '{"en":"Other"}', 'stoneware-mug', 'active')
         `)
       })
     })
@@ -144,7 +144,7 @@ describe('@prood/platform [drizzle]', () => {
 
     it('allows the same slug in different tenants', async () => {
       const { rows } = await getDb().execute(
-        sql`select organization_id from products where slug = 'premium-cotton-t-shirt' order by organization_id`,
+        sql`select organization_id from products where slug = 'stoneware-mug' order by organization_id`,
       )
       expect(rows.map((row) => row.organization_id)).toEqual([DEMO_ORG_ID, OTHER_ORG_ID])
     })

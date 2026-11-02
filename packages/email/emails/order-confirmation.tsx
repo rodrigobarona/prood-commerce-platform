@@ -8,6 +8,9 @@ export interface OrderConfirmationEmailProps {
   orderNumber: string
   orderTotal: string
   orderUrl: string
+  /** For a guest, who has no account page to open */
+  orderLabel?: string
+  requiresShipping?: boolean
 }
 
 export function OrderConfirmationEmail({
@@ -16,6 +19,8 @@ export function OrderConfirmationEmail({
   orderNumber,
   orderTotal,
   orderUrl,
+  orderLabel = 'View order',
+  requiresShipping = false,
 }: OrderConfirmationEmailProps) {
   return (
     <EmailLayout preview={`Order #${orderNumber} confirmed`} companyName={companyName}>
@@ -31,7 +36,8 @@ export function OrderConfirmationEmail({
         </Text>
 
         <Text className="font-16 text-fg-2 mx-auto mt-0 mb-8 max-w-[380px] text-center font-sans">
-          Thanks for your order. We&apos;ve received it and will notify you when it ships.
+          Thanks for your order. We&apos;ve received it.
+          {requiresShipping ? " We'll email you when it ships." : null}
         </Text>
 
         <Section className="bg-bg mx-auto mb-8 max-w-[380px] rounded-lg px-6 py-5 text-left">
@@ -47,7 +53,7 @@ export function OrderConfirmationEmail({
             href={orderUrl}
             className="bg-fg font-16 text-fg-inverted inline-block rounded-lg px-7 py-4 text-center font-sans leading-6"
           >
-            View order
+            {orderLabel}
           </Button>
         </Section>
       </Section>
@@ -61,6 +67,7 @@ OrderConfirmationEmail.PreviewProps = {
   orderNumber: 'ORD-10042',
   orderTotal: 'EUR 49.90',
   orderUrl: 'https://example.com/orders/ORD-10042',
+  requiresShipping: true,
 } satisfies OrderConfirmationEmailProps
 
 export default OrderConfirmationEmail

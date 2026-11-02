@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import type { LocalizedField, Maybe, Price, DiscountablePrice, Image } from '@prood/types'
-import { DEFAULT_LOCALE } from '@prood/types'
+import { DEFAULT_LOCALE, slugify } from '@prood/types'
 export function resolveLocalized(
   field: LocalizedField | null | undefined,
   locale: string = DEFAULT_LOCALE,
@@ -35,12 +35,7 @@ export function normalizeLocalizedField(value: unknown): LocalizedField {
 
 /** Generate a URL-safe slug from a localized name (uses default locale) */
 export function slugifyLocalized(name: LocalizedField): string {
-  const base = name[DEFAULT_LOCALE] || Object.values(name)[0] || ''
-  return base
-    .toLowerCase()
-    .replace(/[^a-z0-9\u0621-\u064A]+/g, '-')
-    .replace(/^-|-$/g, '')
-    || crypto.randomUUID().slice(0, 8)
+  return slugify(name[DEFAULT_LOCALE] || Object.values(name)[0] || '') || crypto.randomUUID().slice(0, 8)
 }
 
 /** Convert a numeric column, which Drizzle returns as a string, to a number. */

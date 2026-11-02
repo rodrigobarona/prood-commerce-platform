@@ -9,6 +9,7 @@ import { createPlatformAdapter } from '../adapter.js'
 import { getDb, withTenant } from '../database/drizzle/client.js'
 import { createCustomer } from '../database/drizzle/queries/customers.js'
 import { coupons, promotions } from '../database/drizzle/schema/promotions.js'
+import { reviews } from '../database/drizzle/schema/reviews.js'
 import { DEMO_ORG_ID } from '../database/drizzle/seed.js'
 import type { PlatformAdapter } from '../adapter.js'
 import type { CheckoutAddress, CreateOrderInput, Order, PaginationParams } from '@prood/types'
@@ -55,6 +56,15 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     await opts.setup()
     adapter = scopedAdapter((await createPlatformAdapter()).adapter)
   })
+
+  /** The demo store has no reviews, so tests that need some bring their own. */
+  async function seedReviews(productId: string, ratings: number[]): Promise<void> {
+    await withTenant(DEMO_ORG_ID, () =>
+      getDb().insert(reviews).values(
+        ratings.map((rating, i) => ({ productId, authorName: `Reviewer ${i + 1}`, rating })),
+      ),
+    )
+  }
 
   async function seedCustomer(firstName: string, lastName: string): Promise<string> {
     return withTenant(DEMO_ORG_ID, async () =>
@@ -139,7 +149,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
   })
 
   it('should get a product by slug', async () => {
-    const product = await adapter.getProduct({ slug: 'premium-cotton-t-shirt' })
+    const product = await adapter.getProduct({ slug: 'stoneware-mug' })
     expect(product.id).toBe('prod-1')
   })
 
@@ -154,9 +164,9 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
   })
 
   it('should search products by query', async () => {
-    const result = await adapter.getProducts({ query: 'cotton', page: 1, perPage: 10 })
+    const result = await adapter.getProducts({ query: 'stoneware', page: 1, perPage: 10 })
     expect(result.products.items.length).toBe(1)
-    expect(result.products.items[0].slug).toBe('premium-cotton-t-shirt')
+    expect(result.products.items[0].slug).toBe('stoneware-mug')
   })
 
   it('should filter by category', async () => {
@@ -259,6 +269,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
   })
 
   it('rates a product from its reviews', async () => {
+    await seedReviews('prod-1', [5, 4, 5])
     const before = await adapter.getProduct({ id: 'prod-1' })
     expect(before.rating).toEqual({ average: 4.7, count: 3 })
 
@@ -270,9 +281,6 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
   })
 
   it('leaves an unreviewed product unrated', async () => {
-    await withTenant(DEMO_ORG_ID, () =>
-      getDb().execute(sql`delete from reviews where product_id = 'prod-3'`),
-    )
     expect((await adapter.getProduct({ id: 'prod-3' })).rating).toBeNull()
   })
 
@@ -345,7 +353,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
 
   it('should use variant price when variant is specified', async () => {
     const product = await adapter.getProduct({ id: 'prod-1' })
-    const variant = product.variants?.find((v: any) => v.name?.en === 'Large')
+    const variant = product.variants?.find((v: any) => v.name?.en === '450 ml')
     expect(variant).toBeTruthy()
     const cart = await adapter.createCart()
     const updatedCart = await adapter.addToCart(cart.id, {
@@ -366,7 +374,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     it('names the chosen variant on the cart line', async () => {
       const cart = await adapter.createCart()
       const updated = await adapter.addToCart(cart.id, { productId: 'prod-1', variantId: 'var-tshirt-l', quantity: 1 })
-      expect(updated.items[0]?.variantName?.en).toBe('Large')
+      expect(updated.items[0]?.variantName?.en).toBe('450 ml')
       expect(updated.totals.subtotal.amount).toBe(32)
     })
 
@@ -514,11 +522,6 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     expect(methods.length).toBeGreaterThan(0)
   })
 
-  it('should list payment methods', async () => {
-    const methods = await adapter.getPaymentMethods('dummy-cart')
-    expect(methods.length).toBeGreaterThan(0)
-  })
-
   it('should set shipping address', async () => {
     const cart = await adapter.createCart()
     const updatedCart = await adapter.setShippingAddress(cart.id, fullAddress())
@@ -544,14 +547,11 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     it('returns the methods selected on the cart', async () => {
       const cart = await cartWithItem()
       const [, express] = await adapter.getShippingMethods(cart.id)
-      const [, cod] = await adapter.getPaymentMethods(cart.id)
 
       await adapter.setShippingMethod(cart.id, express!.id)
-      await adapter.setPaymentMethod(cart.id, cod!.id)
 
       const updated = await adapter.getCart(cart.id)
       expect(updated.shippingMethod).toEqual(express)
-      expect(updated.paymentMethod).toEqual(cod)
     })
 
     it('leaves the cart without methods until one is selected', async () => {
@@ -573,23 +573,19 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     it('refuses a method the store does not offer', async () => {
       const cart = await cartWithItem()
       await expect(adapter.setShippingMethod(cart.id, 'free-please')).rejects.toMatchObject({ code: 'VALIDATION' })
-      await expect(adapter.setPaymentMethod(cart.id, 'iou')).rejects.toMatchObject({ code: 'VALIDATION' })
       expect((await adapter.getCart(cart.id)).totals.shipping).toBeNull()
     })
 
     it('keeps on the order the methods chosen and the shipping charged', async () => {
       const cart = await cartWithItem()
       const [, express] = await adapter.getShippingMethods(cart.id)
-      const [, cod] = await adapter.getPaymentMethods(cart.id)
       await adapter.setShippingMethod(cart.id, express!.id)
-      await adapter.setPaymentMethod(cart.id, cod!.id)
       await adapter.setShippingAddress(cart.id, fullAddress())
 
       const placed = await adapter.placeOrder(cart.id)
 
       for (const order of [placed, await adapter.getOrder(placed.id)]) {
         expect(order.shippingMethod).toEqual(express)
-        expect(order.paymentMethod).toEqual(cod)
         expect(order.totals.shipping).toEqual(express!.price)
         expect(order.totals.total.amount).toBe(order.totals.subtotal.amount + express!.price.amount)
       }
@@ -607,9 +603,9 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       await adapter.setShippingMethod(cart.id, 'standard')
       const [item] = (await adapter.placeOrder(cart.id)).items
       expect(item).toMatchObject({ variantId: 'var-tshirt-l', productType: 'physical', quantity: 2 })
-      expect(item?.name.en).toBe('Premium Cotton T-Shirt')
-      expect(item?.variantName?.en).toBe('Large')
-      expect(item?.image?.url).toContain('T-Shirt')
+      expect(item?.name.en).toBe('Stoneware mug')
+      expect(item?.variantName?.en).toBe('450 ml')
+      expect(item?.image?.url).toContain('product-mug')
       expect(item?.totalPrice.amount).toBe(64)
     })
 
@@ -985,7 +981,6 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       const cart = await adapter.createCart()
       await adapter.addToCart(cart.id, { productId: 'prod-2', quantity: 1 })
       await adapter.setShippingMethod(cart.id, 'standard')
-      await adapter.setPaymentMethod(cart.id, 'card')
       await adapter.setShippingAddress(cart.id, fullAddress())
       const placed = await adapter.placeOrder(cart.id, { customerId })
 
@@ -1491,6 +1486,17 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       expect(await adapter.getOrder(order.id)).toMatchObject({ status: 'cancelled', paymentStatus: 'refunded' })
     })
 
+    it('counts a running total once, so revenue drops by the amount refunded', async () => {
+      const order = await paidOrder()
+      const partial = { outcome: 'partially_refunded' as const, currency: 'EUR', provider, transactionId: 'tx_1' }
+
+      await adapter.applyPaymentEvent(order.id, { ...partial, amount: 1 })
+      await adapter.applyPaymentEvent(order.id, { ...partial, amount: 2 })
+
+      const { totalRevenue } = await asTenant((admin) => admin.getDashboardStats())
+      expect(totalRevenue).toBe(order.totals.total.amount - 2)
+    })
+
     it('counts refunds reported at the same moment', async () => {
       const order = await paidOrder()
       const half = order.totals.total.amount / 2
@@ -1722,10 +1728,10 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
       const [express] = (await adapter.getShippingMethods('any')).slice(1)
       const [item] = order.items
 
-      expect(item?.name.en).toBe('Premium Cotton T-Shirt')
+      expect(item?.name.en).toBe('Stoneware mug')
       expect(item?.variantId).toBe('var-tshirt-l')
-      expect(item?.variantName?.en).toBe('Large')
-      expect(item?.image?.url).toContain('T-Shirt')
+      expect(item?.variantName?.en).toBe('450 ml')
+      expect(item?.image?.url).toContain('product-mug')
       expect(item?.productType).toBe('physical')
       expect(order.shippingMethod).toEqual(express)
       expect(order.totals.subtotal.amount).toBe(64)
@@ -1776,7 +1782,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
         }],
         billingAddress: fullAddress({ city: 'Porto' }),
         shippingMethodId: 'express',
-        payment: { methodId: 'cod', transactionId: 'first-charge' },
+        payment: { methodId: 'card', transactionId: 'first-charge' },
         receiver: { firstName: 'Ana', lastName: 'Silva', email: 'ana@example.com' },
       })
       const dup = await adapter.duplicateOrder(original.id)
@@ -1935,6 +1941,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
   // ---- Reviews ----
 
   it('should submit and retrieve reviews', async () => {
+    await seedReviews('prod-1', [5, 4, 5])
     const review = await adapter.submitReview({
       productId: 'prod-1',
       authorName: 'Ali',
@@ -1946,7 +1953,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     expect(review.authorName).toBe('Ali')
 
     const result = await adapter.getProductReviews('prod-1')
-    // 3 seeded reviews + 1 submitted
+    // 3 reviews + 1 submitted
     expect(result.items.length).toBe(4)
     expect(result.total).toBe(4)
 
@@ -1954,7 +1961,7 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     // (5+4+5+5)/4 = 4.75 → 4.8
     expect(summary.averageRating).toBe(4.8)
     expect(summary.totalCount).toBe(4)
-    // distribution[4] (5-star) should be 3 (Ahmed, Omar, Ali), distribution[3] (4-star) = 1 (Sara)
+    // distribution[4] (5-star) counts 3, distribution[3] (4-star) counts 1
     expect(summary.distribution[4]).toBe(3)
     expect(summary.distribution[3]).toBe(1)
   })
@@ -1990,9 +1997,9 @@ export function platformTestSuite(opts: SuiteOptions, timeout = 30_000) {
     expect(Array.isArray(brands)).toBe(true)
     expect(brands.length).toBe(3)
     const names = brands.map((b: any) => b.name.en)
-    expect(names).toContain('Prood Essentials')
-    expect(names).toContain('TechWave')
-    expect(names).toContain('Artisan Leather')
+    expect(names).toContain('Casa Exemplo')
+    expect(names).toContain('Tear do Norte')
+    expect(names).toContain('Olaria do Sul')
   })
 
   // ---- Countries ----

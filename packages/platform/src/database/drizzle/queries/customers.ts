@@ -2,7 +2,7 @@
 // Drizzle: Customer queries
 // ---------------------------------------------------------------------------
 
-import { eq, and, isNull, isNotNull } from 'drizzle-orm'
+import { eq, and, inArray, isNull, isNotNull } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
 import { tenantCondition, requireOrgId } from './tenant-filter.js'
@@ -59,6 +59,15 @@ export async function findAddresses(customerId: string) {
     .select()
     .from(schema.customerAddresses)
     .where(and(eq(schema.customerAddresses.customerId, customerId), tenantCondition(schema.customerAddresses)))
+}
+
+/** Every address of these customers in one query, for a page of them. */
+export async function findAddressesByCustomers(customerIds: string[]) {
+  if (customerIds.length === 0) return []
+  return getDb()
+    .select()
+    .from(schema.customerAddresses)
+    .where(and(inArray(schema.customerAddresses.customerId, customerIds), tenantCondition(schema.customerAddresses)))
 }
 
 export async function findAddressById(addressId: string) {

@@ -3,13 +3,14 @@
 // ---------------------------------------------------------------------------
 
 import { CommerceError } from '@prood/types'
-import type { Customer, Address, PaginatedResult } from '@prood/types'
-import type { AdminListParams } from './types.js'
+import type { Address, PaginatedResult } from '@prood/types'
+import type { AdminCustomerRecord, AdminListParams } from './types.js'
 import {
   adminFindAllCustomers,
   adminFindCustomerById,
   adminDeleteCustomer,
   findAddresses,
+  findAddressesByCustomers,
 } from '../database/index.js'
 
 function mapAddress(row: Record<string, unknown>): Address {
@@ -28,8 +29,9 @@ function mapAddress(row: Record<string, unknown>): Address {
   }
 }
 
-async function mapCustomer(row: {
+type CustomerRow = {
   id: string
+  authUserId?: string | null
   firstName?: string | null
   lastName?: string | null
   phone?: string | null
@@ -37,10 +39,14 @@ async function mapCustomer(row: {
   createdAt: Date | string
   updatedAt: Date | string
   userEmail?: string | null
-}): Promise<Customer> {
-  const addresses = await findAddresses(row.id)
+  orderCount: number
+  spent: number
+}
+
+function mapCustomer(row: CustomerRow, addresses: Record<string, unknown>[]): AdminCustomerRecord {
   return {
     id: row.id,
+    authUserId: row.authUserId ?? null,
     email: row.userEmail ?? null,
     firstName: row.firstName ?? null,
     lastName: row.lastName ?? null,
@@ -49,26 +55,29 @@ async function mapCustomer(row: {
     defaultAddressId: row.defaultAddressId ?? null,
     createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
     updatedAt: row.updatedAt instanceof Date ? row.updatedAt.toISOString() : String(row.updatedAt),
+    orderCount: row.orderCount,
+    spent: row.spent,
   }
 }
 
 export function createAdminCustomersDomain() {
   return {
-    async listCustomers(params?: AdminListParams): Promise<PaginatedResult<Customer>> {
+    async listCustomers(params?: AdminListParams): Promise<PaginatedResult<AdminCustomerRecord>> {
       const page = params?.page ?? 1
       const perPage = params?.perPage ?? 20
       const offset = (page - 1) * perPage
 
       const { rows, total } = await adminFindAllCustomers({
         search: params?.search,
+        sort: params?.sort,
         limit: perPage,
         offset,
       })
 
-      const customers = await Promise.all(rows.map(mapCustomer))
+      const addresses = await findAddressesByCustomers(rows.map((row) => row.id))
 
       return {
-        items: customers,
+        items: rows.map((row) => mapCustomer(row, addresses.filter((address) => address.customerId === row.id))),
         total,
         page,
         perPage,
@@ -76,10 +85,10 @@ export function createAdminCustomersDomain() {
       }
     },
 
-    async getCustomer(id: string): Promise<Customer> {
+    async getCustomer(id: string): Promise<AdminCustomerRecord> {
       const row = await adminFindCustomerById(id)
       if (!row) throw new CommerceError(`Customer not found: ${id}`, "NOT_FOUND")
-      return mapCustomer(row)
+      return mapCustomer(row, await findAddresses(row.id))
     },
 
     async deleteCustomer(id: string): Promise<void> {

@@ -14,6 +14,11 @@ describe('orderPaymentState', () => {
     expect(state({ status: 'approved', paymentStatus: 'free' }).kind).toBe('settled')
   })
 
+  it("doesn't settle a free order that was cancelled", () => {
+    expect(state({ status: 'cancelled', paymentStatus: 'free' })).toEqual({ kind: 'cancelled' })
+    expect(orderOutcome({ status: 'cancelled', paymentStatus: 'free' })).toEqual({ state: 'failed', payable: false })
+  })
+
   it('offers the reference on an unpaid Multibanco order', () => {
     expect(state({ paymentDetails: details })).toEqual({ kind: 'awaiting_multibanco', details })
   })

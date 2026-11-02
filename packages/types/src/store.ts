@@ -2,6 +2,7 @@
 // Store / brand information types
 // ---------------------------------------------------------------------------
 
+import type { PaymentMethodKind } from './payment-provider.js'
 import type { Maybe, Image, LocalizedString } from './common.js'
 
 /** Supported currency */
@@ -47,4 +48,6 @@ export interface StoreInfo {
 export interface StorefrontStore extends StoreInfo {
   /** True when a payment provider is connected */
   canTakeOrders: boolean
+  /** How shoppers can pay, from the provider the store's checkout uses. Empty when unknown. */
+  paymentMethods: PaymentMethodKind[]
 }

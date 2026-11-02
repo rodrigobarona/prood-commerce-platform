@@ -2,10 +2,17 @@
 // Drizzle: Catalog queries
 // ---------------------------------------------------------------------------
 
-import { count, eq, sql, and, or, asc, desc, inArray } from 'drizzle-orm'
+import { count, eq, sql, and, or, asc, desc, inArray, type AnyColumn } from 'drizzle-orm'
+import { contains } from '@prood/types'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
 import { tenantCondition } from './tenant-filter.js'
+
+/** One JSON object per language: match the text in it, not its `en` and `pt` keys. */
+function translationMatches(field: AnyColumn, pattern: string) {
+  const translations = sql`CASE jsonb_typeof(${field}) WHEN 'object' THEN ${field} ELSE '{}'::jsonb END`
+  return sql`EXISTS (SELECT 1 FROM jsonb_each_text(${translations}) AS translation WHERE translation.value ILIKE ${pattern})`
+}
 
 export async function findProductById(id: string) {
   const [row] = await getDb().select().from(schema.products)
@@ -34,10 +41,11 @@ export async function findProducts(opts: {
       case 'eq': conditions.push(eq(col, c.value)); break
       case 'like':
       case 'ilike': conditions.push(sql`${col}::text ilike ${c.value}`); break
-      case 'search': conditions.push(or(
-        sql`${schema.products.name}::text ilike ${c.value}`,
-        sql`${schema.products.description}::text ilike ${c.value}`,
-      )!); break
+      case 'search': {
+        const pattern = contains(String(c.value))
+        conditions.push(or(translationMatches(schema.products.name, pattern), translationMatches(schema.products.description, pattern))!)
+        break
+      }
       case 'gte': conditions.push(sql`${col} >= ${c.value}`); break
       case 'lte': conditions.push(sql`${col} <= ${c.value}`); break
       case 'in': conditions.push(inArray(col, c.value)); break

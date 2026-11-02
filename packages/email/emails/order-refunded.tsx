@@ -10,6 +10,10 @@ export interface OrderRefundedEmailProps {
   /** Partial refunds can report the running total instead of this refund */
   refundAmountLabel?: string
   orderUrl: string
+  /** For a guest, who has no account page to open */
+  orderLabel?: string
+  /** Only when a provider sent it back. A recorded refund, or Multibanco, may need more from the shopper */
+  returnedToPaymentMethod?: boolean
 }
 
 export function OrderRefundedEmail({
@@ -19,6 +23,8 @@ export function OrderRefundedEmail({
   refundAmount,
   refundAmountLabel = 'Refund amount',
   orderUrl,
+  orderLabel = 'View order details',
+  returnedToPaymentMethod = false,
 }: OrderRefundedEmailProps) {
   return (
     <EmailLayout preview={`Refund for order #${orderNumber}`} companyName={companyName}>
@@ -34,8 +40,10 @@ export function OrderRefundedEmail({
         </Text>
 
         <Text className="font-16 text-fg-2 mx-auto mt-0 mb-8 max-w-[380px] text-center font-sans">
-          We&apos;ve processed a refund for your order #{orderNumber}. The funds will be returned
-          to your original payment method.
+          We&apos;ve processed a refund for your order #{orderNumber}.{' '}
+          {returnedToPaymentMethod
+            ? 'The funds will be returned to your original payment method.'
+            : `${companyName} will tell you if it needs anything from you to send it back.`}
         </Text>
 
         <Section className="bg-bg mx-auto mb-8 max-w-[380px] rounded-lg px-6 py-5 text-left">
@@ -51,7 +59,7 @@ export function OrderRefundedEmail({
             href={orderUrl}
             className="bg-fg font-16 text-fg-inverted inline-block rounded-lg px-7 py-4 text-center font-sans leading-6"
           >
-            View order details
+            {orderLabel}
           </Button>
         </Section>
       </Section>

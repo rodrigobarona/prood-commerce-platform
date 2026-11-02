@@ -8,7 +8,6 @@ import type {
   Order,
   PaginatedResult,
   PaginationParams,
-  PaymentMethod,
   Promotion,
   Review,
   ReviewSummary,
@@ -24,13 +23,6 @@ export async function getShippingMethods(
   tenantId?: string,
 ): Promise<ShippingMethod[]> {
   return runScoped(tenantId, async () => (await getAdapter()).getShippingMethods(cartId))
-}
-
-export async function getPaymentMethods(
-  cartId: string,
-  tenantId?: string,
-): Promise<PaymentMethod[]> {
-  return runScoped(tenantId, async () => (await getAdapter()).getPaymentMethods(cartId))
 }
 
 export async function setShippingAddress(
@@ -60,16 +52,6 @@ export async function setShippingMethod(
 ): Promise<Cart> {
   return runScoped(tenantId, async () =>
     (await getAdapter()).setShippingMethod(cartId, methodId),
-  )
-}
-
-export async function setPaymentMethod(
-  cartId: string,
-  methodId: string,
-  tenantId?: string,
-): Promise<Cart> {
-  return runScoped(tenantId, async () =>
-    (await getAdapter()).setPaymentMethod(cartId, methodId),
   )
 }
 

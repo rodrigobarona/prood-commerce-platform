@@ -9,6 +9,8 @@ export interface OrderShippedEmailProps {
   trackingNumber?: string
   trackingUrl?: string
   orderUrl: string
+  /** For a guest, who has no account page to open */
+  orderLabel?: string
 }
 
 export function OrderShippedEmail({
@@ -18,6 +20,7 @@ export function OrderShippedEmail({
   trackingNumber,
   trackingUrl,
   orderUrl,
+  orderLabel = 'View order',
 }: OrderShippedEmailProps) {
   return (
     <EmailLayout preview={`Order #${orderNumber} has shipped`} companyName={companyName}>
@@ -33,7 +36,7 @@ export function OrderShippedEmail({
         </Text>
 
         <Text className="font-16 text-fg-2 mx-auto mt-0 mb-8 max-w-[380px] text-center font-sans">
-          Great news! Your order #{orderNumber} is on its way.
+          Your order #{orderNumber} is on its way.
         </Text>
 
         {trackingNumber ? (
@@ -48,7 +51,7 @@ export function OrderShippedEmail({
             href={trackingUrl ?? orderUrl}
             className="bg-fg font-16 text-fg-inverted inline-block rounded-lg px-7 py-4 text-center font-sans leading-6"
           >
-            {trackingUrl ? 'Track your order' : 'View order'}
+            {trackingUrl ? 'Track your order' : orderLabel}
           </Button>
         </Section>
       </Section>

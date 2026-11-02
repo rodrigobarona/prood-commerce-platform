@@ -44,6 +44,7 @@ export {
   findGuestCustomersByEmail,
   linkGuestCustomerToAuthUser,
   findAddresses,
+  findAddressesByCustomers,
   findAddressById,
   createAddress,
   updateAddress,
@@ -177,6 +178,7 @@ export {
   countOrdersThisMonth,
   countPaidOrders,
   sumOrderRevenue,
+  orderActivityBetween,
   findRecentOrders,
 } from './admin-orders.js'
 

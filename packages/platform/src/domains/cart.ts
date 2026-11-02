@@ -23,7 +23,7 @@ import { normalizeLocalizedField, discountablePrice, priceRequired, img, roundMo
 import { getStoreCurrency } from '../tenant/store-info.js'
 import { requireSellable } from './availability.js'
 import { previewCoupon } from './coupons.js'
-import { listPaymentMethods, listShippingMethods } from './checkout-methods.js'
+import { listShippingMethods } from './checkout-methods.js'
 
 export function createCartDomain() {
   /** Build a full Cart object from cart row + items + product data */
@@ -85,7 +85,6 @@ export function createCartDomain() {
         })
       : null
     const discount = coupon?.discount ?? 0
-    const paymentMethod = listPaymentMethods().find(m => m.id === cartRow.paymentMethodId) ?? null
 
     return {
       id: cartRow.id,
@@ -100,7 +99,7 @@ export function createCartDomain() {
       shippingAddress: cartRow.shippingAddress,
       billingAddress: cartRow.billingAddress,
       shippingMethod,
-      paymentMethod,
+      paymentMethod: null,
       couponCode: cartRow.couponCode ?? null,
       couponError: coupon?.problem ?? null,
       requiresShipping,

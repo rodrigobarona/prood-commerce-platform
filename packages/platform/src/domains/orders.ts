@@ -289,8 +289,9 @@ export function createOrdersDomain() {
         }
 
         // Added before anything else, so a retry after a crash still counts it.
-        if (input.refundId && input.amount !== null) {
-          const refunds = await addOrderRefund(orderId, input.refundId, input.amount)
+        // A gateway without refund ids reports a running total, so its one entry is replaced each time.
+        if (input.amount !== null) {
+          const refunds = await addOrderRefund(orderId, input.refundId ?? 'running-total', input.amount)
           const refunded = Object.values(refunds).reduce((sum, amount) => sum + cents(amount), 0)
           if (refunded >= cents(Number(order.total))) {
             return (await markOrderRefunded(order, ['paid', 'partially_refunded'], note)) ? 'refund_completed' : decideAgain()

@@ -7,21 +7,23 @@ export interface EmailFooterProps {
   unsubscribeUrl?: string
 }
 
-export function EmailFooter({
-  companyName,
-  tagline = 'Commerce infrastructure for modern brands.',
-  address = 'Prood Commerce Platform',
-  unsubscribeUrl,
-}: EmailFooterProps) {
+/** Nothing by default: shoppers hear from the store, and an order email has nothing to add. */
+export function EmailFooter({ companyName, tagline, address, unsubscribeUrl }: EmailFooterProps) {
+  if (!tagline && !address && !unsubscribeUrl) return null
+
   return (
     <Section className="bg-bg">
       <Row>
         <Column className="px-6 py-10 text-center">
-          <Text className="font-13 text-fg-3 mx-auto mt-0 mb-8 max-w-[280px] text-center font-sans">
-            {tagline}
-          </Text>
+          {tagline ? (
+            <Text className="font-13 text-fg-3 mx-auto mt-0 mb-8 max-w-[280px] text-center font-sans">
+              {tagline}
+            </Text>
+          ) : null}
 
-          <Text className="font-11 text-fg-3 mt-4 mb-5 text-center font-sans">{address}</Text>
+          {address ? (
+            <Text className="font-11 text-fg-3 mt-4 mb-5 text-center font-sans">{address}</Text>
+          ) : null}
 
           {unsubscribeUrl ? (
             <Text className="font-11 text-fg-3 m-0 text-center font-sans">
