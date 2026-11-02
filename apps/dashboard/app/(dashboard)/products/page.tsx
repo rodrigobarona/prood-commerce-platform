@@ -1,16 +1,16 @@
 import { Suspense } from "react"
 import Link from "next/link"
+import { redirect } from "next/navigation"
 import { Package, Plus } from "@phosphor-icons/react/dist/ssr"
 import type { Product } from "@prood/commerce"
-import { DashboardEmpty } from "@/components/dashboard-empty"
 import { Button } from "@prood/ui/components/button"
-import { Badge } from "@prood/ui/components/badge"
+import { ListPagination, ListTable, RowLink, SortableHead } from "@prood/ui/components/list-table"
+import { ListToolbar, type ListSort } from "@prood/ui/components/list-toolbar"
+import { PageHeader } from "@prood/ui/components/page-header"
+import { Panel } from "@prood/ui/components/panel"
+import { PanelEmpty } from "@prood/ui/components/panel-empty"
+import { Status } from "@prood/ui/components/status-badge"
 import {
-  Card,
-  CardContent,
-} from "@prood/ui/components/card"
-import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -18,119 +18,177 @@ import {
   TableRow,
 } from "@prood/ui/components/table"
 import { localized, formatPrice } from "@prood/ui/lib/commerce"
-import { TablePageSkeleton } from "@/components/skeletons"
+import { lastPage, listHref, readListState, type RawSearchParams } from "@prood/ui/lib/list-params"
+import { DashboardPage } from "@/components/layout/dashboard-page"
+import { TablePanelSkeleton } from "@/components/skeletons"
+import { ProductThumb } from "@/components/store/product-thumb"
 import { listProducts } from "@/lib/admin-api"
+import { formatDate, humanize } from "@/lib/format"
+import { productState } from "@/lib/status"
 
 export const metadata = { title: "Products" }
 
-export default function ProductsPage() {
-  return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="font-heading text-xl font-medium">Products</h2>
-          <p className="text-sm text-muted-foreground">
-            Manage your product catalog.
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/products/new">
-            <Plus />
-            <span>New product</span>
-          </Link>
-        </Button>
-      </div>
+const PATH = "/products"
+const WIDE = "hidden @2xl:table-cell"
+const SORTS: ListSort[] = [
+  { label: "Newest first", sort: "createdAt", dir: "desc" },
+  { label: "Oldest first", sort: "createdAt", dir: "asc" },
+  { label: "Name, A to Z", sort: "name", dir: "asc" },
+  { label: "Name, Z to A", sort: "name", dir: "desc" },
+  { label: "Lowest price", sort: "price", dir: "asc" },
+  { label: "Highest price", sort: "price", dir: "desc" },
+]
 
-      <Suspense fallback={<TablePageSkeleton columns={6} />}>
-        <ProductsTable />
+export default function ProductsPage({ searchParams }: { searchParams: Promise<RawSearchParams> }) {
+  return (
+    <DashboardPage>
+      <PageHeader
+        title="Products"
+        description="Everything your store sells."
+        actions={
+          <Button asChild size="lg">
+            <Link href="/products/new">
+              <Plus />
+              <span>Add product</span>
+            </Link>
+          </Button>
+        }
+      />
+
+      <Suspense fallback={<TablePanelSkeleton />}>
+        <ProductsTable searchParams={searchParams} />
       </Suspense>
-    </div>
+    </DashboardPage>
   )
 }
 
-async function ProductsTable() {
+async function ProductsTable({ searchParams }: { searchParams: Promise<RawSearchParams> }) {
+  const list = readListState(await searchParams, {
+    sorts: ["createdAt", "name", "price"],
+    defaultSort: "createdAt",
+  })
+
   let products: Product[] = []
   let total = 0
   let failed = false
   try {
-    const result = await listProducts({ page: 1, perPage: 50 })
+    const result = await listProducts({
+      page: list.page,
+      perPage: list.perPage,
+      search: list.q || undefined,
+      sortField: list.sort,
+      sortDirection: list.dir,
+    })
     products = result.items
     total = result.total
   } catch (error) {
     if (error instanceof Error && "digest" in error) throw error
     failed = true
   }
+  if (products.length === 0 && total > 0) {
+    redirect(listHref(PATH, list.params, { page: lastPage(total, list.perPage) }))
+  }
+
+  if (failed) {
+    return (
+      <Panel flush>
+        <PanelEmpty
+          title="We couldn't load your products"
+          description="The store didn't answer. Refresh the page to try again."
+        />
+      </Panel>
+    )
+  }
+
+  if (total === 0 && !list.q) {
+    return (
+      <Panel flush>
+        <PanelEmpty
+          icon={<Package />}
+          title="No products yet"
+          description="Products you add show up here and on your store. Add one so customers have something to buy."
+          action={
+            <Button asChild>
+              <Link href="/products/new">Add product</Link>
+            </Button>
+          }
+        />
+      </Panel>
+    )
+  }
 
   return (
-    <>
-      {!failed && (
-        <p className="-mt-4 text-sm text-muted-foreground">
-          {total} {total === 1 ? "product" : "products"} in your catalog.
-        </p>
-      )}
-      <Card>
-        <CardContent className="px-0">
-          {products.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="pl-5">Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Stock</TableHead>
-                  <TableHead className="pr-5 text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {products.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell className="pl-5 font-medium">
-                      {localized(product.name)}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {product.productType}
-                    </TableCell>
+    <Panel flush>
+      <ListToolbar searchLabel="Search name or SKU" sorts={SORTS} currentSort={list} />
+      {products.length > 0 ? (
+        <>
+          <ListTable>
+            <TableHeader>
+              <TableRow>
+                <SortableHead list={list} pathname={PATH} field="name">
+                  Name
+                </SortableHead>
+                <TableHead className={WIDE}>Status</TableHead>
+                <TableHead className={WIDE}>Type</TableHead>
+                <SortableHead list={list} pathname={PATH} field="createdAt" firstDirection="desc" className={WIDE}>
+                  Added
+                </SortableHead>
+                <SortableHead list={list} pathname={PATH} field="price" align="right">
+                  Price
+                </SortableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {products.map((product) => {
+                const state = productState(product)
+                return (
+                  <TableRow key={product.id} className="relative">
                     <TableCell>
-                      <Badge
-                        variant={product.status === "active" ? "default" : "outline"}
-                      >
-                        {product.status ?? "draft"}
-                      </Badge>
+                      <div className="flex items-center gap-3">
+                        <ProductThumb url={product.primaryImage?.url} />
+                        <div className="min-w-0">
+                          <RowLink href={`/products/${product.id}/edit`} stretch>
+                            {localized(product.name)}
+                          </RowLink>
+                          <div className="text-xs text-muted-foreground @2xl:hidden">
+                            {humanize(product.productType)}
+                          </div>
+                        </div>
+                      </div>
                     </TableCell>
-                    <TableCell>{formatPrice(product.price)}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={product.inStock ? "secondary" : "outline"}
-                      >
-                        {product.inStock ? "In stock" : "Out of stock"}
-                      </Badge>
+                    <TableCell className={WIDE}>
+                      <Status look={state} />
                     </TableCell>
-                    <TableCell className="pr-5 text-right">
-                      <Button asChild variant="ghost" size="sm">
-                        <Link href={`/products/${product.id}/edit`}>Edit</Link>
-                      </Button>
+                    <TableCell className={`${WIDE} text-muted-foreground`}>
+                      {humanize(product.productType)}
+                    </TableCell>
+                    <TableCell className={`${WIDE} text-muted-foreground tabular-nums`}>
+                      {formatDate(product.createdAt)}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {formatPrice(product.price) || "—"}
+                      <div className="flex justify-end @2xl:hidden">
+                        <Status look={state} />
+                      </div>
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <DashboardEmpty
-              className="mx-5 border-0 py-10"
-              icon={Package}
-              title={failed ? "Catalog unavailable" : "No products yet"}
-              description={
-                failed
-                  ? "Could not load products. Check the database connection."
-                  : "Create your first product to start selling."
-              }
-              actionLabel={failed ? undefined : "New product"}
-              actionHref={failed ? undefined : "/products/new"}
-            />
-          )}
-        </CardContent>
-      </Card>
-    </>
+                )
+              })}
+            </TableBody>
+          </ListTable>
+          <ListPagination list={list} pathname={PATH} total={total} noun="product" />
+        </>
+      ) : (
+        <PanelEmpty
+          title="No products match"
+          description={`Nothing is called "${list.q}". Check the spelling, or look through all your products.`}
+          action={
+            <Button asChild variant="outline">
+              <Link href={PATH}>Show all products</Link>
+            </Button>
+          }
+        />
+      )}
+    </Panel>
   )
 }

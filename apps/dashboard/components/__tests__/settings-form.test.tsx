@@ -7,18 +7,24 @@ vi.mock("@/app/(dashboard)/settings/actions", () => ({ updateStoreSettingsAction
 import { SettingsForm } from "../store/settings-form"
 
 const initial = {
-  name: { en: "Loja da Ana" },
-  description: {},
+  name: "Loja da Ana",
+  description: "",
   contactEmail: "",
   contactPhone: "",
   currency: "EUR",
-  locale: "en",
   timezone: "Europe/Lisbon",
   country: "PT",
   address: "",
 }
 
 describe("SettingsForm", () => {
+  it("has no language setting and one name field", () => {
+    const html = renderToStaticMarkup(<SettingsForm initial={initial} currencyLocked={false} />)
+    expect(html).not.toContain('role="tablist"')
+    expect(html).not.toContain(">Language<")
+    expect(html.match(/id="store-name"/g)).toHaveLength(1)
+  })
+
   it("says the description and contact email are public", () => {
     const html = renderToStaticMarkup(<SettingsForm initial={initial} currencyLocked={false} />)
     expect(html.match(/Shown on your store and to customers\./g)).toHaveLength(2)

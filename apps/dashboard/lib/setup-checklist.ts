@@ -19,10 +19,15 @@ export interface SetupProgress {
   hasContactEmail: boolean
 }
 
+/** A store can sell once it has a published product and a provider. Everything else can wait. */
+export function canSell({ activeProducts, canTakeOrders }: Pick<SetupProgress, "activeProducts" | "canTakeOrders">): boolean {
+  return activeProducts > 0 && canTakeOrders
+}
+
 /** What's left before a store can sell. Only published products count: customers can't buy a draft. */
 export function setupChecklist(progress: SetupProgress, storeUrl: string | null): SetupItem[] {
   const hasDraft = progress.totalProducts > 0
-  const canBuy = progress.activeProducts > 0 && progress.canTakeOrders
+  const canBuy = canSell(progress)
   return [
     {
       id: "product",
@@ -54,7 +59,7 @@ export function setupChecklist(progress: SetupProgress, storeUrl: string | null)
       id: "test-order",
       title: "Place a test order",
       description: canBuy
-        ? "Buy from your own store and pay, to check that checkout works."
+        ? "Buy something from your store and pay for it, then check it shows as paid in Orders. Your provider's page in Integrations says how to test it."
         : "Publish a product and connect a payment provider first.",
       done: progress.paidOrders > 0,
       action: "Open your store",

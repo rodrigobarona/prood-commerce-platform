@@ -1,68 +1,54 @@
 import { Suspense } from "react"
 import { UsersThree } from "@phosphor-icons/react/dist/ssr"
-import { Badge } from "@prood/ui/components/badge"
-import { DashboardEmpty } from "@/components/dashboard-empty"
+import { getEntitlements } from "@prood/billing"
+import { ListTable } from "@prood/ui/components/list-table"
+import { PageHeader } from "@prood/ui/components/page-header"
+import { Panel } from "@prood/ui/components/panel"
+import { PanelEmpty } from "@prood/ui/components/panel-empty"
+import { StatusBadge } from "@prood/ui/components/status-badge"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@prood/ui/components/card"
-import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@prood/ui/components/table"
+import { DashboardPage } from "@/components/layout/dashboard-page"
+import { TablePanelSkeleton } from "@/components/skeletons"
 import { InviteMemberForm } from "@/components/team/invite-member-form"
 import {
   CancelInvitationButton,
   RemoveMemberButton,
 } from "@/components/team/team-actions"
-import { TablePageSkeleton } from "@/components/skeletons"
 import { getCurrentUser, getFullActiveOrganization } from "@/lib/auth"
+import { getActiveOrganizationPlan, seatLimitMessage } from "@/lib/billing"
+import { humanize } from "@/lib/format"
 
 export const metadata = { title: "Team" }
 
+const WIDE = "hidden @2xl:table-cell"
+
 export default function TeamPage() {
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h2 className="font-heading text-xl font-medium">Team</h2>
-        <p className="text-sm text-muted-foreground">
-          Invite teammates to this store and manage their roles.
-        </p>
-      </div>
+    <DashboardPage>
+      <PageHeader title="Team" description="Who can work on this store. Everyone signs in with their own account." />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Invite a teammate</CardTitle>
-          <CardDescription>
-            They&apos;ll get access to this store&apos;s dashboard.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <InviteMemberForm />
-        </CardContent>
-      </Card>
-
-      <Suspense fallback={<TablePageSkeleton columns={4} />}>
+      <Suspense fallback={<TablePanelSkeleton rows={3} />}>
         <TeamContent />
       </Suspense>
-    </div>
+    </DashboardPage>
   )
 }
 
 async function TeamContent() {
   let org: Awaited<ReturnType<typeof getFullActiveOrganization>> = null
   let currentUser: Awaited<ReturnType<typeof getCurrentUser>> = null
+  let plan: Awaited<ReturnType<typeof getActiveOrganizationPlan>> = null
   try {
-    ;[org, currentUser] = await Promise.all([
+    ;[org, currentUser, plan] = await Promise.all([
       getFullActiveOrganization(),
       getCurrentUser(),
+      getActiveOrganizationPlan(),
     ])
   } catch (error) {
     if (error instanceof Error && "digest" in error) throw error
@@ -72,98 +58,107 @@ async function TeamContent() {
   const invitations = (org?.invitations ?? []).filter(
     (invite) => invite.status === "pending"
   )
+  const seats = getEntitlements(plan?.planId ?? "free").maxTeamSeats
+  const atLimit = seats !== null && members.length + invitations.length >= seats
+  const invitesOn = seats === null || seats > 1
+
+  const invite = (
+    <Panel title="Invite a teammate" description={atLimit ? undefined : "They'll get an email, and access to this store's dashboard once they accept."}>
+      {atLimit ? (
+        <p className="text-sm text-pretty text-muted-foreground">{seatLimitMessage(seats)}</p>
+      ) : (
+        <InviteMemberForm />
+      )}
+    </Panel>
+  )
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Members</CardTitle>
-        </CardHeader>
-        <CardContent className="px-0">
-          {members.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="pl-5">Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead className="pr-5 text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {members.map((member) => {
-                  const isSelf = member.userId === currentUser?.id
-                  const isOwner = member.role === "owner"
-                  return (
-                    <TableRow key={member.id}>
-                      <TableCell className="pl-5 font-medium">
-                        {member.user?.name ?? "—"}
-                        {isSelf ? (
-                          <span className="ml-2 text-xs text-muted-foreground">
-                            (you)
-                          </span>
-                        ) : null}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {member.user?.email ?? "—"}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{member.role}</Badge>
-                      </TableCell>
-                      <TableCell className="pr-5 text-right">
-                        {isSelf || isOwner ? null : (
-                          <RemoveMemberButton memberId={member.id} />
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          ) : (
-            <DashboardEmpty
-              className="border-0 py-10"
-              icon={UsersThree}
-              title="No members yet"
-              description="Invite teammates using the form above."
-            />
-          )}
-        </CardContent>
-      </Card>
+      {invitesOn ? invite : null}
 
-      {invitations.length > 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Pending invitations</CardTitle>
-          </CardHeader>
-          <CardContent className="px-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="pl-5">Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead className="pr-5 text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {invitations.map((invite) => (
-                  <TableRow key={invite.id}>
-                    <TableCell className="pl-5 font-medium">
-                      {invite.email}
+      <Panel title="Members" flush>
+        {members.length > 0 ? (
+          <ListTable>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead className={WIDE}>Email</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>
+                  <span className="sr-only">Actions</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {members.map((member) => {
+                const isSelf = member.userId === currentUser?.id
+                const isOwner = member.role === "owner"
+                const name = member.user?.name ?? member.user?.email ?? "this member"
+                return (
+                  <TableRow key={member.id}>
+                    <TableCell className="font-medium">
+                      {member.user?.name ?? "—"}
+                      {isSelf ? (
+                        <span className="ml-2 text-xs font-normal text-muted-foreground">You</span>
+                      ) : null}
+                      <div className="max-w-52 truncate text-xs font-normal text-muted-foreground @2xl:hidden">
+                        {member.user?.email}
+                      </div>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{invite.role ?? "member"}</Badge>
+                    <TableCell className={`${WIDE} text-muted-foreground`}>
+                      {member.user?.email ?? "—"}
                     </TableCell>
-                    <TableCell className="pr-5 text-right">
-                      <CancelInvitationButton invitationId={invite.id} />
+                    <TableCell>{humanize(member.role)}</TableCell>
+                    <TableCell className="w-px text-right">
+                      {isSelf || isOwner ? null : <RemoveMemberButton memberId={member.id} name={name} />}
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+                )
+              })}
+            </TableBody>
+          </ListTable>
+        ) : (
+          <PanelEmpty
+            icon={<UsersThree />}
+            title="No members yet"
+            description="People you invite show up here once they accept. Use the form above to invite the first."
+          />
+        )}
+      </Panel>
+
+      {invitations.length > 0 ? (
+        <Panel title="Pending invitations" flush>
+          <ListTable>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Email</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead className={WIDE}>Status</TableHead>
+                <TableHead>
+                  <span className="sr-only">Actions</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {invitations.map((invite) => (
+                <TableRow key={invite.id}>
+                  <TableCell className="font-medium">{invite.email}</TableCell>
+                  <TableCell>{humanize(invite.role ?? "member")}</TableCell>
+                  <TableCell className={WIDE}>
+                    <StatusBadge tone="warning">Waiting to accept</StatusBadge>
+                  </TableCell>
+                  <TableCell className="w-px text-right">
+                    <CancelInvitationButton invitationId={invite.id} email={invite.email} />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </ListTable>
+        </Panel>
       ) : null}
+
+      {/* On a plan with one seat there's nothing to do here, so the people come first. */}
+      {invitesOn ? null : invite}
     </>
   )
 }

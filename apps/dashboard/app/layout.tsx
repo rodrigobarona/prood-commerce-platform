@@ -5,7 +5,7 @@ import { Suspense } from "react"
 import "@prood/ui/globals.css"
 import "@prood/ui/themes/prood.css"
 import { cn } from "@prood/ui/lib/utils"
-import { AppProviders } from "@/components/providers/app-providers"
+import { AppProviders } from "@prood/ui/components/app-providers"
 
 const fontSans = Instrument_Sans({ subsets: ["latin"], variable: "--font-family-sans" })
 const fontHeading = Bricolage_Grotesque({

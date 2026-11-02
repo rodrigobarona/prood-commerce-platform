@@ -149,7 +149,7 @@ export const getStoreSettings = cache(async function getStoreSettings() {
   return unwrap(api.GET("/admin/store"))
 })
 
-export async function updateStoreSettings(input: UpdateStoreInput) {
+export async function updateStoreSettings(input: Omit<UpdateStoreInput, "locale">) {
   await requireActiveOrg()
   const api = await getCommerceApi()
   return unwrap(api.PATCH("/admin/store", { body: input }))

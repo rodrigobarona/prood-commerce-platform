@@ -1,20 +1,26 @@
 import { Suspense } from "react"
+import Link from "next/link"
 import { notFound } from "next/navigation"
-import type { Customer } from "@prood/commerce"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@prood/ui/components/card"
-import { Skeleton } from "@prood/ui/components/skeleton"
-import { getCustomer } from "@/lib/admin-api"
+import { ShoppingBag } from "@phosphor-icons/react/dist/ssr"
+import type { AdminCustomer, Order } from "@prood/types"
+import { Button } from "@prood/ui/components/button"
+import { Fact, FactList } from "@prood/ui/components/fact-list"
+import { BackLink, DetailLayout } from "@prood/ui/components/page-layout"
+import { PageHeader } from "@prood/ui/components/page-header"
+import { Panel } from "@prood/ui/components/panel"
+import { PanelEmpty } from "@prood/ui/components/panel-empty"
+import { formatPrice } from "@prood/ui/lib/commerce"
+import { DashboardPage } from "@/components/layout/dashboard-page"
+import { DetailSkeleton, PageHeaderSkeleton } from "@/components/skeletons"
+import { Address } from "@/components/store/address"
+import { OrdersTable } from "@/components/store/orders-table"
+import { getCustomer, getStoreSettings, listOrders } from "@/lib/admin-api"
+import { formatDate, personName, formatNumber } from "@/lib/format"
+
+/** The first few on the page; the rest are a link away. */
+const RECENT_ORDERS = 10
 
 export const metadata = { title: "Customer" }
-
-function fullName(customer: Customer): string {
-  return [customer.firstName, customer.lastName].filter(Boolean).join(" ") || "—"
-}
 
 export default function CustomerDetailPage({
   params,
@@ -24,16 +30,10 @@ export default function CustomerDetailPage({
   return (
     <Suspense
       fallback={
-        <div className="flex flex-col gap-6">
-          <div>
-            <Skeleton className="h-7 w-36" />
-            <Skeleton className="mt-1 h-4 w-48" />
-          </div>
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Skeleton className="h-40 rounded-xl" />
-            <Skeleton className="h-40 rounded-xl" />
-          </div>
-        </div>
+        <DashboardPage>
+          <PageHeaderSkeleton />
+          <DetailSkeleton />
+        </DashboardPage>
       }
     >
       <CustomerDetail params={params} />
@@ -48,73 +48,95 @@ async function CustomerDetail({
 }) {
   const { id } = await params
 
-  let customer: Customer
+  let customer: AdminCustomer
   try {
     customer = await getCustomer(id)
   } catch {
     notFound()
   }
+  const [store, recent] = await Promise.all([
+    getStoreSettings().catch(() => null),
+    listOrders({ customerId: id, perPage: RECENT_ORDERS }).catch((): { items: Order[] } | null => null),
+  ])
+  const timeZone = store?.timezone
+  const name = personName(customer)
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h2 className="font-heading text-xl font-medium">
-          {fullName(customer)}
-        </h2>
-        <p className="text-sm text-muted-foreground">{customer.email}</p>
-      </div>
+    <DashboardPage>
+      <PageHeader
+        back={<BackLink href="/customers">Customers</BackLink>}
+        title={name === "—" ? (customer.email ?? "Customer") : name}
+        description={name === "—" ? undefined : customer.email}
+      />
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Contact</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Email</span>
-              <span>{customer.email}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Phone</span>
-              <span>{customer.phone ?? "—"}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Joined</span>
-              <span>{new Date(customer.createdAt).toLocaleDateString()}</span>
-            </div>
-          </CardContent>
-        </Card>
+      <DetailLayout
+        main={
+          <>
+            <Panel
+              title="Orders"
+              flush
+              actions={
+                customer.orderCount > RECENT_ORDERS ? (
+                  <Button asChild variant="ghost" size="sm">
+                    <Link href={`/orders?customer=${customer.id}`}>View all orders</Link>
+                  </Button>
+                ) : undefined
+              }
+            >
+              {!recent ? (
+                <p className="px-5 py-4 text-sm text-muted-foreground">
+                  We couldn&apos;t load this customer&apos;s orders. Refresh the page to try again.
+                </p>
+              ) : recent.items.length > 0 ? (
+                <OrdersTable
+                  orders={recent.items}
+                  now={new Date()}
+                  timeZone={timeZone}
+                  showCustomer={false}
+                />
+              ) : (
+                <PanelEmpty
+                  icon={<ShoppingBag />}
+                  title="No orders yet"
+                  description="Orders from this customer show up here as soon as they check out."
+                />
+              )}
+            </Panel>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Addresses</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3 text-sm">
-            {customer.addresses.length > 0 ? (
-              customer.addresses.map((address) => (
-                <address
-                  key={address.id}
-                  className="not-italic text-muted-foreground"
-                >
-                  <span className="block font-medium text-foreground">
-                    {address.firstName} {address.lastName}
-                  </span>
-                  {address.street}
-                  {address.street2 ? `, ${address.street2}` : ""}
-                  <br />
-                  {address.city}
-                  {address.state ? `, ${address.state}` : ""}{" "}
-                  {address.postalCode ?? ""}
-                  <br />
-                  {address.country}
-                </address>
-              ))
-            ) : (
-              <p className="text-muted-foreground">No saved addresses.</p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+            <Panel title="Addresses" flush>
+              {customer.addresses.length > 0 ? (
+                <ul className="divide-y divide-border">
+                  {customer.addresses.map((address) => (
+                    <li key={address.id} className="px-5 py-4">
+                      <Address address={address} />
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="px-5 py-4 text-sm text-muted-foreground">
+                  No saved addresses. They&apos;re added when this customer checks out.
+                </p>
+              )}
+            </Panel>
+          </>
+        }
+        aside={
+          <Panel title="Customer">
+            <FactList>
+              <Fact label="Orders">
+                <span className="tabular-nums">{formatNumber(customer.orderCount)}</span>
+              </Fact>
+              <Fact label="Total spent">
+                <span className="tabular-nums">
+                  {formatPrice({ amount: customer.spent, currency: store?.currency ?? "EUR", formatted: "" })}
+                </span>
+              </Fact>
+              <Fact label="Phone">{customer.phone ?? "—"}</Fact>
+              <Fact label="Joined">{formatDate(customer.createdAt, timeZone)}</Fact>
+            </FactList>
+          </Panel>
+        }
+      />
+    </DashboardPage>
   )
 }

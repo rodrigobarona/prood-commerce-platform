@@ -1,49 +1,27 @@
 import { Suspense } from "react"
+import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { OrderHistoryEntry } from "@prood/types"
-import { Badge } from "@prood/ui/components/badge"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@prood/ui/components/card"
-import { Separator } from "@prood/ui/components/separator"
-import { Skeleton } from "@prood/ui/components/skeleton"
+import { Fact, FactList } from "@prood/ui/components/fact-list"
+import { BackLink, DetailLayout } from "@prood/ui/components/page-layout"
+import { PageHeader } from "@prood/ui/components/page-header"
+import { Panel } from "@prood/ui/components/panel"
+import { Status } from "@prood/ui/components/status-badge"
 import { localized, formatPrice } from "@prood/ui/lib/commerce"
-import { OrderActions } from "@/components/store/order-actions"
-import { getOrder, getOrderHistory } from "@/lib/admin-api"
+import { DashboardPage } from "@/components/layout/dashboard-page"
+import { DetailSkeleton, PageHeaderSkeleton } from "@/components/skeletons"
+import { Address } from "@/components/store/address"
+import { FulfillOrderButton, OrderDangerZone } from "@/components/store/order-actions"
+import { ProductThumb } from "@/components/store/product-thumb"
+import { getOrder, getOrderHistory, getStoreSettings } from "@/lib/admin-api"
+import { formatDateTime, humanize, personName } from "@/lib/format"
 import { canFulfillOrder } from "@/lib/order-actions"
+import { taxLine } from "@/lib/order-totals"
+import { fulfillmentStatus, historyLabel, orderState, paymentStatus } from "@/lib/status"
 
 export const metadata = { title: "Order" }
 
 const CANCELLABLE = new Set(["placed", "approved"])
-
-type StatusVariant = "default" | "secondary" | "destructive" | "outline"
-
-const ORDER_STATUS_VARIANT: Record<string, StatusVariant> = {
-  placed: "secondary",
-  approved: "default",
-  fulfilled: "default",
-  cancelled: "destructive",
-}
-
-const PAYMENT_STATUS_VARIANT: Record<string, StatusVariant> = {
-  unpaid: "outline",
-  authorized: "secondary",
-  paid: "default",
-  partially_refunded: "secondary",
-  refunded: "destructive",
-  voided: "destructive",
-  free: "default",
-}
-
-const FULFILLMENT_STATUS_VARIANT: Record<string, StatusVariant> = {
-  unfulfilled: "outline",
-  in_progress: "secondary",
-  fulfilled: "default",
-  not_required: "secondary",
-}
 
 export default function OrderDetailPage({
   params,
@@ -53,16 +31,10 @@ export default function OrderDetailPage({
   return (
     <Suspense
       fallback={
-        <div className="flex flex-col gap-6">
-          <div className="flex items-center gap-3">
-            <Skeleton className="h-7 w-24" />
-            <Skeleton className="h-5 w-16 rounded-full" />
-          </div>
-          <div className="grid gap-6 lg:grid-cols-3">
-            <Skeleton className="h-80 rounded-xl lg:col-span-2" />
-            <Skeleton className="h-48 rounded-xl" />
-          </div>
-        </div>
+        <DashboardPage>
+          <PageHeaderSkeleton action />
+          <DetailSkeleton />
+        </DashboardPage>
       }
     >
       <OrderDetail params={params} />
@@ -87,233 +59,192 @@ async function OrderDetail({
   } catch {
     notFound()
   }
+  // Only sets the clock the dates are shown in, so it may not fail the page.
+  const timeZone = (await getStoreSettings().catch(() => null))?.timezone
 
+  const state = orderState(order)
   const totals = order.totals
+  const tax = taxLine(totals)
   const address = order.shippingAddress
   const billing = order.billingAddress
+  const details = order.paymentDetails
+  const sameBilling = Boolean(address && billing) && JSON.stringify(address) === JSON.stringify(billing)
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-3">
-            <h2 className="font-heading text-xl font-medium">
-              #{order.orderNumber}
-            </h2>
-            <Badge variant={ORDER_STATUS_VARIANT[order.status] ?? "secondary"}>
-              {order.status}
-            </Badge>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant={PAYMENT_STATUS_VARIANT[order.paymentStatus] ?? "outline"} className="text-xs">
-              Payment: {order.paymentStatus.replace("_", " ")}
-            </Badge>
-            <Badge variant={FULFILLMENT_STATUS_VARIANT[order.fulfillmentStatus] ?? "outline"} className="text-xs">
-              Fulfillment: {order.fulfillmentStatus.replace("_", " ")}
-            </Badge>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {new Date(order.createdAt).toLocaleString()}
-          </p>
-        </div>
-        <OrderActions
-          orderId={order.id}
-          canFulfill={canFulfillOrder(order)}
-          canCancel={CANCELLABLE.has(order.status)}
-          refund={order.refund}
-          refundAmount={formatPrice(totals.total)}
-        />
-      </div>
+    <DashboardPage>
+      <PageHeader
+        back={<BackLink href="/orders">Orders</BackLink>}
+        title={<span className="font-mono text-xl tracking-normal sm:text-2xl">{order.orderNumber}</span>}
+        description={
+          <span className="flex flex-wrap items-center gap-2">
+            <Status look={state} />
+            <span aria-hidden>·</span>
+            <span>{paymentStatus(order.paymentStatus).label}</span>
+            <span aria-hidden>·</span>
+            <span>{formatDateTime(order.createdAt, timeZone)}</span>
+          </span>
+        }
+        actions={canFulfillOrder(order) ? <FulfillOrderButton orderId={order.id} /> : undefined}
+      />
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Items card */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Items</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            {order.items.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0"
-              >
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">
-                    {localized(item.name)}
-                  </span>
-                  {item.variantName ? (
-                    <span className="text-xs text-muted-foreground">
-                      {localized(item.variantName)}
-                    </span>
+      <DetailLayout
+        main={
+          <>
+            <Panel title="Items" flush>
+              <ul className="divide-y divide-border">
+                {order.items.map((item) => (
+                  <li key={item.id} className="flex items-center gap-3 px-5 py-3">
+                    <ProductThumb url={item.image?.url} />
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      <span className="text-sm font-medium">{localized(item.name)}</span>
+                      {item.variantName ? (
+                        <span className="text-sm text-muted-foreground">{localized(item.variantName)}</span>
+                      ) : null}
+                      <span className="text-sm text-muted-foreground tabular-nums">
+                        {item.quantity} × {formatPrice(item.price)}
+                      </span>
+                    </div>
+                    <span className="text-sm tabular-nums">{formatPrice(item.totalPrice)}</span>
+                  </li>
+                ))}
+              </ul>
+              <FactList className="gap-2 border-t border-border px-5 py-4 tabular-nums">
+                <Fact label="Subtotal">{formatPrice(totals.subtotal)}</Fact>
+                {totals.shipping ? <Fact label="Shipping">{formatPrice(totals.shipping)}</Fact> : null}
+                {totals.discount ? (
+                  <Fact label={order.couponCode ? `Discount (${order.couponCode})` : "Discount"}>
+                    -{formatPrice(totals.discount)}
+                  </Fact>
+                ) : null}
+                {tax?.added ? <Fact label="Tax">{formatPrice(totals.tax)}</Fact> : null}
+                <div className="mt-1 grid grid-cols-[auto_1fr] items-baseline gap-x-4 border-t border-border pt-3">
+                  <dt className="font-medium">Total</dt>
+                  <dd className="text-right font-medium">{formatPrice(totals.total)}</dd>
+                  {tax && !tax.added ? (
+                    <dd className="col-span-2 mt-0.5 text-right text-xs text-muted-foreground">
+                      Includes {formatPrice(totals.tax)} VAT
+                    </dd>
                   ) : null}
-                  <span className="text-xs text-muted-foreground">
-                    Qty {item.quantity} · {formatPrice(item.price)}
-                  </span>
                 </div>
-                <span className="text-sm font-medium">
-                  {formatPrice(item.totalPrice)}
-                </span>
-              </div>
-            ))}
+              </FactList>
+            </Panel>
 
-            <Separator />
-
-            <dl className="flex flex-col gap-1.5 text-sm">
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">Subtotal</dt>
-                <dd>{formatPrice(totals.subtotal)}</dd>
-              </div>
-              {totals.shipping ? (
-                <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Shipping</dt>
-                  <dd>{formatPrice(totals.shipping)}</dd>
-                </div>
-              ) : null}
-              {totals.tax ? (
-                <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Tax</dt>
-                  <dd>{formatPrice(totals.tax)}</dd>
-                </div>
-              ) : null}
-              {totals.discount ? (
-                <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Discount</dt>
-                  <dd>-{formatPrice(totals.discount)}</dd>
-                </div>
-              ) : null}
-              <Separator />
-              <div className="flex justify-between font-medium">
-                <dt>Total</dt>
-                <dd>{formatPrice(totals.total)}</dd>
-              </div>
-            </dl>
-          </CardContent>
-        </Card>
-
-        {/* Sidebar */}
-        <div className="flex flex-col gap-6">
-          {/* Customer card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Customer</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm">
-              {address || order.contactEmail ? (
-                <div className="flex flex-col gap-1 text-muted-foreground">
-                  {address ? (
-                    <span className="font-medium text-foreground">
-                      {address.firstName} {address.lastName}
-                    </span>
-                  ) : null}
-                  {order.contactEmail ? <span>{order.contactEmail}</span> : null}
-                  {address?.phone ? <span>{address.phone}</span> : null}
-                </div>
-              ) : (
-                <p className="text-muted-foreground">No customer info.</p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Shipping card */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Shipping address</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm">
-              {address ? (
-                <address className="not-italic text-muted-foreground">
-                  {address.street}
-                  {address.street2 ? `, ${address.street2}` : ""}
-                  <br />
-                  {address.city}
-                  {address.state ? `, ${address.state}` : ""}{" "}
-                  {address.postalCode ?? ""}
-                  <br />
-                  {address.country}
-                </address>
-              ) : (
-                <p className="text-muted-foreground">No shipping address.</p>
-              )}
-              {order.trackingNumber ? (
-                <div className="mt-3 flex flex-col gap-0.5">
-                  <span className="text-xs text-muted-foreground">Tracking</span>
-                  {order.trackingUrl ? (
-                    <a
-                      href={order.trackingUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm font-medium text-primary hover:underline"
-                    >
-                      {order.trackingNumber}
-                    </a>
-                  ) : (
-                    <span className="text-sm font-medium">{order.trackingNumber}</span>
-                  )}
-                </div>
-              ) : null}
-            </CardContent>
-          </Card>
-
-          {/* Billing card */}
-          {billing ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Billing address</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm">
-                <address className="not-italic text-muted-foreground">
-                  <span className="font-medium text-foreground">
-                    {billing.firstName} {billing.lastName}
-                  </span>
-                  <br />
-                  {billing.street}
-                  {billing.street2 ? `, ${billing.street2}` : ""}
-                  <br />
-                  {billing.city}
-                  {billing.state ? `, ${billing.state}` : ""}{" "}
-                  {billing.postalCode ?? ""}
-                  <br />
-                  {billing.country}
-                </address>
-              </CardContent>
-            </Card>
-          ) : null}
-
-          {/* Order history timeline */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Timeline</CardTitle>
-            </CardHeader>
-            <CardContent>
+            <Panel title="Timeline">
               {history.length > 0 ? (
-                <ol className="relative border-l border-border pl-4">
+                <ol className="flex flex-col gap-4">
                   {history.map((entry) => (
-                    <li key={entry.id} className="mb-4 last:mb-0">
-                      <span className="absolute -left-1.5 mt-1.5 size-3 rounded-full border border-background bg-muted-foreground" />
-                      <div className="flex flex-col gap-0.5">
-                        <span className="text-sm font-medium capitalize">
-                          {entry.action.replace("_", " ")}
-                        </span>
+                    <li key={entry.id} className="flex gap-3">
+                      <span aria-hidden className="mt-1.5 size-2 shrink-0 rounded-full bg-muted-foreground" />
+                      <div className="flex min-w-0 flex-col">
+                        <span className="text-sm font-medium">{historyLabel(entry.action)}</span>
                         {entry.note ? (
-                          <span className="text-xs text-muted-foreground">
-                            {entry.note}
-                          </span>
+                          <span className="text-sm text-muted-foreground">{entry.note}</span>
                         ) : null}
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(entry.createdAt).toLocaleString()}
+                        <span className="text-xs text-muted-foreground tabular-nums">
+                          {formatDateTime(entry.createdAt, timeZone)}
                         </span>
                       </div>
                     </li>
                   ))}
                 </ol>
               ) : (
-                <p className="text-sm text-muted-foreground">No history yet.</p>
+                <p className="text-sm text-muted-foreground">Nothing has happened on this order yet.</p>
               )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
+            </Panel>
+          </>
+        }
+        aside={
+          <>
+            <Panel title="Customer">
+              {address || order.contactEmail ? (
+                <div className="flex flex-col gap-0.5 text-sm text-muted-foreground">
+                  {address ? (
+                    order.customerId ? (
+                      <Link href={`/customers/${order.customerId}`} className="font-medium text-foreground hover:underline">
+                        {personName(address)}
+                      </Link>
+                    ) : (
+                      <span className="font-medium text-foreground">{personName(address)}</span>
+                    )
+                  ) : null}
+                  {order.contactEmail ? <span className="wrap-break-word">{order.contactEmail}</span> : null}
+                  {address?.phone ? <span>{address.phone}</span> : null}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No customer details on this order.</p>
+              )}
+            </Panel>
+
+            <Panel title="Payment">
+              <FactList>
+                <Fact label="Method">{order.paymentMethod ? localized(order.paymentMethod.name) : "—"}</Fact>
+                {order.paymentProvider ? <Fact label="Provider">{humanize(order.paymentProvider)}</Fact> : null}
+                {details?.entity ? (
+                  <Fact label="Entity">
+                    <span className="font-mono">{details.entity}</span>
+                  </Fact>
+                ) : null}
+                {details?.reference ? (
+                  <Fact label="Reference">
+                    <span className="font-mono">{details.reference}</span>
+                  </Fact>
+                ) : null}
+              </FactList>
+            </Panel>
+
+            <Panel title="Shipping">
+              <div className="flex flex-col gap-3">
+                {address ? (
+                  <Address address={address} named={false} />
+                ) : (
+                  <p className="text-sm text-muted-foreground">This order doesn&apos;t ship.</p>
+                )}
+                <FactList>
+                    <Fact label="Fulfillment">{fulfillmentStatus(order.fulfillmentStatus).label}</Fact>
+                    {order.shippingMethod ? (
+                      <Fact label="Method">{localized(order.shippingMethod.name)}</Fact>
+                    ) : null}
+                    {order.trackingNumber ? (
+                      <Fact label="Tracking">
+                        {order.trackingUrl ? (
+                          <a
+                            href={order.trackingUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-mono underline-offset-4 hover:underline"
+                          >
+                            {order.trackingNumber}
+                          </a>
+                        ) : (
+                          <span className="font-mono">{order.trackingNumber}</span>
+                        )}
+                      </Fact>
+                    ) : null}
+                </FactList>
+              </div>
+            </Panel>
+
+            {billing ? (
+              <Panel title="Billing address">
+                {sameBilling ? (
+                  <p className="text-sm text-muted-foreground">Same as the shipping address.</p>
+                ) : (
+                  <Address address={billing} />
+                )}
+              </Panel>
+            ) : null}
+          </>
+        }
+      />
+
+      <OrderDangerZone
+        orderId={order.id}
+        // Canceling moves no money, so a paid order only goes through a refund, which cancels it too.
+        canCancel={CANCELLABLE.has(order.status) && !order.refund}
+        partlyRefunded={order.paymentStatus === "partially_refunded"}
+        refund={order.refund}
+        refundAmount={formatPrice(totals.total)}
+      />
+    </DashboardPage>
   )
 }

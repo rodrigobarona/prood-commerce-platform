@@ -31,7 +31,7 @@ export async function listDomains(orgId: string): Promise<TenantDomainRow[]> {
     .select()
     .from(tenantDomain)
     .where(eq(tenantDomain.organizationId, orgId))
-    .orderBy(desc(tenantDomain.createdAt))
+    .orderBy(desc(tenantDomain.createdAt), desc(tenantDomain.id))
 
   const domains = rows.map(mapRow)
 

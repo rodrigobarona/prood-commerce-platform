@@ -1,26 +1,19 @@
 import { ArrowSquareOut } from "@phosphor-icons/react/dist/ssr"
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@prood/ui/components/sidebar"
-import { getStoreSettings } from "@/lib/admin-api"
+import { Button } from "@prood/ui/components/button"
+import { getStoreUrl } from "@/lib/store-link"
 
 export async function ViewStoreLink() {
-  // A sidebar link isn't worth failing every dashboard page over.
-  const store = await getStoreSettings().catch(() => null)
-  if (!store?.url) return null
+  // A header link isn't worth failing every dashboard page over.
+  const url = await getStoreUrl().catch(() => null)
+  if (!url) return null
 
   return (
-    <SidebarMenu>
-      <SidebarMenuItem>
-        <SidebarMenuButton asChild tooltip="View store">
-          <a href={store.url} target="_blank" rel="noopener noreferrer">
-            <ArrowSquareOut />
-            <span>View store</span>
-          </a>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-    </SidebarMenu>
+    <Button asChild variant="outline">
+      <a href={url} target="_blank" rel="noopener noreferrer">
+        <span>View store</span>
+        <ArrowSquareOut aria-hidden />
+        <span className="sr-only">(opens in a new tab)</span>
+      </a>
+    </Button>
   )
 }

@@ -1,14 +1,11 @@
-import { Skeleton } from "@prood/ui/components/skeleton"
-import { IntegrationsSkeleton } from "@/components/skeletons"
+import { DashboardPage } from "@/components/layout/dashboard-page"
+import { IntegrationsSkeleton, PageHeaderSkeleton } from "@/components/skeletons"
 
-export default function IntegrationsLoading() {
+export default function Loading() {
   return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <Skeleton className="h-7 w-32" />
-        <Skeleton className="mt-1 h-4 w-72" />
-      </div>
+    <DashboardPage>
+      <PageHeaderSkeleton />
       <IntegrationsSkeleton />
-    </div>
+    </DashboardPage>
   )
 }

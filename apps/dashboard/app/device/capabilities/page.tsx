@@ -1,107 +1,113 @@
+import { Suspense } from "react"
+import Link from "next/link"
 import { unstable_rethrow } from "next/navigation"
-import { DashboardFormPage } from "@/components/layout/dashboard-page"
-import { Badge } from "@prood/ui/components/badge"
+import { Fact, FactList } from "@prood/ui/components/fact-list"
+import { Logo } from "@prood/ui/components/logo"
+import { PageHeader } from "@prood/ui/components/page-header"
+import { Panel } from "@prood/ui/components/panel"
+import { FormPanelSkeleton } from "@/components/skeletons"
+import { Status } from "@prood/ui/components/status-badge"
+import { formatDateTime, humanize } from "@/lib/format"
+import { approvalStatus } from "@/lib/status"
 import { ApprovalControls } from "./approval-controls"
 import { getApprovalRequest } from "./approval"
 
-export const metadata = { title: "Agent capability approval" }
+export const metadata = { title: "Approve AI agent access" }
 
-export default async function AgentCapabilityApprovalPage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>
-}) {
+type SearchParams = Promise<Record<string, string | string[] | undefined>>
+
+export default function AgentCapabilityApprovalPage({ searchParams }: { searchParams: SearchParams }) {
+  return (
+    <main className="mx-auto flex min-h-svh w-full max-w-2xl flex-col gap-8 px-6 py-8">
+      <Link href="/" aria-label="Prood, go to your dashboard" className="w-fit">
+        <Logo className="h-7" title={null} />
+      </Link>
+      <PageHeader
+        title="Approve AI agent access"
+        description="An AI agent is asking to work on your store. You approve or deny this request as a whole. Approved access ends after an hour idle, or 24 hours at most."
+      />
+      <Suspense fallback={<FormPanelSkeleton fields={4} />}>
+        <ApprovalRequest searchParams={searchParams} />
+      </Suspense>
+    </main>
+  )
+}
+
+async function ApprovalRequest({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams
   const requestId = typeof params.request_id === "string" ? params.request_id : null
-  const details = requestId
-    ? await getApprovalRequest(requestId).catch((error: unknown) => {
-        unstable_rethrow(error)
-        console.error("[AgentCapabilityApprovalPage] getApprovalRequest failed:", error)
-        return { error: "Could not load approval request." }
-      })
-    : null
+
+  if (!requestId) {
+    return (
+      <Panel>
+        <p className="text-sm text-muted-foreground">
+          There&apos;s no request to review. Start from the AI agent that asked for access, and it will send you back
+          here.
+        </p>
+      </Panel>
+    )
+  }
+
+  const details = await getApprovalRequest(requestId).catch((error: unknown) => {
+    unstable_rethrow(error)
+    console.error("[AgentCapabilityApprovalPage] getApprovalRequest failed:", error)
+    return { error: "We couldn't load this request. Refresh the page to try again." }
+  })
+
+  if (!details) {
+    return (
+      <Panel>
+        <p className="text-sm text-muted-foreground">
+          We couldn&apos;t find this request. It may have been handled already. Ask the AI agent to start again.
+        </p>
+      </Panel>
+    )
+  }
+
+  if ("error" in details) {
+    return (
+      <Panel>
+        <p role="alert" className="text-sm text-destructive">
+          {details.error}
+        </p>
+      </Panel>
+    )
+  }
 
   return (
-    <DashboardFormPage>
-      <div className="max-w-2xl space-y-4">
-        <div>
-          <h2 className="font-heading text-xl font-medium">Agent capability approval</h2>
-          <p className="text-sm text-muted-foreground">
-            Review and approve delegated agent capabilities for the active organization.
-          </p>
+    <>
+      <Panel title={details.agent.name} actions={<Status look={approvalStatus(details.status)} />}>
+        <div className="flex flex-col gap-4">
+          <FactList>
+            <Fact label="Request">
+              <span className="font-mono text-xs break-all">{details.id}</span>
+            </Fact>
+            <Fact label="Agent mode">{humanize(details.agent.mode)}</Fact>
+            <Fact label="Agent status">{humanize(details.agent.status)}</Fact>
+            <Fact label="Host">{details.host?.name ?? details.host?.id ?? "Unknown host"}</Fact>
+            <Fact label="Expires">{formatDateTime(details.expiresAt)}</Fact>
+          </FactList>
+          {details.bindingMessage ? (
+            <p className="rounded-lg bg-muted p-3 text-sm">{details.bindingMessage}</p>
+          ) : null}
         </div>
+      </Panel>
 
-        <div className="rounded-2xl border p-4 text-sm">
-          {!requestId ? (
-            <p>
-              No approval request was provided. Start from an agent registration flow to
-              review requested capabilities.
-            </p>
-          ) : details && "error" in details ? (
-            <p className="text-destructive">{details.error}</p>
-          ) : details ? (
-            <div className="space-y-4">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="font-medium">{details.agent.name}</p>
-                  <p className="text-muted-foreground">
-                    Request <code className="rounded bg-muted px-1">{details.id}</code>
-                  </p>
-                </div>
-                <Badge variant={details.status === "pending" ? "outline" : "secondary"}>
-                  {details.status}
-                </Badge>
-              </div>
+      <Panel title="What it's asking for" flush>
+        {details.capabilities.length > 0 ? (
+          <ul className="divide-y divide-border">
+            {details.capabilities.map((capability) => (
+              <li key={capability} className="px-5 py-3 font-mono text-xs">
+                {capability}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="px-5 py-4 text-sm text-muted-foreground">This request doesn&apos;t ask for anything.</p>
+        )}
+      </Panel>
 
-              <dl className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <dt className="text-muted-foreground">Agent mode</dt>
-                  <dd>{details.agent.mode}</dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground">Agent status</dt>
-                  <dd>{details.agent.status}</dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground">Host</dt>
-                  <dd>{details.host?.name ?? details.host?.id ?? "Unknown host"}</dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground">Expires</dt>
-                  <dd>{details.expiresAt.toLocaleString()}</dd>
-                </div>
-              </dl>
-
-              {details.bindingMessage ? (
-                <p className="rounded-xl bg-muted p-3">{details.bindingMessage}</p>
-              ) : null}
-
-              <div>
-                <h3 className="font-medium">Requested capabilities</h3>
-                {details.capabilities.length > 0 ? (
-                  <ul className="mt-2 grid gap-2">
-                    {details.capabilities.map((capability) => (
-                      <li key={capability} className="rounded-xl border px-3 py-2">
-                        <code>{capability}</code>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="mt-2 text-muted-foreground">
-                    This request does not include any capabilities.
-                  </p>
-                )}
-              </div>
-            </div>
-          ) : (
-            <p className="text-muted-foreground">Approval request not found.</p>
-          )}
-        </div>
-
-        {requestId && details && !("error" in details) && details.status === "pending" ? (
-          <ApprovalControls requestId={requestId} />
-        ) : null}
-      </div>
-    </DashboardFormPage>
+      {details.status === "pending" ? <ApprovalControls requestId={requestId} /> : null}
+    </>
   )
 }

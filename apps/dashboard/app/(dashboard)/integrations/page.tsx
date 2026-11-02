@@ -1,13 +1,11 @@
 import { Suspense } from "react"
 import Link from "next/link"
-import { Badge } from "@prood/ui/components/badge"
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@prood/ui/components/card"
+import { CaretRight } from "@phosphor-icons/react/dist/ssr"
+import { PageHeader } from "@prood/ui/components/page-header"
+import { Panel } from "@prood/ui/components/panel"
+import { DashboardPage } from "@/components/layout/dashboard-page"
 import { IntegrationsSkeleton } from "@/components/skeletons"
+import { Status } from "@prood/ui/components/status-badge"
 import { getActiveOrganizationId } from "@/lib/auth"
 import { listIntegrations, type IntegrationState } from "@/lib/integrations"
 import {
@@ -15,6 +13,7 @@ import {
   providerTypeLabels,
   type ProviderType,
 } from "@/lib/providers"
+import { integrationStatus } from "@/lib/status"
 
 export const metadata = { title: "Integrations" }
 
@@ -22,22 +21,20 @@ const TYPE_ORDER: ProviderType[] = ["payment", "notification", "analytics"]
 
 export default function IntegrationsPage() {
   return (
-    <div className="flex flex-col gap-8">
-      <div>
-        <h2 className="font-heading text-xl font-medium">Integrations</h2>
-        <p className="text-sm text-muted-foreground">
-          Connect payment, notification, and analytics providers.
-        </p>
-      </div>
+    <DashboardPage>
+      <PageHeader
+        title="Integrations"
+        description="Connect your own payment accounts. Payouts go straight from the provider to you, and Prood takes no cut."
+      />
 
       <Suspense fallback={<IntegrationsSkeleton />}>
-        <IntegrationsGrid />
+        <IntegrationsList />
       </Suspense>
-    </div>
+    </DashboardPage>
   )
 }
 
-async function IntegrationsGrid() {
+async function IntegrationsList() {
   const orgId = await getActiveOrganizationId()
   let configs = new Map<string, IntegrationState>()
   if (orgId) {
@@ -54,47 +51,34 @@ async function IntegrationsGrid() {
         const providers = providerRegistry.filter((p) => p.type === type)
         if (providers.length === 0) return null
         return (
-          <section key={type} className="flex flex-col gap-3">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              {providerTypeLabels[type]}
-            </h3>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {providers.map((provider) => {
-                const state = configs.get(provider.id)
-                const connected = Boolean(state)
-                const enabled = state?.enabled ?? false
-                return (
-                  <Link key={provider.id} href={`/integrations/${provider.id}`}>
-                    <Card className="h-full transition-colors hover:ring-foreground/15">
-                      <CardHeader>
-                        <div className="flex items-center justify-between gap-2">
-                          <CardTitle className="text-base">
-                            {provider.name}
-                          </CardTitle>
-                          <Badge
-                            variant={
-                              enabled
-                                ? "secondary"
-                                : connected
-                                  ? "outline"
-                                  : "outline"
-                            }
-                          >
-                            {enabled
-                              ? "Enabled"
-                              : connected
-                                ? "Configured"
-                                : "Not connected"}
-                          </Badge>
-                        </div>
-                        <CardDescription>{provider.description}</CardDescription>
-                      </CardHeader>
-                    </Card>
+          <Panel
+            key={type}
+            title={providerTypeLabels[type]}
+            description={
+              type === "payment"
+                ? "Each store's checkout runs on one provider, and Stripe comes first if it's connected. Need Multibanco or MB WAY? Use Easypay or Ifthenpay."
+                : undefined
+            }
+            flush
+          >
+            <ul className="divide-y divide-border">
+              {providers.map((provider) => (
+                <li key={provider.id}>
+                  <Link
+                    href={`/integrations/${provider.id}`}
+                    className="flex items-center gap-4 px-5 py-4 transition-colors duration-120 hover:bg-muted/50"
+                  >
+                    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span className="text-sm font-medium">{provider.name}</span>
+                      <span className="text-sm text-pretty text-muted-foreground">{provider.description}</span>
+                    </div>
+                    <Status look={integrationStatus(configs.get(provider.id))} />
+                    <CaretRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />
                   </Link>
-                )
-              })}
-            </div>
-          </section>
+                </li>
+              ))}
+            </ul>
+          </Panel>
         )
       })}
     </>

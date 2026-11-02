@@ -1,4 +1,6 @@
 import { Suspense } from "react"
+import { PageHeader } from "@prood/ui/components/page-header"
+import { Panel } from "@prood/ui/components/panel"
 import { DashboardFormPage } from "@/components/layout/dashboard-page"
 import { ChangePasswordForm } from "@/components/account/change-password-form"
 import { ProfileForm } from "@/components/account/profile-form"
@@ -10,12 +12,7 @@ export const metadata = { title: "Profile" }
 export default function AccountPage() {
   return (
     <DashboardFormPage>
-      <div>
-        <h2 className="font-heading text-xl font-medium">Profile</h2>
-        <p className="text-sm text-muted-foreground">
-          Manage your personal account details and sign-in password.
-        </p>
-      </div>
+      <PageHeader title="Profile" description="Your own account, across every store you work on." />
       <Suspense fallback={<FormPageSkeleton />}>
         <AccountContent />
       </Suspense>
@@ -27,21 +24,17 @@ async function AccountContent() {
   const user = await getCurrentUser()
   if (!user) {
     return (
-      <p className="text-sm text-muted-foreground">
-        Unable to load profile. Please reload the page.
-      </p>
+      <Panel>
+        <p role="alert" className="text-sm text-destructive">
+          We couldn&apos;t load your profile. Refresh the page to try again.
+        </p>
+      </Panel>
     )
   }
 
   return (
     <>
-      <ProfileForm
-        initial={{
-          name: user.name,
-          email: user.email,
-          image: user.image ?? "",
-        }}
-      />
+      <ProfileForm initial={{ name: user.name, email: user.email }} />
       <ChangePasswordForm />
     </>
   )

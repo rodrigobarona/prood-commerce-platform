@@ -1,15 +1,12 @@
+import { Suspense } from "react"
 import { headers } from "next/headers"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { APIError } from "better-auth/api"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@prood/ui/components/card"
 import { Button } from "@prood/ui/components/button"
+import { PageHeader } from "@prood/ui/components/page-header"
+import { AuthPage } from "@/components/auth/auth-page"
+import { AuthFormSkeleton } from "@/components/auth/form-skeleton"
 import { getAuth, getSession } from "@/lib/auth"
 import { InvitationResponse } from "./invitation-response"
 
@@ -26,45 +23,44 @@ async function loadInvitation(id: string) {
   }
 }
 
-export default async function InvitePage({ params }: PageProps<"/invite/[id]">) {
+async function Invitation({ params }: { params: PageProps<"/invite/[id]">["params"] }) {
   const { id } = await params
   const session = await getSession()
   if (!session) redirect(`/login?redirect=${encodeURIComponent(`/invite/${id}`)}`)
 
   const invitation = await loadInvitation(id)
 
+  if (!invitation) {
+    return (
+      <div className="flex flex-col gap-6">
+        <PageHeader
+          title="This invitation isn't available"
+          description={`It may have expired, been canceled, or been sent to a different email than ${session.user.email}. Ask the store owner to send a new one.`}
+        />
+        <Button asChild size="lg" variant="outline">
+          <Link href="/">Go to your dashboard</Link>
+        </Button>
+      </div>
+    )
+  }
+
   return (
-    <main className="flex min-h-svh items-center justify-center px-4 py-16">
-      <Card className="w-full max-w-sm">
-        {invitation ? (
-          <>
-            <CardHeader>
-              <CardTitle className="text-xl">Join {invitation.organizationName}</CardTitle>
-              <CardDescription>
-                {invitation.inviterEmail} invited you to help run this store as {invitation.role}.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <InvitationResponse invitationId={invitation.id} />
-            </CardContent>
-          </>
-        ) : (
-          <>
-            <CardHeader>
-              <CardTitle className="text-xl">This invitation isn&apos;t available</CardTitle>
-              <CardDescription>
-                It may have expired, been cancelled, or been sent to a different email than{" "}
-                {session.user.email}. Ask the store owner to send a new one.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild variant="outline" className="w-full">
-                <Link href="/">Go to your dashboard</Link>
-              </Button>
-            </CardContent>
-          </>
-        )}
-      </Card>
-    </main>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title={`Join ${invitation.organizationName}`}
+        description={`${invitation.inviterEmail} invited you to help run this store as ${invitation.role}.`}
+      />
+      <InvitationResponse invitationId={invitation.id} />
+    </div>
+  )
+}
+
+export default function InvitePage({ params }: PageProps<"/invite/[id]">) {
+  return (
+    <AuthPage image="team-workshop" line="Run the store together, without sharing a password.">
+      <Suspense fallback={<AuthFormSkeleton />}>
+        <Invitation params={params} />
+      </Suspense>
+    </AuthPage>
   )
 }

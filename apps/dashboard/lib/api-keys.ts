@@ -27,7 +27,7 @@ function parseScopes(metadata: string | null): string[] {
   }
 }
 
-export async function listActiveOrgApiKeys(): Promise<DashboardApiKey[]> {
+export async function listOrgApiKeys(): Promise<DashboardApiKey[]> {
   const orgId = await requireStoreAdmin()
   const rows = await authDb
     .select({

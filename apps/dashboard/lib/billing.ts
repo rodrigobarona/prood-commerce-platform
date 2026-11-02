@@ -2,7 +2,6 @@ import { eq } from "drizzle-orm"
 
 import {
   defaultPlanId,
-  getEntitlements,
   getPlan,
   isValidPlanId,
   type PlanId,
@@ -51,17 +50,5 @@ export async function getActiveOrganizationPlan(): Promise<OrganizationPlanSnaps
   }
 }
 
-export function getPlanLimitsSummary(planId: PlanId): string[] {
-  const e = getEntitlements(planId)
-  const lines: string[] = []
-  if (e.maxProducts !== null) lines.push(`${e.maxProducts} products`)
-  else lines.push("Unlimited products")
-  if (e.maxOrdersPerMonth !== null) lines.push(`${e.maxOrdersPerMonth} orders/mo`)
-  else lines.push("Unlimited orders/mo")
-  if (e.maxCustomDomains !== null) lines.push(`${e.maxCustomDomains} custom domain(s)`)
-  else lines.push("Unlimited custom domains")
-  if (e.maxTeamSeats !== null) lines.push(`${e.maxTeamSeats} team seat(s)`)
-  else lines.push("Unlimited team seats")
-  if (e.agentAuthEnabled) lines.push("Agent Auth included")
-  return lines
-}
+export { countTeamSeats } from "@prood/auth/membership"
+export { domainLimitMessage, seatLimitMessage } from "./plan-usage"

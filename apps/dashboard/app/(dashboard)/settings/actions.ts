@@ -8,7 +8,7 @@ import { updateStoreSettings } from "@/lib/admin-api"
 
 /** Returns the API's refusal: a thrown message doesn't survive a server action. */
 export async function updateStoreSettingsAction(
-  input: UpdateStoreInput
+  input: Omit<UpdateStoreInput, "locale">
 ): Promise<{ error?: string }> {
   if (!(await canManageStore())) return { error: ADMIN_ONLY_MESSAGE }
   try {

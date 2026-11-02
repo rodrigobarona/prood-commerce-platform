@@ -1,39 +1,17 @@
+import type { ReactNode } from "react"
+import { PageStack } from "@prood/ui/components/page-layout"
 import { cn } from "@prood/ui/lib/utils"
 
-/** Narrow column for dedicated settings/edit pages — not inline forms on list pages. */
-export const dashboardFormColumnClass = "mx-auto w-full max-w-3xl"
+/** Lists, tables and detail grids. The shell sets the width. */
+export const DashboardPage = PageStack
 
-/** Full-width dashboard content (lists, tables, detail grids). */
-export function DashboardPage({
-  children,
-  className,
-}: {
-  children: React.ReactNode
-  className?: string
-}) {
-  return (
-    <div className={cn("flex w-full min-w-0 flex-col gap-6", className)}>
-      {children}
-    </div>
-  )
-}
-
-/** Narrow, centered column for settings and edit forms. */
+/** Settings and forms: narrower, and left-aligned so titles don't jump between pages. */
 export function DashboardFormPage({
   children,
   className,
 }: {
-  children: React.ReactNode
+  children: ReactNode
   className?: string
 }) {
-  return (
-    <div
-      className={cn(
-        cn(dashboardFormColumnClass, "flex min-w-0 flex-col gap-6"),
-        className
-      )}
-    >
-      {children}
-    </div>
-  )
+  return <PageStack className={cn("max-w-2xl", className)}>{children}</PageStack>
 }
