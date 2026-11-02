@@ -3,7 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 const mocks = vi.hoisted(() => ({ countOrders: vi.fn(), limits: vi.fn() }))
 
 vi.mock("server-only", () => ({}))
-vi.mock("@prood/platform", () => ({ countOrdersThisMonth: mocks.countOrders, countProducts: vi.fn() }))
+vi.mock("@prood/platform", () => ({
+  countOrdersThisMonth: mocks.countOrders,
+  countProducts: vi.fn(),
+  DEMO_ORG_ID: "org_demo",
+}))
 vi.mock("@/lib/org-plan", () => ({ getOrganizationLimits: mocks.limits }))
 vi.mock("@prood/commerce", async () => {
   const { CommerceError } = await import("@prood/types")
@@ -26,6 +30,12 @@ describe("assertCanPlaceOrder", () => {
   it("tells callers the store can't take the order, so shoppers aren't told to upgrade", async () => {
     mocks.countOrders.mockResolvedValue(50)
     await expect(assertCanPlaceOrder("org-1")).rejects.toMatchObject({ code: "ORDERS_UNAVAILABLE" })
+  })
+
+  it("refuses the demo store however it's reached, before reading its plan", async () => {
+    mocks.limits.mockClear()
+    await expect(assertCanPlaceOrder("org_demo")).rejects.toMatchObject({ code: "ORDERS_UNAVAILABLE" })
+    expect(mocks.limits).not.toHaveBeenCalled()
   })
 
   it("allows orders under the limit", async () => {

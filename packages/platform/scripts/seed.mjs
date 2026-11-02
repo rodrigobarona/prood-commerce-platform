@@ -12,7 +12,7 @@
 import { randomBytes, randomUUID, scrypt } from 'node:crypto'
 import { sql } from 'drizzle-orm'
 import { closeDrizzle, getDb, initDrizzle } from '../dist/database/drizzle/client.js'
-import { DEMO_ORG_ID, seedDrizzle } from '../dist/database/drizzle/seed.js'
+import { DEMO_ORG_ID, seedDrizzle, seedShowcase } from '../dist/database/drizzle/seed.js'
 
 const url = process.env.DATABASE_URL
 if (!url) {
@@ -65,6 +65,7 @@ initDrizzle(url)
 try {
   console.log('🌱 Seeding demo store...')
   await seedDrizzle()
+  await seedShowcase()
 
   const { ADMIN_EMAIL, ADMIN_PASSWORD } = process.env
   if (ADMIN_EMAIL && ADMIN_PASSWORD) {

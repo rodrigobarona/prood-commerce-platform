@@ -26,6 +26,16 @@ import { slugifyLocalized } from '../domains/helpers.js'
 import { mapProduct } from '../domains/product-mapper.js'
 import { getStoreCurrency } from '../tenant/store-info.js'
 
+/** Customers can't buy a product with no price, so it can't go on sale without one. */
+function assertPriced(hasPrice: boolean): void {
+  if (hasPrice) return
+  throw new CommerceError('This product has no price, so it can\'t be active. Add a price, or save it as a draft.', 'VALIDATION', 422)
+}
+
+/** A price a customer can pay. Zero isn't one: an active product at 0 gives itself away. */
+const sells = (price: unknown) => price != null && Number(price) > 0
+const priced = (variants?: { price?: unknown }[]) => Boolean(variants?.some((variant) => sells(variant.price)))
+
 export function createAdminProductsDomain() {
   async function fullProduct(id: string): Promise<Product> {
     const row = await findProductById(id)
@@ -37,6 +47,8 @@ export function createAdminProductsDomain() {
     getProduct: fullProduct,
 
     async createProduct(input: CreateProductInput): Promise<Product> {
+      if (input.status === 'active') assertPriced(sells(input.price) || priced(input.variants))
+
       const id = crypto.randomUUID()
 
       let slug = input.slug ?? slugifyLocalized(input.name)
@@ -120,6 +132,17 @@ export function createAdminProductsDomain() {
     },
 
     async updateProduct(id: string, input: UpdateProductInput): Promise<Product> {
+      // Dropping variants or the price can take away the only one, even when `status` isn't sent.
+      const touchesPrice = input.status === 'active' || input.variants !== undefined || input.price !== undefined
+      if (touchesPrice && !sells(input.price) && !priced(input.variants)) {
+        const current = await fullProduct(id)
+        if ((input.status ?? current.status) === 'active') {
+          const base = input.price !== undefined ? input.price : current.price?.amount
+          const variants = current.variants.map((variant) => ({ price: variant.price?.amount }))
+          assertPriced(sells(base) || (!input.variants && priced(variants)))
+        }
+      }
+
       const updates: Record<string, unknown> = {}
 
       if (input.name != null) updates.name = input.name

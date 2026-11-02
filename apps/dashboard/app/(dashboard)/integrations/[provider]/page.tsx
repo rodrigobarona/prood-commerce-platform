@@ -1,16 +1,19 @@
 import { Suspense } from "react"
-import Link from "next/link"
 import { notFound } from "next/navigation"
 import { connection } from "next/server"
-import { ArrowLeft } from "@phosphor-icons/react/dist/ssr"
-import { DashboardFormPage } from "@/components/layout/dashboard-page"
+import { ArrowSquareOut } from "@phosphor-icons/react/dist/ssr"
+import { Button } from "@prood/ui/components/button"
+import { BackLink } from "@prood/ui/components/page-layout"
+import { PageHeader } from "@prood/ui/components/page-header"
+import { Panel } from "@prood/ui/components/panel"
+import { DashboardPage } from "@/components/layout/dashboard-page"
 import { ProviderConfigForm } from "@/components/integrations/provider-config-form"
-import { FormPageSkeleton } from "@/components/skeletons"
+import { DetailSkeleton, PageHeaderSkeleton } from "@/components/skeletons"
 import { paymentWebhookUrl } from "@prood/commerce"
 import { canManageStore } from "@/lib/admin"
 import { getActiveOrganizationId } from "@/lib/auth"
-import { getIntegration } from "@/lib/integrations"
-import { getProvider, providerRegistry } from "@/lib/providers"
+import { getIntegration, listIntegrations } from "@/lib/integrations"
+import { checkoutRule, getProvider, providerInCharge, providerRegistry } from "@/lib/providers"
 
 export function generateStaticParams() {
   return providerRegistry.map((p) => ({ provider: p.id }))
@@ -22,11 +25,18 @@ export default function IntegrationConfigPage({
   params: Promise<{ provider: string }>
 }) {
   return (
-    <DashboardFormPage>
-      <Suspense fallback={<FormPageSkeleton />}>
+    <DashboardPage>
+      <Suspense
+        fallback={
+          <>
+            <PageHeaderSkeleton />
+            <DetailSkeleton />
+          </>
+        }
+      >
         <IntegrationConfigContent params={params} />
       </Suspense>
-    </DashboardFormPage>
+    </DashboardPage>
   )
 }
 
@@ -44,13 +54,17 @@ async function IntegrationConfigContent({
   const canManage = await canManageStore()
   const orgId = await getActiveOrganizationId()
   let state = null
+  let enabledIds: string[] = []
   if (orgId && canManage) {
     try {
       state = await getIntegration(orgId, provider)
+      const integrations = await listIntegrations(orgId)
+      enabledIds = [...integrations].filter(([, integration]) => integration.enabled).map(([id]) => id)
     } catch {
       /* DB unavailable */
     }
   }
+  const inCharge = providerInCharge(provider, enabledIds)
 
   const initialValues: Record<string, string> = {}
   const configuredKeys: string[] = []
@@ -64,33 +78,33 @@ async function IntegrationConfigContent({
 
   return (
     <>
-      <div className="flex flex-col gap-2">
-        <Link
-          href="/integrations"
-          className="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" />
-          Integrations
-        </Link>
-        <div>
-          <h2 className="font-heading text-xl font-medium">{meta.name}</h2>
-          <p className="text-sm text-muted-foreground">{meta.description}</p>
-          {meta.docsUrl ? (
-            <a
-              href={meta.docsUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="text-sm text-foreground hover:underline"
-            >
-              View documentation
-            </a>
-          ) : null}
-        </div>
-      </div>
+      <PageHeader
+        back={<BackLink href="/integrations">Integrations</BackLink>}
+        title={meta.name}
+        description={meta.description}
+        actions={
+          meta.docsUrl ? (
+            <Button asChild variant="outline" size="lg">
+              <a href={meta.docsUrl} target="_blank" rel="noreferrer">
+                <span>Read the {meta.name} docs</span>
+                <ArrowSquareOut aria-hidden />
+                <span className="sr-only">(opens in a new tab)</span>
+              </a>
+            </Button>
+          ) : undefined
+        }
+      />
+
+      {inCharge ? (
+        <Panel>
+          <p className="text-sm text-pretty">{checkoutRule(meta, inCharge)}</p>
+        </Panel>
+      ) : null}
 
       {canManage ? (
         <ProviderConfigForm
-          provider={meta}
+          // Only the plain fields: `paymentLabel` is a function and can't reach a client component.
+          provider={{ id: meta.id, name: meta.name, fields: meta.fields, webhook: meta.webhook, guide: meta.guide }}
           initialValues={initialValues}
           configuredKeys={configuredKeys}
           initialEnabled={state?.enabled ?? true}
@@ -100,9 +114,11 @@ async function IntegrationConfigContent({
           }
         />
       ) : (
-        <p className="text-sm text-muted-foreground">
-          Only store owners and admins can change {meta.name}. Ask one of them for help.
-        </p>
+        <Panel>
+          <p className="text-sm text-muted-foreground">
+            Only store owners and admins can change {meta.name}. Ask one of them for help.
+          </p>
+        </Panel>
       )}
     </>
   )

@@ -1,26 +1,15 @@
 import {
-  formatLimit,
   formatPrice,
-  monthlyEquivalentFromAnnual,
   planDefinitions,
   planIds,
   type PlanId,
 } from "./plans"
-
-export type BillingInterval = "monthly" | "annual"
 
 export type MarketingTier = {
   id: PlanId
   name: string
   price: string
   period: string
-  billingNote?: string
-  description: string
-  highlighted: boolean
-  badge?: string
-  cta: string
-  ctaHref: "register" | "contact"
-  highlights: string[]
 }
 
 export type PricingFeatureGroup = "store" | "brand" | "team" | "ai" | "support"
@@ -42,6 +31,21 @@ function ent(id: PlanId) {
   return planDefinitions[id].entitlements
 }
 
+/** A limit as marketing shows it, the same way on cards and in the table. */
+function limit(value: number | null): string {
+  return value === null ? "Unlimited" : value.toLocaleString("en-US")
+}
+
+/** Better Auth caps an organization's members at 100, so "no plan limit" isn't unlimited. */
+function seats(id: PlanId): string {
+  const value = ent(id).maxTeamSeats
+  return value === null ? "Up to 100" : limit(value)
+}
+
+function apiAccess(id: PlanId): string {
+  return ent(id).apiWriteEnabled ? "Full API" : "Storefront API"
+}
+
 function row(
   label: string,
   group: PricingFeatureGroup,
@@ -58,68 +62,44 @@ function row(
 }
 
 const supportLabels = {
-  community: "Community",
+  community: "Docs",
   email: "Email",
   priority: "Priority",
   dedicated: "Dedicated",
 } as const
 
 export const pricingFeatureRows: PricingFeatureRow[] = [
-  row("Stores", "store", (id) => formatLimit(ent(id).maxStores)),
-  row("Products", "store", (id) => formatLimit(ent(id).maxProducts)),
-  row("Orders per month", "store", (id) => formatLimit(ent(id).maxOrdersPerMonth)),
-  row("Store on yourname.prood.app", "brand", (id) => ent(id).subdomainIncluded),
-  row("Custom domains", "brand", (id) => formatLimit(ent(id).maxCustomDomains)),
-  row("Remove Prood branding", "brand", (id) => ent(id).removeBranding),
-  row("Team seats", "team", (id) => formatLimit(ent(id).maxTeamSeats)),
-  row("REST API and MCP", "ai", (id) => (ent(id).apiWriteEnabled ? "Read and write" : "Read only")),
+  row("Products", "store", (id) => limit(ent(id).maxProducts)),
+  row("Orders per month", "store", (id) => limit(ent(id).maxOrdersPerMonth)),
+  row("A prood.app address", "brand", (id) => ent(id).subdomainIncluded),
+  row("Custom domains", "brand", (id) => limit(ent(id).maxCustomDomains)),
+  row("Remove Prood branding", "brand", () => "Coming later"),
+  row("Team seats", "team", seats),
+  row("REST API and MCP", "ai", apiAccess),
   row("Agent Auth with approvals", "ai", (id) => ent(id).agentAuthEnabled),
   row("Support", "support", (id) => supportLabels[ent(id).supportTier]),
 ]
 
-const tierHighlights: Record<PlanId, string[]> = {
-  free: ["1 store, 50 products", "100 orders a month", "1 custom domain", "Read-only API and MCP"],
-  grow: ["500 products", "1,000 orders a month", "3 team seats, 3 domains", "Agent Auth and write API"],
-  scale: ["Unlimited products and orders", "10 team seats", "Unlimited domains", "Remove Prood branding"],
-  agency: ["10 isolated client stores", "Unlimited seats per store", "Unlimited domains", "Dedicated support"],
+/** What a plan comes to, line by line, for its till slip. */
+export function planSlipLines(id: PlanId): { label: string; value: string }[] {
+  return [
+    { label: "Products", value: limit(ent(id).maxProducts) },
+    { label: "Orders a month", value: limit(ent(id).maxOrdersPerMonth) },
+    { label: "Team seats", value: seats(id) },
+    { label: "Custom domains", value: limit(ent(id).maxCustomDomains) },
+    { label: "API", value: ent(id).apiWriteEnabled ? "Full" : "Storefront" },
+    { label: "Agent Auth", value: ent(id).agentAuthEnabled ? "Included" : "From Grow" },
+  ]
 }
 
-export function getMarketingTier(planId: PlanId, interval: BillingInterval): MarketingTier {
+export function getMarketingTier(planId: PlanId): MarketingTier {
   const plan = planDefinitions[planId]
-  const base = {
+  return {
     id: planId,
     name: plan.name,
-    description: plan.description,
-    highlighted: plan.highlighted,
-    badge: plan.badge,
-    cta: plan.cta,
-    ctaHref: plan.ctaHref ?? "register",
-    highlights: tierHighlights[planId],
-  }
-
-  if (plan.monthlyPriceCents === 0) {
-    return { ...base, price: formatPrice(0), period: "forever" }
-  }
-
-  if (interval === "annual" && plan.annualPriceCents) {
-    return {
-      ...base,
-      price: `$${monthlyEquivalentFromAnnual(plan.annualPriceCents)}`,
-      period: "per month",
-      billingNote: `${formatPrice(plan.annualPriceCents)} billed yearly`,
-    }
-  }
-
-  return {
-    ...base,
     price: formatPrice(plan.monthlyPriceCents),
-    period: "per month",
-    billingNote: plan.annualPriceCents ? "Billed monthly" : "Billed monthly only",
+    period: plan.monthlyPriceCents === 0 ? "no subscription" : "per month",
   }
-}
-
-export function getMarketingTiers(interval: BillingInterval): MarketingTier[] {
-  return planIds.map((id) => getMarketingTier(id, interval))
 }
 
 export const pricingFaqs = [
@@ -129,24 +109,24 @@ export const pricingFaqs = [
       "Yes. You get a live store, checkout through your own payment accounts and one custom domain, with no subscription.",
   },
   {
-    question: "Does Prood take a cut of my sales?",
+    question: "Does Prood take a percentage of my sales?",
     answer:
-      "No. Stripe, Easypay and Ifthenpay charge their own processing fees. Prood adds nothing on top.",
+      "No. Prood charges by plan, not by sale. Stripe, Easypay and Ifthenpay charge their own processing fees.",
   },
   {
     question: "When will paid plans be billed?",
     answer:
-      "Not yet. Every store starts on Free today, and the limits on this page show what each plan will include. We’ll give you clear notice before billing starts.",
+      "Not yet. Every store starts on Free today, and the limits on this page show what each plan will include. We'll give you clear notice before billing starts.",
   },
   {
     question: "What happens if I go over a Free limit?",
     answer:
-      "Nothing changes today. Once limits are enforced, the dashboard will warn you early and show the upgrade. We won’t stop your orders without notice.",
+      "Free limits apply today. At 50 products you can't add more, and at 100 orders in a month new orders are refused until the next month. Paid plans can't be bought yet, so email hello@prood.com if you're close.",
   },
   {
     question: "What is Agent Auth?",
     answer:
-      "It lets AI agents use the same API as your dashboard. Agents can read on their own, but anything that changes your store needs your approval first. It’s included from Grow.",
+      "It lets AI agents use the same API as your dashboard. With Agent Auth, an AI agent starts with nothing until you approve it for your store. After that it keeps the public catalog, and anything else needs your approval. You see every capability the agent asks for and approve or deny the request as a whole. Approved access ends after an hour idle, or 24 hours at most. Then the agent asks again. Agent Auth is coming with Grow.",
   },
   {
     question: "Can I bring my own domain?",

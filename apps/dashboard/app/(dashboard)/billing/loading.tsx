@@ -1,5 +1,11 @@
-import { BillingSkeleton } from "@/components/skeletons"
+import { DashboardFormPage } from "@/components/layout/dashboard-page"
+import { BillingSkeleton, PageHeaderSkeleton } from "@/components/skeletons"
 
-export default function BillingLoading() {
-  return <BillingSkeleton />
+export default function Loading() {
+  return (
+    <DashboardFormPage>
+      <PageHeaderSkeleton />
+      <BillingSkeleton />
+    </DashboardFormPage>
+  )
 }

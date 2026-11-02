@@ -1,33 +1,28 @@
-import { redirect } from "next/navigation"
-import { connection } from "next/server"
+import { Suspense, type ReactNode } from "react"
 import {
   SidebarInset,
   SidebarProvider,
 } from "@prood/ui/components/sidebar"
-import { AdminSidebar } from "@/components/layout/admin-sidebar"
+import { SkipLink } from "@prood/ui/components/skip-link"
+import { PageSkeleton, SidebarSkeleton } from "@/components/admin/skeletons"
 import { AdminHeader } from "@/components/layout/admin-header"
-import { requireAdmin } from "@/lib/auth"
+import { AdminSidebar } from "@/components/layout/admin-sidebar"
+import { assertAdmin } from "@/lib/auth"
 
-export default async function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  await connection()
+function ShellContent({ children }: { children: ReactNode }) {
+  return (
+    <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-8 md:py-8">
+      {children}
+    </div>
+  )
+}
 
-  let session: Awaited<ReturnType<typeof requireAdmin>> = null
-  try {
-    session = await requireAdmin()
-  } catch (err) {
-    console.error("[AdminLayout] requireAdmin() threw:", err)
-  }
-
-  if (!session) {
-    redirect("/login")
-  }
+async function AdminShell({ children }: { children: ReactNode }) {
+  const session = await assertAdmin()
 
   return (
     <SidebarProvider>
+      <SkipLink />
       <AdminSidebar
         user={{
           name: session.user.name,
@@ -35,10 +30,35 @@ export default async function AdminLayout({
           image: session.user.image,
         }}
       />
-      <SidebarInset>
+      <SidebarInset className="min-w-0">
         <AdminHeader />
-        <div className="flex-1 p-4 md:p-6">{children}</div>
+        <ShellContent>{children}</ShellContent>
       </SidebarInset>
     </SidebarProvider>
+  )
+}
+
+/**
+ * Each branch owns its `SidebarProvider`. One shared across the boundary would
+ * hydrate first and flip `isMobile` under the streamed sidebar on phones.
+ */
+export default function AdminLayout({ children }: { children: ReactNode }) {
+  return (
+    <Suspense
+      fallback={
+        <SidebarProvider>
+          <SkipLink />
+          <SidebarSkeleton />
+          <SidebarInset className="min-w-0">
+            <AdminHeader />
+            <ShellContent>
+              <PageSkeleton />
+            </ShellContent>
+          </SidebarInset>
+        </SidebarProvider>
+      }
+    >
+      <AdminShell>{children}</AdminShell>
+    </Suspense>
   )
 }

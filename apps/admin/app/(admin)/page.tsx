@@ -1,193 +1,199 @@
+import Link from "next/link"
+import { CaretRight } from "@phosphor-icons/react/dist/ssr"
+import { Button } from "@prood/ui/components/button"
+import { PanelEmpty } from "@prood/ui/components/panel-empty"
+import { Fact, FactList } from "@prood/ui/components/fact-list"
+import { PageHeader } from "@prood/ui/components/page-header"
+import { Panel } from "@prood/ui/components/panel"
+import { Stat, StatGrid } from "@prood/ui/components/stat-grid"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@prood/ui/components/card"
-import { Badge } from "@prood/ui/components/badge"
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@prood/ui/components/table"
+import { PageStack as AdminPage } from "@prood/ui/components/page-layout"
+import { FOLD_CELL, ListTable, RowLink } from "@prood/ui/components/list-table"
+import { SignupsChart, type SignupDay } from "@/components/admin/signups-chart"
+import { Timestamp } from "@/components/admin/timestamp"
 import {
-  getPlatformStats,
+  getAttentionCounts,
   getDailySignups,
   getOrgsByPlan,
-  getProviderDistribution,
+  getPlatformStats,
   getRecentUsers,
+  type DailySignup,
 } from "@/lib/admin-queries"
+import { formatDate, formatNumber, humanize, plural } from "@/lib/format"
 
-export const metadata = { title: "Dashboard" }
+export const metadata = { title: "Overview" }
 
-export default async function DashboardPage() {
-  let stats = null
-  let dailySignups: Awaited<ReturnType<typeof getDailySignups>> = []
-  let orgsByPlan: Awaited<ReturnType<typeof getOrgsByPlan>> = []
-  let providers: Awaited<ReturnType<typeof getProviderDistribution>> = []
-  let recentUsers: Awaited<ReturnType<typeof getRecentUsers>> = []
+const WIDE = "hidden @2xl:table-cell"
 
-  try {
-    ;[stats, dailySignups, orgsByPlan, providers, recentUsers] =
-      await Promise.all([
-        getPlatformStats(),
-        getDailySignups(),
-        getOrgsByPlan(),
-        getProviderDistribution(),
-        getRecentUsers(8),
-      ])
-  } catch {
-    /* DB unavailable */
-  }
+const CHART_DAYS = 30
+const DAY_MS = 86_400_000
 
-  const kpis = [
-    { label: "Total Users", value: stats?.totalUsers ?? 0 },
-    { label: "New Users (30d)", value: stats?.newUsersLast30d ?? 0 },
-    { label: "Active Sessions", value: stats?.activeSessions ?? 0 },
-    { label: "Organizations", value: stats?.totalOrganizations ?? 0 },
-    { label: "API Keys", value: stats?.totalApiKeys ?? 0 },
-  ]
+/** The query returns only days with signups; a chart needs the quiet days too. */
+function lastThirtyDays(rows: DailySignup[]): SignupDay[] {
+  const counts = new Map(rows.map((row) => [row.date, row.count]))
+  const today = Date.now()
+  return Array.from({ length: CHART_DAYS }, (_, index) => {
+    const day = new Date(today - (CHART_DAYS - 1 - index) * DAY_MS)
+    const date = day.toISOString().slice(0, 10)
+    return { date, label: formatDate(day), count: counts.get(date) ?? 0 }
+  })
+}
 
-  const maxSignup = Math.max(...dailySignups.map((d) => d.count), 1)
+export default async function OverviewPage() {
+  const [attention, stats, dailySignups, orgsByPlan, recentUsers] =
+    await Promise.all([
+      getAttentionCounts(),
+      getPlatformStats(),
+      getDailySignups(CHART_DAYS),
+      getOrgsByPlan(),
+      getRecentUsers(8),
+    ])
+
+  const needsAttention = [
+    {
+      count: attention.pastDueOrganizations,
+      label: plural(attention.pastDueOrganizations, "organization past due", "organizations past due"),
+      hint: "Plans are handled by hand for now, so contact the owner.",
+      href: "/organizations?billing=past_due",
+    },
+    {
+      count: attention.pendingAgents,
+      label: plural(attention.pendingAgents, "AI agent pending", "AI agents pending"),
+      hint: "Waiting for the store owner to approve it in their dashboard.",
+      href: "/agents?status=pending",
+    },
+  ].filter((item) => item.count > 0)
+
+  const days = lastThirtyDays(dailySignups)
+  const totalSignups = days.reduce((sum, day) => sum + day.count, 0)
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h2 className="font-heading text-xl font-medium">Dashboard</h2>
-        <p className="text-sm text-muted-foreground">
-          Platform-wide overview across all tenants.
-        </p>
-      </div>
+    <AdminPage>
+      <PageHeader
+        title="Overview"
+        description="How Prood is doing across every store."
+      />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        {kpis.map((kpi) => (
-          <Card key={kpi.label}>
-            <CardHeader className="pb-2">
-              <CardDescription>{kpi.label}</CardDescription>
-              <CardTitle className="text-2xl">{kpi.value}</CardTitle>
-            </CardHeader>
-          </Card>
-        ))}
-      </div>
+      <StatGrid className="grid-cols-2 lg:grid-cols-5 [&>*:first-child]:col-span-2 lg:[&>*:first-child]:col-span-1">
+        <Stat label="Total users" href="/users" value={formatNumber(stats.totalUsers)} />
+        <Stat label={`New users, ${CHART_DAYS} days`} href="/users" value={formatNumber(totalSignups)} />
+        <Stat label="Active sessions" href="/sessions" value={formatNumber(stats.activeSessions)} />
+        <Stat label="Organizations" href="/organizations" value={formatNumber(stats.totalOrganizations)} />
+        <Stat label="API keys" href="/api-keys" value={formatNumber(stats.totalApiKeys)} />
+      </StatGrid>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>User Signups (30 days)</CardTitle>
-            <CardDescription>Daily new user registrations.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {dailySignups.length > 0 ? (
-              <div className="flex h-32 items-end gap-1">
-                {dailySignups.map((day) => (
-                  <div
-                    key={day.date}
-                    className="flex-1 rounded-t bg-primary transition-all"
-                    style={{
-                      height: `${(day.count / maxSignup) * 100}%`,
-                      minHeight: day.count > 0 ? "4px" : "1px",
-                    }}
-                    title={`${day.date}: ${day.count} signups`}
-                  />
-                ))}
-              </div>
+      <Panel title="Needs attention" flush>
+        {needsAttention.length > 0 ? (
+          <ul className="divide-y divide-border">
+            {needsAttention.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="flex items-center justify-between gap-4 px-5 py-3 text-sm outline-none transition-colors duration-120 hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                >
+                  <span className="flex min-w-0 flex-col">
+                    <span className="font-medium">{item.label}</span>
+                    <span className="text-pretty text-muted-foreground">{item.hint}</span>
+                  </span>
+                  <CaretRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="px-5 py-4 text-sm text-muted-foreground">Nothing is waiting on anyone right now.</p>
+        )}
+      </Panel>
+
+      <div className="grid items-start gap-6 lg:grid-cols-3">
+        <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
+          <Panel
+            title="Signups"
+            description={`${plural(totalSignups, "new account")} in the last ${CHART_DAYS} days.`}
+          >
+            {totalSignups > 0 ? (
+              <SignupsChart days={days} />
             ) : (
               <p className="py-8 text-center text-sm text-muted-foreground">
-                No signup data available.
+                No signups in the last {CHART_DAYS} days. New accounts show up here
+                by day.
               </p>
             )}
-          </CardContent>
-        </Card>
+          </Panel>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Auth Providers</CardTitle>
-            <CardDescription>Account distribution by provider.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {providers.length > 0 ? (
-              <div className="flex flex-col gap-3">
-                {providers.map((p) => (
-                  <div
-                    key={p.providerId}
-                    className="flex items-center justify-between"
-                  >
-                    <span className="text-sm font-medium capitalize">
-                      {p.providerId}
-                    </span>
-                    <Badge variant="secondary">{p.count}</Badge>
-                  </div>
-                ))}
-              </div>
+          <Panel
+            flush
+            title="Recent signups"
+            actions={
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/users">View all users</Link>
+              </Button>
+            }
+          >
+            {recentUsers.length > 0 ? (
+              <ListTable>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead className={WIDE}>Email</TableHead>
+                    <TableHead className={WIDE}>Role</TableHead>
+                    <TableHead>Joined</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {recentUsers.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell className={FOLD_CELL}>
+                        <RowLink href={`/users/${user.id}`}>{user.name}</RowLink>
+                        <div className="truncate text-xs text-muted-foreground @2xl:hidden">
+                          {user.email}
+                        </div>
+                      </TableCell>
+                      <TableCell className={`${WIDE} text-muted-foreground`}>
+                        {user.email}
+                      </TableCell>
+                      <TableCell className={`${WIDE} text-muted-foreground`}>{humanize(user.role)}</TableCell>
+                      <TableCell className="text-muted-foreground tabular-nums">
+                        <Timestamp date={user.createdAt} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </ListTable>
             ) : (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                No provider data available.
-              </p>
+              <PanelEmpty
+                className="py-10"
+                title="No users yet"
+                description="New accounts show up here as soon as someone signs up on Prood."
+              />
             )}
-          </CardContent>
-        </Card>
-      </div>
+          </Panel>
+        </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Organizations by Plan</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="flex min-w-0 flex-col gap-6">
+          <Panel title="Organizations by plan">
             {orgsByPlan.length > 0 ? (
-              <div className="flex flex-col gap-3">
-                {orgsByPlan.map((p) => (
-                  <div
-                    key={p.planId}
-                    className="flex items-center justify-between"
-                  >
-                    <span className="text-sm font-medium capitalize">
-                      {p.planId}
-                    </span>
-                    <Badge variant="outline">{p.count}</Badge>
-                  </div>
+              <FactList>
+                {orgsByPlan.map((plan) => (
+                  <Fact key={plan.planId} label={humanize(plan.planId)}>
+                    <span className="tabular-nums">{formatNumber(plan.count)}</span>
+                  </Fact>
                 ))}
-              </div>
+              </FactList>
             ) : (
-              <p className="py-8 text-center text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 No organizations yet.
               </p>
             )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Signups</CardTitle>
-            <CardDescription>Newest registered users.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {recentUsers.length > 0 ? (
-              <div className="flex flex-col gap-3">
-                {recentUsers.map((u) => (
-                  <div
-                    key={u.id}
-                    className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0"
-                  >
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium">{u.name}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {u.email}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant="secondary">{u.role}</Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {u.createdAt.toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                No users yet.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+          </Panel>
+        </div>
       </div>
-    </div>
+    </AdminPage>
   )
 }

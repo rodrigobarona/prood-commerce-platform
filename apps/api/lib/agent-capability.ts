@@ -39,6 +39,15 @@ function compileRoutes(): Route[] {
     .sort((a, b) => b.literals - a.literals)
 }
 
+/** The methods a `/v1/path` takes. Empty for a path with no route. */
+export function methodsForPath(fullPath: string): string[] {
+  const path = fullPath.slice(API_PREFIX.length)
+  // The spec doesn't list itself.
+  if (path === "/openapi.json") return ["GET"]
+  routes ??= compileRoutes()
+  return routes.filter((r) => r.pattern.test(path)).map((r) => r.method)
+}
+
 /** The API operation a `METHOD /v1/path` target maps to, or null if none does. */
 export function operationForRequest(target: string | null): string | null {
   const [method, fullPath] = target?.split(" ") ?? []

@@ -1,18 +1,23 @@
 import { Suspense } from "react"
 import { redirect } from "next/navigation"
+import { ReceiptIcon } from "@phosphor-icons/react/dist/ssr"
 import type { Order } from "@prood/types"
+import { EmptyState } from "@prood/ui/components/empty-state"
 import { OrderCard } from "@prood/ui/components/order-card"
+import { Skeleton } from "@prood/ui/components/skeleton"
+import { Container } from "@/components/layout/container"
 import { getCurrentUser } from "@/lib/auth"
 import { fetchCustomerOrders } from "@/lib/commerce-data"
+import { orderHref } from "@/lib/order-href"
 
 export const metadata = { title: "Orders" }
 
 function OrdersSkeleton() {
   return (
-    <div className="flex flex-col gap-4 animate-pulse">
-      <div className="h-24 rounded-lg bg-muted" />
-      <div className="h-24 rounded-lg bg-muted" />
-      <div className="h-24 rounded-lg bg-muted" />
+    <div aria-hidden className="flex flex-col gap-3">
+      <Skeleton className="h-20 rounded-xl" />
+      <Skeleton className="h-20 rounded-xl" />
+      <Skeleton className="h-20 rounded-xl" />
     </div>
   )
 }
@@ -29,24 +34,30 @@ async function OrdersList() {
     /* DB unavailable */
   }
 
-  return (
-    <>
-      {orders.length > 0 ? (
-        orders.map((order) => <OrderCard key={order.id} order={order} />)
-      ) : (
-        <p className="text-muted-foreground text-sm">No orders yet.</p>
-      )}
-    </>
-  )
+  if (orders.length === 0) {
+    return (
+      <EmptyState
+        icon={<ReceiptIcon />}
+        title="No orders yet"
+        description="Orders you place show up here so you can follow them."
+        actionLabel="Browse products"
+        actionHref="/products"
+      />
+    )
+  }
+
+  return orders.map((order) => <OrderCard key={order.id} order={order} href={orderHref(order)} />)
 }
 
 export default function OrdersPage() {
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-4 px-4 py-8">
-      <h1 className="text-2xl font-bold tracking-tight">Orders</h1>
-      <Suspense fallback={<OrdersSkeleton />}>
-        <OrdersList />
-      </Suspense>
-    </div>
+    <Container className="max-w-3xl! flex flex-col gap-6 py-10 md:py-16">
+      <h1 className="text-display-sm">Orders</h1>
+      <div className="flex flex-col gap-3">
+        <Suspense fallback={<OrdersSkeleton />}>
+          <OrdersList />
+        </Suspense>
+      </div>
+    </Container>
   )
 }

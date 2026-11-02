@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { setupChecklist, type SetupProgress } from "../setup-checklist"
+import { canSell, setupChecklist, type SetupProgress } from "../setup-checklist"
 
 const STORE_URL = "https://loja-da-ana.prood.app"
 const fresh: SetupProgress = {
@@ -15,6 +15,14 @@ const item = (progress: SetupProgress, id: string) => {
   if (!found) throw new Error(`no ${id} item`)
   return found
 }
+
+describe("canSell", () => {
+  it("needs a published product and a way to pay, and nothing else", () => {
+    expect(canSell({ activeProducts: 1, canTakeOrders: false })).toBe(false)
+    expect(canSell({ activeProducts: 0, canTakeOrders: true })).toBe(false)
+    expect(canSell({ activeProducts: 1, canTakeOrders: true })).toBe(true)
+  })
+})
 
 describe("setupChecklist", () => {
   it("starts a new store with everything to do", () => {

@@ -70,10 +70,9 @@ Options:
   --help                 Show help
 
 Examples:
-  prood auth whoami --api-url http://localhost:3005/v1 --api-key pk_xxx --json
-  prood products list --api-url http://localhost:3005/v1 --api-key pk_xxx --json
-  prood orders list --api-url http://localhost:3005/v1 --api-key pk_xxx --json
-  prood mcp config --api-url http://localhost:3005/v1 --api-key pk_xxx
+  prood auth whoami --api-url http://localhost:3005/v1 --api-key pkAbC123 --json
+  prood products list --api-url http://localhost:3005/v1 --api-key pkAbC123 --json
+  prood mcp config --api-url http://localhost:3005/v1 --api-key pkAbC123
   prood openapi sync --check`)
 }
 

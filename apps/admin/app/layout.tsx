@@ -5,7 +5,7 @@ import { Suspense } from "react"
 import "@prood/ui/globals.css"
 import "@prood/ui/themes/prood.css"
 import { cn } from "@prood/ui/lib/utils"
-import { AppProviders } from "@/components/providers/app-providers"
+import { AppProviders } from "@prood/ui/components/app-providers"
 
 const fontSans = Instrument_Sans({ subsets: ["latin"], variable: "--font-family-sans" })
 const fontHeading = Bricolage_Grotesque({
@@ -17,10 +17,10 @@ const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-family-mono"
 
 export const metadata: Metadata = {
   title: {
-    default: "Prood Admin",
-    template: "%s · Prood Admin",
+    default: "Prood admin",
+    template: "%s · Prood admin",
   },
-  description: "Platform operations console for Prood.",
+  description: "Internal platform admin for Prood.",
   robots: { index: false, follow: false },
 }
 

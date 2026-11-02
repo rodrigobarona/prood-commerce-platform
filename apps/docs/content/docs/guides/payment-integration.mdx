@@ -1,171 +1,96 @@
 ---
-title: Payment Integration
-description: Configure Stripe, Easypay, or Ifthenpay payment providers for your Prood store.
+title: Payment integration
+description: Connect your Stripe, Easypay or Ifthenpay account to your Prood store.
 ---
 
-Prood supports three payment providers out of the box. Each implements the same `PaymentProvider` interface, making them interchangeable without code changes.
+Your store takes payments through your own account with a payment provider. Payouts go straight from the provider to you, and Prood adds nothing on top of their fees.
 
-## Provider overview
+## Choose a provider
 
-| Provider | Region | Methods | Integration type |
-| --- | --- | --- | --- |
-| **Stripe** | Global | Credit/debit cards (Payment Element) | Embedded UI |
-| **Easypay** | Portugal | Multibanco, MB WAY, card | Reference + redirect |
-| **Ifthenpay** | Portugal | Multibanco, MB WAY, card | Reference + redirect |
-
-## Global vs per-tenant configuration
-
-Payment credentials can be configured at two levels:
-
-| Level | Where | When to use |
+| Provider | Region | What customers can pay with |
 | --- | --- | --- |
-| **Environment variables** | `.env.local` / Vercel project settings | Platform-wide defaults, development |
-| **Dashboard integrations** | `/integrations/{provider}` | Per-merchant credentials in production |
+| **Stripe** | International | Cards, plus Apple Pay and Google Pay where you've enabled them |
+| **Easypay** | Portugal | Multibanco, MB WAY and cards |
+| **Ifthenpay** | Portugal | Multibanco, MB WAY and cards |
 
-Per-tenant config **overrides** env vars field-by-field. If a merchant configures Stripe in the dashboard, their checkout uses their keys — not the platform defaults.
+Easypay and Ifthenpay put Multibanco, MB WAY and cards in one checkout. Stripe covers cards and wallets. Each store's checkout runs on one provider, and Stripe comes first if it's connected.
 
-## Stripe setup
+For Apple Pay and Google Pay, enable them in Stripe and register `checkout.prood.com` there.
 
-### 1. Create a Stripe account
+## Connect it
 
-Sign up at [stripe.com](https://stripe.com) and get your API keys from the Dashboard → Developers → API keys.
+Go to **Integrations**, under **Connections** in the dashboard, and choose your provider. Each store connects its own account, so credentials are never shared between stores. They're stored separately and encrypted at rest with AES-256-GCM.
 
-### 2. Environment variables
+### Stripe
 
-```bash
-DEFAULT_PAYMENT_PROVIDER=stripe
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-```
+Get your keys from the Stripe dashboard, under Developers.
 
-### 3. Per-tenant configuration (production)
-
-In the dashboard → Integrations → Stripe:
-
-| Field | Value |
+| Field | Looks like |
 | --- | --- |
-| Secret key | `sk_live_...` |
-| Webhook secret | `whsec_...` |
-| Publishable key | `pk_live_...` |
+| Publishable key | `pk_live_...` or `pk_test_...` |
+| Secret key | `sk_live_...` or `sk_test_...` |
+| Signing secret | `whsec_...` |
 
-### 4. Webhook
+Add the webhook first, because Stripe gives you the signing secret when you do. Prood tests the keys when you save. Use two test keys or two live keys, not one of each.
 
-Configure in Stripe Dashboard → Webhooks:
+To test, use Stripe's test keys and card `4242 4242 4242 4242`, with any future expiry date and CVC.
 
-```
-URL: https://checkout.example.com/api/webhooks/stripe/{orgId}
-Events: payment_intent.succeeded, payment_intent.payment_failed, charge.refunded
-```
+### Easypay
 
-### 5. Test
+Find these in your Easypay account.
 
-Use test card `4242 4242 4242 4242` with any future expiry and CVC.
-
-## Easypay setup
-
-### 1. Create an Easypay account
-
-Sign up at [easypay.pt](https://www.easypay.pt/) and obtain your account ID and API key.
-
-### 2. Environment variables
-
-```bash
-DEFAULT_PAYMENT_PROVIDER=easypay
-EASYPAY_ACCOUNT_ID=your_account_id
-EASYPAY_API_KEY=your_api_key
-EASYPAY_BASE_URL=https://api.test.easypay.pt  # sandbox
-```
-
-### 3. Per-tenant configuration
-
-Dashboard → Integrations → Easypay:
-
-| Field | Value |
+| Field | Notes |
 | --- | --- |
-| Account ID | Easypay account ID |
-| API key | API key |
-| Base URL | `https://api.prod.easypay.pt` |
+| Account ID | Required |
+| API key | Required |
+| Easypay address | Optional, under **Advanced**. Leave it empty for live payments, or use `https://api.test.easypay.pt` to test |
 
-### 4. Webhook
+Prood tests the keys when you save.
 
-Configure in Easypay merchant panel:
+### Ifthenpay
 
-```
-URL: https://checkout.example.com/api/webhooks/easypay/{orgId}
-```
+Enable your payment methods with Ifthenpay first, then enter each key.
 
-## Ifthenpay setup
+| Field | Notes |
+| --- | --- |
+| Anti-phishing key | Required |
+| Multibanco key | Required |
+| MB WAY key | Optional. Adds MB WAY to checkout |
+| Credit card key | Optional. Adds cards to checkout |
 
-### 1. Create an Ifthenpay account
+Ifthenpay can't test keys, so place a small order to check them.
 
-Sign up at [ifthenpay.com](https://www.ifthenpay.com/) and enable payment methods in the backoffice.
+## Add the webhook
 
-### 2. Environment variables
+Orders are only marked as paid when your provider calls your store's webhook URL. See [Webhook setup](/docs/guides/webhook-setup).
 
-```bash
-DEFAULT_PAYMENT_PROVIDER=ifthenpay
-IFTHENPAY_ANTIPHISHING_KEY=your_key
-IFTHENPAY_MB_KEY=your_mb_key
-IFTHENPAY_MBWAY_KEY=your_mbway_key
-IFTHENPAY_CC_KEY=your_cc_key
-```
+## Refunds
 
-### 3. Per-tenant configuration
+| Payment | What happens |
+| --- | --- |
+| Stripe | **Refund order** in the dashboard sends the money back |
+| Easypay, MB WAY and cards | **Refund order** in the dashboard sends the money back |
+| Easypay, Multibanco | Refund in your Easypay account, then record it in the dashboard |
+| Ifthenpay | Refund in your Ifthenpay account, then record it in the dashboard |
 
-Dashboard → Integrations → Ifthenpay — enter each key separately.
+## Change provider
 
-### 4. Webhook
-
-Configure callback URL in Ifthenpay backoffice:
-
-```
-URL: https://checkout.example.com/api/webhooks/ifthenpay/{orgId}
-```
-
-## How credentials flow at runtime
-
-```mermaid
-flowchart TB
-  PAY["Checkout /c/{sessionId}"]
-  LOAD[loadSession]
-  TENANT["tenantId from snapshot"]
-  CFG[loadIntegrationConfig]
-  DEC[decryptConfig]
-  FACTORY[getPaymentProvider]
-  ENV[Env fallback]
-  PP[StripePaymentProvider]
-  API[submitPayment → provider API]
-
-  PAY --> LOAD --> TENANT --> CFG --> DEC --> FACTORY
-  ENV -.-> FACTORY
-  FACTORY --> PP --> API
-```
-
-## Switching providers
-
-To change the default provider for a tenant:
-
-1. Configure the new provider in dashboard Integrations
-2. Set it as the default in store settings (or pass `provider` in checkout session creation)
-3. Update webhook URLs for the new provider
-
-No code changes required — the checkout app renders the appropriate UI based on the provider type.
+Connect the new provider in **Integrations** and add its webhook. To move off Stripe, switch off **Turned on** on its page: while Stripe is connected and on, checkout uses Stripe. Your old provider still reports on payments it took before you turned it off.
 
 ## Troubleshooting
 
-| Issue | Solution |
+| Issue | What to check |
 | --- | --- |
-| Payment Element not loading | Check `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` is set on checkout app |
-| Webhook verification fails | Ensure webhook secret matches dashboard integration config |
-| Multibanco reference not showing | Verify Easypay/Ifthenpay keys are correct for the selected method |
-| Wrong tenant charged | Verify `tenantId` in checkout session matches the merchant's org |
-| Env fallback used instead of tenant config | Check integration is saved in dashboard for the correct org |
+| "It didn't accept that key" | Copy the key again from your provider's account |
+| "These keys come from different modes" | Use two test keys or two live keys |
+| Orders stay **Unpaid** after payment | The webhook URL in your provider's account, and for Stripe the signing secret and events |
+| A Multibanco reference doesn't show | Check the keys for the payment method you chose |
+| "This store has no payment provider connected yet" | Connect one under **Integrations** and make sure it's turned on |
 
 ## Related pages
 
 <Cards>
-  <Card title="Stripe package" href="/docs/packages/payments/stripe" description="Provider implementation details." />
-  <Card title="Webhook setup" href="/docs/guides/webhook-setup" description="Webhook configuration guide." />
-  <Card title="Dashboard integrations" href="/docs/apps/dashboard/integrations" description="Per-tenant credential management." />
+  <Card title="Webhook setup" href="/docs/guides/webhook-setup" description="Add your webhook URL." />
+  <Card title="Integrations in the dashboard" href="/docs/apps/dashboard/integrations" description="Connect, turn off and reconnect providers." />
+  <Card title="Orders" href="/docs/apps/dashboard/orders" description="Fulfill, cancel and refund." />
 </Cards>

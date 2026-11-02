@@ -7,6 +7,7 @@ import { useCart } from "@/components/providers/cart-provider"
 export function ConnectedProductGrid({
   products,
   columns = 4,
+  preloadCount,
   emptyTitle,
   emptyDescription,
   emptyActionLabel,
@@ -14,6 +15,7 @@ export function ConnectedProductGrid({
 }: {
   products: Product[]
   columns?: 2 | 3 | 4 | 5 | 6
+  preloadCount?: number
   emptyTitle?: string
   emptyDescription?: string
   emptyActionLabel?: string
@@ -24,6 +26,7 @@ export function ConnectedProductGrid({
     <ProductGrid
       products={products}
       columns={columns}
+      preloadCount={preloadCount}
       onAddToCart={canTakeOrders ? addProduct : undefined}
       emptyTitle={emptyTitle}
       emptyDescription={emptyDescription}

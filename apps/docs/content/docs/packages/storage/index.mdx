@@ -1,11 +1,13 @@
 ---
 title: Storage
-description: File storage for product images and merchant assets, on Cloudflare R2.
+description: File storage for merchant assets, on Cloudflare R2. Nothing in the dashboard uploads through it yet.
 ---
 
 Prood stores files in Cloudflare R2 through `@prood/storage-s3`, which implements the `StorageProvider` interface from `@prood/types`. Public files are served by the `prood-media` Worker in `infra/cloudflare/media-worker`.
 
 ## Tenant namespacing
+
+No app calls `uploadForTenant()` yet: uploading product photos in the dashboard is coming later.
 
 Every upload uses tenant-prefixed keys so merchants cannot collide with each other:
 
@@ -23,7 +25,7 @@ await uploadForTenant(orgId, {
 
 ## Configuration
 
-Set in root `.env.local` (see [Environment variables](/docs/getting-started/environment)):
+Set in root `.env.local` (see [Environment variables](/docs/run-locally/environment)):
 
 - The `S3_*` variables. The key is scoped to the `prood-public` bucket only.
 
@@ -31,5 +33,4 @@ Set in root `.env.local` (see [Environment variables](/docs/getting-started/envi
 
 <Cards>
   <Card title="S3 / R2" href="/docs/packages/storage/s3" description="S3-compatible object storage." />
-  <Card title="Dashboard products" href="/docs/apps/dashboard/products" description="Where product images are uploaded." />
 </Cards>

@@ -1,139 +1,41 @@
 ---
 title: Domains
-description: Custom domain setup and subdomain configuration for merchant storefronts.
+description: Your prood.app address, and how to put your store on your own domain.
 ---
 
-The dashboard **Domains** page lets merchants connect custom domains to their storefront. The storefront resolves the tenant from the request host, so each domain must be mapped to an organization.
+**Domains**, under **Connections**, shows where your store lives.
 
-## Domain types
+## Your Prood address
 
-| Type | Example | Setup |
-| --- | --- | --- |
-| **Platform subdomain** | `acme-store.prood.app` | Automatic — org slug + `NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app` |
-| **Store custom domain** | `shop.merchant.com` | Manual — add in dashboard, verify DNS, provision on storefront Vercel project |
+Every store has a prood.app address from the start, like `casa-lume.prood.app`. You choose your store's prood.app address when you sign up. If it's taken, we add a few characters to the end. It keeps working even after you add a domain of your own.
 
-Platform admin always lives at **`dashboard.prood.com`** (not on `prood.app`). A future **admin white-label domain** (e.g. `cms.my-brand.com` on Scale+) is documented in [Multi-tenant platform](/docs/architecture/multi-tenant) — not implemented yet.
+## Add a custom domain
 
-## Subdomain (automatic)
+1. Under **Custom domains**, enter your domain, such as `shop.example.com`.
+2. Add the DNS record the dashboard shows at your registrar:
 
-When a merchant registers, their organization gets a slug (e.g. `acme-store`). The storefront is automatically available at `{slug}.{NEXT_PUBLIC_PLATFORM_DOMAIN}` — no dashboard action required.
+| Your domain | Type | Name | Value |
+| --- | --- | --- | --- |
+| A subdomain, like `shop.example.com` | CNAME | `shop.example.com` | `cname.vercel-dns.com` |
+| The root domain, like `example.com` | A | `@` | `76.76.21.21` |
 
-```mermaid
-flowchart LR
-  REG[Register org slug acme-store] --> URL["acme-store.prood.app"]
-  URL --> TENANT[storefront/lib/tenant.ts]
-  TENANT --> ORG[Resolve org_acme-store]
-  ORG --> API["GET /v1/products (scoped)"]
-```
+3. If the dashboard lists a verification record too, add that as well.
+4. Wait for the domain to verify. It usually takes minutes, and can take up to 48 hours.
 
-Subdomain resolution happens in `apps/storefront/lib/tenant.ts`.
+HTTPS is set up automatically once the domain is verified.
 
-## Custom domain setup
+## Limits
 
-**Route:** `/domains`
-
-### Step 1 — Add domain
-
-Merchant enters their custom domain (e.g. `shop.acme.com`). The dashboard:
-
-1. Inserts a row in `tenant_domain` with `verified = false`
-2. Calls Vercel SDK to add the domain to the storefront Vercel project
-3. Returns DNS records the merchant must configure
-
-### Step 2 — DNS verification
-
-The merchant adds DNS records at their registrar:
-
-| Type | Name | Value |
-| --- | --- | --- |
-| CNAME | `shop.acme.com` | `cname.vercel-dns.com` |
-| TXT | `_prood-verify.shop.acme.com` | Verification token |
-
-### Step 3 — Verify
-
-The dashboard polls Vercel's domain verification API. When verified:
-
-1. `tenant_domain.verified` set to `true`
-2. Storefront begins resolving the org from this host
-3. SSL certificate provisioned automatically by Vercel
-
-## Vercel integration
-
-`lib/vercel.ts` wraps the Vercel SDK:
-
-```ts
-import { Vercel } from '@vercel/sdk'
-
-const vercel = new Vercel({ bearerToken: process.env.VERCEL_TOKEN })
-
-export async function addDomain(domain: string) {
-  return vercel.projects.addProjectDomain({
-    idOrName: process.env.STOREFRONT_VERCEL_PROJECT_ID!,
-    teamId: process.env.VERCEL_TEAM_ID,
-    requestBody: { name: domain },
-  })
-}
-```
-
-Required env vars (optional in local dev):
-
-| Variable | Purpose |
+| Plan | Custom domains |
 | --- | --- |
-| `VERCEL_TOKEN` | Vercel API bearer token |
-| `STOREFRONT_VERCEL_PROJECT_ID` | **Storefront** Vercel project ID (store custom domains attach here) |
-| `VERCEL_TEAM_ID` | Vercel team ID (if applicable) |
-
-## Storage schema
-
-`tenantDomain` in `packages/auth/src/schema.ts` (migrated with `pnpm db:migrate`):
-
-```sql
-CREATE TABLE "tenant_domain" (
-  "id"              text PRIMARY KEY NOT NULL,
-  "organization_id" text NOT NULL REFERENCES "organization"("id") ON DELETE CASCADE,
-  "domain"          text NOT NULL UNIQUE,
-  "verified"        boolean DEFAULT false NOT NULL,
-  "is_primary"      boolean DEFAULT false NOT NULL,
-  "dns_records"     jsonb DEFAULT '[]'::jsonb NOT NULL,
-  "created_at"      timestamp DEFAULT now() NOT NULL
-);
-```
-
-## Server actions
-
-`app/(dashboard)/domains/actions.ts`:
-
-```ts
-'use server'
-export async function addDomain(domain: string) {
-  return withActiveOrg(async (orgId) => {
-    await createTenantDomain(orgId, domain)
-    await vercelAddDomain(domain)
-  })
-}
-
-export async function removeDomain(domainId: string) {
-  return withActiveOrg(async (orgId) => {
-    const domain = await getTenantDomain(domainId, orgId)
-    await vercelRemoveDomain(domain.domain)
-    await deleteTenantDomain(domainId, orgId)
-  })
-}
-```
-
-## Local development
-
-Custom domains are not required for local dev:
-
-1. Run `pnpm db:migrate` and `pnpm db:seed`
-2. Open [http://prood-demo.localhost:3000](http://prood-demo.localhost:3000) (`{slug}.localhost` with `NEXT_PUBLIC_PLATFORM_DOMAIN=localhost`)
-
-Plan limits: Free includes **one** custom domain; enforcement runs in `addDomainAction`.
+| Free | 1 |
+| Grow | 3 |
+| Scale | Unlimited |
+| Agency | Unlimited |
 
 ## Related pages
 
 <Cards>
-  <Card title="Storefront tenant resolution" href="/docs/apps/storefront/auth-tenant" description="How the storefront maps hosts to orgs." />
-  <Card title="Multi-tenant platform" href="/docs/architecture/multi-tenant" description="Tenant isolation architecture." />
-  <Card title="Merchant onboarding" href="/docs/guides/merchant-onboarding" description="Full new merchant setup guide." />
+  <Card title="Merchant onboarding" href="/docs/guides/merchant-onboarding" description="The full setup checklist." />
+  <Card title="Plans and limits" href="/docs/billing/plans" description="What each plan includes." />
 </Cards>

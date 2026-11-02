@@ -5,7 +5,12 @@ import { orderStatusCopy } from "../order-status-copy"
 
 type Context = Parameters<typeof orderStatusCopy>[1]
 
-const context: Context = { couldNotOpenPayment: true, orderNumber: "1042", contactEmail: "ola@lojadaana.pt" }
+const context: Context = {
+  couldNotOpenPayment: true,
+  partlyRefunded: false,
+  orderNumber: "1042",
+  contactEmail: "ola@lojadaana.pt",
+}
 
 function detail(state: OrderPaymentState, overrides: Partial<Context> = {}) {
   const { container } = render(<>{orderStatusCopy(state, { ...context, ...overrides }).detail}</>)
@@ -30,6 +35,15 @@ describe("orderStatusCopy", () => {
     )
   })
 
+  it("doesn't thank a shopper for a free order that was canceled, or call it unpaid", () => {
+    const copy = orderStatusCopy({ kind: "cancelled" }, context)
+    expect(copy.settled).toBe(false)
+    expect(copy.title).toBe("This order was canceled")
+    expect(detail({ kind: "cancelled" })).toBe(
+      "You haven't been charged. Email ola@lojadaana.pt if you still want these items.",
+    )
+  })
+
   describe("for a store with no contact email", () => {
     const noEmail = { contactEmail: null }
 
@@ -39,9 +53,9 @@ describe("orderStatusCopy", () => {
       )
     })
 
-    it("offers a new order after a failed payment", () => {
+    it("offers a new order after one canceled unpaid", () => {
       expect(detail({ kind: "failed" }, noEmail)).toBe(
-        "The payment didn't go through, so you haven't been charged. To get these items, place a new order.",
+        "This order was canceled before it was paid. You haven't been charged. To get these items, place a new order.",
       )
     })
 
@@ -49,12 +63,62 @@ describe("orderStatusCopy", () => {
       expect(detail({ kind: "refunded" }, noEmail)).toBe("This store hasn't listed a contact email.")
     })
 
-    it.each([{ kind: "awaiting_payment" }, { kind: "failed" }, { kind: "refunded" }] as const)(
+    it.each([{ kind: "awaiting_payment" }, { kind: "failed" }, { kind: "cancelled" }, { kind: "refunded" }] as const)(
       "never says to contact the store on $kind",
       (state) => {
         expect(detail(state, noEmail)).not.toMatch(/contact the store/i)
       },
     )
+  })
+
+  describe("for a paid order that was canceled", () => {
+    const state = { kind: "cancelled_paid" } as OrderPaymentState
+    const copy = "This order was canceled and your payment hasn't been returned yet. Contact the store about your refund."
+
+    it("doesn't promise a refund nothing has started", () => {
+      expect(detail(state)).toBe(copy)
+      expect(detail(state)).not.toMatch(/will refund/i)
+    })
+
+    it("links the way to the store when it has an address", () => {
+      detail(state)
+      expect(screen.getByRole("link", { name: "Contact the store" }).getAttribute("href")).toBe(
+        "mailto:ola@lojadaana.pt?subject=Order%20%231042",
+      )
+    })
+
+    it("still says who to ask when the store couldn't be read", () => {
+      expect(detail(state, { contactEmail: undefined })).toBe(copy)
+      expect(screen.queryByRole("link")).toBeNull()
+    })
+
+    it("doesn't send anyone to a store with no address", () => {
+      expect(detail(state, { contactEmail: null })).toBe(
+        "This order was canceled and your payment hasn't been returned yet. This store hasn't listed a contact email.",
+      )
+    })
+  })
+
+  describe("for a canceled order that was partly refunded", () => {
+    const state = { kind: "cancelled_paid" } as OrderPaymentState
+    const partly = { partlyRefunded: true }
+    const returned = "This order was canceled and part of your payment was returned. The rest hasn't been returned yet."
+
+    it("says part came back and the rest hasn't", () => {
+      expect(detail(state, partly)).toBe(`${returned} Contact the store about your refund.`)
+      expect(detail(state, partly)).not.toContain("your payment hasn't been returned")
+    })
+
+    it("links the way to the store", () => {
+      detail(state, partly)
+      expect(screen.getByRole("link", { name: "Contact the store" }).getAttribute("href")).toBe(
+        "mailto:ola@lojadaana.pt?subject=Order%20%231042",
+      )
+    })
+
+    it("doesn't send anyone to a store with no address", () => {
+      expect(detail(state, { ...partly, contactEmail: null })).toBe(`${returned} This store hasn't listed a contact email.`)
+    })
   })
 
   it("keeps the waiting copy when payment did open", () => {
@@ -63,7 +127,7 @@ describe("orderStatusCopy", () => {
     )
   })
 
-  it("offers the address on a failed payment too", () => {
+  it("offers the address on an order canceled unpaid too", () => {
     expect(detail({ kind: "failed" })).toContain("Email ola@lojadaana.pt if you still want these items.")
   })
 })

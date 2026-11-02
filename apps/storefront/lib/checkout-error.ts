@@ -29,3 +29,7 @@ export function checkoutErrorMessage(err: unknown): string {
       return GENERIC
   }
 }
+
+export function isStoreClosedError(err: unknown): boolean {
+  return !(err instanceof Error) && isCommerceApiError(err) && err.code === "ORDERS_UNAVAILABLE"
+}

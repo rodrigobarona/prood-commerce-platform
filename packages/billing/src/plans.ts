@@ -32,13 +32,7 @@ export type PlanEntitlements = {
 export type PlanDefinition = {
   id: PlanId
   name: string
-  description: string
   monthlyPriceCents: number | null
-  annualPriceCents: number | null
-  highlighted: boolean
-  badge?: string
-  cta: string
-  ctaHref?: "register" | "contact"
   entitlements: PlanEntitlements
 }
 
@@ -48,12 +42,7 @@ export const planDefinitions: Record<PlanId, PlanDefinition> = {
   free: {
     id: "free",
     name: "Free",
-    description: "A real store on your own domain, with no subscription.",
     monthlyPriceCents: 0,
-    annualPriceCents: 0,
-    highlighted: false,
-    cta: "Start free",
-    ctaHref: "register",
     entitlements: {
       maxStores: 1,
       maxProducts: 50,
@@ -70,13 +59,7 @@ export const planDefinitions: Record<PlanId, PlanDefinition> = {
   grow: {
     id: "grow",
     name: "Grow",
-    description: "More orders, a small team and AI agents that ask before they act.",
     monthlyPriceCents: 2900,
-    annualPriceCents: 29000,
-    highlighted: true,
-    badge: "Popular",
-    cta: "Start free",
-    ctaHref: "register",
     entitlements: {
       maxStores: 1,
       maxProducts: 500,
@@ -93,12 +76,7 @@ export const planDefinitions: Record<PlanId, PlanDefinition> = {
   scale: {
     id: "scale",
     name: "Scale",
-    description: "No limits on products or orders, a bigger team and priority support.",
     monthlyPriceCents: 7900,
-    annualPriceCents: 79000,
-    highlighted: false,
-    cta: "Start free",
-    ctaHref: "register",
     entitlements: {
       maxStores: 1,
       maxProducts: unlimited,
@@ -115,12 +93,7 @@ export const planDefinitions: Record<PlanId, PlanDefinition> = {
   agency: {
     id: "agency",
     name: "Agency",
-    description: "Up to 10 isolated client stores, with a direct line to us.",
     monthlyPriceCents: 19900,
-    annualPriceCents: null,
-    highlighted: false,
-    cta: "Contact us",
-    ctaHref: "contact",
     entitlements: {
       maxStores: 10,
       maxProducts: unlimited,
@@ -151,20 +124,8 @@ export function isValidPlanId(value: string): value is PlanId {
 export const defaultPlanId: PlanId = "free"
 export const defaultPlanStatus: PlanStatus = "active"
 
-/** Annual billing discount vs paying monthly × 12 (Grow/Scale). */
-export const annualBillingDiscountPercent = 17
-
-export function formatLimit(value: number | null): string {
-  if (value === null) return "Unlimited"
-  return String(value)
-}
-
 export function formatPrice(cents: number | null): string {
   if (cents === null) return "Custom"
-  if (cents === 0) return "$0"
-  return `$${Math.round(cents / 100)}`
-}
-
-export function monthlyEquivalentFromAnnual(annualCents: number): number {
-  return Math.round(annualCents / 12 / 100)
+  if (cents === 0) return "€0"
+  return `€${Math.round(cents / 100)}`
 }

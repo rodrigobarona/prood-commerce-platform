@@ -1,14 +1,13 @@
 import type { Icon } from "@phosphor-icons/react"
 import {
-  ChartLineUp,
+  Devices,
   Gauge,
   Gear,
   Globe,
   Key,
   Robot,
-  ShieldCheck,
+  Storefront,
   Users,
-  UsersThree,
 } from "@phosphor-icons/react/dist/ssr"
 
 export interface NavItem {
@@ -24,33 +23,29 @@ export interface NavGroup {
 
 export const navGroups: NavGroup[] = [
   {
-    label: "Overview",
-    items: [
-      { title: "Dashboard", href: "/", icon: Gauge },
-    ],
-  },
-  {
-    label: "Identity",
-    items: [
-      { title: "Users", href: "/users", icon: Users },
-      { title: "Organizations", href: "/organizations", icon: UsersThree },
-      { title: "Sessions", href: "/sessions", icon: ChartLineUp },
-    ],
-  },
-  {
     label: "Platform",
     items: [
+      { title: "Overview", href: "/", icon: Gauge },
+      { title: "Organizations", href: "/organizations", icon: Storefront },
       { title: "Domains", href: "/domains", icon: Globe },
-      { title: "API Keys", href: "/api-keys", icon: Key },
-      { title: "Agents", href: "/agents", icon: Robot },
+    ],
+  },
+  {
+    label: "Access",
+    items: [
+      { title: "Users", href: "/users", icon: Users },
+      { title: "Sessions", href: "/sessions", icon: Devices },
+      { title: "API keys", href: "/api-keys", icon: Key },
+      { title: "AI agents", href: "/agents", icon: Robot },
     ],
   },
   {
     label: "System",
-    items: [
-      { title: "Settings", href: "/settings", icon: Gear },
-    ],
+    items: [{ title: "Settings", href: "/settings", icon: Gear }],
   },
 ]
 
-export const adminIcon = ShieldCheck
+export function isNavActive(pathname: string, href: string): boolean {
+  if (href === "/") return pathname === "/"
+  return pathname === href || pathname.startsWith(`${href}/`)
+}

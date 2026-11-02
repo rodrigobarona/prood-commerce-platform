@@ -18,27 +18,33 @@ export function ReviewStars({
   count,
   className,
 }: ReviewStarsProps) {
+  const label = `Rated ${rating.toFixed(1)} out of ${max}${
+    count != null ? ` from ${count} ${count === 1 ? "review" : "reviews"}` : ""
+  }`
+
   return (
-    <div className={cn("flex items-center gap-1", className)}>
-      <div className="flex items-center">
+    <div role="img" aria-label={label} className={cn("flex items-center gap-1.5", className)}>
+      <div className="flex items-center gap-px">
         {Array.from({ length: max }).map((_, i) => {
-          const filled = i < Math.round(rating)
+          const fill = Math.min(Math.max(rating - i, 0), 1)
           return (
-            <StarIcon
-              // eslint-disable-next-line @eslint-react/no-array-index-key -- fixed star positions
-              key={i}
-              size={size}
-              weight={filled ? "fill" : "regular"}
-              className={filled ? "text-amber-500" : "text-muted-foreground/40"}
-            />
+            // eslint-disable-next-line @eslint-react/no-array-index-key -- fixed star positions
+            <span key={i} className="relative block" style={{ width: size, height: size }}>
+              <StarIcon size={size} className="text-muted-foreground/50 absolute inset-0" />
+              {fill > 0 ? (
+                <span className="absolute inset-y-0 left-0 overflow-hidden" style={{ width: `${fill * 100}%` }}>
+                  <StarIcon size={size} weight="fill" className="text-foreground max-w-none" />
+                </span>
+              ) : null}
+            </span>
           )
         })}
       </div>
       {showValue ? (
-        <span className="text-muted-foreground text-sm">{rating.toFixed(1)}</span>
+        <span className="text-muted-foreground text-sm tabular-nums">{rating.toFixed(1)}</span>
       ) : null}
       {count != null ? (
-        <span className="text-muted-foreground text-sm">({count})</span>
+        <span className="text-muted-foreground text-sm tabular-nums">({count})</span>
       ) : null}
     </div>
   )

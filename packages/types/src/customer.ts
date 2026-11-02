@@ -37,6 +37,13 @@ export interface CheckoutAddress {
   postalCode?: Maybe<string>
 }
 
+/** A customer as a merchant sees them, with what they add up to. */
+export interface AdminCustomer extends Customer {
+  orderCount: number
+  /** Paid orders' totals in major units. Fully refunded orders don't count. */
+  spent: number
+}
+
 /** Customer entity — email joined from Better Auth at read boundaries when needed */
 export interface Customer {
   id: Id

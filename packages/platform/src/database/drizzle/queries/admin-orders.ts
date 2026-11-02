@@ -2,10 +2,11 @@
 // Drizzle: Admin order queries
 // ---------------------------------------------------------------------------
 
-import { count, eq, sql, and, inArray, like, gte, lte, desc } from 'drizzle-orm'
+import { asc, count, eq, sql, and, or, inArray, ilike, gte, lt, lte, desc, type AnyColumn } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
 import { tenantCondition } from './tenant-filter.js'
+import { contains, SETTLED_PAYMENTS, type OrderQueue } from '@prood/types'
 
 export async function countOrders(): Promise<number> {
   const result = await getDb().select({ count: count() }).from(schema.orders)
@@ -47,6 +48,8 @@ export async function adminFindAllOrders(opts: {
   dateTo?: string
   search?: string
   awaitingPaymentFrom?: string
+  queue?: OrderQueue
+  sort?: { field: string; direction: 'asc' | 'desc' }
 }) {
   const db = getDb()
   const conditions: any[] = [tenantCondition(schema.orders)]
@@ -55,7 +58,26 @@ export async function adminFindAllOrders(opts: {
   if (opts.customerId) conditions.push(eq(schema.orders.customerId, opts.customerId))
   if (opts.dateFrom) conditions.push(gte(schema.orders.createdAt, new Date(opts.dateFrom)))
   if (opts.dateTo) conditions.push(lte(schema.orders.createdAt, new Date(opts.dateTo)))
-  if (opts.search) conditions.push(like(schema.orders.orderNumber, `%${opts.search}%`))
+  if (opts.search) {
+    const pattern = contains(opts.search)
+    const buyer = (address: AnyColumn) =>
+      sql`concat_ws(' ', ${address}->>'firstName', ${address}->>'lastName') ILIKE ${pattern}`
+    conditions.push(or(
+      ilike(schema.orders.orderNumber, pattern),
+      ilike(schema.orders.contactEmail, pattern),
+      buyer(schema.orders.shippingAddress),
+      buyer(schema.orders.billingAddress),
+    ))
+  }
+  if (opts.queue) {
+    conditions.push(inArray(schema.orders.status, ['placed', 'approved']))
+    if (opts.queue === 'to_fulfill') {
+      conditions.push(
+        inArray(schema.orders.paymentStatus, [...SETTLED_PAYMENTS]),
+        eq(schema.orders.fulfillmentStatus, 'unfulfilled'),
+      )
+    }
+  }
   if (opts.awaitingPaymentFrom) {
     conditions.push(
       eq(schema.orders.paymentProvider, opts.awaitingPaymentFrom),
@@ -65,11 +87,13 @@ export async function adminFindAllOrders(opts: {
   }
 
   const where = and(...conditions)
+  const sortColumn = opts.sort?.field === 'total' ? schema.orders.total : schema.orders.createdAt
+  const order = opts.sort?.direction === 'asc' ? asc : desc
 
   const [rows, countResult] = await Promise.all([
     db.select().from(schema.orders)
       .where(where)
-      .orderBy(desc(schema.orders.createdAt))
+      .orderBy(order(sortColumn), order(schema.orders.id))
       .limit(opts.limit)
       .offset(opts.offset),
     db.select({ count: count() })
@@ -98,16 +122,28 @@ export async function countOrdersByStatus() {
 }
 
 /**
- * Money received: orders still paid or only partly refunded, so a full refund
- * takes its order back out. A partial refund's amount is not recorded on the
- * order, so such an order still counts at its full total.
+ * Money received: orders still paid or only partly refunded, less their refunds
+ * so far, so "Revenue received" is what the store kept.
  */
+const KEPT_SUM = sql`COALESCE(SUM(${schema.orders.total} - (
+  SELECT COALESCE(SUM(refund.value::numeric), 0) FROM jsonb_each_text(${schema.orders.refunds}) AS refund
+)) FILTER (WHERE ${schema.orders.paymentStatus} IN ('paid', 'partially_refunded')), 0)`
+
 export async function sumOrderRevenue() {
   const [result] = await getDb()
-    .select({ total: sql`COALESCE(SUM(total), 0)`.mapWith(Number) })
+    .select({ total: KEPT_SUM.mapWith(Number) })
     .from(schema.orders)
-    .where(and(inArray(schema.orders.paymentStatus, ['paid', 'partially_refunded']), tenantCondition(schema.orders)))
+    .where(tenantCondition(schema.orders))
   return result?.total ?? 0
+}
+
+/** Orders placed in `[from, to)` and what those orders brought in. Orders record no paid-at time. */
+export async function orderActivityBetween(from: Date, to: Date) {
+  const [result] = await getDb()
+    .select({ orders: count(), revenue: KEPT_SUM.mapWith(Number) })
+    .from(schema.orders)
+    .where(and(gte(schema.orders.createdAt, from), lt(schema.orders.createdAt, to), tenantCondition(schema.orders)))
+  return { orders: result?.orders ?? 0, revenue: result?.revenue ?? 0 }
 }
 
 export async function findRecentOrders(limit: number) {

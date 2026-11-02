@@ -115,8 +115,6 @@ export async function createPlatformAdapter(config: PlatformConfig = {}): Promis
     setShippingAddress: checkout.setShippingAddress,
     setBillingAddress: checkout.setBillingAddress,
     setShippingMethod: checkout.setShippingMethod,
-    getPaymentMethods: checkout.getPaymentMethods,
-    setPaymentMethod: checkout.setPaymentMethod,
     placeOrder: checkout.placeOrder,
 
     // ---- Customers ----

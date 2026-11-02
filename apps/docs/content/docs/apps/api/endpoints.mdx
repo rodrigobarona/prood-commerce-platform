@@ -1,5 +1,5 @@
 ---
-title: API Endpoints
+title: API endpoints
 description: Complete REST endpoint reference for the Commerce API v1.
 ---
 
@@ -10,7 +10,7 @@ All endpoints are prefixed with `/v1`. The interactive OpenAPI reference at [Com
 | Method | Path | Scope | Description |
 | --- | --- | --- | --- |
 | GET | `/v1/health` | Public | Health check |
-| GET | `/v1/me` | Any auth | Current caller info (orgId, scopes, type) |
+| GET | `/v1/me` | Storefront | Current caller: `organizationId`, `scopes` and `via` |
 | GET | `/v1/openapi.json` | Public | OpenAPI 3.1 specification |
 
 ## Catalog (storefront)
@@ -18,7 +18,8 @@ All endpoints are prefixed with `/v1`. The interactive OpenAPI reference at [Com
 | Method | Path | Description |
 | --- | --- | --- |
 | GET | `/v1/products` | List products (search, sort, pagination) |
-| GET | `/v1/products/{id}` | Get product by ID or slug |
+| GET | `/v1/products/{id}` | Get product by ID |
+| GET | `/v1/products/by-slug/{slug}` | Get product by URL slug |
 | GET | `/v1/categories` | List categories |
 | GET | `/v1/store` | Store info (name, currency, locales) |
 | GET | `/v1/countries` | Country list for address forms |
@@ -29,9 +30,10 @@ Query parameters for `/v1/products`:
 | --- | --- | --- |
 | `query` | string | Search term |
 | `categoryId` | string | Filter by category |
-| `sort` | string | Sort field (`price`, `name`, `createdAt`) |
+| `sortField` | string | Field to sort by |
+| `sortDirection` | `asc` or `desc` | Sort direction |
 | `page` | number | Page number (default 1) |
-| `limit` | number | Items per page (default 20) |
+| `perPage` | number | Items per page, up to 100 (default 20) |
 
 ## Cart (storefront)
 
@@ -42,21 +44,23 @@ Query parameters for `/v1/products`:
 | POST | `/v1/carts/{id}/items` | Add item to cart |
 | PATCH | `/v1/carts/{id}/items/{itemId}` | Update item quantity |
 | DELETE | `/v1/carts/{id}/items/{itemId}` | Remove item from cart |
-| POST | `/v1/carts/{id}/coupon` | Apply coupon code |
+| POST | `/v1/carts/{id}/coupon` | Apply coupon code. See the note below |
 | DELETE | `/v1/carts/{id}/coupon` | Remove applied coupon |
 | GET | `/v1/carts/{id}/shipping-methods` | List available shipping methods |
-| POST | `/v1/carts/{id}/shipping-method` | Set shipping method |
+| PATCH | `/v1/carts/{id}/shipping-method` | Set shipping method |
 | GET | `/v1/carts/{id}/payment-methods` | List available payment methods |
-| POST | `/v1/carts/{id}/shipping-address` | Set shipping address |
-| POST | `/v1/carts/{id}/billing-address` | Set billing address |
+| PUT | `/v1/carts/{id}/shipping-address` | Set shipping address |
+| PUT | `/v1/carts/{id}/billing-address` | Set billing address |
 | POST | `/v1/carts/{id}/place-order` | Convert cart to order |
+
+The coupon endpoints exist, but no merchant can create coupons yet, so there's nothing for a code to match.
 
 ## Orders (storefront)
 
 | Method | Path | Description |
 | --- | --- | --- |
-| GET | `/v1/orders` | List customer's orders (requires session) |
-| GET | `/v1/orders/{id}` | Get order detail |
+| GET | `/v1/orders` | List the signed-in customer's orders. An API key alone is refused |
+| GET | `/v1/orders/{id}` | Get order. Staff and the customer who placed it see all of it; anyone else, the public view |
 
 ## Admin — Products
 
@@ -72,7 +76,6 @@ Query parameters for `/v1/products`:
 
 | Method | Path | Description |
 | --- | --- | --- |
-| GET | `/v1/admin/categories` | List categories |
 | POST | `/v1/admin/categories` | Create category |
 | PATCH | `/v1/admin/categories/{id}` | Update category |
 | DELETE | `/v1/admin/categories/{id}` | Delete category |
@@ -83,8 +86,10 @@ Query parameters for `/v1/products`:
 | --- | --- | --- |
 | GET | `/v1/admin/orders` | List all orders |
 | GET | `/v1/admin/orders/{id}` | Get order detail |
+| GET | `/v1/admin/orders/{id}/history` | Get order history |
+| POST | `/v1/admin/orders/{id}/cancel` | Cancel order. Doesn't refund. On a paid order the shopper is told to contact the store. Use refund instead. |
 | POST | `/v1/admin/orders/{id}/fulfill` | Mark order as fulfilled |
-| POST | `/v1/admin/orders/{id}/refund` | Refund order (full or partial) |
+| POST | `/v1/admin/orders/{id}/refund` | Refund order in full |
 
 ## Admin — Customers
 
@@ -99,8 +104,8 @@ Query parameters for `/v1/products`:
 | --- | --- | --- |
 | GET | `/v1/admin/store` | Get store settings |
 | PATCH | `/v1/admin/store` | Update store settings |
-| PATCH | `/v1/admin/inventory/{variantId}` | Update variant inventory |
-| GET | `/v1/admin/dashboard/stats` | Dashboard statistics |
+| POST | `/v1/admin/inventory` | Update inventory: `productId`, optional `variantId`, `quantity`, and optional `adjustment` (`set`, `increment` or `decrement`) |
+| GET | `/v1/admin/dashboard` | Dashboard statistics |
 
 ## Webhooks
 
@@ -115,14 +120,15 @@ Query param: `org={orgId}` for tenant-scoped webhook verification.
 
 ### Success
 
+A single resource comes back as itself. A list comes back like this:
+
 ```json
 {
-  "data": { ... },
-  "meta": {
-    "page": 1,
-    "limit": 20,
-    "total": 42
-  }
+  "items": [],
+  "total": 42,
+  "page": 1,
+  "perPage": 20,
+  "hasMore": true
 }
 ```
 
@@ -130,11 +136,12 @@ Query param: `org={orgId}` for tenant-scoped webhook verification.
 
 ```json
 {
-  "error": "Product not found",
   "code": "NOT_FOUND",
-  "status": 404
+  "message": "Product not found"
 }
 ```
+
+The HTTP status carries the status. A failed validation returns `422` with `code: "VALIDATION"` and an `errors` list, with a `path` and `message` for each field.
 
 ## Using the API client
 
@@ -143,11 +150,11 @@ import { createCommerceApiClient } from '@prood/api-client'
 
 const api = createCommerceApiClient({
   baseUrl: 'http://localhost:3005/v1',
-  headers: { 'x-api-key': 'pk_xxx' },
+  headers: { 'x-api-key': 'pkAbC123...' },
 })
 
 const { data } = await api.GET('/products', {
-  params: { query: { query: 'shirt', limit: 10 } },
+  params: { query: { query: 'shirt', perPage: 10 } },
 })
 ```
 

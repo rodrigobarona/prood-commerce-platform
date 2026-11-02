@@ -13,7 +13,7 @@ export function ActivationEmail({ companyName, url }: ActivationEmailProps) {
       <Section className="bg-bg-2 mobile:px-6 mobile:py-12 rounded-[8px] px-[40px] py-[64px] text-center">
         <Section className="mb-3">
           <Heading as="h1" className="font-28 text-fg m-0 font-sans">
-            We&apos;re almost there!
+            Confirm your email
           </Heading>
         </Section>
 

@@ -1,5 +1,5 @@
 ---
-title: Checkout App
+title: Checkout app
 description: The standalone hosted checkout application for payment processing with Redis session persistence.
 ---
 
@@ -54,13 +54,11 @@ See [Sessions](/docs/apps/checkout/sessions) for API route details.
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `UPSTASH_REDIS_REST_URL` | Yes | Redis REST endpoint |
-| `UPSTASH_REDIS_REST_TOKEN` | Yes | Redis REST token |
+| `KV_REST_API_URL` | Yes | Redis REST endpoint |
+| `KV_REST_API_TOKEN` | Yes | Redis REST token |
 | `CHECKOUT_API_SECRET` | Yes | Protects session creation API |
 | `CHECKOUT_URL` | Yes | Public checkout base URL |
 | `COMMERCE_API_URL` | Yes | Webhook forwarding target |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe | Client-side Stripe key |
-| Payment provider env vars | Per provider | Fallback credentials |
 
 ## Security
 

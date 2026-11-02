@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   fetchCategories: vi.fn(),
   fetchStoreInfo: vi.fn(),
   fetchProductBySlug: vi.fn(),
+  resolveTenantId: vi.fn(),
   notFound: vi.fn(() => {
     throw new Error("NEXT_NOT_FOUND")
   }),
@@ -13,11 +14,17 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("next/navigation", () => ({ notFound: mocks.notFound }))
 vi.mock("@/lib/commerce-data", () => mocks)
+vi.mock("@/lib/tenant", () => ({ resolveTenantId: mocks.resolveTenantId }))
+vi.mock("@prood/platform", () => ({ DEMO_ORG_ID: "org_demo" }))
+vi.mock("@prood/media/image", () => ({
+  MediaImage: ({ slug }: { slug: string }) => <span data-media={slug} />,
+}))
 vi.mock("@/components/commerce/connected-product-grid", async () => {
   const { ProductGrid } = await import("@prood/ui/components/product-grid")
   return { ConnectedProductGrid: ProductGrid }
 })
 vi.mock("@/components/commerce/product-purchase", () => ({ ProductPurchase: () => null }))
+vi.mock("@/components/commerce/sort-select", () => ({ SortSelect: () => null }))
 
 import CategoryPage from "../categories/[slug]/page"
 import ErrorPage from "../error"
@@ -36,6 +43,7 @@ beforeEach(() => {
   mocks.fetchProductList.mockResolvedValue(noProducts)
   mocks.fetchCategories.mockResolvedValue([])
   mocks.fetchStoreInfo.mockResolvedValue(store)
+  mocks.resolveTenantId.mockResolvedValue("org_ana")
 })
 
 afterEach(() => {
@@ -57,7 +65,7 @@ describe("catalog failures", () => {
 
   it("aren't reported as a missing category", async () => {
     mocks.fetchCategories.mockRejectedValue(outage)
-    await expect(CategoryPage({ params: Promise.resolve({ slug: "tacas" }) })).rejects.toBe(outage)
+    await expect(CategoryPage({ params: Promise.resolve({ slug: "tacas" }), searchParams: Promise.resolve({}) })).rejects.toBe(outage)
   })
 
   it("aren't reported as a missing product", async () => {
@@ -67,17 +75,151 @@ describe("catalog failures", () => {
   })
 })
 
-describe("an empty store", () => {
-  const COPY = "This store is adding products. Check back soon."
+const COPY = "This store is adding products. Check back soon."
 
-  it("says so on the home page, under the store's own name", async () => {
+describe("an empty store", () => {
+  it("says so on the home page, under the store's own words", async () => {
     const { container } = render(await HomePage())
     expect(container.textContent).toContain(COPY)
-    expect(container.textContent).toContain("Welcome to Loja da Ana")
+    expect(screen.getByRole("heading", { level: 1, name: "Loja da Ana" })).toBeTruthy()
     expect(container.textContent).toContain("Cerâmica")
     expect(container.textContent).not.toContain("exclusive offers")
   })
 
+  it("keeps the store's name for screen readers, not a second time on screen, when it wrote nothing", async () => {
+    mocks.fetchStoreInfo.mockResolvedValue({ ...store, description: null })
+    const { container } = render(await HomePage())
+    const heading = screen.getByRole("heading", { level: 1, name: "Loja da Ana" })
+    expect(heading.className).toContain("sr-only")
+    expect(container.querySelector("section.bg-muted")).toBeNull()
+  })
+
+  const stocked = (count: number) => ({
+    products: {
+      items: Array.from({ length: count }, (_, i) => ({
+        id: `p${i}`,
+        slug: `taca-${i}`,
+        name: { en: `Taça ${i}` },
+        primaryImage: null,
+        gallery: [],
+        price: null,
+        variants: [],
+        inStock: true,
+        rating: null,
+        productType: "physical",
+      })),
+      total: count,
+    },
+  })
+
+  it.each([
+    [1, "lg:grid-cols-3"],
+    [3, "lg:grid-cols-3"],
+    [4, "lg:grid-cols-4"],
+  ])("sizes %i photographed products to fill the row", async (count, columns) => {
+    const list = stocked(count)
+    const photo = { url: "https://cdn.example/taca.jpg", alt: "Taça" }
+    mocks.fetchProductList.mockResolvedValue({
+      products: { ...list.products, items: list.products.items.map((item) => ({ ...item, primaryImage: photo })) },
+    })
+    const { container } = render(await HomePage())
+    expect(container.querySelector(".grid")?.className).toContain(columns)
+  })
+
+  it("keeps a few products with no photos small, on short tiles", async () => {
+    mocks.fetchProductList.mockResolvedValue(stocked(2))
+    const { container } = render(await HomePage())
+    expect(container.querySelector(".grid")?.className).toContain("lg:grid-cols-4")
+    expect(container.querySelector(".grid a")?.className).toContain("aspect-[3/2]")
+  })
+
+  it("doesn't call anything featured", async () => {
+    const product = { id: "p1", slug: "taca", name: { en: "Taça" }, primaryImage: null, gallery: [], price: null, variants: [], inStock: true, rating: null, productType: "physical" }
+    mocks.fetchProductList.mockResolvedValue({ products: { items: [product], total: 1 } })
+    render(await HomePage())
+    expect(screen.getByRole("heading", { level: 2, name: "Latest products" })).toBeTruthy()
+    expect(screen.queryByRole("heading", { name: "Featured products" })).toBeNull()
+  })
+
+  it("names its one category instead", async () => {
+    const product = { id: "p1", slug: "taca", name: { en: "Taça" }, primaryImage: null, gallery: [], price: null, variants: [], inStock: true, rating: null, productType: "physical" }
+    mocks.fetchProductList.mockResolvedValue({ products: { items: [product], total: 1 } })
+    mocks.fetchCategories.mockResolvedValue([{ id: "c1", slug: "mesa", name: { en: "Mesa" }, image: null }])
+    render(await HomePage())
+    expect(screen.getByRole("heading", { level: 2, name: "Mesa" })).toBeTruthy()
+    expect(screen.getByRole("heading", { level: 2, name: "Browse by category" })).toBeTruthy()
+  })
+})
+
+describe("the home page's photographs", () => {
+  const withPhoto = {
+    id: "p1",
+    slug: "taca",
+    name: { en: "Taça" },
+    primaryImage: { url: "https://cdn.example/taca.jpg", alt: "Taça" },
+    gallery: [],
+    price: null,
+    variants: [],
+    inStock: true,
+    rating: null,
+    productType: "physical",
+  }
+
+  it("never reach a real store from the demo's art", async () => {
+    mocks.fetchStoreInfo.mockResolvedValue({ name: { en: "Casa Exemplo" }, description: { en: "Loja" } })
+    const { container } = render(await HomePage())
+    expect(container.querySelector("[data-media]")).toBeNull()
+  })
+
+  it("dress the seeded demo store", async () => {
+    mocks.resolveTenantId.mockResolvedValue("org_demo")
+    const { container } = render(await HomePage())
+    expect(container.querySelectorAll("[data-media]")).toHaveLength(2)
+  })
+
+  it("don't show a product twice on the demo store", async () => {
+    mocks.resolveTenantId.mockResolvedValue("org_demo")
+    mocks.fetchCategories.mockResolvedValue([{ id: "c1", slug: "linen", name: { en: "Linen" }, image: null }])
+    mocks.fetchProductList.mockResolvedValue({ products: { items: [withPhoto], total: 1 } })
+    render(await HomePage())
+    expect(screen.getByRole("link", { name: /Linen/ }).querySelector("img")?.getAttribute("src")).toContain(
+      "product-linen",
+    )
+  })
+
+  it("come from the store's own products otherwise", async () => {
+    mocks.fetchProductList.mockResolvedValue({ products: { items: [withPhoto], total: 1 } })
+    render(await HomePage())
+    expect(screen.getAllByRole("img", { name: "Taça" })[0]?.getAttribute("src")).toContain("taca.jpg")
+  })
+
+  it("lead with the store's own words on the hero", async () => {
+    mocks.fetchProductList.mockResolvedValue({ products: { items: [withPhoto], total: 1 } })
+    render(await HomePage())
+    expect(screen.getByRole("heading", { level: 1, name: "Cerâmica" })).toBeTruthy()
+    expect(screen.getByRole("link", { name: "Browse products" })).toBeTruthy()
+    expect(screen.getByRole("heading", { level: 2, name: "Latest from Loja da Ana" })).toBeTruthy()
+  })
+
+  it("keep a long description out of the hero's display line", async () => {
+    const description = "Cerâmica feita à mão numa pequena oficina, peça a peça, para a mesa de todos os dias e dias de festa."
+    mocks.fetchStoreInfo.mockResolvedValue({ ...store, description: { en: description } })
+    mocks.fetchProductList.mockResolvedValue({ products: { items: [withPhoto], total: 1 } })
+    const { container } = render(await HomePage())
+    expect(screen.getByRole("heading", { level: 1, name: "Loja da Ana" })).toBeTruthy()
+    expect(container.textContent).toContain(description)
+  })
+
+  it("give the demo's second grid a heading of its own", async () => {
+    mocks.resolveTenantId.mockResolvedValue("org_demo")
+    const items = Array.from({ length: 6 }, (_, index) => ({ ...withPhoto, id: `p${index}`, slug: `p${index}` }))
+    mocks.fetchProductList.mockResolvedValue({ products: { items, total: 6 } })
+    render(await HomePage())
+    expect(screen.getByRole("heading", { level: 2, name: "More from the shelves" })).toBeTruthy()
+  })
+})
+
+describe("an empty products page", () => {
   it("says so on the products page", async () => {
     const { container } = render(await products())
     expect(container.textContent).toContain(COPY)

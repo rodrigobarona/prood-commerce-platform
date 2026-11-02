@@ -12,12 +12,14 @@ const mocks = await vi.hoisted(async () => ({
   updateStoreSettings: vi.fn(),
   revalidateStore: vi.fn(),
   getStorefrontIdentity: vi.fn(),
+  renameOrganization: vi.fn(),
 }))
 
 vi.mock("server-only", () => ({}))
 vi.mock("next/server", () => ({ after: vi.fn() }))
 vi.mock("@prood/platform", () => ({ getStorefrontIdentity: mocks.getStorefrontIdentity }))
 vi.mock("@/lib/mailer", () => ({ getMailer: vi.fn() }))
+vi.mock("@/lib/org-plan", () => ({ renameOrganization: mocks.renameOrganization }))
 vi.mock("@prood/commerce", () => ({
   getStoreInfo: mocks.getStoreInfo,
   listTenantPaymentProviders: mocks.listTenantPaymentProviders,
@@ -42,6 +44,23 @@ beforeEach(() => {
   mocks.getDashboardStats.mockResolvedValue({ totalOrders: 0 })
   mocks.getStoreSettings.mockResolvedValue({ currency: "EUR" })
   mocks.getStorefrontIdentity.mockResolvedValue({ name: "Loja", origin: "https://loja.pt" })
+})
+
+describe("payment methods", () => {
+  it("offers nothing on a store with no provider", async () => {
+    mocks.listTenantPaymentProviders.mockResolvedValue([])
+    await expect(checkout.getPaymentMethods("org-1")).resolves.toEqual([])
+  })
+
+  it("offers what the provider in charge can take, and never cash on delivery", async () => {
+    mocks.listTenantPaymentProviders.mockResolvedValue(["easypay"])
+    mocks.getTenantPaymentProvider.mockResolvedValue({ provider: { methods: ["multibanco", "mbway"] } })
+
+    const methods = await checkout.getPaymentMethods("org-1")
+
+    expect(methods.map((method) => method.id)).toEqual(["multibanco", "mbway"])
+    expect(methods[0]).toMatchObject({ provider: "easypay", type: "multibanco", name: { en: "Multibanco" } })
+  })
 })
 
 describe("store API", () => {
@@ -116,6 +135,24 @@ describe("admin store API", () => {
     mocks.updateStoreSettings.mockResolvedValue({ contactEmail: "novo@loja.pt" })
     await admin.updateStoreSettings("org-1", { contactEmail: "novo@loja.pt" })
     expect(mocks.revalidateStore).toHaveBeenCalledWith("org-1")
+  })
+
+  it("keeps the organization's name in step, for the sidebar", async () => {
+    mocks.renameOrganization.mockResolvedValue(undefined)
+    await admin.updateStoreSettings("org-1", { name: { en: "Loja Nova" } })
+    expect(mocks.renameOrganization).toHaveBeenCalledWith("org-1", { en: "Loja Nova" })
+  })
+
+  it("leaves the organization alone when the name isn't changing", async () => {
+    await admin.updateStoreSettings("org-1", { contactEmail: null })
+    expect(mocks.renameOrganization).not.toHaveBeenCalled()
+  })
+
+  it("doesn't fail a saved store over a stale sidebar", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {})
+    mocks.renameOrganization.mockRejectedValue(new Error("down"))
+    mocks.updateStoreSettings.mockResolvedValue({ contactEmail: null })
+    await expect(admin.updateStoreSettings("org-1", { name: { en: "Loja" } })).resolves.toBeDefined()
   })
 })
 

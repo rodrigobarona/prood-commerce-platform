@@ -40,6 +40,7 @@ vi.mock("@/lib/auth/db", () => ({
   authDb: { update: mocks.writes.updateApiKeyRow, select: vi.fn() },
 }))
 vi.mock("@/lib/integrations", () => ({
+  listIntegrations: vi.fn(async () => new Map()),
   getIntegration: mocks.getIntegration,
   upsertIntegration: mocks.writes.upsertIntegration,
   deleteIntegration: mocks.writes.deleteIntegration,
@@ -77,7 +78,7 @@ vi.mock("@prood/commerce", () => ({
 vi.mock("@prood/api-client", () => ({ isCommerceApiError: () => false }))
 
 import { ADMIN_ONLY_MESSAGE } from "../admin"
-import { listActiveOrgApiKeys } from "../api-keys"
+import { listOrgApiKeys } from "../api-keys"
 import {
   disconnectIntegrationAction,
   saveIntegrationAction,
@@ -119,19 +120,19 @@ const returnsDenial: [string, () => Promise<unknown>, unknown][] = [
   ["cancelOrderAction", () => cancelOrderAction("order-1"), { error: ADMIN_ONLY_MESSAGE }],
   ["updateStoreSettingsAction", () => updateStoreSettingsAction({} as never), { error: ADMIN_ONLY_MESSAGE }],
   ["createApiKeyAction", () => createApiKeyAction({}, keyForm()), { error: ADMIN_ONLY_MESSAGE }],
+  ["createProductAction", () => createProductAction({} as never), { error: ADMIN_ONLY_MESSAGE }],
+  ["updateProductAction", () => updateProductAction("product-1", {} as never), { error: ADMIN_ONLY_MESSAGE }],
   ["assertTeamSeatAvailableAction", () => assertTeamSeatAvailableAction(), { error: ADMIN_ONLY_MESSAGE }],
 ]
 
 const throwsDenial: [string, () => Promise<unknown>][] = [
   ["fulfillOrderAction", () => fulfillOrderAction("order-1", {} as never)],
-  ["createProductAction", () => createProductAction({} as never)],
-  ["updateProductAction", () => updateProductAction("product-1", {} as never)],
   ["deleteProductAction", () => deleteProductAction("product-1")],
-  ["revokeApiKeyAction", () => revokeApiKeyAction(keyForm())],
+  ["revokeApiKeyAction", () => revokeApiKeyAction("key-1")],
   ["addDomainAction", () => addDomainAction("shop.test")],
   ["verifyDomainAction", () => verifyDomainAction("domain-1")],
   ["removeDomainAction", () => removeDomainAction("domain-1")],
-  ["listActiveOrgApiKeys", () => listActiveOrgApiKeys()],
+  ["listOrgApiKeys", () => listOrgApiKeys()],
 ]
 
 describe.each(["member", null])("a merchant with role %s", (role) => {

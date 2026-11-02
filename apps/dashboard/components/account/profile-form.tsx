@@ -6,61 +6,51 @@ import { toast } from "sonner"
 import { Button } from "@prood/ui/components/button"
 import { Input } from "@prood/ui/components/input"
 import { Label } from "@prood/ui/components/label"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@prood/ui/components/card"
+import { Panel } from "@prood/ui/components/panel"
 import { authClient } from "@/lib/auth/client"
 
-export interface ProfileFormValues {
-  name: string
-  email: string
-  image: string
-}
-
-export function ProfileForm({ initial }: { initial: ProfileFormValues }) {
+export function ProfileForm({ initial }: { initial: { name: string; email: string } }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
-  const [values, setValues] = useState(initial)
+  const [name, setName] = useState(initial.name)
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
     startTransition(async () => {
-      const { error } = await authClient.updateUser({
-        name: values.name.trim(),
-        image: values.image.trim() || undefined,
-      })
-      if (error) {
-        toast.error(error.message ?? "Could not update profile")
-        return
+      try {
+        const { error } = await authClient.updateUser({ name: name.trim() })
+        if (error) {
+          toast.error(error.message ?? "We couldn't save your profile. Nothing changed. Try again.")
+          return
+        }
+        toast.success("Profile saved.")
+        router.refresh()
+      } catch {
+        toast.error("We couldn't save your profile. Nothing changed. Try again.")
       }
-      toast.success("Profile updated")
-      router.refresh()
     })
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex w-full flex-col gap-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Personal details</CardTitle>
-          <CardDescription>
-            Your name appears in the sidebar and on team member lists.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit}>
+      <Panel
+        title="Personal details"
+        description="Your name shows in the sidebar and on team lists."
+        footer={
+          <Button type="submit" disabled={pending || name.trim() === initial.name}>
+            {pending ? "Saving..." : "Save profile"}
+          </Button>
+        }
+      >
+        <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="profile-name">Name</Label>
             <Input
               id="profile-name"
               required
-              value={values.name}
-              onChange={(event) =>
-                setValues((prev) => ({ ...prev, name: event.target.value }))
-              }
+              autoComplete="name"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -68,34 +58,18 @@ export function ProfileForm({ initial }: { initial: ProfileFormValues }) {
             <Input
               id="profile-email"
               type="email"
-              value={values.email}
+              value={initial.email}
               readOnly
               disabled
+              aria-describedby="profile-email-hint"
               className="bg-muted"
             />
-            <p className="text-xs text-muted-foreground">
-              Email is tied to your login and cannot be changed here yet.
+            <p id="profile-email-hint" className="text-xs text-muted-foreground">
+              Your email is how you sign in, and it can&apos;t be changed here yet.
             </p>
           </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="profile-image">Avatar URL</Label>
-            <Input
-              id="profile-image"
-              type="url"
-              placeholder="https://example.com/avatar.jpg"
-              value={values.image}
-              onChange={(event) =>
-                setValues((prev) => ({ ...prev, image: event.target.value }))
-              }
-            />
-          </div>
-        </CardContent>
-      </Card>
-      <div className="flex justify-end">
-        <Button type="submit" disabled={pending}>
-          {pending ? "Saving..." : "Save profile"}
-        </Button>
-      </div>
+        </div>
+      </Panel>
     </form>
   )
 }

@@ -1,9 +1,18 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Button } from "@prood/ui/components/button"
+import type { StoreHint } from "@prood/checkout-host"
+import { CommerceButton } from "@prood/ui/components/commerce-button"
+import { Skeleton } from "@prood/ui/components/skeleton"
 import { PAYMENT_DECLINED_PARAM, PAYMENT_DECLINED_VALUE } from "@prood/types"
+import { useCheckoutContext } from "@/components/checkout-context"
+import { PaymentReceipt } from "@/components/payment-receipt"
+import { StatusPanel, StoreContact, onwardProps } from "@/components/status-panel"
+import type { SessionDetails } from "@/lib/session-details"
 import { storeUrl } from "@/lib/store-url"
+
+/** Long enough to read the receipt before the store's fuller order page takes over. */
+const RETURN_DELAY_MS = 6000
 
 type ConfirmStatus = "loading" | "complete" | "pending" | "failed" | "closed" | "unknown"
 
@@ -24,27 +33,42 @@ export function statusFor(result: Pick<ConfirmResult, "state" | "payable">): Con
   return "failed"
 }
 
-function Panel({
-  title,
-  children,
-  action,
+export function ConfirmClient({
+  sessionId,
+  declined,
+  hint = null,
 }: {
-  title: string
-  children: React.ReactNode
-  action?: React.ReactNode
+  sessionId: string
+  declined: boolean
+  /** Who this payment belongs to, from its link, for when the session can't say. */
+  hint?: StoreHint | null
 }) {
-  return (
-    <div className="bg-background flex flex-col items-center gap-3 rounded-2xl border p-6 text-center shadow-sm">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <p className="text-muted-foreground text-sm">{children}</p>
-      {action}
-    </div>
-  )
-}
-
-export function ConfirmClient({ sessionId, declined }: { sessionId: string; declined: boolean }) {
   const [status, setStatus] = useState<ConfirmStatus>("loading")
   const [returnUrl, setReturnUrl] = useState<string | null>(null)
+  const [details, setDetails] = useState<SessionDetails | null>(null)
+  const [attempt, setAttempt] = useState(0)
+  const { setSession } = useCheckoutContext()
+
+  // The confirm call says how the payment stands; the session says whose it was.
+  useEffect(() => {
+    let active = true
+    const controller = new AbortController()
+    fetch(`/api/sessions/${sessionId}`, { signal: controller.signal })
+      .then((r) => (r.ok ? (r.json() as Promise<SessionDetails>) : null))
+      .catch(() => null)
+      .then((session) => {
+        if (!active) return
+        setDetails(session)
+        setSession({
+          storeName: session?.storeName ?? hint?.name ?? null,
+          returnUrl: session?.returnUrl ?? hint?.home ?? null,
+        })
+      })
+    return () => {
+      active = false
+      controller.abort()
+    }
+  }, [sessionId, attempt, hint, setSession])
 
   useEffect(() => {
     let active = true
@@ -70,67 +94,124 @@ export function ConfirmClient({ sessionId, declined }: { sessionId: string; decl
       active = false
       controller.abort()
     }
-  }, [sessionId, declined])
+  }, [sessionId, declined, attempt])
 
   useEffect(() => {
     if (status === "complete" && returnUrl) {
       const timer = setTimeout(() => {
         window.location.href = returnUrl
-      }, 2000)
+      }, RETURN_DELAY_MS)
       return () => clearTimeout(timer)
     }
   }, [status, returnUrl])
 
-  const backToStore = returnUrl ? (
-    <Button asChild variant="outline" className="mt-1">
-      <a href={returnUrl}>Back to the store</a>
-    </Button>
+  // Check again took the button that held focus with it.
+  useEffect(() => {
+    if (attempt > 0 && status !== "loading") {
+      document.querySelector<HTMLElement>("[data-step-heading]")?.focus()
+    }
+  }, [attempt, status])
+
+  const orderHref = returnUrl ?? (details ? storeUrl(details) : null)
+  const storeLink = orderHref ?? hint?.home ?? null
+  const backToStore = storeLink ? (
+    <CommerceButton asChild variant="outline">
+      <a href={storeLink}>Back to the store</a>
+    </CommerceButton>
   ) : null
+  // A link's store is only the front door, so it can't promise the order.
+  const orderLink = orderHref ? (
+    <CommerceButton asChild variant="outline">
+      <a href={orderHref}>View your order</a>
+    </CommerceButton>
+  ) : (
+    backToStore
+  )
+  const storeEmail = details?.storeEmail ?? hint?.email
+  const storeName = details?.storeName ?? hint?.name
+  const contact = <StoreContact email={storeEmail} storeName={storeName} />
+  const orderNumber = details?.order?.number
 
   switch (status) {
     case "loading":
       return (
-        <div className="bg-background flex flex-col items-center gap-3 rounded-2xl border p-6 text-center shadow-sm">
-          <p className="text-muted-foreground text-sm">Checking your payment...</p>
+        <div className="flex flex-col gap-3" role="status">
+          <Skeleton className="size-8 rounded-full" />
+          <Skeleton className="h-9 w-3/4 rounded-lg" />
+          <p className="text-muted-foreground">Checking your payment...</p>
         </div>
       )
     case "complete":
       return (
-        <Panel title="Payment confirmed">
-          {returnUrl ? "Taking you back to the store..." : "Thank you for your purchase."}
-        </Panel>
+        <StatusPanel
+          tone="success"
+          title="Payment confirmed"
+          details={details ? <PaymentReceipt details={details} /> : null}
+          {...onwardProps(orderLink, { email: storeEmail, name: storeName, orderNumber })}
+        >
+          {returnUrl ? "Thank you for your purchase. Taking you back to the store..." : "Thank you for your purchase."}
+        </StatusPanel>
       )
     case "pending":
       return (
-        <Panel title="Payment pending" action={backToStore}>
+        <StatusPanel
+          tone="pending"
+          title="Payment pending"
+          details={details ? <PaymentReceipt details={details} pending /> : null}
+          action={orderLink}
+          contact={contact}
+        >
           We&apos;re waiting for your payment. We&apos;ll email you when it arrives.
-        </Panel>
+        </StatusPanel>
       )
     case "failed":
       return (
-        <Panel
+        <StatusPanel
+          tone="failed"
           title="Payment not completed"
+          details={details ? <PaymentReceipt details={details} pending /> : null}
           action={
-            <Button asChild className="mt-1">
-              <a href={`/c/${sessionId}`}>Try again</a>
-            </Button>
+            <>
+              <CommerceButton asChild>
+                <a href={`/c/${sessionId}`}>Try again</a>
+              </CommerceButton>
+              {backToStore}
+            </>
           }
+          contact={contact}
         >
           Your payment didn&apos;t go through. You haven&apos;t been charged.
-        </Panel>
+        </StatusPanel>
       )
     case "closed":
       return (
-        <Panel title="This order can't be paid" action={backToStore}>
-          It&apos;s no longer waiting for payment. Contact the store for help.
-        </Panel>
+        <StatusPanel tone="neutral" title="This order can't be paid" action={backToStore} contact={contact}>
+          It&apos;s no longer waiting for payment.
+        </StatusPanel>
       )
     case "unknown":
       return (
-        <Panel title="We couldn't check your payment">
-          If you paid, you don&apos;t need to pay again. Reload this page to check, or contact the
-          store.
-        </Panel>
+        <StatusPanel
+          tone="neutral"
+          title="Your payment can't be checked right now"
+          action={
+            <>
+              <CommerceButton
+                onClick={() => {
+                  setStatus("loading")
+                  setAttempt((current) => current + 1)
+                }}
+              >
+                Check again
+              </CommerceButton>
+              {backToStore}
+            </>
+          }
+          contact={contact}
+        >
+          This payment page can&apos;t read its records right now. If you paid, you don&apos;t need to pay again.
+          {orderNumber ? ` Your order is #${orderNumber}.` : ""}
+        </StatusPanel>
       )
   }
 }

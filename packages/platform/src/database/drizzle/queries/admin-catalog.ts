@@ -2,10 +2,11 @@
 // Drizzle: Admin catalog queries (products + categories write ops)
 // ---------------------------------------------------------------------------
 
-import { count, eq, and, like, asc, desc, lte } from 'drizzle-orm'
+import { count, eq, and, ilike, or, asc, desc, lte, sql } from 'drizzle-orm'
 import { getDb } from '../client.js'
 import * as schema from '../schema/index.js'
 import { tenantCondition, requireOrgId } from './tenant-filter.js'
+import { contains } from '@prood/types'
 
 // ---- Products ----
 
@@ -16,9 +17,17 @@ export async function countProducts(): Promise<number> {
   return result[0]?.count ?? 0
 }
 
+/** Products customers can buy: published, with a price on the product or on a variant. */
 export async function countActiveProducts(): Promise<number> {
   const orgFilter = tenantCondition(schema.products)
-  const conditions = [eq(schema.products.status, 'active')]
+  const conditions = [
+    eq(schema.products.status, 'active'),
+    sql`(${schema.products.price} IS NOT NULL OR EXISTS (
+      SELECT 1 FROM ${schema.productVariants}
+      WHERE ${schema.productVariants.productId} = ${schema.products.id}
+        AND ${schema.productVariants.price} IS NOT NULL
+    ))`,
+  ]
   if (orgFilter) conditions.push(orgFilter)
   const result = await getDb().select({ count: count() }).from(schema.products)
     .where(and(...conditions))
@@ -56,7 +65,12 @@ export async function adminListProducts(opts: {
   if (orgFilter) conditions.push(orgFilter)
 
   if (opts.search) {
-    conditions.push(like(schema.products.name, `%${opts.search}%`))
+    const pattern = contains(opts.search)
+    // `name` is one JSON object per language, so match its values and not its keys.
+    conditions.push(or(
+      sql`EXISTS (SELECT 1 FROM jsonb_each_text(${schema.products.name}) AS translation WHERE translation.value ILIKE ${pattern})`,
+      ilike(schema.products.sku, pattern),
+    ))
   }
 
   const sorting = opts.orderBy || opts.sort

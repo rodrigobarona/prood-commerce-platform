@@ -1,6 +1,6 @@
 ---
-title: Payment Providers
-description: Pluggable payment gateways implementing the PaymentProvider interface — Stripe, Easypay, and Ifthenpay.
+title: Payment providers
+description: Pluggable payment providers implementing the PaymentProvider interface — Stripe, Easypay, and Ifthenpay.
 ---
 
 All payment providers implement the same `PaymentProvider` interface from `@prood/types`. The checkout state machine and `@prood/commerce` factory work with any registered provider.
@@ -9,7 +9,7 @@ All payment providers implement the same `PaymentProvider` interface from `@proo
 
 | Provider | Region | Methods | Doc |
 | --- | --- | --- | --- |
-| **Stripe** | Global | Cards via Payment Element | [Stripe](/docs/packages/payments/stripe) |
+| **Stripe** | International | Cards, plus Apple Pay and Google Pay where you've enabled them, via the Payment Element | [Stripe](/docs/packages/payments/stripe) |
 | **Easypay** | Portugal | Multibanco, MB WAY, card | [Easypay](/docs/packages/payments/easypay) |
 | **Ifthenpay** | Portugal | Multibanco, MB WAY, card | [Ifthenpay](/docs/packages/payments/ifthenpay) |
 
@@ -17,15 +17,14 @@ All payment providers implement the same `PaymentProvider` interface from `@proo
 
 ```mermaid
 flowchart LR
-  ENV[Env vars] --> FACTORY[getPaymentProvider]
   DASH[Dashboard integration_config] --> DEC[decryptConfig]
-  DEC --> FACTORY
+  DEC --> FACTORY[getTenantPaymentProvider]
   FACTORY --> PP[PaymentProvider instance]
   PP --> CHK[Checkout /c]
   PP --> WH[Webhook verification]
 ```
 
-Per-tenant credentials from the dashboard **override** env fallbacks field-by-field. See [Payment integration guide](/docs/guides/payment-integration).
+Credentials exist only per store, in the dashboard. There is no environment fallback. A session uses one provider: the first the store has connected and turned on, in the order Stripe, Easypay, Ifthenpay. See [Payment integration guide](/docs/guides/payment-integration).
 
 ## Interface
 
@@ -33,7 +32,7 @@ Every provider implements:
 
 | Method | Purpose |
 | --- | --- |
-| `createSession()` | Start a charge / PaymentIntent / reference |
+| `createSession()` | Start a charge, Checkout Session or reference |
 | `confirmSession()` | Verify after redirect or async completion |
 | `refund()` | Full or partial refund |
 | `verifyWebhook()` | Validate provider signature on webhook payload |

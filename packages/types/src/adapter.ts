@@ -17,7 +17,6 @@ import type { Customer, Address, CheckoutAddress, RegisterInput, UpdateCustomerI
 import type { Order } from './order.js'
 import type { PaymentEventInput, PaymentEventResult, RecordOrderPaymentInput } from './order-status.js'
 import type { ShippingMethod } from './shipping.js'
-import type { PaymentMethod } from './payment.js'
 import type { SearchParams, SearchResult } from './search.js'
 import type { Wishlist } from './wishlist.js'
 import type { Review, ReviewInput, ReviewSummary } from './review.js'
@@ -122,12 +121,6 @@ export interface CheckoutAdapter<
 
   /** Select a shipping method */
   setShippingMethod(cartId: string, methodId: string): Promise<TCart>
-
-  /** List available payment methods for a cart */
-  getPaymentMethods(cartId: string): Promise<PaymentMethod[]>
-
-  /** Select a payment method */
-  setPaymentMethod(cartId: string, methodId: string): Promise<TCart>
 
   /** Place the order (finalize checkout) */
   placeOrder(cartId: string, options?: { customerId?: string; contactEmail?: string }): Promise<TOrder>

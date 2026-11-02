@@ -15,7 +15,6 @@ import {
   getOrder,
   getCustomerOrders,
   getShippingMethods,
-  getPaymentMethods,
   setShippingAddress,
   setBillingAddress,
   setShippingMethod,
@@ -30,18 +29,23 @@ import {
   revalidateProducts,
   revalidateStore,
 } from "@prood/commerce"
+import { renameOrganization } from "@/lib/org-plan"
 import {
   CommerceError,
   isCommerceError,
   requiredEnv,
+  type AdminCustomer,
   type CheckoutAddress,
+  type LocalizedField,
   type Order,
+  type PaymentMethod,
   type PaymentEventInput,
   type PaymentEventResult,
   type PaymentProvider,
+  type PaymentMethodKind,
   type StorefrontStore,
 } from "@prood/types"
-import { getStorefrontIdentity } from "@prood/platform"
+import { getStorefrontIdentity, type AdminCustomerRecord } from "@prood/platform"
 import { after } from "next/server"
 import { getMailer } from "./mailer"
 import { isOrderEmail, publicOrder } from "./order-view"
@@ -63,6 +67,7 @@ import type {
   FulfillOrderInput,
 } from "@prood/commerce"
 import type {
+  AdminListCustomersQuery,
   AdminListOrdersQuery,
   AdminListQuery,
   SearchProductsQuery,
@@ -88,7 +93,7 @@ function toSearchParams(q: SearchProductsQuery): SearchParams {
   }
 }
 
-function toAdminListParams(q: AdminListQuery): AdminListParams {
+function toAdminListParams(q: AdminListQuery | AdminListCustomersQuery): AdminListParams {
   return {
     page: q.page,
     perPage: q.perPage,
@@ -109,6 +114,8 @@ function toAdminListOrdersParams(q: AdminListOrdersQuery): AdminListOrdersParams
     dateTo: q.dateTo,
     search: q.search,
     awaitingPaymentFrom: q.awaitingPaymentFrom,
+    queue: q.queue,
+    sort: q.sortField ? { field: q.sortField, direction: q.sortDirection ?? "desc" } : undefined,
   }
 }
 
@@ -131,6 +138,23 @@ async function canTakeOrders(orgId: string): Promise<boolean> {
   }
 }
 
+/**
+ * The same read as `canTakeOrders`, for the store's own page, plus the methods
+ * of the provider in charge. Those only label what the store shows, so they
+ * mustn't take it down either.
+ */
+async function storePayments(orgId: string): Promise<{ canTakeOrders: boolean; paymentMethods: PaymentMethodKind[] }> {
+  try {
+    const [providerId] = await listTenantPaymentProviders(orgId)
+    if (!providerId) return { canTakeOrders: false, paymentMethods: [] }
+    const { provider } = await getTenantPaymentProvider(orgId, providerId)
+    return { canTakeOrders: true, paymentMethods: [...provider.methods] }
+  } catch (err) {
+    console.error("[api] couldn't read payment methods", err)
+    return { canTakeOrders: true, paymentMethods: [] }
+  }
+}
+
 function storefrontUrl(): string {
   return requiredEnv(process.env.NEXT_PUBLIC_STOREFRONT_URL, "NEXT_PUBLIC_STOREFRONT_URL")
 }
@@ -143,8 +167,8 @@ export const catalog = {
   listCategories: (orgId: string, params: GetCategoriesParams) =>
     getCategories(params, orgId),
   getStore: async (orgId: string): Promise<StorefrontStore> => {
-    const [store, payable] = await Promise.all([getStoreInfo(orgId), canTakeOrders(orgId)])
-    return { ...store, canTakeOrders: payable }
+    const [store, payments] = await Promise.all([getStoreInfo(orgId), storePayments(orgId)])
+    return { ...store, ...payments }
   },
   listCountries: () => getCountries(),
 }
@@ -163,11 +187,29 @@ export const carts = {
   removeCoupon: (orgId: string, cartId: string) => removeCoupon(cartId, orgId),
 }
 
+const PAYMENT_METHOD_NAMES: Record<PaymentMethodKind, LocalizedField> = {
+  card: { en: "Credit or debit card", pt: "Cartão de crédito ou débito", es: "Tarjeta de crédito o débito" },
+  multibanco: { en: "Multibanco" },
+  mbway: { en: "MB WAY" },
+}
+
 export const checkout = {
   getShippingMethods: (orgId: string, cartId: string) =>
     getShippingMethods(cartId, orgId),
-  getPaymentMethods: (orgId: string, cartId: string) =>
-    getPaymentMethods(cartId, orgId),
+  /** What checkout can really take: the methods of the provider in charge, if there is one. */
+  getPaymentMethods: async (orgId: string): Promise<PaymentMethod[]> => {
+    const [providerId] = await listTenantPaymentProviders(orgId)
+    if (!providerId) return []
+    const { provider } = await getTenantPaymentProvider(orgId, providerId)
+    return provider.methods.map((kind) => ({
+      id: kind,
+      type: kind,
+      name: PAYMENT_METHOD_NAMES[kind],
+      provider: providerId,
+      installments: null,
+      icon: null,
+    }))
+  },
   setShippingAddress: (orgId: string, cartId: string, address: CheckoutAddress) =>
     setShippingAddress(cartId, address, orgId),
   setBillingAddress: (orgId: string, cartId: string, address: CheckoutAddress) =>
@@ -221,20 +263,24 @@ function formatMoney(amount: number, currency: string): string {
 
 type OrderEmail = "confirmed" | "payment_failed" | "shipped" | "refunded" | "partially_refunded"
 
-/** What a partial refund's email reports. Gateways that don't name refunds give a running total. */
-interface PartialRefund {
-  amount: number | null
-  runningTotal: boolean
+/** What a refund's email reports. Gateways that don't name refunds give a running total. */
+interface RefundDetails {
+  amount?: number | null
+  runningTotal?: boolean
+  /** The merchant refunded it outside Prood and recorded that here. */
+  recordOnly?: boolean
+  /** Earlier partial refunds add up to this one, so the order total isn't what this refund sent. */
+  inTotal?: boolean
 }
 
 /** Email the shopper about their order, branded as the store. Run via `after()`. */
-async function sendOrderEmail(orgId: string, orderId: string, kind: OrderEmail, refund?: PartialRefund) {
+async function sendOrderEmail(orgId: string, orderId: string, kind: OrderEmail, refund?: RefundDetails) {
   const adminApi = await getAdmin()
   const order = await withTenant(orgId, () => adminApi.getOrder(orderId))
   const customer = order.customerId
     ? await withTenant(orgId, () => adminApi.getCustomer(order.customerId!))
     : null
-  // Guests have no customer record, only the email they gave at checkout.
+  // A guest has only the email they gave at checkout, on their customer row or the order.
   const email = customer?.email ?? order.contactEmail
   if (!email) return
 
@@ -245,42 +291,54 @@ async function sendOrderEmail(orgId: string, orderId: string, kind: OrderEmail, 
     orderNumber: order.orderNumber,
   }
   const total = formatMoney(order.totals.total.amount, order.totals.total.currency)
-  const ordersUrl = `${store.origin}/account/orders`
+  // Checkout gives guests a customer row too, so only a linked login means an account to see orders in.
+  const orderLink = customer?.authUserId
+    ? { orderUrl: `${store.origin}/account/orders` }
+    : { orderUrl: store.origin, orderLabel: "Back to the store" }
+  // Multibanco has no card or phone to go back to: Easypay needs the shopper's IBAN.
+  const returnedToPaymentMethod = !refund?.recordOnly && order.paymentDetails?.method !== "multibanco"
 
   const messages: Record<OrderEmail, { subject: string; template: string; data: Record<string, unknown> }> = {
     confirmed: {
       subject: `${store.name}: order #${order.orderNumber} confirmed`,
       template: "order-confirmation",
-      data: { ...base, orderTotal: total, orderUrl: ordersUrl },
+      data: { ...base, ...orderLink, orderTotal: total, requiresShipping: order.requiresShipping },
     },
     payment_failed: {
       subject: `${store.name}: payment for order #${order.orderNumber} didn't go through`,
       template: "payment-failed",
-      data: { ...base, orderTotal: total, retryUrl: `${store.origin}/products` },
+      data: { ...base, orderTotal: total, storeUrl: `${store.origin}/products` },
     },
     shipped: {
       subject: `${store.name}: order #${order.orderNumber} is on its way`,
       template: "order-shipped",
       data: {
         ...base,
+        ...orderLink,
         trackingNumber: order.trackingNumber ?? undefined,
         trackingUrl: order.trackingUrl ?? undefined,
-        orderUrl: ordersUrl,
       },
     },
     refunded: {
       subject: `${store.name}: refund for order #${order.orderNumber}`,
       template: "order-refunded",
-      data: { ...base, refundAmount: total, orderUrl: ordersUrl },
+      data: {
+        ...base,
+        ...orderLink,
+        refundAmount: total,
+        refundAmountLabel: refund?.inTotal ? "Refunded in total" : "Refund amount",
+        returnedToPaymentMethod,
+      },
     },
     partially_refunded: {
       subject: `${store.name}: partial refund for order #${order.orderNumber}`,
       template: "order-refunded",
       data: {
         ...base,
+        ...orderLink,
         refundAmount: refund?.amount == null ? "Part of your order" : formatMoney(refund.amount, order.totals.total.currency),
         refundAmountLabel: refund?.runningTotal ? "Refunded so far" : "Refund amount",
-        orderUrl: ordersUrl,
+        returnedToPaymentMethod,
       },
     },
   }
@@ -290,12 +348,18 @@ async function sendOrderEmail(orgId: string, orderId: string, kind: OrderEmail, 
 }
 
 /** Queue an order email to send after the response, logging failures. */
-function queueOrderEmail(orgId: string, orderId: string, kind: OrderEmail, refund?: PartialRefund) {
+function queueOrderEmail(orgId: string, orderId: string, kind: OrderEmail, refund?: RefundDetails) {
   after(() =>
     sendOrderEmail(orgId, orderId, kind, refund).catch((err) =>
       console.error(`[email] ${kind} email for order ${orderId} failed`, err)
     )
   )
+}
+
+/** Only for an email's wording, so failing to read it must not fail the webhook. */
+async function wasPartlyRefunded(orgId: string, orderId: string): Promise<boolean> {
+  const order = await withTenant(orgId, async () => (await getAdmin()).getOrder(orderId)).catch(() => null)
+  return order?.paymentStatus === "partially_refunded"
 }
 
 export const webhooks = {
@@ -314,6 +378,8 @@ export const webhooks = {
     const outcome = OUTCOME_BY_EVENT[event.type]
     if (!outcome || !event.orderId) return "ignored"
     const orderId = event.orderId
+    // Applying this wipes the status that says earlier refunds happened, so read it first.
+    const refundedBefore = outcome === "refunded" && (await wasPartlyRefunded(orgId, orderId))
 
     const result = await withTenant(orgId, async () =>
       (await getAdapter()).applyPaymentEvent(orderId, {
@@ -348,7 +414,7 @@ export const webhooks = {
     if (outcome === "captured") queueOrderEmail(orgId, orderId, "confirmed")
     if (outcome === "failed") queueOrderEmail(orgId, orderId, "payment_failed")
     if (outcome === "refunded" || result === "refund_completed") {
-      queueOrderEmail(orgId, orderId, "refunded")
+      queueOrderEmail(orgId, orderId, "refunded", { inTotal: refundedBefore || result === "refund_completed" })
     } else if (outcome === "partially_refunded") {
       queueOrderEmail(orgId, orderId, "partially_refunded", {
         amount: event.amount,
@@ -378,6 +444,13 @@ export const orders = {
   },
   list: (orgId: string, params?: PaginationParams & { customerId?: string }) =>
     getCustomerOrders(params, orgId),
+}
+
+/** Which login owns a customer is for the API's own decisions, not its responses. */
+function publicCustomer(record: AdminCustomerRecord): AdminCustomer {
+  const customer: AdminCustomer & Partial<AdminCustomerRecord> = { ...record }
+  delete customer.authUserId
+  return customer
 }
 
 /** How an order can be refunded: by Prood, by hand in the payment account, or not at all. */
@@ -499,7 +572,7 @@ export const admin = {
       )
     }
 
-    queueOrderEmail(orgId, id, "refunded")
+    queueOrderEmail(orgId, id, "refunded", { recordOnly: !provider })
   },
   cancelOrder: async (orgId: string, id: string, note?: string) => {
     await withTenant(orgId, async () => {
@@ -509,10 +582,13 @@ export const admin = {
   },
   getOrderHistory: (orgId: string, id: string) =>
     withTenant(orgId, async () => (await getAdapter()).getOrderHistory(id)),
-  listCustomers: (orgId: string, q: AdminListQuery) =>
-    withTenant(orgId, async () => (await getAdmin()).listCustomers(toAdminListParams(q))),
+  listCustomers: (orgId: string, q: AdminListCustomersQuery) =>
+    withTenant(orgId, async () => {
+      const customers = await (await getAdmin()).listCustomers(toAdminListParams(q))
+      return { ...customers, items: customers.items.map(publicCustomer) }
+    }),
   getCustomer: (orgId: string, id: string) =>
-    withTenant(orgId, async () => (await getAdmin()).getCustomer(id)),
+    withTenant(orgId, async () => publicCustomer(await (await getAdmin()).getCustomer(id))),
   getStoreSettings: async (orgId: string) => {
     const settings = await withTenant(orgId, async () => (await getAdmin()).getStoreSettings())
     // The address is only for display, so it can't take the settings down with it.
@@ -529,6 +605,12 @@ export const admin = {
       (await getAdmin()).updateStoreSettings(input),
     )
     try { revalidateStore(orgId) } catch { /* best-effort */ }
+    if (input.name) {
+      // The store is already saved, so a stale sidebar mustn't fail the request.
+      await renameOrganization(orgId, input.name).catch((err) => {
+        console.error("[api] couldn't rename organization", err)
+      })
+    }
     return settings
   },
   updateInventory: (orgId: string, input: UpdateInventoryInput) =>

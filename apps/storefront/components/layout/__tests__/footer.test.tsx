@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({ fetchStoreInfo: vi.fn() }))
 
+vi.mock("@/components/layout/policy-links", () => ({ PolicyLinks: () => null }))
 vi.mock("next/cache", () => ({ cacheLife: vi.fn() }))
 vi.mock("@/lib/commerce-data", () => ({ fetchStoreInfo: mocks.fetchStoreInfo }))
 
@@ -12,6 +13,7 @@ const store = {
   name: { en: "Loja da Ana" },
   description: { en: "Cerâmica feita à mão" },
   contactEmail: "ola@lojadaana.pt",
+  paymentMethods: ["card", "mbway"],
 }
 
 afterEach(cleanup)

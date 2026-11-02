@@ -7,12 +7,16 @@ import { listOrders } from "@/lib/admin-api"
 import {
   deleteIntegration,
   getIntegration,
+  listIntegrations,
   upsertIntegration,
 } from "@/lib/integrations"
 import {
   connectedMessage,
   credentialErrorMessage,
   getProvider,
+  inSentence,
+  providerDisplaced,
+  providerInCharge,
 } from "@/lib/providers"
 
 export type SaveIntegrationResult =
@@ -48,7 +52,7 @@ export async function saveIntegrationAction(
 
   const missing = meta.fields.find((field) => field.required && !merged[field.key])
   if (missing) {
-    return { ok: false, error: `Add your ${missing.label.toLowerCase()} to connect ${meta.name}.` }
+    return { ok: false, error: `Add your ${inSentence(missing.label)} to connect ${meta.name}.` }
   }
 
   // A store connecting a provider wants to sell through it.
@@ -63,7 +67,16 @@ export async function saveIntegrationAction(
   await upsertIntegration(orgId, provider, merged, isEnabled)
   revalidatePath("/integrations")
   revalidatePath(`/integrations/${provider}`)
-  return { ok: true, message: connectedMessage(meta, merged, isEnabled) }
+  const integrations = await listIntegrations(orgId)
+  const enabledIds = [...integrations].filter(([, state]) => state.enabled).map(([id]) => id)
+  const displacedMeta = providerDisplaced(provider, enabledIds)
+  const displaced = displacedMeta
+    ? { meta: displacedMeta, config: integrations.get(displacedMeta.id)?.config ?? {} }
+    : undefined
+  return {
+    ok: true,
+    message: connectedMessage(meta, merged, isEnabled, providerInCharge(provider, enabledIds), displaced),
+  }
 }
 
 /**

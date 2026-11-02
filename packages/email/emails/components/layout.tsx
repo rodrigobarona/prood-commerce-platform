@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Body, Column, Container, Head, Html, Preview, Row, Section, Tailwind, Text } from 'react-email'
+import { Body, Container, Head, Html, Preview, Section, Tailwind, Text } from 'react-email'
 
 import { proodTailwindConfig } from '../theme.js'
 import { ProodFonts } from '../theme-fonts.js'
@@ -12,7 +12,12 @@ export interface EmailLayoutProps {
   footer?: EmailFooterProps
 }
 
+const PLATFORM = 'Prood'
+
+/** Shoppers hear from the store, so its name heads the email and Prood only signs off. */
 export function EmailLayout({ preview, companyName, children, footer }: EmailLayoutProps) {
+  const sender = companyName.trim() || PLATFORM
+
   return (
     <Tailwind config={proodTailwindConfig}>
       <Html lang="en">
@@ -26,23 +31,20 @@ export function EmailLayout({ preview, companyName, children, footer }: EmailLay
             <Section>
               <Section className="bg-bg mobile:px-2 px-6 py-4">
                 <Section className="mb-3 px-6">
-                  <Row>
-                    <Column className="w-1/2 py-[7px] align-middle">
-                      <Text className="font-16 text-fg m-0 text-left font-sans font-semibold">
-                        Prood
-                      </Text>
-                    </Column>
-                    <Column align="right" className="w-1/2 py-[7px] align-middle">
-                      <Text className="font-13 m-0 text-right font-sans">
-                        <span className="text-fg-3">{companyName}</span>
-                      </Text>
-                    </Column>
-                  </Row>
+                  <Text className="font-16 text-fg m-0 py-[7px] text-left font-sans font-semibold">
+                    {sender}
+                  </Text>
                 </Section>
 
                 {children}
 
-                <EmailFooter companyName={companyName} {...footer} />
+                <EmailFooter companyName={sender} {...footer} />
+
+                {sender === PLATFORM ? null : (
+                  <Text className="font-11 text-fg-3 mt-4 mb-0 text-center font-sans">
+                    Powered by {PLATFORM}
+                  </Text>
+                )}
               </Section>
             </Section>
           </Container>

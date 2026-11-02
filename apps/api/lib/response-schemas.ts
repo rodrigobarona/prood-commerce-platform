@@ -10,6 +10,7 @@ import type {
   CheckoutAddress,
   CommerceErrorBody,
   Country,
+  AdminCustomer,
   Customer,
   DiscountablePrice,
   Facet,
@@ -398,6 +399,11 @@ export const customer = z.object({
   updatedAt: z.string(),
 }) satisfies z.ZodType<Customer>
 
+export const adminCustomer = customer.extend({
+  orderCount: z.number().int(),
+  spent: z.number(),
+}) satisfies z.ZodType<AdminCustomer>
+
 const storeCurrency = z.object({
   code: z.string(),
   symbol: z.string(),
@@ -427,7 +433,12 @@ const canTakeOrders = z
     "True when a payment provider is connected, or when that couldn't be checked. Paid orders are refused without one, whatever this says."
   )
 
-export const storefrontStore = storeInfo.extend({ canTakeOrders })
+export const storefrontStore = storeInfo.extend({
+  canTakeOrders,
+  paymentMethods: z
+    .array(z.enum(["card", "multibanco", "mbway"]))
+    .describe("How shoppers can pay, from the provider the store's checkout uses. Empty when that can't be read."),
+})
 
 export const country = z.object({
   id: z.string(),
@@ -466,6 +477,11 @@ export const adminStore = adminStoreSettings.extend({
     .describe("Public origin of the store: its primary verified domain, or its slug subdomain. Null if it couldn't be read."),
 })
 
+const orderActivity = z.object({
+  orders: z.number().describe("Orders placed in the period."),
+  revenue: z.number().describe("What those orders brought in, less refunds so far."),
+})
+
 export const adminDashboardStats = z.object({
   totalProducts: z.number(),
   activeProducts: z.number(),
@@ -473,6 +489,8 @@ export const adminDashboardStats = z.object({
   paidOrders: z.number().describe("Orders that reached paid, even if later refunded."),
   totalRevenue: z.number(),
   totalCustomers: z.number(),
+  last30Days: orderActivity.describe("The 30 days up to now."),
+  prior30Days: orderActivity.describe("The 30 days before those."),
   recentOrders: z.array(order),
   ordersByStatus: z.record(z.string(), z.number()),
 }) satisfies z.ZodType<DashboardStats>
@@ -499,6 +517,7 @@ export type ExactSchemas = [
   Check<Exact<typeof order, Order>>,
   Check<Exact<typeof orderHistoryEntry, OrderHistoryEntry>>,
   Check<Exact<typeof customer, Customer>>,
+  Check<Exact<typeof adminCustomer, AdminCustomer>>,
   Check<Exact<typeof storeInfo, StoreInfo>>,
   Check<Exact<typeof storefrontStore, StorefrontStore>>,
   Check<Exact<typeof country, Country>>,

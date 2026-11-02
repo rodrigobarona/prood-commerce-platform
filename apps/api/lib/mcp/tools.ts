@@ -5,10 +5,12 @@ import { z } from "zod"
 import { admin, carts, catalog, orders } from "@/lib/commerce-service"
 import { checkout } from "@/lib/commerce-service"
 import { assertCapability } from "@/lib/agent-capability"
+import { assertCanCreateProduct, assertCanPlaceOrder } from "@/lib/enforcement"
 import { getMcpCaller } from "@/lib/mcp/context"
-import { hasScope, type ApiScope } from "@/lib/scopes"
+import { hasScope, scopeRefusal, type ApiScope } from "@/lib/scopes"
 import {
   addToCartBody,
+  adminListCustomersQuery,
   adminListOrdersQuery,
   adminListQuery,
   cancelOrderBody,
@@ -40,7 +42,7 @@ function jsonContent(data: unknown) {
 function requireScope(scope: ApiScope) {
   const caller = getMcpCaller()
   if (!hasScope(caller.scopes, scope)) {
-    throw new CommerceError(`Insufficient scope: requires ${scope}`, "FORBIDDEN")
+    throw new CommerceError(scopeRefusal(scope, caller.via), "FORBIDDEN")
   }
   return caller.orgId
 }
@@ -48,6 +50,7 @@ function requireScope(scope: ApiScope) {
 async function placeOrderForCaller(cartId: string, email?: string, providerId?: string) {
   const caller = getMcpCaller()
   const orgId = requireScope("storefront")
+  await assertCanPlaceOrder(orgId)
   await checkout.assertPayable(orgId, cartId, providerId)
   let customerId: string | undefined
   if (caller.userId) {
@@ -68,15 +71,24 @@ async function placeOrderForCaller(cartId: string, email?: string, providerId?: 
   return checkout.placeOrder(orgId, cartId, customerId, email)
 }
 
+/** Offers each caller the tools it can use. Staff also see writes, which they're refused by scope. */
+function canUse(name: string): boolean {
+  const { capabilities, scopes } = getMcpCaller()
+  if (capabilities) return capabilities.includes(name)
+  return !name.startsWith("admin") || hasScope(scopes, "staff")
+}
+
 /** Tool names are the agent capability names, so check the grant in one place. */
 function enforceAgentCapabilities(server: McpServer) {
   const registerTool = server.registerTool.bind(server)
-  server.registerTool = ((name: string, config: never, handler: (...args: never[]) => unknown) =>
-    registerTool(name, config, ((...args: never[]) => {
+  server.registerTool = ((name: string, config: never, handler: (...args: never[]) => unknown) => {
+    if (!canUse(name)) return undefined
+    return registerTool(name, config, ((...args: never[]) => {
       const { capabilities } = getMcpCaller()
       if (capabilities) assertCapability(capabilities, name)
       return handler(...args)
-    }) as never)) as typeof server.registerTool
+    }) as never)
+  }) as typeof server.registerTool
 }
 
 export function registerCommerceMcpTools(server: McpServer) {
@@ -280,12 +292,12 @@ export function registerCommerceMcpTools(server: McpServer) {
   server.registerTool(
     "listCartPaymentMethods",
     {
-      title: "List cart payment methods",
-      inputSchema: z.object({ cartId: z.string().min(1) }),
+      title: "List payment methods",
+      inputSchema: z.object({}),
     },
-    async ({ cartId }) => {
+    async () => {
       const orgId = requireScope("storefront")
-      return jsonContent(await checkout.getPaymentMethods(orgId, cartId))
+      return jsonContent(await checkout.getPaymentMethods(orgId))
     }
   )
 
@@ -387,6 +399,7 @@ export function registerCommerceMcpTools(server: McpServer) {
     },
     async (args) => {
       const orgId = requireScope("admin")
+      await assertCanCreateProduct(orgId)
       return jsonContent(await admin.createProduct(orgId, createProductBody.parse(args)))
     }
   )
@@ -547,11 +560,11 @@ export function registerCommerceMcpTools(server: McpServer) {
     "adminListCustomers",
     {
       title: "Admin list customers",
-      inputSchema: adminListQuery,
+      inputSchema: adminListCustomersQuery,
     },
     async (args) => {
       const orgId = requireScope("staff")
-      return jsonContent(await admin.listCustomers(orgId, adminListQuery.parse(args)))
+      return jsonContent(await admin.listCustomers(orgId, adminListCustomersQuery.parse(args)))
     }
   )
 

@@ -721,7 +721,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -755,6 +755,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -910,7 +926,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -944,6 +960,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1071,7 +1103,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -1105,6 +1137,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1232,7 +1280,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -1296,6 +1344,22 @@ export interface operations {
                     };
                 };
             };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
         };
     };
     listCategories: {
@@ -1336,7 +1400,7 @@ export interface operations {
                     }[];
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -1370,6 +1434,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1430,10 +1510,12 @@ export interface operations {
                         contactEmail: string | null;
                         /** @description True when a payment provider is connected, or when that couldn't be checked. Paid orders are refused without one, whatever this says. */
                         canTakeOrders: boolean;
+                        /** @description How shoppers can pay, from the provider the store's checkout uses. Empty when that can't be read. */
+                        paymentMethods: ("card" | "multibanco" | "mbway")[];
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -1467,6 +1549,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1512,7 +1610,7 @@ export interface operations {
                     }[];
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -1546,6 +1644,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1702,7 +1816,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -1736,6 +1850,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1894,7 +2024,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -1928,6 +2058,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2094,7 +2240,23 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description The body isn't valid JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -2128,6 +2290,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2287,7 +2465,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -2321,6 +2499,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2486,7 +2680,23 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description The body isn't valid JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -2520,6 +2730,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2684,7 +2910,23 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description The body isn't valid JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -2718,6 +2960,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2876,7 +3134,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -2910,6 +3168,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2964,7 +3238,7 @@ export interface operations {
                     }[];
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -2998,6 +3272,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3047,7 +3337,7 @@ export interface operations {
                     }[];
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -3079,8 +3369,40 @@ export interface operations {
                     };
                 };
             };
+            /** @description Cart not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3253,7 +3575,23 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description The body isn't valid JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -3287,6 +3625,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3459,7 +3813,23 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description The body isn't valid JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -3493,6 +3863,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3657,7 +4043,23 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description The body isn't valid JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -3691,6 +4093,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3880,7 +4298,23 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description The body isn't valid JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -3930,6 +4364,22 @@ export interface operations {
             };
             /** @description `VALIDATION`: the request or cart is invalid, or `providerId` isn't connected to this store */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4118,7 +4568,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -4152,6 +4602,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4335,7 +4801,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -4369,6 +4835,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4506,7 +4988,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -4540,6 +5022,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4723,7 +5221,23 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description The body isn't valid JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -4757,6 +5271,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4884,7 +5414,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -4918,6 +5448,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4952,7 +5498,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -4986,6 +5532,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5171,7 +5733,23 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description The body isn't valid JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -5205,6 +5783,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5271,7 +5865,23 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description The body isn't valid JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -5305,6 +5915,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5339,7 +5965,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -5373,6 +5999,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5441,7 +6083,23 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description The body isn't valid JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -5489,6 +6147,22 @@ export interface operations {
                     };
                 };
             };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
         };
     };
     adminListOrders: {
@@ -5502,6 +6176,9 @@ export interface operations {
                 dateTo?: string;
                 search?: string;
                 awaitingPaymentFrom?: string;
+                queue?: "open" | "to_fulfill";
+                sortField?: "createdAt" | "total";
+                sortDirection?: "asc" | "desc";
             };
             header?: never;
             path?: never;
@@ -5669,7 +6346,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -5703,6 +6380,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5886,7 +6579,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -5934,6 +6627,22 @@ export interface operations {
                     };
                 };
             };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
         };
     };
     adminCancelOrder: {
@@ -5965,7 +6674,23 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description The body isn't valid JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -6029,6 +6754,22 @@ export interface operations {
                     };
                 };
             };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
         };
     };
     adminGetOrderHistory: {
@@ -6057,7 +6798,7 @@ export interface operations {
                     }[];
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -6091,6 +6832,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6138,7 +6895,23 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description The body isn't valid JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -6172,6 +6945,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6219,7 +7008,23 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description The body isn't valid JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -6267,6 +7072,22 @@ export interface operations {
                     };
                 };
             };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
         };
     };
     adminListCustomers: {
@@ -6275,7 +7096,7 @@ export interface operations {
                 page?: number;
                 perPage?: number;
                 search?: string;
-                sortField?: string;
+                sortField?: "createdAt" | "spent";
                 sortDirection?: "asc" | "desc";
             };
             header?: never;
@@ -6313,6 +7134,8 @@ export interface operations {
                             defaultAddressId: string | null;
                             createdAt: string;
                             updatedAt: string;
+                            orderCount: number;
+                            spent: number;
                         }[];
                         total: number;
                         page: number;
@@ -6321,7 +7144,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -6355,6 +7178,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6410,10 +7249,12 @@ export interface operations {
                         defaultAddressId: string | null;
                         createdAt: string;
                         updatedAt: string;
+                        orderCount: number;
+                        spent: number;
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -6447,6 +7288,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6505,7 +7362,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -6553,6 +7410,22 @@ export interface operations {
                     };
                 };
             };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
         };
     };
     adminUpdateStore: {
@@ -6575,12 +7448,14 @@ export interface operations {
                     logo?: string | "";
                     favicon?: string;
                     currency?: string;
-                    locale?: string;
+                    /** @enum {string} */
+                    locale?: "en" | "pt" | "es";
                     timezone?: string;
                     country?: string;
                     /** @description Shown on the store and to customers. Send null to remove it. */
                     contactEmail?: string | null;
-                    contactPhone?: string;
+                    /** @description Send null to remove it. */
+                    contactPhone?: string | null;
                     address?: string;
                     socialLinks?: {
                         [key: string]: string;
@@ -6620,7 +7495,23 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description The body isn't valid JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -6654,6 +7545,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -6701,7 +7608,23 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description The body isn't valid JSON */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -6749,6 +7672,22 @@ export interface operations {
                     };
                 };
             };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
         };
     };
     adminGetDashboard: {
@@ -6774,6 +7713,20 @@ export interface operations {
                         paidOrders: number;
                         totalRevenue: number;
                         totalCustomers: number;
+                        /** @description The 30 days up to now. */
+                        last30Days: {
+                            /** @description Orders placed in the period. */
+                            orders: number;
+                            /** @description What those orders brought in, less refunds so far. */
+                            revenue: number;
+                        };
+                        /** @description The 30 days before those. */
+                        prior30Days: {
+                            /** @description Orders placed in the period. */
+                            orders: number;
+                            /** @description What those orders brought in, less refunds so far. */
+                            revenue: number;
+                        };
                         recentOrders: {
                             id: string;
                             orderNumber: string;
@@ -6928,7 +7881,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -6962,6 +7915,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7003,7 +7972,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -7037,6 +8006,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -7078,7 +8063,7 @@ export interface operations {
                     };
                 };
             };
-            /** @description Unauthorized */
+            /** @description No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys. */
             401: {
                 headers: {
                     [name: string]: unknown;
@@ -7112,6 +8097,22 @@ export interface operations {
             };
             /** @description Validation error */
             422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        code: string;
+                        message: string;
+                        errors?: {
+                            path: string;
+                            message: string;
+                        }[];
+                    };
+                };
+            };
+            /** @description Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait. */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };

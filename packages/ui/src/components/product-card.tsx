@@ -2,19 +2,14 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { ShoppingCartIcon } from "@phosphor-icons/react"
+import { PlusIcon } from "@phosphor-icons/react"
 import { canQuickAdd, type Product } from "@prood/types"
-import { Badge } from "@prood/ui/components/badge"
 import { Button } from "@prood/ui/components/button"
+import { ProductInitial, SHORT_TILE_INITIAL } from "@prood/ui/components/product-initial"
 import { ProductPrice } from "@prood/ui/components/product-price"
 import { ProductTypeBadge } from "@prood/ui/components/product-type-badge"
 import { ReviewStars } from "@prood/ui/components/review-stars"
-import {
-  discountPercent,
-  localized,
-  resolveProductUrl,
-  type Locale,
-} from "@prood/ui/lib/commerce"
+import { localized, resolveProductUrl, type Locale } from "@prood/ui/lib/commerce"
 import { cn } from "@prood/ui/lib/utils"
 
 export interface ProductCardProps {
@@ -23,6 +18,12 @@ export interface ProductCardProps {
   showRating?: boolean
   locale?: Locale
   onAddToCart?: (product: Product) => void
+  /** Viewport-relative image width, to match the grid the card sits in. */
+  imageSizes?: string
+  /** Load the image straight away, for cards in the first viewport. */
+  preload?: boolean
+  /** A short tile for a grid with no photographs, in proportion with the product page's panel. */
+  short?: boolean
   className?: string
 }
 
@@ -32,63 +33,81 @@ export function ProductCard({
   showRating = true,
   locale = "en",
   onAddToCart,
+  imageSizes = "(min-width: 1024px) 40vw, 80vw",
+  preload = false,
+  short = false,
   className,
 }: ProductCardProps) {
   const url = resolveProductUrl(product)
+  const name = localized(product.name, locale)
   const image = product.primaryImage
-  const pct = discountPercent(product.price ?? undefined)
+  const alternate = product.gallery.find((candidate) => candidate.url !== image?.url)
 
   return (
     <div className={cn("group/card relative flex flex-col gap-3", className)}>
-      <Link
-        href={url}
-        className="bg-muted relative block aspect-square overflow-hidden rounded-2xl"
-      >
-        {image ? (
-          <Image
-            src={image.url}
-            alt={image.alt || localized(product.name, locale)}
-            fill
-            sizes="(max-width: 768px) 50vw, 25vw"
-            className="object-cover transition-transform duration-300 group-hover/card:scale-105"
-          />
-        ) : null}
-        {pct != null ? (
-          <Badge variant="destructive" className="absolute left-2 top-2">
-            -{pct}%
-          </Badge>
-        ) : null}
-        <ProductTypeBadge type={product.productType} className="absolute right-2 top-2" />
-        {!product.inStock ? (
-          <div className="bg-background/60 absolute inset-0 flex items-center justify-center text-sm font-medium">
-            Out of stock
-          </div>
-        ) : null}
+      <div className="relative">
+        <Link
+          href={url}
+          aria-label={name}
+          className={cn(
+            "bg-muted relative block overflow-hidden rounded-lg",
+            short ? "aspect-[3/2]" : "aspect-[4/5]",
+          )}
+        >
+          {image ? (
+            <Image
+              src={image.url}
+              alt={image.alt || name}
+              fill
+              sizes={imageSizes}
+              preload={preload}
+              className="ease-standard object-cover transition-transform duration-300 group-hover/card:scale-[1.02]"
+            />
+          ) : (
+            <ProductInitial name={name} className={short ? SHORT_TILE_INITIAL : "text-7xl md:text-8xl"} />
+          )}
+          {image && alternate ? (
+            <Image
+              src={alternate.url}
+              alt=""
+              fill
+              sizes={imageSizes}
+              className="ease-standard object-cover opacity-0 transition-opacity duration-300 group-hover/card:opacity-100"
+            />
+          ) : null}
+          <span className="absolute top-2 left-2 flex flex-col items-start gap-1">
+            {!product.inStock ? (
+              <span className="bg-background text-foreground rounded-md px-2 py-1 text-xs">
+                Out of stock
+              </span>
+            ) : null}
+            <ProductTypeBadge type={product.productType} />
+          </span>
+        </Link>
+
         {showQuickAdd && onAddToCart && canQuickAdd(product) ? (
-          <div className="absolute inset-x-2 bottom-2 translate-y-2 opacity-0 transition-all duration-200 group-hover/card:translate-y-0 group-hover/card:opacity-100">
+          <div className="ease-standard pointer-coarse:hidden absolute inset-x-2 bottom-2 opacity-0 transition-opacity duration-200 group-focus-within/card:opacity-100 group-hover/card:opacity-100">
             <Button
               type="button"
-              size="sm"
-              className="w-full"
-              onClick={(e) => {
-                e.preventDefault()
-                onAddToCart(product)
-              }}
+              variant="secondary"
+              className="bg-background hover:bg-background/90 h-10 w-full"
+              onClick={() => onAddToCart(product)}
             >
-              <ShoppingCartIcon /> Add to cart
+              <PlusIcon />
+              Add to cart
             </Button>
           </div>
         ) : null}
-      </Link>
+      </div>
 
-      <div className="flex flex-col gap-1">
-        <Link href={url} className="line-clamp-2 text-sm font-medium hover:underline">
-          {localized(product.name, locale)}
+      <div className="flex flex-col gap-0.5 text-sm">
+        <Link href={url} className="line-clamp-2 underline-offset-4 hover:underline">
+          {name}
         </Link>
         {showRating && product.rating ? (
-          <ReviewStars rating={product.rating.average} count={product.rating.count} size={14} />
+          <ReviewStars rating={product.rating.average} count={product.rating.count} size={12} />
         ) : null}
-        <ProductPrice price={product.price} size="sm" />
+        <ProductPrice price={product.price} size="sm" className="text-muted-foreground" />
       </div>
     </div>
   )

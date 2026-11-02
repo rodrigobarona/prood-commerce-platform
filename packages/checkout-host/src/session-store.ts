@@ -7,7 +7,7 @@ const KEY_PREFIX = 'checkout:session:'
 const LOCK_PREFIX = 'checkout:lock:'
 const DEFAULT_TTL_S = 60 * 60 * 24 // 24 hours
 // A Multibanco reference stays payable for days after the link that made it expires.
-const STARTED_PAYMENT_TTL_S = 60 * 60 * 24 * 7 // 7 days
+export const STARTED_PAYMENT_TTL_S = 60 * 60 * 24 * 7 // 7 days
 // Long enough to start a payment; a crashed holder only blocks retries this long.
 const LOCK_TTL_S = 30
 // Only the holder may release: an expired lock can belong to someone else by now.

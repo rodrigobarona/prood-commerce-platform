@@ -2,6 +2,7 @@ import { z } from "zod"
 import {
   addToCartBody,
   adminListOrdersQuery,
+  adminListCustomersQuery,
   adminListQuery,
   cancelOrderBody,
   categoriesQuery,
@@ -40,15 +41,15 @@ type ApiResponse = {
 }
 
 const storefrontSecurity: OpenApiSecurity = [
-  { bearerAuth: [] },
   { apiKey: [] },
+  { bearerAuth: [] },
   { sessionCookie: [] },
   { storefrontHost: [] },
 ]
 
 const adminSecurity: OpenApiSecurity = [
-  { bearerAuth: [] },
   { apiKey: [] },
+  { bearerAuth: [] },
   { sessionCookie: [] },
 ]
 
@@ -123,14 +124,28 @@ function pathItem(
         ? {}
         : {
             "401": response({
-              description: "Unauthorized",
+              description:
+                "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
               schema: responses.errorBody,
             }),
             "403": response({
               description: "Forbidden",
               schema: responses.errorBody,
             }),
+            "429": response({
+              description:
+                "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+              schema: responses.errorBody,
+            }),
           }),
+      ...(options.body
+        ? {
+            "400": response({
+              description: "The body isn't valid JSON",
+              schema: responses.errorBody,
+            }),
+          }
+        : {}),
       "422": response({
         description: "Validation error",
         schema: responses.errorBody,
@@ -169,7 +184,7 @@ export function buildOpenApiDocument() {
       title: "Prood Commerce API",
       version: "1.0.0",
       description:
-        "Multi-tenant commerce HTTP API. Authenticate with Agent Auth (Bearer JWT + capability grants), `x-api-key` (org + scopes in key metadata), a Better Auth session cookie (dashboard), or resolve the tenant from the request `Host`. Agent discovery: `/.well-known/agent-configuration`.",
+        "Multi-tenant commerce HTTP API. Authenticate with `x-api-key` (org + scopes in key metadata), Agent Auth (Bearer JWT + capability grants), a Better Auth session cookie (dashboard), or resolve the tenant from the request `Host`. Agent discovery: `/.well-known/agent-configuration`.",
     },
     servers: [{ url: "/v1" }],
     components: {
@@ -310,6 +325,7 @@ export function buildOpenApiDocument() {
           pathTemplate: "/carts/{id}/payment-methods",
           scope: "storefront",
           response: z.array(responses.paymentMethod),
+          responses: { "404": { description: "Cart not found", schema: responses.errorBody } },
         }
       ),
       "/carts/{id}/shipping-address": pathItem(
@@ -465,13 +481,13 @@ export function buildOpenApiDocument() {
       }),
       "/admin/customers": pathItem("GET", "List customers", "adminListCustomers", {
         scope: "admin",
-        query: adminListQuery,
-        response: responses.paginated(responses.customer),
+        query: adminListCustomersQuery,
+        response: responses.paginated(responses.adminCustomer),
       }),
       "/admin/customers/{id}": pathItem("GET", "Get customer", "adminGetCustomer", {
         pathTemplate: "/admin/customers/{id}",
         scope: "admin",
-        response: responses.customer,
+        response: responses.adminCustomer,
       }),
       "/admin/store": {
         ...pathItem("GET", "Store settings", "adminGetStore", {

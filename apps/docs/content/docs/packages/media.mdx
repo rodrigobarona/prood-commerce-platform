@@ -1,0 +1,71 @@
+---
+title: "@prood/media"
+description: Curated photography and film for Prood's own surfaces, with one shared grade.
+---
+
+`@prood/media` is the brand image library: graded photographs and film, written alt text, blur placeholders and credits. It serves Prood's marketing, sign-in and docs pages. Merchant files are separate: see [`@prood/storage-s3`](/docs/packages/storage/s3).
+
+## Installation
+
+Already a workspace dependency. Add the package to `transpilePackages` and allow its host for `next/image`:
+
+```ts title="next.config.ts"
+import { mediaRemotePattern } from '@prood/media/remote-pattern'
+
+const nextConfig = {
+  transpilePackages: ['@prood/ui', '@prood/media'],
+  images: { remotePatterns: [mediaRemotePattern] },
+}
+```
+
+## Images
+
+`MediaImage` wraps `next/image`. Pass a slug from the library and it fills in the URL, size, blur placeholder and alt text:
+
+```tsx
+import { MediaImage } from '@prood/media/image'
+
+<div className="relative aspect-[3/2]">
+  <MediaImage slug="keys-door" fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
+</div>
+```
+
+| Prop | Description |
+| --- | --- |
+| `slug` | The image's slug in `src/library.json`. An unknown slug throws |
+| `decorative` | Renders an empty alt, for pure texture |
+
+Every other prop passes through to `next/image`, except `src`, `alt`, `width`, `height` and the placeholder props, which come from the library.
+
+A `fill` image without `sizes` uses `FULL_BLEED_SIZES`, which allows for a landscape photo cropped to a tall viewport. Set `sizes` yourself for anything narrower than the viewport, and allow for the crop: on a 4:5 card, size for the card's height unless the source is portrait.
+
+## Film
+
+`MediaVideo` plays a silent loop over its poster, with a wide cut for tablets and up and a portrait cut for phones. It includes the pause control, and reduced motion shows the poster alone:
+
+```tsx
+import { MediaVideo } from '@prood/media/video'
+
+<MediaVideo slug="hero-film" />
+```
+
+It's a client component. The other exports are `getImage` and `getVideo` for the raw entries, `mediaCredits` for the credits page and `FULL_BLEED_SIZES`, all from `@prood/media`.
+
+## Adding to the library
+
+Add the entry to `packages/media/curation.json`, with a `crop` if anything needs keeping out of frame, then run the build. It fetches from Pexels, applies the Prood grade from `scripts/grade.mjs`, uploads to R2 and writes `src/library.json`:
+
+```bash
+pnpm --filter @prood/media media:build
+```
+
+<Callout type="warn" title="People in photographs are not customers">
+  Show trades, not testimonials. Never put a name or a quote on a face: the Pexels licence forbids implying endorsement. The [design system](/docs/packages/ui#design-system) covers subjects, the grade and alt text.
+</Callout>
+
+## Related pages
+
+<Cards>
+  <Card title="@prood/ui" href="/docs/packages/ui" description="The design system these images belong to." />
+  <Card title="Storage" href="/docs/packages/storage" description="Where merchant images live." />
+</Cards>

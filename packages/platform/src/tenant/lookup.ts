@@ -1,6 +1,6 @@
 import { CommerceError } from '@prood/types'
 import { neon, type NeonQueryFunction } from "@neondatabase/serverless"
-import { storeOriginForSlug } from "@prood/types"
+import { RESERVED_STORE_SLUGS, storeOriginForSlug } from "@prood/types"
 
 // Tenant resolution reads auth-schema tables (organization, tenant_domain),
 // which are not tenant-scoped, so it uses a plain HTTP client.
@@ -14,11 +14,7 @@ function db(): NeonQueryFunction<false, false> {
   return sql
 }
 
-/** Subdomains of the storefront domain that can never be store slugs. */
-export const RESERVED_STORE_SLUGS = new Set([
-  "www", "app", "api", "admin", "dashboard", "docs", "checkout", "pay",
-  "mail", "status", "help", "support", "blog", "cdn", "assets", "static",
-])
+export { RESERVED_STORE_SLUGS }
 
 function slugFromHost(host: string, platformDomain: string): string | null {
   if (!host.endsWith(`.${platformDomain}`)) return null

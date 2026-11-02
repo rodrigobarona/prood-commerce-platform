@@ -12,9 +12,9 @@ vi.mock("next/navigation", () => ({ notFound: vi.fn() }))
 vi.mock("@/lib/admin", () => ({ canManageStore: mocks.canManageStore }))
 vi.mock("@/lib/auth", () => ({ getActiveOrganizationId: async () => "org-1" }))
 vi.mock("@/lib/integrations", () => ({ getIntegration: mocks.getIntegration }))
-vi.mock("@/components/layout/dashboard-page", () => ({ DashboardFormPage: vi.fn() }))
+vi.mock("@/components/layout/dashboard-page", () => ({ BackLink: vi.fn(), DashboardPage: vi.fn() }))
 vi.mock("@/components/integrations/provider-config-form", () => ({ ProviderConfigForm: vi.fn() }))
-vi.mock("@/components/skeletons", () => ({ FormPageSkeleton: vi.fn() }))
+vi.mock("@/components/skeletons", () => ({ DetailSkeleton: vi.fn(), PageHeaderSkeleton: vi.fn() }))
 vi.mock("@prood/commerce", () => ({ paymentWebhookUrl: () => "https://checkout.test/webhook" }))
 
 import IntegrationConfigPage from "@/app/(dashboard)/integrations/[provider]/page"

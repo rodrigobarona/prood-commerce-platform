@@ -3,9 +3,9 @@ import { renderToStaticMarkup } from "react-dom/server"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { SidebarProvider } from "@prood/ui/components/sidebar"
 
-const mocks = vi.hoisted(() => ({ getStoreSettings: vi.fn() }))
+const mocks = vi.hoisted(() => ({ getStoreUrl: vi.fn() }))
 
-vi.mock("@/lib/admin-api", () => ({ getStoreSettings: mocks.getStoreSettings }))
+vi.mock("@/lib/store-link", () => ({ getStoreUrl: mocks.getStoreUrl }))
 
 import { ViewStoreLink } from "../layout/view-store-link"
 
@@ -15,12 +15,12 @@ const inSidebar = (element: ReactElement | null) =>
   renderToStaticMarkup(<SidebarProvider>{element}</SidebarProvider>)
 
 beforeEach(() => {
-  mocks.getStoreSettings.mockReset()
+  mocks.getStoreUrl.mockReset()
 })
 
 describe("ViewStoreLink", () => {
   it("opens the store's real address in a new tab", async () => {
-    mocks.getStoreSettings.mockResolvedValue({ url: STORE_URL })
+    mocks.getStoreUrl.mockResolvedValue(STORE_URL)
     const html = inSidebar(await ViewStoreLink())
     expect(html).toContain(`href="${STORE_URL}"`)
     expect(html).toContain('target="_blank"')
@@ -28,7 +28,7 @@ describe("ViewStoreLink", () => {
   })
 
   it("leaves the sidebar alone when the address can't be read", async () => {
-    mocks.getStoreSettings.mockRejectedValue(new Error("API down"))
+    mocks.getStoreUrl.mockRejectedValue(new Error("API down"))
     expect(await ViewStoreLink()).toBeNull()
   })
 })

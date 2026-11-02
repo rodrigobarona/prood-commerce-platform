@@ -2,9 +2,9 @@
 
 import { revalidatePath } from "next/cache"
 import { getEntitlements } from "@prood/billing"
-import { assertLimit } from "@prood/commerce"
 import { requireStoreAdmin } from "@/lib/admin"
-import { getActiveOrganizationPlan } from "@/lib/billing"
+import { normalizeDomain } from "@/lib/domain-input"
+import { domainLimitMessage, getActiveOrganizationPlan } from "@/lib/billing"
 import {
   createDomainRow,
   deleteDomainRow,
@@ -15,25 +15,30 @@ import {
 } from "@/lib/domains"
 import {
   ensureProjectDomain,
+  isVercelConfigured,
   removeProjectDomain,
   verifyProjectDomain,
   type DomainVerification,
 } from "@/lib/vercel"
 
-export async function addDomainAction(domain: string): Promise<DomainVerification> {
+/** The limit comes back as a value: a thrown message doesn't survive a server action. */
+export async function addDomainAction(
+  domain: string
+): Promise<DomainVerification | { limit: string } | { invalid: string }> {
   const orgId = await requireStoreAdmin()
+  const parsed = normalizeDomain(domain)
+  if ("error" in parsed) return { invalid: parsed.error }
+  if (!isVercelConfigured()) return { invalid: "We can't connect domains yet. Your store stays on its Prood address." }
+
   const plan = await getActiveOrganizationPlan()
   const limits = getEntitlements(plan?.planId ?? "free")
   const domains = await listDomains(orgId)
-  assertLimit(
-    domains.length,
-    limits.maxCustomDomains,
-    "Custom domain limit reached for your plan. Upgrade to add more domains.",
-  )
+  if (limits.maxCustomDomains !== null && domains.length >= limits.maxCustomDomains) {
+    return { limit: domainLimitMessage(limits.maxCustomDomains) }
+  }
 
-  const normalized = domain.toLowerCase().trim()
-  const result = await ensureProjectDomain(normalized)
-  const id = await createDomainRow(orgId, normalized, result.instructions)
+  const result = await ensureProjectDomain(parsed.domain)
+  const id = await createDomainRow(orgId, parsed.domain, result.instructions)
   if (result.verified) {
     await setDomainVerified(orgId, id, true)
   }

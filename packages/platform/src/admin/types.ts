@@ -2,7 +2,7 @@
 // Admin API types — platform-only input/output types for merchant operations
 // ---------------------------------------------------------------------------
 
-import type { PaginationParams, PaginatedResult, Order, Product, Customer, Category, LocalizedField, ProductType } from '@prood/types'
+import type { PaginationParams, PaginatedResult, Order, OrderQueue, Product, AdminCustomer, Category, LocalizedField, ProductType } from '@prood/types'
 
 // ---- Generic ----
 
@@ -10,6 +10,11 @@ export interface AdminListParams extends PaginationParams {
   search?: string
   sort?: { field: string; direction: 'asc' | 'desc' }
 }
+
+// ---- Customers ----
+
+/** A customer with the login behind it, null for a guest. Not part of the public contract. */
+export type AdminCustomerRecord = AdminCustomer & { authUserId: string | null }
 
 // ---- Products ----
 
@@ -85,6 +90,8 @@ export interface AdminListOrdersParams extends PaginationParams {
   search?: string
   /** Only open orders still waiting for a payment through this provider */
   awaitingPaymentFrom?: string
+  queue?: OrderQueue
+  sort?: { field: string; direction: 'asc' | 'desc' }
 }
 
 export interface FulfillOrderInput {
@@ -108,7 +115,7 @@ export interface UpdateStoreInput {
   country?: string
   /** `null` removes it */
   contactEmail?: string | null
-  contactPhone?: string
+  contactPhone?: string | null
   address?: string
   socialLinks?: Record<string, string>
 }
@@ -144,6 +151,12 @@ export interface UpdateInventoryInput {
 
 // ---- Dashboard Stats ----
 
+/** Orders placed in a period, and the money kept from those orders so far. */
+export interface OrderActivity {
+  orders: number
+  revenue: number
+}
+
 export interface DashboardStats {
   totalProducts: number
   activeProducts: number
@@ -153,6 +166,10 @@ export interface DashboardStats {
   /** Total of orders whose payment status is `paid`: money received and not refunded */
   totalRevenue: number
   totalCustomers: number
+  /** The 30 days up to now */
+  last30Days: OrderActivity
+  /** The 30 days before those */
+  prior30Days: OrderActivity
   recentOrders: Order[]
   ordersByStatus: Record<string, number>
 }
@@ -180,8 +197,8 @@ export interface AdminAPI {
   recordRefund(id: string, note?: string): Promise<void>
 
   // Customers (admin view)
-  listCustomers(params?: AdminListParams): Promise<PaginatedResult<Customer>>
-  getCustomer(id: string): Promise<Customer>
+  listCustomers(params?: AdminListParams): Promise<PaginatedResult<AdminCustomerRecord>>
+  getCustomer(id: string): Promise<AdminCustomerRecord>
   deleteCustomer(id: string): Promise<void>
 
   // Store settings

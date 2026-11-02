@@ -1,0 +1,522 @@
+{
+  "photos": [
+    {
+      "slug": "owner-blue-door",
+      "id": 4473093,
+      "tags": [
+        "people",
+        "shop"
+      ],
+      "alt": "A shop owner hangs a small welcome sign on a turquoise door"
+    },
+    {
+      "slug": "owner-counter",
+      "id": 28153646,
+      "tags": [
+        "people",
+        "shop"
+      ],
+      "alt": "A shop owner stands at a dark wooden counter, shelves of goods behind her",
+      "crop": {
+        "left": 0.37,
+        "top": 0.16,
+        "width": 0.63,
+        "height": 0.82
+      }
+    },
+    {
+      "slug": "owner-florist",
+      "id": 5414060,
+      "tags": [
+        "people",
+        "shop"
+      ],
+      "alt": "A florist turns the sign to open in her shop window",
+      "crop": {
+        "left": 0.27,
+        "top": 0,
+        "width": 0.49,
+        "height": 0.93
+      }
+    },
+    {
+      "slug": "owner-packing",
+      "id": 6347517,
+      "tags": [
+        "people",
+        "parcels"
+      ],
+      "alt": "A seller kneels on the floor and cuts the tape on a cardboard box"
+    },
+    {
+      "slug": "owner-tiles",
+      "id": 6023598,
+      "tags": [
+        "people",
+        "maker"
+      ],
+      "alt": "A tile painter works on a tile, a wall of azulejos behind her"
+    },
+    {
+      "slug": "maker-studio",
+      "id": 9736483,
+      "tags": [
+        "people",
+        "maker"
+      ],
+      "alt": "A ceramicist carries a bowl across her sunlit studio",
+      "crop": {
+        "left": 0.47,
+        "top": 0,
+        "width": 0.53,
+        "height": 1
+      }
+    },
+    {
+      "slug": "cafe-pour",
+      "id": 5619514,
+      "crop": {
+        "left": 0.17,
+        "top": 0,
+        "width": 0.53,
+        "height": 1
+      },
+      "tags": [
+        "detail",
+        "shop"
+      ],
+      "alt": "A hand pours coffee from a glass carafe into three tumblers"
+    },
+    {
+      "slug": "market-baskets",
+      "id": 33171549,
+      "crop": {
+        "left": 0.211,
+        "top": 0.46,
+        "width": 0.41,
+        "height": 0.305
+      },
+      "tags": [
+        "place",
+        "portugal"
+      ],
+      "alt": "Baskets of fruit and vegetables along a patterned tile floor in a grocer's doorway"
+    },
+    {
+      "slug": "leather-roll",
+      "id": 6653229,
+      "crop": {
+        "left": 0.27,
+        "top": 0,
+        "width": 0.53,
+        "height": 1
+      },
+      "tags": [
+        "detail",
+        "maker"
+      ],
+      "alt": "A leatherworker in an apron rolls up a hide on his bench"
+    },
+    {
+      "slug": "team-workshop",
+      "id": 6461070,
+      "tags": [
+        "people",
+        "team"
+      ],
+      "alt": "A tailor writes up a job in her notebook at the bench while a client waits beside her"
+    },
+    {
+      "slug": "parcel-twine",
+      "id": 4865722,
+      "tags": [
+        "detail",
+        "parcels"
+      ],
+      "alt": "Hands tie twine around a parcel wrapped in brown paper"
+    },
+    {
+      "slug": "keys-door",
+      "id": 40359902,
+      "tags": [
+        "detail",
+        "keys"
+      ],
+      "alt": "An old iron key in the lock of a dark, weathered door"
+    },
+    {
+      "slug": "street-tiles",
+      "id": 30786091,
+      "tags": [
+        "place",
+        "portugal"
+      ],
+      "alt": "A wall of blue and white tiles and green doors along a cobbled street",
+      "crop": {
+        "left": 0.495,
+        "top": 0,
+        "width": 0.505,
+        "height": 0.86
+      }
+    },
+    {
+      "slug": "street-roofs",
+      "id": 19295165,
+      "crop": {
+        "left": 0,
+        "top": 0.28,
+        "width": 1,
+        "height": 0.72
+      },
+      "tags": [
+        "place",
+        "portugal"
+      ],
+      "alt": "Terracotta rooftops of old Lisbon seen from above"
+    },
+    {
+      "slug": "customer-cafe",
+      "id": 7339330,
+      "tags": [
+        "people",
+        "shop"
+      ],
+      "alt": "A customer reads her phone at a wooden café table under tall windows"
+    },
+    {
+      "slug": "workshop-measure",
+      "id": 7480736,
+      "tags": [
+        "people",
+        "maker"
+      ],
+      "alt": "A woodworker in a red beanie sights along a plank, a wall of tools behind him"
+    },
+    {
+      "slug": "pair-wrapping",
+      "id": 5303016,
+      "tags": [
+        "people",
+        "maker"
+      ],
+      "alt": "Two makers roll out brown paper on a long wooden table set with bowls"
+    },
+    {
+      "slug": "tool-rack",
+      "id": 5973920,
+      "tags": [
+        "detail",
+        "maker"
+      ],
+      "alt": "A hand takes a chisel from a rack on a white wall"
+    },
+    {
+      "slug": "street-lane",
+      "id": 3571567,
+      "tags": [
+        "place",
+        "portugal"
+      ],
+      "alt": "A narrow cobbled street between whitewashed houses with ochre trim",
+      "crop": {
+        "left": 0.25,
+        "top": 0.3,
+        "width": 0.66,
+        "height": 0.62
+      }
+    },
+    {
+      "slug": "bench-notes",
+      "id": 5973961,
+      "tags": [
+        "people",
+        "maker"
+      ],
+      "alt": "A woodworker writes notes at his bench, boards leaning on the wall behind him"
+    },
+    {
+      "slug": "shopfront-ladder",
+      "id": 35845514,
+      "crop": {
+        "left": 0,
+        "top": 0.24,
+        "width": 0.72,
+        "height": 0.42
+      },
+      "tags": [
+        "people",
+        "shop"
+      ],
+      "alt": "From a ladder, a woman paints the window of a shopfront hung with red garlands"
+    },
+    {
+      "slug": "maker-jeweler",
+      "id": 7166991,
+      "tags": [
+        "detail",
+        "maker"
+      ],
+      "alt": "A jeweler's hands turn a ring on a tool, a canvas apron behind them"
+    },
+    {
+      "slug": "shop-shelves",
+      "id": 5894029,
+      "tags": [
+        "people",
+        "shop"
+      ],
+      "alt": "A shopkeeper in an apron reaches up to a shelf of plants and pots, a bicycle against the wall beside her"
+    },
+    {
+      "slug": "product-mug",
+      "id": 18724166,
+      "tags": [
+        "product"
+      ],
+      "alt": "A hand-shaped cream mug with a round handle on a dark wooden shelf",
+      "crop": {
+        "left": 0.2,
+        "top": 0.12,
+        "width": 0.75,
+        "height": 0.625
+      }
+    },
+    {
+      "slug": "product-mug-speckled",
+      "id": 28509629,
+      "crop": {
+        "left": 0,
+        "top": 0.1,
+        "width": 0.84,
+        "height": 0.8
+      },
+      "tags": [
+        "product"
+      ],
+      "alt": "Two speckled stoneware mugs with a green glaze on a dark wooden table"
+    },
+    {
+      "slug": "product-bowls",
+      "id": 33661399,
+      "tags": [
+        "product"
+      ],
+      "alt": "A stack of glazed stoneware bowls"
+    },
+    {
+      "slug": "product-plates",
+      "id": 9736509,
+      "tags": [
+        "product"
+      ],
+      "alt": "Terracotta plates resting on a kiln shelf"
+    },
+    {
+      "slug": "product-plate-speckled",
+      "id": 7668384,
+      "tags": [
+        "product"
+      ],
+      "alt": "Speckled plate displayed on draped linen"
+    },
+    {
+      "slug": "product-linen",
+      "id": 4805238,
+      "tags": [
+        "product"
+      ],
+      "alt": "Folded striped linen tied with twine"
+    },
+    {
+      "slug": "product-candle",
+      "id": 7004667,
+      "tags": [
+        "product"
+      ],
+      "alt": "Amber glass candle with a wooden lid on terracotta paper"
+    },
+    {
+      "slug": "product-candles",
+      "id": 7004675,
+      "crop": {
+        "left": 0.35,
+        "top": 0,
+        "width": 0.5333,
+        "height": 1
+      },
+      "tags": [
+        "product"
+      ],
+      "alt": "Three lit amber glass candles on crumpled paper"
+    },
+    {
+      "slug": "product-soap",
+      "id": 6621497,
+      "tags": [
+        "product"
+      ],
+      "alt": "A stack of four handmade soap bars"
+    },
+    {
+      "slug": "product-oil",
+      "id": 6377314,
+      "tags": [
+        "product"
+      ],
+      "alt": "Two ceramic oil bottles on a kitchen shelf"
+    },
+    {
+      "slug": "product-mug-glazed",
+      "id": 30512718,
+      "crop": {
+        "left": 0.06,
+        "top": 0.16,
+        "width": 0.92,
+        "height": 0.7667
+      },
+      "tags": [
+        "product"
+      ],
+      "alt": "A stoneware mug with a speckled white glaze over a bare clay base, filled with coffee"
+    },
+    {
+      "slug": "product-mug-glazed-handle",
+      "id": 30512718,
+      "crop": {
+        "left": 0.47,
+        "top": 0.32,
+        "width": 0.47,
+        "height": 0.3917
+      },
+      "tags": [
+        "product"
+      ],
+      "alt": "The mug's handle up close, and the speckled white glaze stopping at a band of bare clay"
+    },
+    {
+      "slug": "product-mug-glazed-rim",
+      "id": 30512718,
+      "crop": {
+        "left": 0.19,
+        "top": 0.315,
+        "width": 0.58,
+        "height": 0.2578
+      },
+      "tags": [
+        "product"
+      ],
+      "alt": "Close-up of latte art in the speckled stoneware mug"
+    },
+    {
+      "slug": "product-candles-top",
+      "id": 7004673,
+      "tags": [
+        "product"
+      ],
+      "alt": "Three lit amber glass candles seen from above on brown paper"
+    },
+    {
+      "slug": "product-candle-lid",
+      "id": 7004669,
+      "tags": [
+        "product"
+      ],
+      "alt": "An amber glass candle from above, its wooden lid resting beside it"
+    },
+    {
+      "slug": "product-candle-hand",
+      "id": 7004672,
+      "crop": {
+        "left": 0.12,
+        "top": 0,
+        "width": 0.5333,
+        "height": 1
+      },
+      "tags": [
+        "product"
+      ],
+      "alt": "A hand holding the amber glass candle, closed with its wooden lid"
+    },
+    {
+      "slug": "product-linen-fork",
+      "id": 4805235,
+      "tags": [
+        "product"
+      ],
+      "alt": "The striped linen folded on a wooden worktop under a wooden fork and spoon"
+    },
+    {
+      "slug": "product-linen-kitchen",
+      "id": 4805233,
+      "tags": [
+        "product"
+      ],
+      "alt": "The striped linen on a kitchen worktop beside a loaf of bread and glass jars"
+    },
+    {
+      "slug": "product-linen-stone",
+      "id": 4805232,
+      "tags": [
+        "product"
+      ],
+      "alt": "A folded stone-grey linen cloth tied with twine on a wooden worktop"
+    }
+  ],
+  "clips": [
+    {
+      "photo": 40359902,
+      "length": 2.8,
+      "focus": 0.66,
+      "posterAt": 0.2,
+      "crop": {
+        "left": 0,
+        "top": 0.157,
+        "width": 1,
+        "height": 0.843
+      },
+      "tallCrop": {
+        "left": 0,
+        "top": 0,
+        "width": 1,
+        "height": 1
+      },
+      "soften": true
+    },
+    {
+      "id": 5972653,
+      "start": 1,
+      "length": 2.4,
+      "focus": 0.42
+    },
+    {
+      "id": 5756290,
+      "start": 10.6,
+      "length": 3.6,
+      "focus": 0.7
+    },
+    {
+      "id": 10238036,
+      "start": 0.4,
+      "length": 2.6,
+      "focus": 0.8
+    },
+    {
+      "id": 4568767,
+      "start": 5,
+      "length": 2.4,
+      "focus": 0.68,
+      "crop": {
+        "left": 0,
+        "top": 0.16,
+        "width": 0.77,
+        "height": 0.77
+      }
+    },
+    {
+      "id": 6170060,
+      "start": 0.7,
+      "length": 3.6,
+      "focus": 0.6
+    }
+  ]
+}

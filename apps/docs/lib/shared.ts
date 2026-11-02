@@ -5,7 +5,7 @@ export const docsImageRoute = "/og/docs"
 export const docsContentRoute = "/llms.mdx/docs"
 
 export const gitConfig = {
-  user: "prood",
-  repo: "prood",
+  user: "rodrigobarona",
+  repo: "prood-commerce-platform",
   branch: "main",
 }

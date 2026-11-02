@@ -1,10 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { MagnifyingGlassIcon } from "@phosphor-icons/react"
+import { ArrowRightIcon, MagnifyingGlassIcon } from "@phosphor-icons/react"
 import type { Product } from "@prood/types"
+import { Button } from "@prood/ui/components/button"
 import {
+  Command,
   CommandDialog,
   CommandEmpty,
   CommandGroup,
@@ -12,6 +15,7 @@ import {
   CommandItem,
   CommandList,
 } from "@prood/ui/components/command"
+import { ProductInitial } from "@prood/ui/components/product-initial"
 import { formatPrice, localized, resolveProductUrl, type Locale } from "@prood/ui/lib/commerce"
 import { cn } from "@prood/ui/lib/utils"
 
@@ -25,7 +29,7 @@ export interface SearchPaletteProps {
 
 export function SearchPalette({
   onSearch,
-  placeholder = "Search products...",
+  placeholder = "Search products",
   locale = "en",
   className,
 }: SearchPaletteProps) {
@@ -68,52 +72,83 @@ export function SearchPalette({
     }
   }, [query, onSearch])
 
-  function go(product: Product) {
+  function go(href: string) {
     setOpen(false)
-    router.push(resolveProductUrl(product))
+    router.push(href)
   }
+
+  const trimmed = query.trim()
 
   return (
     <>
-      <button
+      <Button
         type="button"
+        variant="ghost"
+        size="icon"
         onClick={() => setOpen(true)}
-        className={cn(
-          "text-muted-foreground hover:bg-muted inline-flex items-center gap-2 rounded-2xl border px-3 py-1.5 text-sm transition-colors",
-          className,
-        )}
+        aria-label={placeholder}
+        className={cn("size-10 [&_svg:not([class*='size-'])]:size-5", className)}
       >
         <MagnifyingGlassIcon />
-        <span className="hidden sm:inline">{placeholder}</span>
-      </button>
+      </Button>
 
-      <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput
-          placeholder={placeholder}
-          value={query}
-          onValueChange={setQuery}
-        />
-        <CommandList>
-          {!loading && query.trim() && results.length === 0 ? (
-            <CommandEmpty>No results found.</CommandEmpty>
-          ) : null}
-          {results.length > 0 ? (
-            <CommandGroup heading="Products">
-              {results.map((product) => (
+      <CommandDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Search"
+        description={placeholder}
+        className="top-[12%] rounded-xl! sm:max-w-xl"
+      >
+        {/* The API has already matched these, in any language, so cmdk mustn't filter again. */}
+        <Command
+          shouldFilter={false}
+          className="rounded-none bg-transparent [&_[data-slot=input-group]]:h-11! [&_[data-slot=input-group]]:border-transparent [&_[data-slot=input-group]]:bg-transparent"
+        >
+          <CommandInput
+            placeholder={placeholder}
+            value={query}
+            onValueChange={setQuery}
+          />
+          <CommandList className="max-h-[60svh]">
+            {!loading && trimmed && results.length === 0 ? (
+              <CommandEmpty>
+                No results for &ldquo;{trimmed}&rdquo;. Check the spelling, or try a shorter search.
+              </CommandEmpty>
+            ) : null}
+            {results.length > 0 ? (
+              <CommandGroup heading="Products">
+                {results.map((product) => (
+                  <CommandItem
+                    key={product.id}
+                    value={product.id}
+                      onSelect={() => go(resolveProductUrl(product))}
+                    className="gap-3 py-2"
+                  >
+                    <span className="bg-muted relative aspect-[4/5] w-10 shrink-0 overflow-hidden rounded-md">
+                      {product.primaryImage ? (
+                        <Image src={product.primaryImage.url} alt="" fill sizes="40px" className="object-cover" />
+                      ) : (
+                        <ProductInitial name={localized(product.name, locale)} className="text-lg" />
+                      )}
+                    </span>
+                    <span className="flex-1 truncate">{localized(product.name, locale)}</span>
+                    <span className="text-muted-foreground text-sm tabular-nums">
+                      {formatPrice(product.price, locale)}
+                    </span>
+                  </CommandItem>
+                ))}
                 <CommandItem
-                  key={product.id}
-                  value={`${localized(product.name, locale)} ${product.id}`}
-                  onSelect={() => go(product)}
+                  value="all-results"
+                  onSelect={() => go(`/products?q=${encodeURIComponent(trimmed)}`)}
+                  className="gap-2 py-2.5"
                 >
-                  <span className="flex-1 truncate">{localized(product.name, locale)}</span>
-                  <span className="text-muted-foreground text-xs">
-                    {formatPrice(product.price, locale)}
-                  </span>
+                  <span className="flex-1">See all results</span>
+                  <ArrowRightIcon className="size-4" />
                 </CommandItem>
-              ))}
-            </CommandGroup>
-          ) : null}
-        </CommandList>
+              </CommandGroup>
+            ) : null}
+          </CommandList>
+        </Command>
       </CommandDialog>
     </>
   )

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import type { StoredSession } from "@prood/checkout-host"
-import { sessionView } from "../session-view"
+import type { Order } from "@prood/types"
+import { orderSummary, sessionView } from "../session-view"
 
 const address = { firstName: "Ana", street1: "Rua 1", city: "Lisboa", country: "PT" }
 
@@ -50,5 +51,45 @@ describe("sessionView", () => {
 
   it("copes with a session nobody has paid yet", () => {
     expect(sessionView({ ...snapshot, paymentSession: null }).paymentSession).toBeNull()
+  })
+})
+
+describe("orderSummary", () => {
+  const order = {
+    orderNumber: "1042",
+    customerId: null,
+    contactEmail: "ana@example.pt",
+    totals: { shipping: { amount: 15, currency: "EUR" } },
+    items: [
+      {
+        id: "i1",
+        name: { en: "Taça" },
+        variantName: null,
+        quantity: 2,
+        totalPrice: { amount: 48, currency: "EUR" },
+      },
+    ],
+  } as unknown as Order
+
+  it("names the order and where its confirmation went", () => {
+    expect(orderSummary(order)).toEqual({
+      number: "1042",
+      contactEmail: "ana@example.pt",
+      emailed: true,
+      items: [{ id: "i1", name: "Taça", variantName: null, quantity: 2, amount: 48 }],
+      shipping: 15,
+    })
+  })
+
+  it("won't name the address for an account, which is emailed elsewhere", () => {
+    expect(orderSummary({ ...order, customerId: "c1" })).toMatchObject({ contactEmail: null, emailed: true })
+  })
+
+  it("doesn't promise an email to a guest who gave no address", () => {
+    expect(orderSummary({ ...order, contactEmail: null })).toMatchObject({ emailed: false })
+  })
+
+  it("has nothing to say for a payment link with no order", () => {
+    expect(orderSummary(null)).toBeNull()
   })
 })

@@ -1,172 +1,169 @@
 /* eslint-disable @eslint-react/no-array-index-key -- static placeholder lists */
+import { Panel } from "@prood/ui/components/panel"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@prood/ui/components/card"
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuSkeleton,
+} from "@prood/ui/components/sidebar"
 import { Skeleton } from "@prood/ui/components/skeleton"
+import { Stat, StatGrid } from "@prood/ui/components/stat-grid"
+import { DetailLayout } from "@prood/ui/components/page-layout"
+import { DashboardFormPage, DashboardPage } from "@/components/layout/dashboard-page"
 
-export function StatCardsSkeleton() {
+function times(count: number) {
+  return Array.from({ length: count }, (_, index) => index)
+}
+
+/** Holds the height of `PageHeader`, so the page doesn't jump when the title arrives. */
+export function PageHeaderSkeleton({ action = false }: { action?: boolean }) {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {Array.from({ length: 4 }).map((_, i) => (
-        <Card key={i}>
-          <CardHeader>
-            <CardDescription>
-              <Skeleton className="h-4 w-16" />
-            </CardDescription>
-            <CardTitle>
-              <Skeleton className="h-8 w-24" />
-            </CardTitle>
-          </CardHeader>
-        </Card>
-      ))}
+    <div className="flex items-start justify-between gap-6">
+      <div className="min-w-0">
+        <Skeleton className="h-8 w-40" />
+        <Skeleton className="mt-1 h-5 w-64 max-w-full" />
+      </div>
+      {action ? <Skeleton className="h-9 w-28 shrink-0 rounded-lg" /> : null}
     </div>
   )
 }
 
-export function RecentOrdersSkeleton() {
+export function StatsSkeleton() {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Recent orders</CardTitle>
-        <CardDescription>Latest activity in your store.</CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div
-            key={i}
-            className="flex items-center justify-between border-b pb-3 last:border-0 last:pb-0"
-          >
-            <div className="flex flex-col gap-1">
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-3 w-24" />
-            </div>
-            <div className="flex items-center gap-3">
-              <Skeleton className="h-5 w-16 rounded-full" />
-              <Skeleton className="h-4 w-14" />
-            </div>
-          </div>
-        ))}
-      </CardContent>
-    </Card>
+    <StatGrid className="grid-cols-2">
+      {times(4).map((index) => (
+        <Stat
+          key={index}
+          label={<Skeleton className="h-5 w-24" />}
+          value={<Skeleton className="h-9 w-20" />}
+          hint={<Skeleton className="h-4 w-16" />}
+        />
+      ))}
+    </StatGrid>
   )
 }
 
-export function TablePageSkeleton({
-  rows = 5,
-  columns = 5,
-}: {
-  rows?: number
-  columns?: number
-}) {
+export function TablePanelSkeleton({ rows = 6 }: { rows?: number }) {
   return (
-    <Card>
-      <CardContent className="px-0">
-        <div className="w-full">
-          <div className="flex items-center gap-4 border-b px-5 py-3">
-            {Array.from({ length: columns }).map((_, i) => (
-              <div key={i} className="flex-1">
-                <Skeleton className="h-4 w-16" />
-              </div>
-            ))}
-          </div>
-          {Array.from({ length: rows }).map((_, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-4 border-b px-5 py-4 last:border-0"
-            >
-              {Array.from({ length: columns }).map((_, j) => (
-                <div key={j} className="flex-1">
-                  <Skeleton className="h-4 w-20" />
-                </div>
-              ))}
-            </div>
-          ))}
+    <Panel flush>
+      <div className="flex items-center justify-between gap-4 border-b border-border px-5 py-3">
+        <Skeleton className="h-4 w-24" />
+        <Skeleton className="h-4 w-16" />
+      </div>
+      {times(rows).map((index) => (
+        <div
+          key={index}
+          className="flex items-center justify-between gap-4 border-b border-border px-5 py-3.5 last:border-0"
+        >
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-5.5 w-20 rounded-full" />
         </div>
-      </CardContent>
-    </Card>
+      ))}
+    </Panel>
+  )
+}
+
+export function FormPanelSkeleton({ fields = 3 }: { fields?: number }) {
+  return (
+    <Panel>
+      <div className="flex flex-col gap-4">
+        {times(fields).map((index) => (
+          <div key={index} className="flex flex-col gap-1.5">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-9 w-full rounded-lg" />
+          </div>
+        ))}
+      </div>
+    </Panel>
   )
 }
 
 export function FormPageSkeleton() {
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
-      <div className="flex flex-col gap-6">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="flex flex-col gap-2">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-10 w-full rounded-md" />
-          </div>
-        ))}
-      </div>
-      <Skeleton className="h-10 w-28 rounded-md" />
-    </div>
+    <>
+      <FormPanelSkeleton fields={4} />
+      <FormPanelSkeleton />
+    </>
+  )
+}
+
+export function DetailSkeleton() {
+  return (
+    <DetailLayout
+      main={<FormPanelSkeleton fields={4} />}
+      aside={
+        <>
+          <FormPanelSkeleton fields={2} />
+          <FormPanelSkeleton fields={1} />
+        </>
+      }
+    />
   )
 }
 
 export function IntegrationsSkeleton() {
-  return (
-    <div className="flex flex-col gap-8">
-      {Array.from({ length: 3 }).map((_, i) => (
-        <section key={i} className="flex flex-col gap-3">
-          <Skeleton className="h-4 w-28" />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 3 }).map((_, j) => (
-              <Card key={j} className="h-full">
-                <CardHeader>
-                  <div className="flex items-center justify-between gap-2">
-                    <Skeleton className="h-5 w-24" />
-                    <Skeleton className="h-5 w-20 rounded-full" />
-                  </div>
-                  <Skeleton className="mt-1 h-4 w-full" />
-                </CardHeader>
-              </Card>
-            ))}
-          </div>
-        </section>
-      ))}
-    </div>
-  )
+  return <TablePanelSkeleton rows={3} />
 }
 
 export function DomainsSkeleton() {
   return (
-    <div className="flex flex-col gap-6">
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-5 w-40" />
-          <Skeleton className="h-4 w-64" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-8 w-48 rounded-lg" />
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-5 w-32" />
-          <Skeleton className="h-4 w-80" />
-        </CardHeader>
-        <CardContent>
-          <Skeleton className="h-10 w-full rounded-md" />
-        </CardContent>
-      </Card>
-    </div>
+    <>
+      <FormPanelSkeleton fields={1} />
+      <TablePanelSkeleton rows={2} />
+    </>
   )
 }
 
 export function BillingSkeleton() {
+  return <FormPanelSkeleton fields={3} />
+}
+
+/** Full-page fallbacks for `loading.tsx` and the shell. */
+export function PageSkeleton({ action = false }: { action?: boolean }) {
   return (
-    <div className="flex flex-col items-center gap-4 py-12">
-      <Skeleton className="h-12 w-12 rounded-full" />
-      <Skeleton className="h-6 w-24" />
-      <Skeleton className="h-4 w-72" />
-      <div className="mt-4 w-full max-w-lg space-y-4">
-        <Skeleton className="h-32 w-full rounded-lg" />
-        <Skeleton className="h-4 w-40" />
-      </div>
-    </div>
+    <DashboardPage>
+      <PageHeaderSkeleton action={action} />
+      <TablePanelSkeleton />
+    </DashboardPage>
+  )
+}
+
+export function FormRouteSkeleton() {
+  return (
+    <DashboardFormPage>
+      <PageHeaderSkeleton />
+      <FormPageSkeleton />
+    </DashboardFormPage>
+  )
+}
+
+export function SidebarSkeleton() {
+  return (
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="gap-3 p-3">
+        <Skeleton className="h-8 w-24 rounded-lg" />
+        <Skeleton className="h-12 w-full rounded-lg" />
+      </SidebarHeader>
+      <SidebarContent>
+        {[4, 3, 3].map((items, group) => (
+          <SidebarGroup key={group} className="px-3 py-2">
+            <SidebarMenu>
+              {times(items).map((index) => (
+                <SidebarMenuItem key={index}>
+                  <SidebarMenuSkeleton showIcon />
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroup>
+        ))}
+      </SidebarContent>
+      <SidebarFooter className="border-t border-sidebar-border p-3">
+        <Skeleton className="h-12 w-full rounded-lg" />
+      </SidebarFooter>
+    </Sidebar>
   )
 }

@@ -46,7 +46,7 @@ export function createCatalogDomain() {
       ]
 
       if (params.query) {
-        conditions.push({ field: 'name', op: 'search', value: `%${params.query}%` })
+        conditions.push({ field: 'name', op: 'search', value: params.query })
       }
       if (params.categoryId) {
         const productIds = await findProductIdsByCategory(params.categoryId)

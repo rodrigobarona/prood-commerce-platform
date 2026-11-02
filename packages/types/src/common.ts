@@ -100,6 +100,8 @@ export class CommerceError extends Error {
     public readonly code: CommerceErrorCode,
     public readonly statusCode?: number,
     public readonly cause?: unknown,
+    /** Seconds until a refused request is worth repeating, for a `Retry-After` header. */
+    public readonly retryAfter?: number,
   ) {
     super(message)
     // Restore prototype chain for instanceof checks after transpilation

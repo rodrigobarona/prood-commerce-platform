@@ -20,8 +20,8 @@
     "@prood/auth": "workspace:*",
     "@prood/billing": "workspace:*",
     "@prood/commerce": "workspace:*",
-    "@prood/platform": "workspace:*",
     "@prood/notification-resend": "workspace:*",
+    "@prood/platform": "workspace:*",
     "@prood/types": "workspace:*",
     "better-auth": "catalog:",
     "drizzle-orm": "catalog:",
@@ -35,12 +35,13 @@
     "@prood/eslint-config": "workspace:^",
     "@prood/typescript-config": "workspace:*",
     "@types/node": "catalog:",
-    "vite": "catalog:",
-    "vitest": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "@upstash/redis": "catalog:",
     "eslint": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=24"

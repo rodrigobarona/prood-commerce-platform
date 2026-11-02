@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server"
-import { toErrorResponse } from "@prood/types"
+import { CommerceError, toErrorResponse } from "@prood/types"
+
+/** Without this, a path with no route gets Next's HTML page instead of the API's error shape. */
+export function routeNotFound(): NextResponse {
+  return NextResponse.json(
+    { code: "NOT_FOUND", message: "There's no API route here. The routes are listed at /v1/openapi.json." },
+    { status: 404 }
+  )
+}
 
 /** Build a JSON error response from any thrown error (Commerce/Zod/unknown). */
 export function errorResponse(err: unknown): NextResponse {
@@ -17,5 +25,10 @@ export function errorResponse(err: unknown): NextResponse {
   ) {
     body.message = err.message
   }
-  return NextResponse.json(body, { status })
+  return NextResponse.json(body, { status, headers: retryHeaders(err) })
+}
+
+/** A refusal that's only for now says when to come back. */
+export function retryHeaders(err: unknown): HeadersInit | undefined {
+  return err instanceof CommerceError && err.retryAfter ? { "Retry-After": String(err.retryAfter) } : undefined
 }

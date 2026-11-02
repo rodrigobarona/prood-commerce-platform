@@ -2,7 +2,7 @@
 
 import { ListIcon, XIcon } from "@phosphor-icons/react"
 import { usePathname } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import { Button } from "@prood/ui/components/button"
 import { NavLink } from "@/components/nav-link"
@@ -13,19 +13,23 @@ export function MobileNav() {
   // The menu belongs to the page it was opened on, so navigating closes it.
   const [openOn, setOpenOn] = useState<string | null>(null)
   const open = openOn === pathname
+  const toggleRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     if (!open) return
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpenOn(null)
+      if (event.key !== "Escape") return
+      setOpenOn(null)
+      toggleRef.current?.focus()
     }
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
   }, [open])
 
   return (
-    <div className="md:hidden">
+    <div className="lg:hidden">
       <Button
+        ref={toggleRef}
         type="button"
         variant="ghost"
         size="icon-lg"

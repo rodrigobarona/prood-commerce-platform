@@ -2,102 +2,66 @@ import { CheckIcon, MinusIcon } from "@phosphor-icons/react/dist/ssr"
 import { Fragment } from "react"
 
 import {
-  annualBillingDiscountPercent,
   getMarketingTier,
   planIds,
+  planSlipLines,
   pricingFeatureGroups,
   pricingFeatureRows,
-  type MarketingTier,
 } from "@prood/billing"
 import { Button } from "@prood/ui/components/button"
-import { cn } from "@prood/ui/lib/utils"
+import { Receipt } from "@prood/ui/components/receipt"
 import { contactHref, siteConfig } from "@/lib/site"
 
-function ctaHref(tier: MarketingTier) {
-  return tier.ctaHref === "contact" ? contactHref(`${tier.name} plan`) : siteConfig.registerUrl
+/** The bar the slips hang from. */
+function Rail() {
+  return <div aria-hidden className="relative z-10 h-2.5 rounded-full bg-foreground" />
 }
 
-function Price({ tier, className }: { tier: MarketingTier; className?: string }) {
-  return (
-    <div className={className}>
-      <p className="flex items-baseline gap-1.5">
-        <span className="font-heading text-4xl font-semibold tracking-[-0.03em] tabular-nums">
-          {tier.price}
-        </span>
-        <span className="text-sm text-muted-foreground">{tier.period}</span>
-      </p>
-      <p className="mt-1 h-5 text-sm text-muted-foreground">{tier.billingNote}</p>
-    </div>
+/** Slips hang side by side, so each casts a short shadow. */
+const SLIP = "max-w-none drop-shadow-md drop-shadow-ink/15"
+
+/** A paid slip says it can't be bought, and the Agency slip says what to do instead. */
+function PaidFooter({ id }: { id: string }) {
+  return id === "agency" ? (
+    <>
+      Can&apos;t be bought yet. Running several client stores?{" "}
+      <a href={contactHref("Several client stores")} className="underline underline-offset-2">
+        Email us
+      </a>
+      .
+    </>
+  ) : (
+    "Can't be bought yet."
   )
 }
 
-/**
- * Plan cards with a monthly/yearly switch built from radio inputs and
- * `:has()`, so the page stays a Server Component and works without JS.
- */
+/** Free is the one thing you can act on today. The rest hang beside it, marked as coming. */
 export function PricingPlans() {
   return (
-    <div className="group/plans">
-      <fieldset className="mx-auto flex w-fit items-center gap-1 rounded-full border border-border bg-card p-1">
-        <legend className="sr-only">Billing period</legend>
-        {(["monthly", "annual"] as const).map((interval) => (
-          <label
-            key={interval}
-            className="relative cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium text-muted-foreground transition-colors has-checked:bg-primary has-checked:text-primary-foreground has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring"
-          >
-            <input
-              type="radio"
-              name="billing-period"
-              value={interval}
-              defaultChecked={interval === "monthly"}
-              className="sr-only"
-            />
-            {interval === "monthly" ? "Monthly" : `Yearly, save ${annualBillingDiscountPercent}%`}
-          </label>
-        ))}
-      </fieldset>
-
-      <ul className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div>
+      <Rail />
+      <ul className="-mt-1 grid items-start gap-x-4 gap-y-8 px-2 md:grid-cols-2 xl:grid-cols-4">
         {planIds.map((id) => {
-          const monthly = getMarketingTier(id, "monthly")
-          const annual = getMarketingTier(id, "annual")
+          const tier = getMarketingTier(id)
+          const free = id === "free"
           return (
-            <li
-              key={id}
-              className={cn(
-                "relative flex flex-col rounded-xl border bg-card p-6",
-                monthly.highlighted ? "border-foreground shadow-[0_0_0_1px_var(--foreground)]" : "border-border"
-              )}
-            >
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="text-xl font-semibold">{monthly.name}</h3>
-                {monthly.badge ? (
-                  <span className="rounded-full bg-brand-subtle px-2.5 py-0.5 text-xs font-medium text-brand-subtle-foreground">
-                    {monthly.badge}
-                  </span>
-                ) : null}
-              </div>
-              <p className="mt-2 text-[0.9375rem] leading-6 text-muted-foreground md:min-h-18">
-                {monthly.description}
-              </p>
-              <Price tier={monthly} className="mt-6 group-has-[input[value=annual]:checked]/plans:hidden" />
-              <Price tier={annual} className="mt-6 hidden group-has-[input[value=annual]:checked]/plans:block" />
-              <Button
-                variant={monthly.highlighted ? "brand" : "outline"}
-                size="lg"
-                className="mt-6 h-10 w-full"
-                asChild
+            <li key={id}>
+              <Receipt
+                className={SLIP}
+                heading={<span className="font-heading text-2xl tracking-[-0.01em]">{tier.name}</span>}
+                meta={free ? <span className="invisible">Coming</span> : "Coming"}
+                lines={[
+                  ...planSlipLines(id),
+                  { label: free ? "To pay" : "Planned price", value: `${tier.price} ${tier.period}`, total: true },
+                ]}
+                footer={free ? "Every store starts here." : <PaidFooter id={id} />}
               >
-                <a href={ctaHref(monthly)}>{monthly.cta}</a>
-              </Button>
-              <ul className="mt-6 space-y-2.5 border-t border-border pt-6">
-                {monthly.highlights.map((item) => (
-                  <li key={item} className="flex gap-2.5 text-[0.9375rem]">
-                    <CheckIcon className="mt-1 size-4 shrink-0 text-brand" weight="bold" aria-hidden />
-                    {item}
-                  </li>
-                ))}
-              </ul>
+                {free ? (
+                  <Button variant="brand" size="lg" className="mt-4 h-10 w-full font-sans" asChild>
+                    <a href={siteConfig.registerUrl}>Start free</a>
+                  </Button>
+                ) : null}
+              </Receipt>
             </li>
           )
         })}
@@ -106,26 +70,31 @@ export function PricingPlans() {
   )
 }
 
-/** Compact plan strip for the home page. */
+/** Compact plan slips for the home page. */
 export function PricingSummary() {
   return (
-    <ul className="grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
-      {planIds.map((id) => {
-        const tier = getMarketingTier(id, "monthly")
-        return (
-          <li key={id} className="bg-card p-6">
-            <h3 className="font-sans text-base font-semibold">{tier.name}</h3>
-            <p className="mt-3 flex items-baseline gap-1.5">
-              <span className="font-heading text-3xl font-semibold tracking-[-0.03em] tabular-nums">
-                {tier.price}
-              </span>
-              <span className="text-sm text-muted-foreground">{tier.period}</span>
-            </p>
-            <p className="mt-3 text-[0.9375rem] leading-6 text-muted-foreground">{tier.description}</p>
-          </li>
-        )
-      })}
-    </ul>
+    <div>
+      <Rail />
+      <ul className="-mt-1 grid items-start gap-x-4 gap-y-8 px-2 sm:grid-cols-2 lg:grid-cols-4">
+        {planIds.map((id) => {
+          const tier = getMarketingTier(id)
+          const free = id === "free"
+          return (
+            <li key={id}>
+              <Receipt
+                className={SLIP}
+                heading={<span className="font-heading text-2xl tracking-[-0.01em]">{tier.name}</span>}
+                meta={free ? <span className="invisible">Coming</span> : "Coming"}
+                lines={[
+                  ...planSlipLines(id).slice(0, 4),
+                  { label: free ? "To pay" : "Planned price", value: `${tier.price} ${tier.period}`, total: true },
+                ]}
+              />
+            </li>
+          )
+        })}
+      </ul>
+    </div>
   )
 }
 
@@ -142,10 +111,15 @@ function Cell({ value, plan }: { value: string | boolean; plan: string }) {
 }
 
 export function PricingTable() {
-  const tiers = planIds.map((id) => getMarketingTier(id, "monthly"))
+  const tiers = planIds.map((id) => getMarketingTier(id))
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-card">
+    <div
+      role="region"
+      tabIndex={0}
+      aria-label="Plan limits and features compared. Scroll sideways for every plan."
+      className="scroll-cue overflow-x-auto rounded-xl border border-border bg-card"
+    >
       <table className="w-full min-w-[42rem] border-collapse text-left text-[0.9375rem]">
         <caption className="sr-only">Plan limits and features compared</caption>
         <thead>

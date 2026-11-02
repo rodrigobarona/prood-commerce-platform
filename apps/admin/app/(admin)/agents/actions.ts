@@ -1,20 +1,9 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { deactivateAgent } from "@/lib/admin-queries"
-import { requireAdmin } from "@/lib/auth"
+import { revokeAgent } from "@/lib/admin-queries"
 
-export async function deactivateAgentAction(formData: FormData): Promise<void> {
-  const session = await requireAdmin()
-  if (!session) throw new Error("Unauthorized")
-
-  const id = String(formData.get("id") ?? "")
-  if (!id) return
-  try {
-    await deactivateAgent(id)
-    revalidatePath("/agents")
-  } catch (error) {
-    console.error("[deactivateAgentAction] deactivateAgent failed:", error)
-    throw new Error("Could not deactivate agent. Please try again.", { cause: error })
-  }
+export async function revokeAgentAction(id: string): Promise<void> {
+  await revokeAgent(id)
+  revalidatePath("/agents")
 }

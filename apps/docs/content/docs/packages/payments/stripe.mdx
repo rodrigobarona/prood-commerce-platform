@@ -1,15 +1,13 @@
 ---
 title: "@prood/payment-stripe"
-description: Stripe Payment Element provider via PaymentIntents — the default payment gateway.
+description: Stripe provider using Checkout Sessions with the embedded Payment Element.
 ---
 
-`@prood/payment-stripe` implements the `PaymentProvider` interface for Stripe, using the Payment Element and PaymentIntents API.
+`@prood/payment-stripe` implements the `PaymentProvider` interface for Stripe, using the Checkout Sessions API with the embedded Payment Element.
 
 ## Installation
 
-```bash
-pnpm add @prood/payment-stripe
-```
+Workspace package. Available from the source repo for now.
 
 ## Usage
 
@@ -17,43 +15,45 @@ pnpm add @prood/payment-stripe
 import { StripePaymentProvider } from '@prood/payment-stripe'
 
 const provider = new StripePaymentProvider({
-  secretKey: process.env.STRIPE_SECRET_KEY!,
-  webhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
-  publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+  secretKey: config.secretKey,
+  webhookSecret: config.webhookSecret,
+  publishableKey: config.publishableKey,
 })
 ```
 
 Via commerce factory (preferred in apps):
 
 ```ts
-import { getPaymentProvider } from '@prood/commerce'
-const provider = await getPaymentProvider('stripe', orgId)
+import { getTenantPaymentProvider } from '@prood/commerce'
+const { provider } = await getTenantPaymentProvider(orgId, 'stripe')
 ```
 
 ## Configuration
 
-| Field | Env fallback | Required | Description |
-| --- | --- | --- | --- |
-| `secretKey` | `STRIPE_SECRET_KEY` | Yes | Server-side secret key |
-| `webhookSecret` | `STRIPE_WEBHOOK_SECRET` | Webhooks | Webhook signing secret |
-| `publishableKey` | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Client UI | Publishable key for Payment Element |
+| Field | Required | Description |
+| --- | --- | --- |
+| `secretKey` | Yes | Server-side secret key |
+| `webhookSecret` | Webhooks | Signing secret |
+| `publishableKey` | Client UI | Publishable key for Payment Element |
 
-Per-tenant overrides via dashboard Integrations → Stripe.
+Each store enters these under Integrations in the dashboard. There is no environment fallback.
 
 ## Payment flow
 
-1. `createSession()` → creates Stripe PaymentIntent
-2. Client renders Payment Element with `clientSecret`
+1. `createSession()` → creates a Checkout Session
+2. Client renders the Payment Element with its `clientSecret`
 3. Customer submits → Stripe handles 3DS if required
-4. `confirmSession()` → verifies PaymentIntent status
-5. Webhook `payment_intent.succeeded` → async confirmation
+4. `confirmSession()` → reads the Checkout Session's status
+5. Webhook `checkout.session.completed` → the source of truth
 
 ## Webhook events
 
 | Event | Action |
 | --- | --- |
-| `payment_intent.succeeded` | Mark order as confirmed |
-| `payment_intent.payment_failed` | Mark order as failed |
+| `checkout.session.completed` | `payment.captured` when paid, otherwise `payment.authorized` |
+| `checkout.session.async_payment_succeeded` | `payment.captured` |
+| `checkout.session.async_payment_failed` | `payment.failed` |
+| `checkout.session.expired` | `payment.cancelled` |
 | `charge.refunded` | Record a refund, including one made in the Stripe dashboard. Stripe's refunded totals decide between `refunded` and `partially_refunded` |
 
 Webhook URL: `https://checkout.example.com/api/webhooks/stripe/{orgId}`

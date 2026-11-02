@@ -10,8 +10,9 @@ import {
   useState,
   type ReactNode,
 } from "react"
-import type { Cart, CartItem, Product } from "@prood/types"
+import type { Cart, CartItem, PaymentMethodKind, Product } from "@prood/types"
 import { CartDrawer } from "@prood/ui/components/cart-drawer"
+import { paymentNote } from "@prood/ui/lib/commerce"
 import { toast } from "sonner"
 import { latestOnly } from "@/lib/latest-only"
 import { STORE_CLOSED_MESSAGE, canCheckOut } from "@/lib/store-status"
@@ -25,6 +26,8 @@ interface AddItemInput {
 interface CartContextValue {
   cart: Cart | null
   canTakeOrders: boolean
+  /** How the store takes payment, in a sentence, when that's known. */
+  paymentNote: string | null
   itemCount: number
   loading: boolean
   hydrating: boolean
@@ -34,8 +37,6 @@ interface CartContextValue {
   addProduct: (product: Product, quantity?: number) => Promise<boolean>
   updateItem: (itemId: string, quantity: number) => Promise<void>
   removeItem: (itemId: string) => Promise<void>
-  applyCoupon: (code: string) => Promise<void>
-  removeCoupon: () => Promise<void>
   /** Rejects if the cart couldn't be updated, so checkout can stop and say so. */
   setShippingMethod: (methodId: string) => Promise<void>
   refresh: () => Promise<void>
@@ -119,16 +120,20 @@ function applyOptimisticRemove(cart: Cart, itemId: string): Cart {
 
 export function CartProvider({
   canTakeOrders,
+  paymentMethods = [],
   children,
 }: {
   canTakeOrders: boolean
+  paymentMethods?: PaymentMethodKind[]
   children: ReactNode
 }) {
+  const payment = paymentNote(paymentMethods)
   const [cart, setCart] = useState<Cart | null>(null)
   const [loading, setLoading] = useState(false)
   const [hydrating, setHydrating] = useState(true)
   const [open, setOpen] = useState(false)
   const snapshotRef = useRef<Cart | null>(null)
+  const returnFocusRef = useRef<Element | null>(null)
 
   const refresh = useCallback(async () => {
     try {
@@ -173,6 +178,8 @@ export function CartProvider({
 
   const addItem = useCallback(
     async (input: AddItemInput) => {
+      // Before the button disables itself and gives up focus.
+      returnFocusRef.current = document.activeElement
       try {
         await mutate(
           fetch(`${API}/items`, {
@@ -237,33 +244,6 @@ export function CartProvider({
     [cart, mutate, rollback],
   )
 
-  const applyCoupon = useCallback(
-    async (code: string) => {
-      try {
-        await mutate(
-          fetch(`${API}/coupon`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ code }),
-          }),
-        )
-        toast.success("Coupon applied")
-      } catch (err) {
-        toast.error((err as Error).message)
-      }
-    },
-    [mutate],
-  )
-
-  const removeCoupon = useCallback(async () => {
-    try {
-      await mutate(fetch(`${API}/coupon`, { method: "DELETE" }))
-      toast.success("Coupon removed")
-    } catch (err) {
-      toast.error((err as Error).message)
-    }
-  }, [mutate])
-
   const setShippingMethod = useMemo(
     () =>
       latestOnly((methodId: string) =>
@@ -278,21 +258,35 @@ export function CartProvider({
     [mutate],
   )
 
+  const openDrawer = useCallback(() => {
+    returnFocusRef.current = document.activeElement
+    setOpen(true)
+  }, [])
+
+  // Nothing here is the sheet's own trigger, so it can't find its way back alone.
+  const returnFocus = useCallback(() => {
+    const opener = returnFocusRef.current
+    const target =
+      opener instanceof HTMLElement && opener !== document.body && opener.isConnected && !opener.matches(":disabled")
+        ? opener
+        : document.querySelector<HTMLElement>("[data-cart-trigger]")
+    target?.focus()
+  }, [])
+
   return (
     <CartContext
       value={{
         cart,
         canTakeOrders,
+        paymentNote: payment,
         itemCount: cart?.itemCount ?? 0,
         loading,
         hydrating,
-        openDrawer: () => setOpen(true),
+        openDrawer,
         addItem,
         addProduct,
         updateItem,
         removeItem,
-        applyCoupon,
-        removeCoupon,
         setShippingMethod,
         refresh,
       }}
@@ -301,9 +295,11 @@ export function CartProvider({
       <CartDrawer
         open={open}
         onOpenChange={setOpen}
+        onCloseAutoFocus={returnFocus}
         cart={cart}
         loading={loading}
         checkoutDisabledReason={canCheckOut(canTakeOrders, cart) ? undefined : STORE_CLOSED_MESSAGE}
+        paymentNote={payment}
         onUpdateQuantity={updateItem}
         onRemove={removeItem}
       />

@@ -3,13 +3,11 @@ title: "@prood/payment-easypay"
 description: Easypay payment provider for Portugal — Multibanco, MB WAY, and credit card.
 ---
 
-`@prood/payment-easypay` implements the `PaymentProvider` interface for [Easypay](https://www.easypay.pt/) — a Portuguese payment gateway supporting Multibanco references, MB WAY, and credit card.
+`@prood/payment-easypay` implements the `PaymentProvider` interface for [Easypay](https://www.easypay.pt/) — a Portuguese payment provider supporting Multibanco references, MB WAY, and credit card.
 
 ## Installation
 
-```bash
-pnpm add @prood/payment-easypay
-```
+Workspace package. Available from the source repo for now.
 
 ## Usage
 
@@ -17,19 +15,21 @@ pnpm add @prood/payment-easypay
 import { EasypayPaymentProvider } from '@prood/payment-easypay'
 
 const provider = new EasypayPaymentProvider({
-  accountId: process.env.EASYPAY_ACCOUNT_ID!,
-  apiKey: process.env.EASYPAY_API_KEY!,
-  baseUrl: process.env.EASYPAY_BASE_URL ?? 'https://api.prod.easypay.pt',
+  accountId: config.accountId,
+  apiKey: config.apiKey,
+  baseUrl: config.baseUrl,
 })
 ```
 
 ## Configuration
 
-| Field | Env var | Description |
-| --- | --- | --- |
-| `accountId` | `EASYPAY_ACCOUNT_ID` | Easypay account ID |
-| `apiKey` | `EASYPAY_API_KEY` | API key |
-| `baseUrl` | `EASYPAY_BASE_URL` | API base URL |
+| Field | Description |
+| --- | --- |
+| `accountId` | Easypay account ID |
+| `apiKey` | API key |
+| `baseUrl` | API base URL. Optional, defaults to live |
+
+Each store enters these under Integrations in the dashboard. There is no environment fallback.
 
 ### Environments
 
@@ -83,9 +83,9 @@ Easypay's refund notification carries the refund's id, not the payment's, so `ve
 ## Factory usage
 
 ```ts
-import { getPaymentProvider } from '@prood/commerce'
+import { getTenantPaymentProvider } from '@prood/commerce'
 
-const provider = await getPaymentProvider('easypay', orgId)
+const { provider } = await getTenantPaymentProvider(orgId, 'easypay')
 ```
 
 ## Payment flow

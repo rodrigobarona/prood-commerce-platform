@@ -1,0 +1,125 @@
+---
+title: Environment variables
+description: Complete reference for every environment variable used across Prood applications.
+---
+
+Prood uses a **single root** `.env.local` file for local development. Run `pnpm env:link` to generate ignored `apps/*/.env.local` files with app-specific auth URL overrides.
+
+## Database
+
+| Variable | Required | Used by | Description |
+| --- | --- | --- | --- |
+| `DATABASE_URL` | Yes | All apps | Neon Postgres connection string. Shared by commerce data (`@prood/platform`) and Better Auth tables. |
+
+```bash
+DATABASE_URL="postgresql://user:password@host/db?sslmode=require"
+```
+
+## Multi-tenancy
+
+| Variable | Required | Used by | Description |
+| --- | --- | --- | --- |
+| `NEXT_PUBLIC_PLATFORM_DOMAIN` | Prod | Storefront, Dashboard, API | Apex for merchant storefront subdomains only (`{slug}.prood.app`). Platform services run on `prood.com`. Example: `prood.app`. |
+
+## Storage
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `S3_ENDPOINT` | — | S3-compatible endpoint (R2, AWS, MinIO) |
+| `S3_BUCKET` | — | Bucket name |
+| `S3_ACCESS_KEY_ID` | — | Access key |
+| `S3_SECRET_ACCESS_KEY` | — | Secret key |
+| `S3_PUBLIC_URL` | — | Public URL for uploaded assets (required for S3) |
+
+Files uploaded through `uploadForTenant()` are namespaced per tenant: `org/<orgId>/…`.
+
+## Authentication (Better Auth)
+
+| Variable | Required | Used by | Description |
+| --- | --- | --- | --- |
+| `BETTER_AUTH_SECRET` | Yes | API, dashboard, admin, storefront | Session signing secret. Generate: `openssl rand -base64 32` |
+| `AUTH_PROXY_SECRET` | Prod | API, dashboard, admin | Dashboard and admin send it in a header next to the client address they pass to the API. The API believes that address only when the secret matches, and keys auth rate limits on it. Use the same value on all three. Required in production. Generate: `openssl rand -base64 32` |
+| `BETTER_AUTH_URL` | Yes | API, dashboard, admin | Public origin of the API, which issues all merchant sessions: `http://localhost:3005`. Do not set it on the storefront, which infers its origin per store. |
+| `NEXT_PUBLIC_AUTH_URL` | Yes | Dashboard, admin | Origin their auth proxies forward sign-in/sign-up/org ops to. Same as API: `http://localhost:3005` |
+| `NEXT_PUBLIC_DASHBOARD_URL` | Yes | API, dashboard | Merchant admin URL, e.g. `https://dashboard.prood.com`. On Vercel preview deploys, set this on the **API** project to your dashboard URL (e.g. `https://dashboard-prood.vercel.app`). |
+| `NEXT_PUBLIC_ADMIN_URL` | Yes | API, admin | Platform admin URL, e.g. `https://admin.prood.com`. |
+| `NEXT_PUBLIC_STOREFRONT_URL` | Yes | API, dashboard, storefront | Storefront **apex**, e.g. `https://prood.app`. Stores are its subdomains, so never a single store's host. |
+| `AUTH_COOKIE_DOMAIN` | Prod | API | Shared cookie domain for dashboard + API on `*.prood.com`, e.g. `.prood.com`. Unset locally and on `*.vercel.app` preview URLs (browsers cannot share cookies across separate `*.vercel.app` hostnames). |
+
+### Seed credentials
+
+| Variable | Description |
+| --- | --- |
+| `ADMIN_EMAIL` | Initial platform admin email (used by `pnpm db:seed`) |
+| `ADMIN_PASSWORD` | Initial platform admin password |
+
+## Payments
+
+There are no payment environment variables. Each store connects its own account in the dashboard, under Integrations, and the credentials are stored encrypted in `integration_config`. See [Payment integration](/docs/guides/payment-integration).
+
+## Checkout app
+
+| Variable | Required | Description |
+| --- | --- | --- |
+| `CHECKOUT_URL` | Yes | Public URL of `apps/checkout`. Storefront redirects here after order placement. Default: `http://localhost:3004` |
+| `CHECKOUT_API_SECRET` | Yes | Shared secret between storefront and checkout. Sent as `x-checkout-secret` header. Generate: `openssl rand -base64 32` |
+| `COMMERCE_API_URL` | Yes | API base for webhook forwarding. Default: `http://localhost:3005/v1` |
+
+## Upstash Redis
+
+| Variable | Required | Used by | Description |
+| --- | --- | --- | --- |
+| `KV_REST_API_URL` | Checkout, production auth | `apps/checkout`, `apps/api`, `apps/storefront` | Redis REST endpoint for checkout sessions and auth rate limits |
+| `KV_REST_API_TOKEN` | Checkout, production auth | `apps/checkout`, `apps/api`, `apps/storefront` | Redis REST token |
+
+Checkout sessions (`@prood/checkout-host`) are persisted in Redis with a configurable TTL. Without Redis, the checkout app cannot create or load sessions. The API and the storefront each keep their auth rate limits in the same Redis, because serverless instances don't share memory. Without it they count in memory, which is fine locally and not in production.
+
+## Dashboard (Vercel domains)
+
+Optional for local dev; required for custom domain provisioning in production:
+
+| Variable | Description |
+| --- | --- |
+| `VERCEL_TOKEN` | Vercel API token |
+| `STOREFRONT_VERCEL_PROJECT_ID` | Storefront Vercel project ID. Do not use Vercel's injected `VERCEL_PROJECT_ID`; it points at the current project, not necessarily the storefront. |
+| `VERCEL_TEAM_ID` | Vercel team ID (if applicable) |
+
+## Commerce API
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `COMMERCE_API_URL` | `http://localhost:3005/v1` | Base URL for `@prood/api-client` in storefront and dashboard |
+| `API_PUBLIC_URL` | `http://localhost:3005` | Public API origin for Agent Auth OpenAPI proxy and discovery |
+| `AGENT_PROXY_API_KEYS_BY_ORG` | `{}` | JSON object mapping organization IDs to tenant-scoped API keys for proxied agent requests |
+| `TRUST_PROXY` | `false` | Set `true` behind a reverse proxy for JWT `aud` validation |
+
+## Integration encryption
+
+| Variable | Description |
+| --- | --- |
+| `INTEGRATION_ENCRYPTION_KEY` | Yes | AES-256-GCM key for encrypting provider credentials in `integration_config`. Required — no fallback. Generate: `openssl rand -base64 32` |
+
+## Marketing site
+
+| Variable | Description |
+| --- | --- |
+| `NEXT_PUBLIC_DOCS_URL` | Docs site URL (default `http://localhost:3003`) |
+
+## Per-app summary
+
+| App | Critical vars |
+| --- | --- |
+| **storefront** | `DATABASE_URL`, `COMMERCE_API_URL`, `BETTER_AUTH_SECRET`, `KV_REST_API_*`, `CHECKOUT_URL`, `CHECKOUT_API_SECRET` |
+| **dashboard** | `DATABASE_URL`, `COMMERCE_API_URL`, `BETTER_AUTH_SECRET`, `AUTH_PROXY_SECRET`, `NEXT_PUBLIC_AUTH_URL`, `INTEGRATION_ENCRYPTION_KEY` |
+| **checkout** | `KV_REST_API_*`, `CHECKOUT_API_SECRET`, `COMMERCE_API_URL` |
+| **api** | `DATABASE_URL`, `BETTER_AUTH_*`, `AUTH_PROXY_SECRET`, `KV_REST_API_*`, `AUTH_COOKIE_DOMAIN`, storage keys, `CHECKOUT_API_SECRET`, `INTEGRATION_ENCRYPTION_KEY`, `RESEND_*` |
+| **admin** | `DATABASE_URL`, `BETTER_AUTH_SECRET`, `AUTH_PROXY_SECRET`, `NEXT_PUBLIC_ADMIN_URL` |
+| **docs** | None (static site; OpenAPI synced at build time) |
+
+## Production checklist
+
+1. Generate strong secrets: `BETTER_AUTH_SECRET`, `AUTH_PROXY_SECRET`, `CHECKOUT_API_SECRET`, `INTEGRATION_ENCRYPTION_KEY`
+2. Configure `NEXT_PUBLIC_PLATFORM_DOMAIN` for subdomain tenants
+3. Provision Upstash Redis for checkout and auth rate limits, and set `KV_REST_API_*` on API, storefront and checkout
+4. Set `RESEND_API_KEY` and a verified-domain `RESEND_FROM_EMAIL`
+5. Run `pnpm db:migrate` against the production database on every deploy that adds migrations

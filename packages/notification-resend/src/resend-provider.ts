@@ -144,6 +144,7 @@ export class ResendNotificationProvider implements NotificationProvider {
         })
 
         if (error) {
+          console.error(`Resend refused an email: ${error.message}`)
           return { success: false, error: error.message }
         }
 
@@ -158,6 +159,7 @@ export class ResendNotificationProvider implements NotificationProvider {
         })
 
         if (error) {
+          console.error(`Resend refused an email: ${error.message}`)
           return { success: false, error: error.message }
         }
 
@@ -171,6 +173,7 @@ export class ResendNotificationProvider implements NotificationProvider {
         })
 
         if (error) {
+          console.error(`Resend refused an email: ${error.message}`)
           return { success: false, error: error.message }
         }
 

@@ -1,19 +1,36 @@
-import { notFound } from "next/navigation"
 import Link from "next/link"
+import { notFound } from "next/navigation"
+import { Button } from "@prood/ui/components/button"
+import { CopyValue } from "@prood/ui/components/copy-block"
+import { Fact, FactList } from "@prood/ui/components/fact-list"
+import { PageHeader } from "@prood/ui/components/page-header"
+import { Panel } from "@prood/ui/components/panel"
+import { Status } from "@prood/ui/components/status-badge"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@prood/ui/components/card"
-import { Badge } from "@prood/ui/components/badge"
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@prood/ui/components/table"
+import { BackLink, DetailLayout, PageStack as AdminPage } from "@prood/ui/components/page-layout"
+import { ListTable, NoValue, RowLink } from "@prood/ui/components/list-table"
+import { Timestamp } from "@/components/admin/timestamp"
 import {
   getUserById,
-  getUserSessions,
   getUserOrganizations,
+  getUserSessions,
 } from "@/lib/admin-queries"
-import { UserActions } from "./user-actions"
+import { assertAdmin } from "@/lib/auth"
+import { describeUserAgent, humanize, plural, shortIp } from "@/lib/format"
+import { emailStatus, userStatus } from "@/lib/status"
+import { UserDangerZone, UserRoleForm } from "./user-actions"
+
+const WIDE = "hidden @2xl:table-cell"
+/** The latest few on the page; the rest are a link away. */
+const RECENT_SESSIONS = 5
+/** The last column left on a phone, once the ones after it are hidden. */
+const EDGE = "pr-5 @2xl:pr-2"
 
 export async function generateMetadata({
   params,
@@ -31,193 +48,151 @@ export default async function UserDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const [user, sessions, organizations] = await Promise.all([
+  const [admin, user, sessions, organizations] = await Promise.all([
+    assertAdmin(),
     getUserById(id),
     getUserSessions(id),
     getUserOrganizations(id),
   ])
 
   if (!user) notFound()
+  const self = user.id === admin.user.id
 
   const activeSessions = sessions.filter(
-    (s) => s.expiresAt > new Date()
+    (session) => session.expiresAt > new Date()
   )
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <Link
-            href="/users"
-            className="text-sm text-muted-foreground hover:underline"
-          >
-            &larr; All users
-          </Link>
-          <h2 className="font-heading mt-1 text-xl font-medium">
-            {user.name}
-          </h2>
-          <p className="text-sm text-muted-foreground">{user.email}</p>
-        </div>
-        <UserActions user={user} />
-      </div>
+    <AdminPage>
+      <PageHeader
+        back={<BackLink href="/users">All users</BackLink>}
+        title={user.name}
+        description={user.email}
+      />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Role</CardDescription>
-            <CardTitle>
-              <Badge
-                variant={user.role === "admin" ? "default" : "secondary"}
-              >
-                {user.role}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Status</CardDescription>
-            <CardTitle>
-              {user.banned ? (
-                <Badge variant="destructive">Banned</Badge>
-              ) : (
-                <Badge variant="outline">Active</Badge>
-              )}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Email Verified</CardDescription>
-            <CardTitle>
-              <Badge variant={user.emailVerified ? "outline" : "secondary"}>
-                {user.emailVerified ? "Yes" : "No"}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Joined</CardDescription>
-            <CardTitle className="text-base">
-              {user.createdAt.toLocaleDateString()}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-      </div>
-
-      {user.banned && user.banReason ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Ban Reason</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm">{user.banReason}</p>
-          </CardContent>
-        </Card>
-      ) : null}
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Organizations</CardTitle>
-          <CardDescription>
-            Tenant stores this user belongs to ({organizations.length}).
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      <DetailLayout
+        aside={
+          <>
+            <Panel title="Details">
+              <FactList>
+                <Fact label="Role">{humanize(user.role)}</Fact>
+                <Fact label="Status">
+                  <Status look={userStatus(user.banned)} />
+                </Fact>
+                {user.banned && user.banReason ? (
+                  <Fact label="Ban reason">{user.banReason}</Fact>
+                ) : null}
+                <Fact label="Email">
+                  <Status look={emailStatus(user.emailVerified)} />
+                </Fact>
+                <Fact label="Joined">
+                  <Timestamp date={user.createdAt} dateOnly />
+                </Fact>
+                <Fact label="ID">
+                  <CopyValue value={user.id} label="user ID" />
+                </Fact>
+              </FactList>
+            </Panel>
+            {self ? null : <UserRoleForm user={user} />}
+          </>
+        }
+        main={
+          <>
+        <Panel flush title={plural(organizations.length, "organization")}>
           {organizations.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-muted-foreground">
-                    <th className="pb-3 pr-4 font-medium">Organization</th>
-                    <th className="pb-3 pr-4 font-medium">Slug</th>
-                    <th className="pb-3 pr-4 font-medium">Role</th>
-                    <th className="pb-3 font-medium">Joined</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {organizations.map((org) => (
-                    <tr
-                      key={org.orgId}
-                      className="border-b last:border-0"
-                    >
-                      <td className="py-3 pr-4">
-                        <Link
-                          href={`/organizations/${org.orgId}`}
-                          className="font-medium hover:underline"
-                        >
-                          {org.orgName}
-                        </Link>
-                      </td>
-                      <td className="py-3 pr-4 text-muted-foreground">
-                        {org.orgSlug}
-                      </td>
-                      <td className="py-3 pr-4">
-                        <Badge variant="secondary">{org.role}</Badge>
-                      </td>
-                      <td className="py-3 text-muted-foreground">
-                        {org.joinedAt.toLocaleDateString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <ListTable>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Organization</TableHead>
+                  <TableHead className={WIDE}>Slug</TableHead>
+                  <TableHead className={EDGE}>Role</TableHead>
+                  <TableHead className={WIDE}>Joined</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {organizations.map((org) => (
+                  <TableRow key={org.orgId}>
+                    <TableCell>
+                      <RowLink href={`/organizations/${org.orgId}`}>
+                        {org.orgName}
+                      </RowLink>
+                      <div className="font-mono text-xs text-muted-foreground @2xl:hidden">{org.orgSlug}</div>
+                    </TableCell>
+                    <TableCell className={`${WIDE} font-mono text-xs text-muted-foreground`}>
+                      {org.orgSlug}
+                    </TableCell>
+                    <TableCell className={EDGE}>{humanize(org.role)}</TableCell>
+                    <TableCell className={`${WIDE} text-muted-foreground tabular-nums`}>
+                      <Timestamp date={org.joinedAt} dateOnly />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </ListTable>
           ) : (
-            <p className="py-4 text-sm text-muted-foreground">
-              Not a member of any organization.
+            <p className="px-5 py-4 text-sm text-muted-foreground">
+              Not in any organization. Stores show up here once this person
+              creates one or accepts an invitation.
             </p>
           )}
-        </CardContent>
-      </Card>
+        </Panel>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Active Sessions</CardTitle>
-          <CardDescription>
-            {activeSessions.length} active session(s).
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <Panel
+          flush
+          title={plural(activeSessions.length, "active session")}
+          actions={
+            activeSessions.length > RECENT_SESSIONS ? (
+              <Button asChild variant="ghost" size="sm">
+                <Link href={`/sessions?user=${user.id}`}>View all sessions</Link>
+              </Button>
+            ) : undefined
+          }
+        >
           {activeSessions.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-muted-foreground">
-                    <th className="pb-3 pr-4 font-medium">IP Address</th>
-                    <th className="pb-3 pr-4 font-medium">User Agent</th>
-                    <th className="pb-3 pr-4 font-medium">Created</th>
-                    <th className="pb-3 font-medium">Expires</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {activeSessions.map((s) => (
-                    <tr key={s.id} className="border-b last:border-0">
-                      <td className="py-3 pr-4 font-mono text-xs">
-                        {s.ipAddress ?? "—"}
-                      </td>
-                      <td className="max-w-xs truncate py-3 pr-4 text-muted-foreground">
-                        {s.userAgent ?? "—"}
-                      </td>
-                      <td className="py-3 pr-4 text-muted-foreground">
-                        {s.createdAt.toLocaleString()}
-                      </td>
-                      <td className="py-3 text-muted-foreground">
-                        {s.expiresAt.toLocaleString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <ListTable>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Device</TableHead>
+                  <TableHead className={WIDE}>IP address</TableHead>
+                  <TableHead className={WIDE}>Started</TableHead>
+                  <TableHead>Expires</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {activeSessions.slice(0, RECENT_SESSIONS).map((session) => (
+                  <TableRow key={session.id}>
+                    <TableCell title={session.userAgent ?? undefined}>
+                      {describeUserAgent(session.userAgent) ?? <NoValue />}
+                      {session.ipAddress ? (
+                        <div className="font-mono text-xs text-muted-foreground @2xl:hidden">
+                          {shortIp(session.ipAddress)}
+                        </div>
+                      ) : null}
+                    </TableCell>
+                    <TableCell className={`${WIDE} font-mono text-xs`} title={session.ipAddress ?? undefined}>
+                      {session.ipAddress ? shortIp(session.ipAddress) : <NoValue />}
+                    </TableCell>
+                    <TableCell className={`${WIDE} text-muted-foreground tabular-nums`}>
+                      <Timestamp date={session.createdAt} />
+                    </TableCell>
+                    <TableCell className="text-muted-foreground tabular-nums">
+                      <Timestamp date={session.expiresAt} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </ListTable>
           ) : (
-            <p className="py-4 text-sm text-muted-foreground">
-              No active sessions.
+            <p className="px-5 py-4 text-sm text-muted-foreground">
+              Not signed in anywhere right now.
             </p>
           )}
-        </CardContent>
-      </Card>
-    </div>
+        </Panel>
+          </>
+        }
+      />
+
+      {self ? null : <UserDangerZone user={user} />}
+    </AdminPage>
   )
 }

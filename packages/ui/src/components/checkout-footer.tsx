@@ -1,14 +1,10 @@
-"use client"
+import type { ReactNode } from "react"
 
-import { ShieldCheck } from "@phosphor-icons/react"
-
-export function CheckoutFooter() {
+export function CheckoutFooter({ children }: { children?: ReactNode }) {
   return (
-    <footer className="border-t py-6 text-center text-xs text-muted-foreground">
-      <div className="mx-auto flex max-w-7xl items-center justify-center gap-1.5 px-4">
-        <ShieldCheck className="size-4" />
-        <span>Your payment information is encrypted and secure</span>
-      </div>
+    <footer className="text-muted-foreground flex flex-col gap-1 border-t py-5 text-center text-xs">
+      {children ? <div className="mx-auto max-w-[84rem] px-5">{children}</div> : null}
+      <p className="mx-auto max-w-[84rem] px-5">Powered by Prood</p>
     </footer>
   )
 }

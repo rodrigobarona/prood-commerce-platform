@@ -1,5 +1,5 @@
 ---
-title: Checkout Flow
+title: Checkout flow
 description: How the CheckoutSession state machine manages the payment lifecycle with dynamic transitions based on fulfillment type.
 ---
 
@@ -87,7 +87,7 @@ import { CheckoutSession } from '@prood/checkout'
 import { StripePaymentProvider } from '@prood/payment-stripe'
 
 const provider = new StripePaymentProvider({
-  secretKey: process.env.STRIPE_SECRET_KEY!,
+  secretKey: config.secretKey, // the store's own, from integration_config
 })
 
 const session = new CheckoutSession({

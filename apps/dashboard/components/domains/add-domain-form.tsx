@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useRef, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Button } from "@prood/ui/components/button"
@@ -12,17 +12,28 @@ export function AddDomainForm() {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [domain, setDomain] = useState("")
+  const [invalid, setInvalid] = useState<string | null>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
     startTransition(async () => {
       try {
-        await addDomainAction(domain)
-        toast.success("Domain added — configure the DNS records below")
+        const result = await addDomainAction(domain)
+        if ("invalid" in result) {
+          setInvalid(result.invalid)
+          inputRef.current?.focus()
+          return
+        }
+        if ("limit" in result) {
+          toast.error(result.limit)
+          return
+        }
+        toast.success("Domain added. Add the DNS records below to connect it.")
         setDomain("")
         router.refresh()
-      } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Could not add domain")
+      } catch {
+        toast.error("We couldn't add this domain. Nothing changed. Check the address and try again.")
       }
     })
   }
@@ -30,19 +41,31 @@ export function AddDomainForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-3 sm:flex-row sm:items-end"
+      noValidate
+      className="flex flex-col gap-3 sm:flex-row sm:items-start"
     >
       <div className="flex flex-1 flex-col gap-1.5">
         <Label htmlFor="domain">Custom domain</Label>
         <Input
           id="domain"
+          ref={inputRef}
           required
-          placeholder="shop.yourbrand.com"
+          placeholder="loja.casalume.example"
+          aria-invalid={invalid ? true : undefined}
+          aria-describedby={invalid ? "domain-error" : undefined}
           value={domain}
-          onChange={(event) => setDomain(event.target.value)}
+          onChange={(event) => {
+            setInvalid(null)
+            setDomain(event.target.value)
+          }}
         />
+        {invalid ? (
+          <p id="domain-error" className="text-xs text-destructive">
+            {invalid}
+          </p>
+        ) : null}
       </div>
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" size="lg" className="sm:mt-5.5" disabled={pending}>
         {pending ? "Adding..." : "Add domain"}
       </Button>
     </form>

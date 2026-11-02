@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { LogoMark, Wordmark } from "@prood/ui/components/logo"
 import {
   Sidebar,
   SidebarContent,
@@ -13,53 +14,62 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@prood/ui/components/sidebar"
-import { ShieldCheck } from "@phosphor-icons/react"
-import { navGroups } from "@/lib/nav"
-import { UserMenu, type UserSummary } from "@/components/layout/user-menu"
+import { AdminMarker } from "@/components/admin/admin-marker"
+import { AdminUserMenu } from "@/components/layout/user-menu"
+import type { UserSummary } from "@prood/ui/components/user-menu"
+import { isNavActive, navGroups } from "@/lib/nav"
 
-function isActive(pathname: string, href: string): boolean {
-  if (href === "/") return pathname === "/"
-  return pathname === href || pathname.startsWith(`${href}/`)
+/** Telha marks where you are. The kit's menu button is neutral, so the active colors are set here. */
+const NAV_BUTTON =
+  "rounded-lg data-[active=true]:bg-brand-subtle data-[active=true]:text-brand-subtle-foreground data-[active=true]:hover:bg-brand-subtle data-[active=true]:hover:text-brand-subtle-foreground"
+
+export function SidebarBrand() {
+  return (
+    <div className="flex h-8 items-center gap-2 px-1 group-data-[collapsible=icon]:px-0">
+      <Link
+        href="/"
+        aria-label="Prood admin, go to overview"
+        className="flex items-center gap-2 rounded-lg outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+      >
+        <LogoMark className="size-6" title={null} />
+        <Wordmark className="h-3.5 group-data-[collapsible=icon]:hidden" title={null} />
+      </Link>
+      <span className="group-data-[collapsible=icon]:hidden">
+        <AdminMarker />
+      </span>
+    </div>
+  )
 }
 
 export function AdminSidebar({ user }: { user: UserSummary }) {
   const pathname = usePathname()
+  const { isMobile, setOpenMobile } = useSidebar()
 
   return (
-    <Sidebar collapsible="icon" variant="inset">
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <Link href="/">
-                <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-md">
-                  <ShieldCheck className="size-4" weight="bold" />
-                </div>
-                <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold">Admin Console</span>
-                  <span className="text-xs text-muted-foreground">
-                    Platform management
-                  </span>
-                </div>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+    <Sidebar collapsible="icon">
+      <SidebarHeader className="gap-3 p-3">
+        <SidebarBrand />
       </SidebarHeader>
       <SidebarContent>
+        <nav aria-label="Main">
         {navGroups.map((group) => (
-          <SidebarGroup key={group.label}>
+          <SidebarGroup key={group.label} className="px-3 py-2">
             <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
             <SidebarMenu>
               {group.items.map((item) => (
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
                     asChild
-                    isActive={isActive(pathname, item.href)}
+                    className={NAV_BUTTON}
+                    isActive={isNavActive(pathname, item.href)}
                     tooltip={item.title}
                   >
-                    <Link href={item.href}>
+                    <Link
+                      href={item.href}
+                      onClick={() => isMobile && setOpenMobile(false)}
+                    >
                       <item.icon />
                       <span>{item.title}</span>
                     </Link>
@@ -69,9 +79,10 @@ export function AdminSidebar({ user }: { user: UserSummary }) {
             </SidebarMenu>
           </SidebarGroup>
         ))}
+        </nav>
       </SidebarContent>
-      <SidebarFooter>
-        <UserMenu user={user} />
+      <SidebarFooter className="border-t border-sidebar-border p-3">
+        <AdminUserMenu user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

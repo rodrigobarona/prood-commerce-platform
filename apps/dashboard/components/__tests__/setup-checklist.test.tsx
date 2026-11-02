@@ -29,6 +29,12 @@ describe("SetupChecklist", () => {
     expect(renderToStaticMarkup(<SetupChecklist items={ready} />)).toContain(`href="${STORE_URL}"`)
   })
 
+  it("says what isn't there to set up yet", () => {
+    const html = renderToStaticMarkup(<SetupChecklist items={setupChecklist(fresh, STORE_URL)} shipping="Shipping is fixed." />)
+    expect(html).toContain("Shipping is fixed.")
+    expect(html).toContain("Returns, terms and privacy pages: coming later.")
+  })
+
   it("drops the link for a finished step", () => {
     const items = setupChecklist({ ...fresh, canTakeOrders: true }, STORE_URL)
     const html = renderToStaticMarkup(<SetupChecklist items={items} />)

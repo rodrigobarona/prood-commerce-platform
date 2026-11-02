@@ -1,6 +1,6 @@
-import { and, eq } from "drizzle-orm"
+import { and, count, eq, gt } from "drizzle-orm"
 import { authDb } from "./db"
-import { member } from "./schema"
+import { invitation, member } from "./schema"
 
 /**
  * The user's role in a store, or null if they don't belong to it. Read on every
@@ -24,4 +24,22 @@ export function isStoreAdminRole(role: string | null): boolean {
   return (role ?? "")
     .split(",")
     .some((name) => ["owner", "admin"].includes(name.trim()))
+}
+
+/** People on the store, plus invitations still open: each one takes a seat when accepted. */
+export async function countTeamSeats(organizationId: string): Promise<number> {
+  const [[members], [invited]] = await Promise.all([
+    authDb.select({ value: count() }).from(member).where(eq(member.organizationId, organizationId)),
+    authDb
+      .select({ value: count() })
+      .from(invitation)
+      .where(
+        and(
+          eq(invitation.organizationId, organizationId),
+          eq(invitation.status, "pending"),
+          gt(invitation.expiresAt, new Date())
+        )
+      ),
+  ])
+  return (members?.value ?? 0) + (invited?.value ?? 0)
 }

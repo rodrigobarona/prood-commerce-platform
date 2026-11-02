@@ -1,5 +1,5 @@
 ---
-title: Multi-Tenant Platform
+title: Multi-tenant platform
 description: How Prood isolates merchant data with Better Auth organizations, host-based tenant resolution, and Postgres row-level security.
 ---
 
@@ -11,10 +11,10 @@ Prood runs as a **white-label, multi-tenant commerce platform**: one deployment 
 | --- | --- | --- |
 | `prood.com` | Marketing | N/A |
 | `dashboard.prood.com` | Merchant admin | Session `activeOrganizationId` |
-| `api.prood.com` | Commerce API | Session / API key / forwarded store `Host` |
+| `api.prood.com` | Commerce API | Session / API key / forwarded `x-storefront-host` |
 | `checkout.prood.com` | Hosted checkout (`/c/{sessionId}`) | `tenantId` on checkout session |
 | `{slug}.prood.app` | Storefront | Host → org slug or custom domain |
-| `shop.client.com` | Storefront | Verified `tenant_domain` row |
+| `shop.example.com` | Storefront | Verified `tenant_domain` row |
 
 `NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app` applies **only** to merchant storefront subdomains (`{slug}.prood.app`), not to platform services on `prood.com`.
 
@@ -171,8 +171,8 @@ Merchants can have **two different kinds** of custom domain:
 
 | Type | Default | Custom (paid tiers vary) | Routes to | Purpose |
 | --- | --- | --- | --- | --- |
-| **Store domain** | `{slug}.prood.app` | e.g. `shop.my-brand.com` | Storefront | Customer-facing catalog and cart |
-| **Admin domain (white-label)** | `dashboard.prood.com` | e.g. `cms.my-brand.com` | Dashboard | Team-facing admin (DatoCMS-style) |
+| **Store domain** | `{slug}.prood.app` | e.g. `loja.casalume.example` | Storefront | Customer-facing catalog and cart |
+| **Admin domain (white-label)** | `dashboard.prood.com` | e.g. `admin.casalume.example` | Dashboard | Team-facing admin (DatoCMS-style) |
 
 ### Store custom domain (partially implemented)
 
@@ -183,15 +183,15 @@ Merchants can have **two different kinds** of custom domain:
 
 ### Admin white-label domain (Phase 3 — not implemented)
 
-Similar to DatoCMS `dashboard.datocms.com` vs `cms.your-brand.com`:
+Similar to DatoCMS `dashboard.datocms.com` vs `admin.casalume.example`:
 
 - Default admin URL for all merchants: **`dashboard.prood.com`**
-- Scale / Agency (planned): optional **`cms.my-brand.com`** with DNS verification
+- Scale / Agency (planned): optional **`admin.casalume.example`** with DNS verification
 - Routes to `apps/dashboard`, not the storefront
 - Requires a separate Vercel project attachment, dashboard host → org lookup, and Better Auth trusted origins per custom admin host
 - Planned billing gate: `customAdminDomain` entitlement on Scale and Agency only
 
-Store and admin custom domains are **independent** — a merchant might use `shop.acme.com` for customers and `cms.acme.com` for their team.
+Store and admin custom domains are **independent** — a merchant might use `shop.example.com` for customers and `cms.example.com` for their team.
 
 ## Related pages
 

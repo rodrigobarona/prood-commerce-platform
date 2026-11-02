@@ -2,54 +2,42 @@ import { ArrowRightIcon } from "@phosphor-icons/react/dist/ssr"
 import Link from "next/link"
 
 import { Button } from "@prood/ui/components/button"
-import { Section, SectionHeading } from "@/components/marketing/section"
+import { ClientLedger } from "@/components/marketing/samples"
+import { Container, Eyebrow, Photo, StockNote } from "@/components/marketing/section"
 
-const clients = [
-  { name: "Atelier Sol", host: "shop.atelier-sol.pt", provider: "Easypay" },
-  { name: "Northbound Coffee", host: "northbound.prood.app", provider: "Stripe" },
-  { name: "Casa Lume", host: "loja.casalume.pt", provider: "Ifthenpay" },
-] as const
-
+/** One tile painter at work, and the ledger hanging off the photograph's edge, clear of her. */
 export function AgenciesTeaser() {
   return (
-    <Section labelledBy="agencies-title">
-      <div className="grid items-center gap-14 lg:grid-cols-[1fr_1.1fr] lg:gap-20">
+    <section aria-labelledby="agencies-title" className="surface-ink surface-photo relative overflow-hidden">
+      <Container className="grid items-center gap-x-20 gap-y-12 py-24 md:py-32 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
         <div>
-          <SectionHeading
-            id="agencies-title"
-            eyebrow="For agencies"
-            title="Build stores for clients, not workarounds."
-            description="Every client gets an isolated store with its own data, payment accounts and domain. Invite them in with their own login, and run up to 10 stores on the Agency plan."
-          />
-          <Button variant="outline" size="lg" className="mt-9 h-11 px-5 text-base" asChild>
+          <Eyebrow className="text-paper">For agencies</Eyebrow>
+          <h2 id="agencies-title" className="mt-4 text-display-md text-paper">
+            Build stores for clients, not workarounds.
+          </h2>
+          <p className="mt-6 max-w-xl text-lead text-paper/90">
+            Checkout, admin and the Multibanco and MB WAY connections are already built. Every client store has its own data, payment accounts and domain.
+          </p>
+          <Button variant="paper" size="hero" className="mt-9" asChild>
             <Link href="/agencies">
-              Prood for agencies
+              See how agencies work
               <ArrowRightIcon data-icon="inline-end" />
             </Link>
           </Button>
         </div>
-        <figure>
-          <figcaption className="sr-only">
-            Example: three client stores, each with its own domain and payment provider.
+        <figure className="relative">
+          <Photo
+            slug="owner-tiles"
+            sizes="(min-width: 1024px) 50vw, 170vw"
+            position="50% 30%"
+            className="ml-auto aspect-[4/5] lg:w-[86%]"
+          />
+          <ClientLedger className="relative z-10 -mt-24 w-[17rem] rotate-1 sm:w-80 lg:absolute lg:bottom-10 lg:left-0 lg:mt-0" />
+          <figcaption>
+            <StockNote className="mt-3 text-right text-paper/80 lg:absolute lg:right-0" />
           </figcaption>
-          <ul aria-hidden className="divide-y divide-border rounded-xl border border-border bg-card">
-            {clients.map((client) => (
-              <li key={client.name} className="flex items-center gap-4 px-5 py-4">
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted font-heading text-sm font-semibold">
-                  {client.name.charAt(0)}
-                </span>
-                <span className="min-w-0">
-                  <span className="block font-medium">{client.name}</span>
-                  <span className="block truncate font-mono text-xs text-muted-foreground">
-                    {client.host}
-                  </span>
-                </span>
-                <span className="ml-auto rounded-md bg-muted px-2.5 py-1 text-xs">{client.provider}</span>
-              </li>
-            ))}
-          </ul>
         </figure>
-      </div>
-    </Section>
+      </Container>
+    </section>
   )
 }

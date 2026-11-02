@@ -6,9 +6,11 @@ export interface WelcomeEmailProps {
   companyName: string
   name: string
   dashboardUrl: string
+  /** The store's contact email, when it has one. Without it, the line stays out */
+  contactEmail?: string | null
 }
 
-export function WelcomeEmail({ companyName, name, dashboardUrl }: WelcomeEmailProps) {
+export function WelcomeEmail({ companyName, name, dashboardUrl, contactEmail }: WelcomeEmailProps) {
   return (
     <EmailLayout preview={`Welcome to ${companyName}`} companyName={companyName}>
       <Section className="bg-bg-2 mobile:px-6 mobile:py-12 rounded-[8px] px-[40px] py-[64px] text-center">
@@ -23,7 +25,7 @@ export function WelcomeEmail({ companyName, name, dashboardUrl }: WelcomeEmailPr
         </Text>
 
         <Text className="font-16 text-fg-2 mx-auto mt-0 mb-8 max-w-[380px] text-center font-sans">
-          Thanks for signing up! We&apos;re excited to have you on board.
+          Thanks for signing up. Your account is ready.
         </Text>
 
         <Section className="mb-6 text-center">
@@ -31,13 +33,15 @@ export function WelcomeEmail({ companyName, name, dashboardUrl }: WelcomeEmailPr
             href={dashboardUrl}
             className="bg-brand font-16 text-fg-inverted inline-block rounded-lg px-7 py-4 text-center font-sans leading-6"
           >
-            Go to dashboard
+            Your account
           </Button>
         </Section>
 
-        <Text className="font-13 text-fg-3 mx-auto mt-8 mb-0 max-w-[400px] text-center font-sans">
-          If you have any questions, reply to this email. We&apos;re here to help!
-        </Text>
+        {contactEmail ? (
+          <Text className="font-13 text-fg-3 mx-auto mt-8 mb-0 max-w-[400px] text-center font-sans">
+            Questions? Write to {contactEmail}.
+          </Text>
+        ) : null}
       </Section>
     </EmailLayout>
   )
@@ -46,7 +50,8 @@ export function WelcomeEmail({ companyName, name, dashboardUrl }: WelcomeEmailPr
 WelcomeEmail.PreviewProps = {
   companyName: 'Prood',
   name: 'Alex',
-  dashboardUrl: 'https://dashboard.prood.com',
+  dashboardUrl: 'https://example.com/account',
+  contactEmail: 'hello@example.com',
 } satisfies WelcomeEmailProps
 
 export default WelcomeEmail

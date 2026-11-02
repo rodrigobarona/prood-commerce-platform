@@ -1,20 +1,23 @@
 ---
-title: Guides Overview
-description: Operational guides for deploying Prood, configuring payments, webhooks, and onboarding merchants.
+title: Guides overview
+description: Step-by-step guides for merchants and agencies, from your first product to taking real payments.
 ---
 
-These guides cover production deployment and day-to-day platform operations. They complement the architecture and application reference docs with step-by-step workflows.
+Short, practical guides for running a store on Prood.
 
 <Cards>
-  <Card title="Deployment" href="/docs/guides/deployment" description="Deploy all apps to Vercel with Neon, Upstash Redis, and shared secrets." />
-  <Card title="Payment integration" href="/docs/guides/payment-integration" description="Configure Stripe, Easypay, or Ifthenpay globally or per tenant." />
-  <Card title="Webhook setup" href="/docs/guides/webhook-setup" description="Point provider webhooks at the checkout app and verify signatures." />
-  <Card title="Merchant onboarding" href="/docs/guides/merchant-onboarding" description="Register a merchant, add products, payments, and a custom domain." />
+  <Card title="For merchants" href="/docs/guides/for-merchants" description="What you can do today and what's coming later." />
+  <Card title="For agencies" href="/docs/guides/for-agencies" description="Build and run client stores." />
+  <Card title="Merchant onboarding" href="/docs/guides/merchant-onboarding" description="From your account to your first real order." />
+  <Card title="Payment integration" href="/docs/guides/payment-integration" description="Connect Stripe, Easypay or Ifthenpay." />
+  <Card title="Webhook setup" href="/docs/guides/webhook-setup" description="How your payment provider tells your store a payment arrived." />
 </Cards>
 
-## Recommended order
+## A good order to read them in
 
-1. [Deployment](/docs/guides/deployment) — get all apps running in production
-2. [Payment integration](/docs/guides/payment-integration) — configure at least one gateway
-3. [Webhook setup](/docs/guides/webhook-setup) — required for async payments and 3DS safety nets
-4. [Merchant onboarding](/docs/guides/merchant-onboarding) — onboard the first live store
+1. [For merchants](/docs/guides/for-merchants): see what's included.
+2. [Merchant onboarding](/docs/guides/merchant-onboarding): set the store up.
+3. [Payment integration](/docs/guides/payment-integration): connect a payment account.
+4. [Webhook setup](/docs/guides/webhook-setup): make sure orders get marked as paid.
+
+Building on the API? See [Machine access](/docs/guides/machine-access). Hosting Prood yourself? See [Deployment](/docs/guides/deployment).

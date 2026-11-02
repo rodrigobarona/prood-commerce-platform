@@ -1,0 +1,5 @@
+{
+  "title": "Run it locally",
+  "icon": "Code",
+  "pages": ["index", "installation", "walkthrough", "environment"]
+}

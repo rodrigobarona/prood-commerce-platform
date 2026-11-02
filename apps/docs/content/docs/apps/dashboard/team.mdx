@@ -1,103 +1,35 @@
 ---
-title: Team Management
-description: Organization members, roles, and invitations in the dashboard.
+title: Team
+description: Who can work on your store, and what each role can do.
 ---
 
-The dashboard **Team** page manages organization membership using Better Auth's organization plugin.
+**Team** shows who can work on this store. Everyone signs in with their own account.
 
-## Organization model
-
-Each merchant store is a Better Auth **organization**:
-
-| Concept | Description |
+| Feature | Availability |
 | --- | --- |
-| Organization | A merchant store (tenant) |
-| Member | A user belonging to an organization |
-| Role | `owner`, `admin`, or `member` |
-| Invitation | Pending invite to join an organization |
+| Team invites | From Grow. Free has one seat, the owner. |
 
-When a merchant registers, Better Auth creates:
+Paid plans can't be bought yet. Running several client stores? Email us at hello@prood.com.
 
-1. A `user` record
-2. An `organization` record (the store)
-3. A `member` record linking the user as `owner`
+## Roles
 
-## Team page
-
-**Route:** `/team`
-
-Displays:
-
-- Current organization name and slug
-- Member list with roles
-- Pending invitations
-- Invite form (email + role)
-
-### Member roles
-
-| Role | Permissions |
+| Role | What they can do |
 | --- | --- |
-| `owner` | Full access — manage team, delete org, all admin operations |
-| `admin` | Full admin access — products, orders, integrations, domains |
-| `member` | Read-only access (future fine-grained permissions) |
+| Owner | Everything. The person who created the store |
+| Admin | Run the store: products, orders, payment accounts, domains and API keys. Invite and remove people |
+| Member | See the store's data. They can't change it |
 
-### Inviting members
+## Invite someone
 
-```ts
-// Server action
-await auth.api.createInvitation({
-  body: {
-    email: 'colleague@example.com',
-    role: 'admin',
-    organizationId: activeOrgId,
-  },
-})
-```
+Under **Invite a teammate**, enter their email and choose **Admin** or **Member**. They get an email, and access to this store's dashboard once they accept. Pending invitations are listed until they're accepted, and you can cancel one there.
 
-The invited user receives an email (when email provider is configured) or can accept via a direct link.
+## More than one store
 
-## Organization switching
-
-If a user belongs to multiple organizations, they can switch the active org:
-
-```ts
-await auth.api.setActiveOrganization({
-  body: { organizationId: newOrgId },
-})
-```
-
-The session's `activeOrganizationId` updates, and all subsequent admin API calls scope to the new org.
-
-## API scoping
-
-The Commerce API resolves the tenant from the session's active organization:
-
-```ts
-// apps/api/lib/resolve-caller.ts
-const session = await auth.api.getSession({ headers })
-const orgId = session.session.activeOrganizationId
-// → scopes: ['admin', 'staff', 'storefront'] for owners and admins
-// → scopes: ['staff', 'storefront'] for other members
-```
-
-Admin endpoints (`/v1/admin/*`) that change the store require the `admin` scope, which only owners and admins of the active organization get. Members can read the same data through the `staff` scope. Roles are checked on every request.
-
-## Auth tables
-
-Better Auth organization plugin creates:
-
-| Table | Purpose |
-| --- | --- |
-| `organization` | Store records (id, name, slug) |
-| `member` | User ↔ organization membership with role |
-| `invitation` | Pending invitations |
-
-They are defined in `packages/auth/src/schema.ts` and created by `pnpm db:migrate` with the rest of the schema.
+Each store has its own team. If you belong to several, the store switcher at the top of the sidebar moves between them.
 
 ## Related pages
 
 <Cards>
-  <Card title="Multi-tenant platform" href="/docs/architecture/multi-tenant" description="How organizations map to tenants." />
-  <Card title="API authentication" href="/docs/apps/api/authentication" description="Session-based auth and scopes." />
-  <Card title="Merchant onboarding" href="/docs/guides/merchant-onboarding" description="First-time merchant setup." />
+  <Card title="Plans and limits" href="/docs/billing/plans" description="Seats on each plan." />
+  <Card title="Merchant onboarding" href="/docs/guides/merchant-onboarding" description="The full setup checklist." />
 </Cards>

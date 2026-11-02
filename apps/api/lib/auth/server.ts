@@ -13,7 +13,11 @@ import { storeAccess } from "@prood/auth/access"
 import { authDb } from "@prood/auth/db"
 import * as schema from "@prood/auth/schema"
 import { autoLinkGuestCustomers } from "@prood/platform"
-import { organizationHooks } from "./organization-hooks"
+import { membershipLimit, organizationHooks } from "./organization-hooks"
+import { guardRoleChange } from "./role-guard"
+import { CLIENT_IP_HEADER } from "@prood/auth/client-ip"
+import { sharedAuthOptions, sharedEmailAndPassword } from "@prood/auth/shared-options"
+import { sendPasswordResetEmail } from "./password-reset-email"
 import { getAgentAuthOpenAPIOptions } from "./agent-config"
 import { requiredEnv } from "@prood/types"
 import { getMailer } from "../mailer"
@@ -33,6 +37,7 @@ function createAuth() {
   const { secret, baseURL } = resolveBetterAuthEnv()
   const cookieDomain = process.env.AUTH_COOKIE_DOMAIN?.trim()
   const dashboardUrl = requiredEnv(process.env.NEXT_PUBLIC_DASHBOARD_URL, "NEXT_PUBLIC_DASHBOARD_URL")
+  const shared = sharedAuthOptions(CLIENT_IP_HEADER)
 
   return betterAuth({
     database: drizzleAdapter(authDb, { provider: "pg", schema }),
@@ -41,19 +46,14 @@ function createAuth() {
         if (DASHBOARD_ONLY_PATHS.has(ctx.path)) {
           throw new APIError("FORBIDDEN", { message: "Approve agents in your dashboard." })
         }
+        await guardRoleChange(ctx)
       }),
     },
     emailAndPassword: {
-      enabled: true,
-      sendResetPassword: async ({ user, url }) => {
-        void getMailer().send("email", {
-          to: user.email,
-          subject: "Reset your password",
-          template: "password-reset",
-          data: { companyName: "Prood", url },
-        })
-      },
+      ...sharedEmailAndPassword,
+      sendResetPassword: async ({ user, url }) => sendPasswordResetEmail({ user, url }),
     },
+    rateLimit: shared.rateLimit,
     // Signing in doesn't need a verified email, only claiming guest orders does.
     emailVerification: {
       sendOnSignUp: true,
@@ -84,18 +84,15 @@ function createAuth() {
     baseURL,
     secret,
     trustedOrigins: resolveBetterAuthTrustedOrigins,
-    advanced: cookieDomain
-      ? {
-          crossSubDomainCookies: {
-            enabled: true,
-            domain: cookieDomain,
-          },
-        }
-      : undefined,
+    advanced: {
+      ...shared.advanced,
+      ...(cookieDomain ? { crossSubDomainCookies: { enabled: true, domain: cookieDomain } } : {}),
+    },
     plugins: [
       organization({
         ...storeAccess,
         organizationHooks,
+        membershipLimit,
         async sendInvitationEmail(data) {
           const inviteLink = `${dashboardUrl}/invite/${data.id}`
           await getMailer().send("email", {

@@ -1,174 +1,114 @@
 ---
-title: Merchant Onboarding
-description: Step-by-step guide to onboard a new merchant store on the Prood platform.
+title: Merchant onboarding
+description: Step by step, from creating your account to your first real order.
 ---
 
-This guide walks through onboarding a new merchant from registration to a live storefront with custom domain and payment processing.
+This guide takes you from a new account to a live store with payments. Allow about an hour, plus however long your domain's DNS takes.
 
-## Overview
+## Step 1: Create your store
 
-```mermaid
-flowchart LR
-  A[Register] --> B[Configure store]
-  B --> C[Add products]
-  C --> D[Set up payments]
-  D --> E[Add domain]
-  E --> F[Go live]
-```
+1. Go to [dashboard.prood.com/register](https://dashboard.prood.com/register).
+2. Enter your name, your store name, your **Store address**, your email and a password. The address follows your store name until you edit it.
+3. Choose **Create account and store**.
 
-Estimated time: 30–60 minutes (excluding DNS propagation).
+You're the store's owner, and your store is live right away. You choose your store's prood.app address when you sign up. If it's taken, we add a few characters to the end. Find it under **Domains**, in the **Prood address** panel.
 
-## Step 1 — Register
+## Step 2: Check your store settings
 
-1. Navigate to the dashboard: `https://dashboard.prood.com/register` (or your `NEXT_PUBLIC_DASHBOARD_URL` in dev)
-2. Enter email, password, and store name
-3. Better Auth creates:
-   - A `user` record
-   - An `organization` record (the store — e.g. slug `acme-store`)
-   - A `member` record (user as `owner`)
+Open **Store settings**, under **Organization** in the sidebar.
 
-The organization ID (e.g. `org_abc123`) becomes the **tenant key** for all commerce data.
+- **Store details:** store name, description and business address.
+- **Contact:** the email and phone number customers see.
+- **Region:** currency, timezone and country.
 
-## Step 2 — Configure store settings
+## Step 3: Add products
 
-1. Go to **Settings** (`/settings`)
-2. Set store name, default currency, and contact information
-3. These values appear on the storefront via `GET /v1/store`
+Go to **Products** and choose **Add product**.
 
-## Step 3 — Add products
-
-1. Go to **Products** → **New product** (`/products/new`)
-2. Fill in:
-   - Name and description (localized if multi-language)
-   - Slug (URL path)
-   - At least one variant with SKU, price, and inventory
-   - Product images (uploaded via storage provider)
-   - Categories
-3. Set status to **Published**
-4. Repeat for additional products
-
-Verify products appear in the API:
-
-```bash
-curl -H "Host: acme-store.prood.app" \
-  https://api.prood.com/v1/products
-```
-
-## Step 4 — Configure payments
-
-1. Go to **Integrations** (`/integrations`)
-2. Select your payment provider (Stripe recommended for global, Easypay/Ifthenpay for Portugal)
-3. Enter provider credentials:
-
-### Stripe
-
-| Field | Where to find |
+| Panel | Fields |
 | --- | --- |
-| Secret key | Stripe Dashboard → Developers → API keys |
-| Publishable key | Same page |
-| Webhook secret | Stripe Dashboard → Webhooks → Signing secret |
+| **Details** | Name, description and URL slug. Leave the slug empty to make one from the name |
+| **Pricing** | Price, and an optional compare-at price, shown crossed out next to the new one |
+| **Status** | Draft, Active or Archived |
+| **Inventory** | SKU, and an **In stock** switch |
+| **Type and shipping** | Physical, Digital, Service or Event, and a **Requires shipping** switch |
 
-### Easypay
+Customers only see active products, and active products need a price. Set the status to **Active**, then choose **Add product** to save it.
 
-| Field | Where to find |
-| --- | --- |
-| Account ID | Easypay merchant panel |
-| API key | Easypay merchant panel |
+Uploading product photos, variants, categories and stock counts are coming later to the dashboard. The API can add categories and sizes, starting on Grow. Paid plans are coming. Photo upload is coming later, by API too.
 
-4. Save — credentials are encrypted and stored per organization
+Shipping is fixed for now: Standard 15.00 in your currency (5 to 7 days), Express 35.00 (1 to 2 days). Setting your own rates is coming later.
 
-## Step 5 — Set up webhooks
+## Step 4: Connect a payment account
 
-Configure the payment provider to send webhooks to:
+Go to **Integrations**, under **Connections**, and choose a provider. Have the credentials ready:
 
-```
-https://checkout.prood.com/api/webhooks/{provider}/{orgId}
-```
-
-See [Webhook setup](/docs/guides/webhook-setup) for provider-specific instructions.
-
-## Step 6 — Add domain
-
-### Subdomain (automatic)
-
-The store is immediately available on the platform subdomain — no dashboard action required:
-
-```mermaid
-flowchart LR
-  SLUG[org slug acme-store] --> HOST["acme-store.prood.app"]
-  HOST --> SF[Storefront tenant.ts]
-  SF --> LIVE[Catalog + checkout live]
-```
-
-### Custom domain
-
-1. Go to **Domains** (`/domains`)
-2. Enter custom domain: `shop.acme.com`
-3. Add DNS records at your registrar:
-
-| Type | Name | Value |
+| Provider | What to enter | Where to find it |
 | --- | --- | --- |
-| CNAME | `shop.acme.com` | `cname.vercel-dns.com` |
+| **Stripe** | Publishable key, secret key, signing secret | Stripe dashboard, under Developers |
+| **Easypay** | Account ID and API key | Your Easypay account |
+| **Ifthenpay** | Anti-phishing key and Multibanco key, plus MB WAY and credit card keys if you use them | Ifthenpay |
 
-4. Wait for DNS propagation (up to 48 hours, usually minutes)
-5. Dashboard shows verification status
-6. Once verified, storefront serves at `https://shop.acme.com`
+Each store's checkout runs on one provider, and Stripe comes first if it's connected. Your credentials are stored encrypted at rest. More in [Payment integration](/docs/guides/payment-integration).
 
-Requires Vercel domain provisioning env vars (`VERCEL_TOKEN`, `STOREFRONT_VERCEL_PROJECT_ID`).
+## Step 5: Set up the webhook
 
-## Step 7 — Invite team members
+Orders are only marked as paid when your provider tells your store a payment arrived. Each provider's page in **Integrations** shows your store's webhook URL. Add it in your provider's account, following [Webhook setup](/docs/guides/webhook-setup).
 
-1. Go to **Team** (`/team`)
-2. Invite colleagues by email with appropriate role:
-   - **Admin** — full store management
-   - **Member** — read-only (future fine-grained permissions)
+## Step 6: Add a domain
 
-## Step 8 — Test the full flow
+Your prood.app address works from the start, so this step is optional.
 
-1. Visit the storefront (subdomain or custom domain)
-2. Browse products — verify catalog loads
-3. Add item to cart
-4. Proceed to checkout
-5. Complete payment with test credentials
-6. Verify order appears in dashboard **Orders**
-7. Test refund flow (optional)
+1. Go to **Domains**, under **Connections**.
+2. Add your domain under **Custom domains**, such as `shop.example.com`.
+3. Add the DNS record the dashboard shows at your registrar:
+
+| Your domain | Type | Name | Value |
+| --- | --- | --- | --- |
+| A subdomain, like `shop.example.com` | CNAME | `shop.example.com` | `cname.vercel-dns.com` |
+| The root domain, like `example.com` | A | `@` | `76.76.21.21` |
+
+The dashboard may list a verification record too. DNS changes usually take minutes, and can take up to 48 hours. HTTPS is set up automatically once the domain is verified.
+
+Free includes one custom domain.
+
+## Step 7: Invite your team
+
+| Feature | Availability |
+| --- | --- |
+| Team invites | From Grow. Free has one seat, the owner. |
+
+On a plan with seats, go to **Team** and invite people by email as **Admin** or **Member**. Admins can run the store. Members can see the store's data but can't change it. Paid plans are coming.
+
+## Step 8: Place a test order
+
+Use your provider's test keys, then:
+
+1. Open your store and add a product to the cart.
+2. Go through checkout and pay with test details.
+3. Check the order appears under **Orders**, with its payment showing **Paid**.
 
 ### Test checklist
 
-- [ ] Storefront loads with correct store name and products
-- [ ] Cart add/update/remove works
-- [ ] Checkout form collects address and contact info
-- [ ] Payment completes (Stripe test card or Easypay sandbox)
-- [ ] Order appears in dashboard with correct status
-- [ ] Webhook updates order from `pending` to `confirmed`
-- [ ] Custom domain resolves (if configured)
-- [ ] Team member can sign in and access dashboard
+- The store shows your name and active products
+- Adding to the cart and changing quantities works
+- Checkout collects the address and contact details you expect
+- The payment completes
+- The order shows up in the dashboard as **Paid**
+- Your custom domain opens the store, if you added one
 
-## Step 9 — Go live
+## Step 9: Go live
 
-1. Switch payment provider from test/sandbox to production keys
-2. Update webhook URLs to production endpoints
-3. Verify SSL certificates are active on all domains
-4. Monitor first real orders in dashboard
-
-## Data isolation verification
-
-After onboarding, verify the new merchant's data is isolated:
-
-```sql
--- Connect to Neon Postgres
-SELECT set_config('app.current_org_id', 'org_new_merchant', false);
-SELECT count(*) FROM products;  -- only their products
-
-SELECT set_config('app.current_org_id', 'org_demo', false);
-SELECT count(*) FROM products;  -- only demo products
-```
+1. Replace your test keys with live keys in **Integrations**.
+2. Add your webhook URL to your provider's live settings, and paste the live signing secret if you use Stripe.
+3. Check your domain opens with HTTPS.
+4. Watch your first real orders under **Orders**.
 
 ## Related pages
 
 <Cards>
-  <Card title="Multi-tenant platform" href="/docs/architecture/multi-tenant" description="Tenant isolation architecture." />
-  <Card title="Dashboard domains" href="/docs/apps/dashboard/domains" description="Custom domain setup." />
-  <Card title="Payment integration" href="/docs/guides/payment-integration" description="Payment provider configuration." />
-  <Card title="Deployment" href="/docs/guides/deployment" description="Production deployment guide." />
+  <Card title="Products" href="/docs/apps/dashboard/products" description="What each product field does." />
+  <Card title="Orders" href="/docs/apps/dashboard/orders" description="Fulfill, cancel and refund." />
+  <Card title="Domains" href="/docs/apps/dashboard/domains" description="Custom domain setup." />
+  <Card title="Payment integration" href="/docs/guides/payment-integration" description="Connect a payment account." />
 </Cards>

@@ -7,12 +7,20 @@ export const siteConfig = {
   name: "Prood",
   /** Canonical origin for metadata, sitemap and robots, whatever the deploy URL. */
   url: "https://prood.com",
-  title: "Prood: open your store, keep the keys",
+  title: "Prood: commerce, ready to run",
   description:
-    "Prood is an API-first commerce platform. Get a store on your own domain, take payments through your own Stripe, Easypay or Ifthenpay account, and let developers and AI agents work through the same API. No cut of your sales.",
+    "Prood is hosted, API-first commerce. Run your store on your own domain, take Multibanco and MB WAY through your own Easypay or Ifthenpay account or cards through Stripe, and give developers and AI agents an API.",
   email: "hello@prood.com",
+  /** The company behind Prood. Public registry facts only: see _docs/LEGAL.md. */
+  legal: {
+    name: "Búzios e Tartarugas, Lda.",
+    registeredName: "BÚZIOS E TARTARUGAS - LDA",
+    vat: "515001708",
+    address: "Rua Gil Vicente 2, 2775-198 Parede, Portugal",
+  },
   /** Registrable domain for merchant stores; kept apart from prood.com on purpose. */
   storeDomain: "prood.app",
+  demoStoreUrl: "https://prood-demo.prood.app",
   registerUrl: `${dashboardUrl}/register`,
   loginUrl: `${dashboardUrl}/login`,
   docsUrl: `${docsUrl}/docs`,
@@ -25,6 +33,9 @@ export function docsPage(path: string) {
 
 export const contactHref = (subject: string) =>
   `mailto:${siteConfig.email}?subject=${encodeURIComponent(subject)}`
+
+/** Routes that open on a full-bleed image, so the header starts transparent over it. */
+export const overlayRoutes = ["/", "/agencies", "/integrations", "/pricing"] as readonly string[]
 
 export const mainNav = [
   { label: "Agencies", href: "/agencies" },

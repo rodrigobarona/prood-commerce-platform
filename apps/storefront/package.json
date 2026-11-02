@@ -20,6 +20,7 @@
     "@phosphor-icons/react": "catalog:",
     "@prood/api-client": "workspace:*",
     "@prood/auth": "workspace:*",
+    "@prood/media": "workspace:*",
     "@prood/notification-resend": "workspace:*",
     "@prood/platform": "workspace:*",
     "@prood/types": "workspace:*",

@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react"
+import { act, cleanup, render, screen } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import type { Product } from "@prood/types"
 
@@ -28,11 +28,53 @@ const addButton = () => screen.getByRole("button", { name: /Add to cart|Out of s
 
 beforeEach(() => {
   mocks.cart.canTakeOrders = true
+  mocks.cart.loading = false
 })
 
 afterEach(cleanup)
 
 describe("AddToCart", () => {
+  function stubObserver() {
+    let report: IntersectionObserverCallback = () => {}
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        constructor(callback: IntersectionObserverCallback) {
+          report = callback
+        }
+        observe() {}
+        disconnect() {}
+      },
+    )
+    return (isIntersecting: boolean, bottom: number) =>
+      act(() =>
+        report(
+          [{ isIntersecting, boundingClientRect: { bottom } } as IntersectionObserverEntry],
+          {} as IntersectionObserver,
+        ),
+      )
+  }
+
+  it("names the chosen size in the bar, away from the picker", async () => {
+    const report = stubObserver()
+    render(<AddToCart product={product} variantName="Medium" available />)
+    report(false, -40)
+    expect(document.querySelector("[data-sticky-bar]")?.textContent).toContain("Medium")
+    vi.unstubAllGlobals()
+  })
+
+  it("keeps the bar away until the button has scrolled past", () => {
+    const report = stubObserver()
+    render(<AddToCart product={product} available />)
+    report(false, 980)
+    expect(document.querySelector("[data-sticky-bar]")).toBeNull()
+    report(true, 500)
+    expect(document.querySelector("[data-sticky-bar]")).toBeNull()
+    report(false, -40)
+    expect(document.querySelector("[data-sticky-bar]")).not.toBeNull()
+    vi.unstubAllGlobals()
+  })
+
   it("lets shoppers add to a store that can sell", () => {
     render(<AddToCart product={product} available />)
     expect(addButton().disabled).toBe(false)
@@ -44,6 +86,19 @@ describe("AddToCart", () => {
     render(<AddToCart product={product} available />)
     expect(addButton().disabled).toBe(true)
     expect(screen.getByText("This store isn't taking paid orders yet.")).toBeTruthy()
+  })
+
+  it("disables the quantity along with the button", () => {
+    mocks.cart.canTakeOrders = false
+    render(<AddToCart product={product} available />)
+    expect(screen.getByRole<HTMLButtonElement>("button", { name: "Increase quantity" }).disabled).toBe(true)
+  })
+
+  it("holds the quantity while an add is in flight", () => {
+    mocks.cart.loading = true
+    render(<AddToCart product={product} available />)
+    expect(addButton().disabled).toBe(true)
+    expect(screen.getByRole<HTMLButtonElement>("button", { name: "Increase quantity" }).disabled).toBe(true)
   })
 
   it("lets shoppers add a free product even so, since it needs no payment", () => {

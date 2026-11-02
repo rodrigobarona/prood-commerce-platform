@@ -1,9 +1,27 @@
 ---
 title: "@prood/ui"
-description: Shared React component library — shadcn/Radix primitives and 33+ commerce-specific components.
+description: The Prood design system and shared React components, from shadcn/Radix primitives to commerce and product UI.
 ---
 
-`@prood/ui` provides the shared UI layer for all Prood applications. It combines shadcn/ui primitives (Radix + Tailwind) with commerce-specific components for catalog, cart, checkout, and account flows.
+`@prood/ui` is the Prood design system and the shared UI layer for every Prood application. It holds the tokens, the logo, shadcn/ui primitives (Radix + Tailwind) and the components for catalog, cart, checkout, account and product UI. Photography and film live next door in [`@prood/media`](/docs/packages/media).
+
+## Design system
+
+One system runs every surface: marketing, dashboard, admin, docs, storefront and hosted checkout. The rules live in [`packages/ui/DESIGN.md`](https://github.com/rodrigobarona/prood-commerce-platform/blob/main/packages/ui/DESIGN.md), positioning and voice in [`_docs/BRAND.md`](https://github.com/rodrigobarona/prood-commerce-platform/blob/main/_docs/BRAND.md), and the living reference is [prood.com/design](https://prood.com/design).
+
+It hangs on three physical things from a shop on a Portuguese street:
+
+- **Receipt paper:** Paper, the warm canvas, and the `Receipt` component.
+- **The roof tile:** Telha, the one signal color, and `TileEdge` and `TileField`, filled tiles from the wordmark's ring that always hang downward.
+- **The people behind the counter:** real hands and faces in natural light, with one shared photo grade.
+
+| Concept | What to use |
+| --- | --- |
+| Colors | `background`, `foreground`, `primary` (Ink) and `brand` (Telha). Fixed `ink`, `paper` and `telha` inside components. Never hardcode a color in an app |
+| Surfaces | `surface-ink` and `surface-telha` restyle every token inside them, so components need no variants. Add `surface-photo` when text sits on a photograph |
+| Type | Bricolage Grotesque for headings, Instrument Sans for UI, Geist Mono for code. `text-display-xl` to `text-display-sm`, `text-lead` and `text-eyebrow` on marketing; `PageHeader` in product UI |
+| Shape | Controls `rounded-lg`, panels `rounded-xl`, large frames `rounded-3xl`. Borders over shadows |
+| Merchant surfaces | Storefront and hosted checkout use the same system on the neutral theme: no Telha, no Prood logo |
 
 ## Installation
 
@@ -19,7 +37,10 @@ Import global styles in your app's root layout:
 
 ```tsx
 import '@prood/ui/globals.css'
+import '@prood/ui/themes/prood.css'
 ```
+
+Import exactly one theme next to `globals.css`: `prood.css` for Prood's own apps, `neutral.css` for merchant surfaces.
 
 ## Component categories
 
@@ -40,14 +61,6 @@ import '@prood/ui/globals.css'
 | `CartItem` | `@prood/ui/components/cart-item` | Single cart line item |
 | `CartSummary` | `@prood/ui/components/cart-summary` | Totals breakdown |
 | `QuantitySelector` | `@prood/ui/components/quantity-selector` | +/- quantity control |
-| `CouponInput` | `@prood/ui/components/coupon-input` | Coupon code input |
-
-### Checkout
-
-| Component | Import | Description |
-| --- | --- | --- |
-| `CheckoutStepper` | `@prood/ui/components/checkout-stepper` | Multi-step progress indicator |
-| `AddressForm` | `@prood/ui/components/address-form` | Shipping/billing address form |
 
 ### Order
 
@@ -61,27 +74,44 @@ import '@prood/ui/globals.css'
 | Component | Import | Description |
 | --- | --- | --- |
 | `SearchPalette` | `@prood/ui/components/search-palette` | Command-k style search |
-| `SearchBar` | `@prood/ui/components/search-bar` | Inline search input |
+
+### Product UI
+
+Every dashboard and admin page is built from these.
+
+| Component | Import | Description |
+| --- | --- | --- |
+| `PageHeader` | `@prood/ui/components/page-header` | Page title, a sentence of context and one primary action |
+| `StatGrid`, `Stat` | `@prood/ui/components/stat-grid` | A row of headline numbers, joined by hairlines |
+| `StatusBadge` | `@prood/ui/components/status-badge` | Status of an order, domain or provider. Tones: `neutral`, `brand`, `success`, `warning`, `danger`, `info` |
+| `Panel` | `@prood/ui/components/panel` | Titled, bordered block around a table, list or form. Pass `flush` for tables |
+| `AuthShell` | `@prood/ui/components/auth-shell` | Sign-in, sign-up and onboarding: the form beside a `MediaImage` passed as `aside` |
+
+```tsx
+import { PageHeader } from '@prood/ui/components/page-header'
+import { Panel } from '@prood/ui/components/panel'
+import { StatusBadge } from '@prood/ui/components/status-badge'
+
+<PageHeader title="Orders" description="Everything your customers have bought." />
+<Panel title="Recent orders" flush>
+  <StatusBadge tone="success">Paid</StatusBadge>
+</Panel>
+```
 
 ### Marketing
 
 | Component | Import | Description |
 | --- | --- | --- |
 | `HeroBanner` | `@prood/ui/components/hero-banner` | Full-width hero section |
-| `PromoBanner` | `@prood/ui/components/promo-banner` | Promotional banner |
+| `Receipt` | `@prood/ui/components/receipt` | The signature fragment: a torn till receipt for a sale or order moment. Sample data only |
+| `TileEdge`, `TileField` | `@prood/ui/components/tile` | The hanging tile motif. `TileEdge` at section seams, with `awning` under a photograph, `TileField` behind Ink and Telha panels |
+| `BrowserFrame`, `PhoneFrame` | `@prood/ui/components/device-frame` | Device chrome around real components, never drawings of a screen |
 
 ### Reviews
 
 | Component | Import | Description |
 | --- | --- | --- |
-| `ReviewCard` | `@prood/ui/components/review-card` | Single review display |
 | `ReviewStars` | `@prood/ui/components/review-stars` | Star rating display |
-
-### Specialized
-
-| Component | Import | Description |
-| --- | --- | --- |
-| `WishlistGrid` | `@prood/ui/components/wishlist-grid` | Wishlist product grid |
 
 ### Common
 
@@ -127,11 +157,12 @@ import { ThemeProvider } from 'next-themes'
 </ThemeProvider>
 ```
 
-Color tokens defined in `packages/ui/src/globals.css` with `@theme inline`.
+Color tokens are defined in `packages/ui/src/styles/themes/prood.css` and `neutral.css`. `packages/ui/src/styles/globals.css` maps them to Tailwind with `@theme inline` and holds the display type scale.
 
 ## Related pages
 
 <Cards>
+  <Card title="@prood/media" href="/docs/packages/media" description="Curated photography and film." />
   <Card title="Storefront" href="/docs/apps/storefront" description="Primary consumer of UI components." />
-  <Card title="Installation" href="/docs/getting-started/installation" description="Adding shadcn components." />
+  <Card title="Installation" href="/docs/run-locally/installation" description="Adding shadcn components." />
 </Cards>

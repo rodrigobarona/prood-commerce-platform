@@ -66,6 +66,6 @@ export function phosphorIconsPlugin(options: { defaultIcon?: DocsIconName } = {}
       return;
     }
 
-    return createElement(IconComponent, { className: 'size-4', weight: 'duotone' });
+    return createElement(IconComponent, { className: 'size-4' });
   });
 }

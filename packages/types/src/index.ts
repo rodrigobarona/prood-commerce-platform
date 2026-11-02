@@ -6,6 +6,9 @@
 // Common primitives & utilities
 export type { Maybe, Id, LocalizedField, LocalizedString, PaginatedResult, PaginationParams, Price, DiscountablePrice, Image, DeepPartial, CommerceErrorCode, TaxStrategy } from './common.js'
 export { DEFAULT_LOCALE, DEFAULT_LOCALES, LOCALE_META } from './locale.js'
+export { contains } from './like-pattern.js'
+export { FIXED_SHIPPING_RATES } from './shipping-rates.js'
+export { RESERVED_STORE_SLUGS, slugify } from './slug.js'
 export type { SupportedLocale } from './locale.js'
 export { CommerceError, isCommerceError } from './common.js'
 export type { CommerceErrorBody, CommerceErrorResponse } from './http-errors.js'
@@ -25,7 +28,8 @@ export type { Brand } from './brand.js'
 export type { Cart, CartItem, CartTotals } from './cart.js'
 
 // Customer
-export type { Customer, Address, CheckoutAddress, RegisterInput, UpdateCustomerInput } from './customer.js'
+export type {
+  AdminCustomer, Customer, Address, CheckoutAddress, RegisterInput, UpdateCustomerInput } from './customer.js'
 
 // Order
 export type { Order, OrderItem, OrderPaymentDetails, OrderStatus, PaymentStatus, OrderFulfillmentStatus, FulfillmentStatus } from './order.js'
@@ -138,6 +142,6 @@ export type {
 export { safeEqual } from './security.js'
 
 // Order payment state
-export { MBWAY_WINDOW_MS, PAYMENT_DECLINED_PARAM, PAYMENT_DECLINED_VALUE, SETTLED_PAYMENTS, orderOutcome, orderPaymentState, toPortugueseMobile, type OrderOutcome, type OrderPaymentState } from './order-payment.js'
+export { MBWAY_WINDOW_MS, PAYMENT_DECLINED_PARAM, PAYMENT_DECLINED_VALUE, SETTLED_PAYMENTS, orderOutcome, orderPaymentState, toPortugueseMobile, type OrderOutcome, type OrderPaymentState, type OrderQueue } from './order-payment.js'
 export { safeRedirectPath } from './redirect.js'
 export { requiredEnv, storeOriginForSlug } from './env.js'

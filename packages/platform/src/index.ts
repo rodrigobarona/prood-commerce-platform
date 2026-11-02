@@ -22,7 +22,9 @@ export type {
   StoreSettings,
   UpdateInventoryInput,
   DashboardStats,
+  OrderActivity,
   AdminListParams,
+  AdminCustomerRecord,
 } from './admin/types.js'
 
 // Config

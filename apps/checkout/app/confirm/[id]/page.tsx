@@ -1,29 +1,38 @@
 import { Suspense } from "react"
 import { Skeleton } from "@prood/ui/components/skeleton"
+import { STORE_HINT_PARAM, readStoreHint } from "@prood/checkout-host"
 import { PAYMENT_DECLINED_PARAM, PAYMENT_DECLINED_VALUE } from "@prood/types"
 import { ConfirmClient } from "./confirm-client"
 
-export default async function ConfirmPage({
-  params,
-  searchParams,
-}: {
+interface ConfirmPageProps {
   params: Promise<{ id: string }>
   searchParams: Promise<Record<string, string | string[] | undefined>>
-}) {
-  const { id } = await params
-  const declined = (await searchParams)[PAYMENT_DECLINED_PARAM] === PAYMENT_DECLINED_VALUE
+}
 
+async function Confirm({ params, searchParams }: ConfirmPageProps) {
+  const { id } = await params
+  const query = await searchParams
+  return (
+    <ConfirmClient
+      sessionId={id}
+      declined={query[PAYMENT_DECLINED_PARAM] === PAYMENT_DECLINED_VALUE}
+      hint={readStoreHint(query[STORE_HINT_PARAM], id)}
+    />
+  )
+}
+
+export default function ConfirmPage(props: ConfirmPageProps) {
   return (
     <Suspense
       fallback={
-        <div className="bg-background flex flex-col gap-4 rounded-2xl border p-6 shadow-sm">
-          <Skeleton className="mx-auto h-8 w-3/4" />
-          <Skeleton className="mx-auto h-4 w-1/2" />
-          <p className="text-muted-foreground text-center text-sm">Confirming your payment...</p>
+        <div className="flex flex-col gap-3">
+          <Skeleton className="size-8 rounded-full" />
+          <Skeleton className="h-9 w-3/4 rounded-lg" />
+          <p className="text-muted-foreground">Confirming your payment...</p>
         </div>
       }
     >
-      <ConfirmClient sessionId={id} declined={declined} />
+      <Confirm {...props} />
     </Suspense>
   )
 }

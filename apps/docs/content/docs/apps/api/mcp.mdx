@@ -1,9 +1,11 @@
 ---
-title: MCP Server
+title: MCP server
 description: Model Context Protocol server exposing Commerce API operations as tools for AI agents.
 ---
 
 The Commerce API exposes a **Model Context Protocol (MCP)** server at `/mcp`, allowing AI agents and LLM applications to interact with commerce data through standardized tools.
+
+Free keys reach the 21 storefront tools, with three limits. `applyCartCoupon` and `removeCartCoupon` have nothing to act on, because no merchant can create coupons yet. `listOrders` returns an empty list here: it only lists a signed-in customer's orders, and that needs the REST route. Admin tools need a key with the Admin scope, which starts on Grow. Agent Auth starts on Grow. Paid plans are coming.
 
 ## Endpoint
 
@@ -25,8 +27,10 @@ MCP tools mirror the REST API endpoints. Each tool maps to an OpenAPI `operation
 | --- | --- | --- |
 | `listProducts` | `GET /v1/products` | Search and list products |
 | `getProduct` | `GET /v1/products/{id}` | Get product by ID |
+| `getProductBySlug` | `GET /v1/products/by-slug/{slug}` | Get product by URL slug |
 | `listCategories` | `GET /v1/categories` | List categories |
 | `getStore` | `GET /v1/store` | Get store info |
+| `listCountries` | `GET /v1/countries` | List countries |
 
 ### Cart tools
 
@@ -37,15 +41,15 @@ MCP tools mirror the REST API endpoints. Each tool maps to an OpenAPI `operation
 | `addCartItem` | `POST /v1/carts/{id}/items` | Add item to cart |
 | `updateCartItem` | `PATCH /v1/carts/{id}/items/{itemId}` | Update item quantity |
 | `removeCartItem` | `DELETE /v1/carts/{id}/items/{itemId}` | Remove item |
-| `applyCartCoupon` | `POST /v1/carts/{id}/coupon` | Apply coupon |
-| `removeCartCoupon` | `DELETE /v1/carts/{id}/coupon` | Remove coupon |
+| `applyCartCoupon` | `POST /v1/carts/{id}/coupon` | Apply coupon. No merchant can create coupons yet |
+| `removeCartCoupon` | `DELETE /v1/carts/{id}/coupon` | Remove coupon. No merchant can create coupons yet |
 | `setCartShippingAddress` | `PUT /v1/carts/{id}/shipping-address` | Set shipping address |
 | `setCartBillingAddress` | `PUT /v1/carts/{id}/billing-address` | Set billing address |
 | `listCartShippingMethods` | `GET /v1/carts/{id}/shipping-methods` | List shipping options |
 | `listCartPaymentMethods` | `GET /v1/carts/{id}/payment-methods` | List payment options |
 | `setCartShippingMethod` | `PATCH /v1/carts/{id}/shipping-method` | Select shipping method |
 | `placeOrder` | `POST /v1/carts/{id}/place-order` | Place order from cart |
-| `listOrders` | `GET /v1/orders` | List customer orders |
+| `listOrders` | `GET /v1/orders` | List customer orders. Returns an empty list over MCP |
 | `getOrder` | `GET /v1/orders/{id}` | Get order |
 
 ### Admin tools
@@ -109,9 +113,9 @@ Add to your MCP config:
 {
   "mcpServers": {
     "prood-commerce": {
-      "url": "http://localhost:3005/mcp",
+      "url": "https://api.prood.com/mcp",
       "headers": {
-        "x-api-key": "pk_your_api_key"
+        "x-api-key": "pkAbC123..."
       }
     }
   }
@@ -130,7 +134,7 @@ await client.connect(transport)
 
 const result = await client.callTool({
   name: 'listProducts',
-  arguments: { query: 'shirt', limit: 5 },
+  arguments: { query: 'shirt', perPage: 5 },
 })
 ```
 

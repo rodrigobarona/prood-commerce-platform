@@ -2,13 +2,20 @@
   "title": "Documentation",
   "pages": [
     "index",
+    "---For merchants---",
     "getting-started",
-    "architecture",
+    "guides",
+    "apps/dashboard",
     "billing",
+    "---For developers---",
+    "guides/machine-access",
+    "apps/api",
+    "api",
+    "---For contributors---",
+    "run-locally",
+    "architecture",
     "apps",
     "packages",
-    "guides",
-    "api-reference",
-    "...(openapi)"
+    "guides/deployment"
   ]
 }

@@ -71,6 +71,13 @@
       "when": 1793467551942,
       "tag": "0009_brave_ricochet",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793660207863,
+      "tag": "0010_lookup_indexes",
+      "breakpoints": true
     }
   ]
 }

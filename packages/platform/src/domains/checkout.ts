@@ -7,7 +7,6 @@ import type {
   Cart,
   Order,
   ShippingMethod,
-  PaymentMethod,
   CheckoutAddress,
 } from '@prood/types'
 import {
@@ -19,7 +18,7 @@ import { normalizeLocalizedField } from './helpers.js'
 import { getStoreCurrency } from '../tenant/store-info.js'
 import { requireSellable } from './availability.js'
 import { createCartDomain } from './cart.js'
-import { listPaymentMethods, listShippingMethods } from './checkout-methods.js'
+import { listShippingMethods } from './checkout-methods.js'
 import { recordOrder, type OrderLine } from './order-recorder.js'
 
 export function createCheckoutDomain() {
@@ -45,18 +44,6 @@ export function createCheckoutDomain() {
         throw new CommerceError(`Unknown shipping method: ${methodId}`, 'VALIDATION', 422)
       }
       await updateCart(cartId, { shippingMethodId: methodId })
-      return cartDomain.getCart(cartId)
-    },
-
-    async getPaymentMethods(_cartId: string): Promise<PaymentMethod[]> {
-      return listPaymentMethods()
-    },
-
-    async setPaymentMethod(cartId: string, methodId: string): Promise<Cart> {
-      if (!listPaymentMethods().some(m => m.id === methodId)) {
-        throw new CommerceError(`Unknown payment method: ${methodId}`, 'VALIDATION', 422)
-      }
-      await updateCart(cartId, { paymentMethodId: methodId })
       return cartDomain.getCart(cartId)
     },
 

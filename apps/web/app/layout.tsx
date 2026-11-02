@@ -2,10 +2,10 @@ import type { Metadata, Viewport } from "next"
 import { Bricolage_Grotesque, Geist_Mono, Instrument_Sans } from "next/font/google"
 
 import "./globals.css"
+import { ThemeProvider } from "@prood/ui/components/theme-provider"
 import { cn } from "@prood/ui/lib/utils"
 import { SiteFooter } from "@/components/site-footer"
 import { SiteHeader } from "@/components/site-header"
-import { ThemeProvider } from "@/components/theme-provider"
 import { siteConfig } from "@/lib/site"
 
 const fontSans = Instrument_Sans({ subsets: ["latin"], variable: "--font-family-sans" })

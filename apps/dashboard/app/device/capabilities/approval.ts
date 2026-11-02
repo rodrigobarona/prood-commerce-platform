@@ -250,7 +250,7 @@ export async function approveCapabilityRequest(
   } catch (error) {
     unstable_rethrow(error)
     console.error("[approveCapabilityRequest] failed:", error)
-    return { error: "Could not approve capability request." }
+    return { error: "We couldn't approve this request. Nothing changed. Try again." }
   }
 
   redirect("/settings/api-keys")
@@ -333,7 +333,7 @@ export async function denyCapabilityRequest(
   } catch (error) {
     unstable_rethrow(error)
     console.error("[denyCapabilityRequest] failed:", error)
-    return { error: "Could not deny capability request." }
+    return { error: "We couldn't deny this request. Nothing changed. Try again." }
   }
 
   redirect("/settings/api-keys")

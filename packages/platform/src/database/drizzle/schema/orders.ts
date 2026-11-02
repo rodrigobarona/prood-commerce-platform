@@ -56,6 +56,7 @@ export const orders = pgTable('orders', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
   unique().on(t.organizationId, t.orderNumber),
+  index('orders_organization_id_customer_id_idx').on(t.organizationId, t.customerId),
   tenantIsolation(),
 ])
 

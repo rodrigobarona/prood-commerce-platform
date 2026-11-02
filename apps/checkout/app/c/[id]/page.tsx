@@ -1,20 +1,22 @@
-import type { Metadata } from "next"
+import { Suspense } from "react"
+import { STORE_HINT_PARAM, readStoreHint } from "@prood/checkout-host"
+import { ShellFallback } from "@/components/checkout-shell"
 import { PaymentPageClient } from "@/components/payment-page-client"
 
-export const metadata: Metadata = {
-  title: "Checkout",
+interface SessionPageProps {
+  params: Promise<{ id: string }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
-export default async function CheckoutSessionPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+async function Session({ params, searchParams }: SessionPageProps) {
   const { id } = await params
+  return <PaymentPageClient sessionId={id} hint={readStoreHint((await searchParams)[STORE_HINT_PARAM], id)} />
+}
 
+export default function CheckoutSessionPage(props: SessionPageProps) {
   return (
-    <div className="flex flex-col gap-6 rounded-2xl border bg-background p-6 shadow-sm">
-      <PaymentPageClient sessionId={id} />
-    </div>
+    <Suspense fallback={<ShellFallback />}>
+      <Session {...props} />
+    </Suspense>
   )
 }

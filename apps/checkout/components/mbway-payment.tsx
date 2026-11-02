@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { DeviceMobileIcon } from "@phosphor-icons/react"
+import { Progress } from "@prood/ui/components/progress"
 import { MBWAY_WINDOW_MS } from "@prood/types"
 
 const CHECK_EVERY_MS = 4000
@@ -63,18 +65,44 @@ export function MbWayPayment({
     }
   }, [sessionId, onEnd])
 
+  const expiring = secondsLeft === 0
+
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border p-5 text-center" role="status">
-      <h3 className="font-semibold">Approve the payment in MB WAY</h3>
-      <p className="text-muted-foreground text-sm">
-        {phone ? `We sent a request to ${formatPhone(phone)}. ` : "We sent a request to your phone. "}
-        Open the MB WAY app and approve it.
-      </p>
-      {secondsLeft !== null ? (
-        <p className="text-muted-foreground text-xs tabular-nums">
-          Expires in {Math.floor(secondsLeft / 60)}:{String(secondsLeft % 60).padStart(2, "0")}
+    <section className="flex flex-col gap-4 rounded-xl border p-5">
+      <div className="flex flex-col gap-2">
+        <DeviceMobileIcon className="text-muted-foreground size-6" />
+        <h2 data-step-heading tabIndex={-1} className="font-sans text-base font-medium outline-none">
+          Approve the payment in MB WAY
+        </h2>
+        <p className="text-muted-foreground text-sm">
+          {phone ? `We sent a request to ${formatPhone(phone)}. ` : "We sent a request to your phone. "}
+          Open the MB WAY app and approve it.
         </p>
-      ) : null}
-    </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <p role="status" className="flex items-center gap-2 text-sm">
+          <span aria-hidden className="bg-foreground size-2 rounded-full motion-safe:animate-pulse" />
+          {expiring ? "Checking one last time..." : "Waiting for your approval"}
+        </p>
+        {secondsLeft !== null ? (
+          <>
+            <Progress
+              aria-label="Time left to approve"
+              value={(secondsLeft * 100000) / MBWAY_WINDOW_MS}
+              className="h-1"
+            />
+            <p className="text-muted-foreground text-sm tabular-nums">
+              Expires in {Math.floor(secondsLeft / 60)}:{String(secondsLeft % 60).padStart(2, "0")}
+            </p>
+          </>
+        ) : null}
+      </div>
+
+      <p className="text-muted-foreground border-t pt-4 text-sm">
+        Wrong number, or no request? Wait for this one to expire. You can then correct the number or
+        choose another way to pay. You won&apos;t be charged for a request you didn&apos;t approve.
+      </p>
+    </section>
   )
 }

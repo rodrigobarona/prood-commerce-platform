@@ -1,52 +1,43 @@
 ---
 title: For agencies
-description: Run multiple client stores on Prood with isolated tenants, domains, and payment credentials.
+description: Run client stores on Prood, each with its own data, domain and payment accounts.
 ---
 
-Agencies use Prood to **launch many client stores** without rebuilding checkout, tenant isolation, or admin panels for each engagement.
+Agencies use Prood to launch client stores without rebuilding checkout and admin for each job.
 
-## Why agencies choose Prood
+Running several client stores? Email us at hello@prood.com.
 
-- **One store per client** — Each client is a separate Better Auth organization with Postgres row-level security.
-- **Instant staging URL** — `{client-slug}.prood.app` is available as soon as the org is created.
-- **Client-owned payments** — Stripe (or regional providers) are configured per store, not shared across clients.
-- **Custom domains** — Each store can use its own domain (included on Free for one domain per store; more on Grow+).
-- **Team per store** — Invite client stakeholders without sharing your agency login.
+## How client stores work
 
-## Recommended workflow
+- **Each store is its own organization.** It has its own catalog, orders, customer records, API keys, payment accounts and team.
+- **One login.** Use **Add store** in the store switcher, at the top of the dashboard sidebar, and move between stores from the same menu.
+- **A prood.app address straight away.** You choose your store's prood.app address when you sign up. If it's taken, we add a few characters to the end. Use the address for client review.
+- **Client-owned payments.** Connect the client's own Stripe, Easypay or Ifthenpay account. Each store's credentials are stored separately and encrypted at rest with AES-256-GCM.
+- **Custom domains.** Every store can use the client's own domain. Free includes one.
+- **Their own logins.** Team invites start on Grow, and Free has one seat, the owner. Paid plans can't be bought yet.
 
-```mermaid
-flowchart LR
-  A[Create org per client] --> B[Configure catalog]
-  B --> C[Client payment keys]
-  C --> D[Subdomain QA]
-  D --> E[Custom domain go-live]
-```
+## From kickoff to live store
 
-1. **Create a new store** — Register or use a dedicated flow per client; note the organization slug for the subdomain.
-2. **Build the catalog** — Products, categories, and media via the dashboard or API.
-3. **Payments** — Enter the **client's** provider credentials under Integrations (encrypted per org).
-4. **QA on subdomain** — Share `{slug}.prood.app` for UAT before DNS cutover.
-5. **Production domain** — Add custom domain in [Domains](/docs/apps/dashboard/domains); client adds CNAME at their registrar.
-6. **Handoff** — Invite client admins on [Team](/docs/apps/dashboard/team).
+1. **Add the store.** Open the store switcher, choose **Add store**, give it the client's name and choose its **Store address**.
+2. **Build the catalog.** Add products in the dashboard. Products have prices, descriptions and an in-stock switch. Uploading product photos is coming later.
+3. **Connect payments.** Enter the client's own credentials under **Integrations**.
+4. **Review.** Share the store's prood.app address with the client.
+5. **Go live.** Add the client's domain under [Domains](/docs/apps/dashboard/domains). They add the DNS record at their registrar, and HTTPS is set up for you.
+6. **Stay on.** Keep running the store for them. Stores can't be exported or passed to a new owner yet, so the store stays with the account that created it. Changing a store by API starts on Grow. Paid plans are coming.
 
-## Agency plan (marketing)
+## Automation
 
-The [Agency pricing tier](https://prood.com/pricing) is intended for **10+ stores**, unlimited products/orders per store, unlimited custom domains, and dedicated support. Contact hello@prood.com for portfolio pricing before dashboard billing is available.
+Free keys reach the 21 storefront tools and the public storefront API: catalog, carts and placing orders. From Grow, each store can use:
 
-## Automation for power users
+- The full [REST API](/docs/api) and [MCP server](/docs/apps/api/mcp) for catalog and order work
+- [Agent Auth](/docs/apps/api/agent-auth) for AI agents you approve
 
-On **Grow** plans and above (when billing launches), each store can use:
-
-- [REST API](/docs/api) and [MCP](/docs/apps/api/mcp) for catalog and order automation
-- [Agent Auth](/docs/apps/api/agent-auth) for approved AI assistants
-
-Useful for bulk imports, reporting pipelines, or client-specific workflows—always scoped to one organization at a time.
+Agent Auth is coming with Grow. Every key and agent works on one store at a time.
 
 ## Related
 
 <Cards>
-  <Card title="Multi-tenant platform" href="/docs/architecture/multi-tenant" description="How tenant isolation works." />
-  <Card title="Merchant onboarding" href="/docs/guides/merchant-onboarding" description="Per-store setup checklist." />
-  <Card title="Deployment" href="/docs/guides/deployment" description="Production hosting for all apps." />
+  <Card title="Merchant onboarding" href="/docs/guides/merchant-onboarding" description="The checklist for each store." />
+  <Card title="Payment integration" href="/docs/guides/payment-integration" description="Connect a client's payment account." />
+  <Card title="Domains" href="/docs/apps/dashboard/domains" description="Point a client's domain at Prood." />
 </Cards>

@@ -1,12 +1,15 @@
 import { Suspense } from "react"
 import { notFound } from "next/navigation"
 import type { Product } from "@prood/commerce"
+import { BackLink } from "@prood/ui/components/page-layout"
+import { PageHeader } from "@prood/ui/components/page-header"
 import { localized } from "@prood/ui/lib/commerce"
-import { DashboardFormPage } from "@/components/layout/dashboard-page"
+import { DashboardPage } from "@/components/layout/dashboard-page"
+import { DetailSkeleton, PageHeaderSkeleton } from "@/components/skeletons"
+import { DeleteProductSection } from "@/components/store/delete-product-section"
 import { ProductForm } from "@/components/store/product-form"
-import { DeleteProductButton } from "@/components/store/delete-product-button"
-import { FormPageSkeleton } from "@/components/skeletons"
-import { getProduct } from "@/lib/admin-api"
+import { getProduct, getStoreSettings } from "@/lib/admin-api"
+import { fieldText } from "@/lib/localized-field"
 
 export const metadata = { title: "Edit product" }
 
@@ -16,11 +19,18 @@ export default function EditProductPage({
   params: Promise<{ id: string }>
 }) {
   return (
-    <DashboardFormPage>
-      <Suspense fallback={<FormPageSkeleton />}>
+    <DashboardPage>
+      <Suspense
+        fallback={
+          <>
+            <PageHeaderSkeleton />
+            <DetailSkeleton />
+          </>
+        }
+      >
         <EditProductContent params={params} />
       </Suspense>
-    </DashboardFormPage>
+    </DashboardPage>
   )
 }
 
@@ -38,23 +48,22 @@ async function EditProductContent({
     notFound()
   }
 
+  const store = await getStoreSettings()
+
   return (
     <>
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="font-heading text-xl font-medium">
-            {localized(product.name)}
-          </h2>
-          <p className="text-sm text-muted-foreground">Edit product details.</p>
-        </div>
-        <DeleteProductButton productId={product.id} />
-      </div>
+      <PageHeader
+        back={<BackLink href="/products">Products</BackLink>}
+        title={localized(product.name)}
+        description="Changes show on your store as soon as you save."
+      />
       <ProductForm
         productId={product.id}
+        currency={store.currency}
         initial={{
-          name: product.name,
+          name: fieldText(product.name),
           slug: product.slug,
-          description: product.description ?? { en: "", pt: "", es: "" },
+          description: fieldText(product.description),
           price: product.price?.amount != null ? String(product.price.amount) : "",
           compareAtPrice:
             product.price?.originalAmount != null
@@ -66,7 +75,9 @@ async function EditProductContent({
           inStock: product.inStock,
           requiresShipping: product.requiresShipping,
         }}
+        source={{ name: product.name, description: product.description }}
       />
+      <DeleteProductSection productId={product.id} />
     </>
   )
 }

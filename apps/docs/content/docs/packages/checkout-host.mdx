@@ -9,11 +9,9 @@ Used by `apps/checkout`.
 
 ## Installation
 
-```bash
-pnpm add @prood/checkout-host
-```
+Workspace package. Available from the source repo for now.
 
-Requires `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`.
+Requires `KV_REST_API_URL` and `KV_REST_API_TOKEN`.
 
 ## Create a session
 
@@ -52,7 +50,7 @@ const snapshot = await loadSession('cs_abc123')
 
 // Rehydrate with live provider
 const session = await loadAndHydrate('cs_abc123', async (providerId) =>
-  getPaymentProvider(providerId, tenantId)
+  (await getTenantPaymentProvider(tenantId, providerId)).provider
 )
 ```
 

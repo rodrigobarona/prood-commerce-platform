@@ -5,6 +5,9 @@
 import type { Maybe } from './common.js'
 import type { Order, OrderPaymentDetails, PaymentStatus } from './order.js'
 
+/** Worklists over orders: everything still open, or paid and waiting to ship. */
+export type OrderQueue = 'open' | 'to_fulfill'
+
 /** Nothing is owed on these, so the order can ship. A partial refund leaves the sale standing. */
 export const SETTLED_PAYMENTS: readonly PaymentStatus[] = ['paid', 'free', 'partially_refunded']
 
@@ -23,6 +26,7 @@ export const MBWAY_WINDOW_MS = 5 * 60 * 1000
  * - `refunded`: all the money went back to the shopper
  * - `partially_refunded`: some money went back, and the order carries on
  * - `cancelled_paid`: the store holds money for a cancelled order, so a refund is owed
+ * - `cancelled`: a free order was cancelled, so no money moved either way
  */
 export type OrderPaymentState =
   | { kind: 'settled' }
@@ -32,6 +36,7 @@ export type OrderPaymentState =
   | { kind: 'refunded' }
   | { kind: 'partially_refunded' }
   | { kind: 'cancelled_paid' }
+  | { kind: 'cancelled' }
 
 export function orderPaymentState(
   order: Pick<Order, 'status' | 'paymentStatus' | 'paymentDetails'>,
@@ -40,7 +45,7 @@ export function orderPaymentState(
     case 'paid':
       return order.status === 'cancelled' ? { kind: 'cancelled_paid' } : { kind: 'settled' }
     case 'free':
-      return { kind: 'settled' }
+      return order.status === 'cancelled' ? { kind: 'cancelled' } : { kind: 'settled' }
     case 'refunded':
       return { kind: 'refunded' }
     case 'partially_refunded':

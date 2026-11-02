@@ -1,5 +1,5 @@
 ---
-title: Pages & Routes
+title: Pages and routes
 description: Complete route map for the storefront application.
 ---
 
@@ -66,7 +66,6 @@ Local BFF routes proxy to the Commerce API where browser UX requires them:
 | `/api/commerce/cart` | GET, POST | Read existing cart or create new cart |
 | `/api/commerce/cart/items` | POST | Add item to cart |
 | `/api/commerce/cart/items/[itemId]` | PATCH, DELETE | Update quantity or remove item |
-| `/api/commerce/cart/coupon` | POST, DELETE | Apply or remove coupon code |
 | `/api/commerce/search` | GET | Product search for client search palette |
 | `/api/commerce/countries` | GET | Country list for address forms |
 
@@ -119,7 +118,7 @@ export default async function ProductsPage({ searchParams }) {
 }
 ```
 
-These fetchers wrap `@prood/api-client` and forward the request `Host` header for tenant resolution.
+These fetchers wrap `@prood/api-client` and forward the request's host as `x-storefront-host` for tenant resolution.
 
 ## Caching
 

@@ -5,6 +5,7 @@ import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { SpinnerGapIcon, TruckIcon } from "@phosphor-icons/react"
 import { Button } from "@prood/ui/components/button"
+import { CommerceButton } from "@prood/ui/components/commerce-button"
 import { RadioGroup, RadioGroupItem } from "@prood/ui/components/radio-group"
 import {
   Field,
@@ -15,7 +16,7 @@ import {
   FieldDescription,
 } from "@prood/ui/components/field"
 import type { Locale } from "@prood/ui/lib/commerce"
-import { localized } from "@prood/ui/lib/commerce"
+import { deliveryDays, localized } from "@prood/ui/lib/commerce"
 import { shippingMethodSchema, type ShippingMethodValues } from "../schemas"
 
 interface ShippingMethodPrice {
@@ -40,6 +41,14 @@ interface ShippingStepProps {
   onSelect: (methodId: string) => Promise<void>
   onSubmit: () => void
   onBack: () => void
+}
+
+/** What a shopper would pick anyway, so the total is real from the first look. */
+function cheapest(methods: ShippingMethod[]): ShippingMethod | undefined {
+  return methods.reduce<ShippingMethod | undefined>(
+    (best, method) => (best && (best.price?.amount ?? Infinity) <= (method.price?.amount ?? Infinity) ? best : method),
+    undefined,
+  )
 }
 
 export function ShippingStep({
@@ -85,14 +94,15 @@ export function ShippingStep({
         const res = await fetch(`/api/commerce/cart/shipping-methods`)
         if (!res.ok) throw new Error("Failed to load shipping methods")
         const data = (await res.json()) as { methods: ShippingMethod[] }
-        setMethods(data.methods ?? [])
-        const first = data.methods?.[0]
-        if (data.methods?.length === 1 && !initialMethodId && first) {
-          form.setValue("methodId", first.id)
-          void choose(first.id)
+        const loaded = data.methods ?? []
+        setMethods(loaded)
+        const preselected = cheapest(loaded)
+        if (preselected && !initialMethodId) {
+          form.setValue("methodId", preselected.id)
+          void choose(preselected.id)
         }
       } catch {
-        setFetchError("Could not load shipping options. Please try again.")
+        setFetchError("We couldn't load shipping options. Go back and try again.")
       } finally {
         setLoading(false)
       }
@@ -123,10 +133,10 @@ export function ShippingStep({
   if (methods.length === 0) {
     return (
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed py-8 text-center text-muted-foreground">
+        <div className="text-muted-foreground flex flex-col items-center gap-2 rounded-xl border py-8 text-center">
           <TruckIcon className="size-8" />
           <p className="text-sm">
-            No shipping methods available for this address.
+            We can&apos;t ship to this address yet. Try another address, or contact the store.
           </p>
         </div>
         <Button type="button" variant="ghost" onClick={onBack}>
@@ -156,16 +166,20 @@ export function ShippingStep({
               className="flex flex-col gap-3"
             >
               {methods.map((method) => (
-                <FieldLabel key={method.id} htmlFor={`shipping-${method.id}`}>
+                <FieldLabel
+                  key={method.id}
+                  htmlFor={`shipping-${method.id}`}
+                  className="has-data-checked:border-foreground has-[>[data-slot=field]]:rounded-xl has-data-checked:bg-transparent"
+                >
                   <Field
                     orientation="horizontal"
                     data-invalid={fieldState.invalid}
-                    className="rounded-2xl border p-4"
                   >
                     <RadioGroupItem
                       value={method.id}
                       id={`shipping-${method.id}`}
                       aria-invalid={fieldState.invalid}
+                      className="border-input bg-card data-checked:border-primary"
                     />
                     <FieldContent>
                       <FieldTitle>{typeof method.name === "string" ? method.name : localized(method.name, locale)}</FieldTitle>
@@ -179,14 +193,12 @@ export function ShippingStep({
                           Estimated delivery:{" "}
                           {typeof method.estimatedDays === "string"
                             ? method.estimatedDays
-                            : method.estimatedDays.min === method.estimatedDays.max
-                              ? `${method.estimatedDays.min} days`
-                              : `${method.estimatedDays.min}–${method.estimatedDays.max} days`}
+                            : deliveryDays(method.estimatedDays)}
                         </FieldDescription>
                       ) : null}
                     </FieldContent>
                     {method.price ? (
-                      <span className="shrink-0 text-sm font-medium">
+                      <span className="shrink-0 text-sm tabular-nums">
                         {method.price.amount === 0
                           ? "Free"
                           : method.price.formatted}
@@ -221,12 +233,12 @@ export function ShippingStep({
       ) : null}
 
       <div className="mt-2 flex gap-3">
-        <Button type="button" variant="ghost" onClick={onBack}>
+        <CommerceButton type="button" variant="ghost" className="px-2" onClick={onBack}>
           Back
-        </Button>
-        <Button type="submit" className="flex-1" disabled={saving || saveError}>
+        </CommerceButton>
+        <CommerceButton type="submit" className="flex-1" disabled={saving || saveError}>
           Continue to review
-        </Button>
+        </CommerceButton>
       </div>
     </form>
   )

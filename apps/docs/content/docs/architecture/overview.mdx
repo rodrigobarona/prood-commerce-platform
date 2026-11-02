@@ -1,5 +1,5 @@
 ---
-title: Architecture Overview
+title: Architecture overview
 description: How Prood applications, packages, and the Commerce API fit together in the Next.js monorepo.
 ---
 
@@ -60,7 +60,7 @@ const products = await adapter.getProducts({ page: 1, limit: 20 })
 
 ### Pluggable payment providers
 
-Payment providers implement the `PaymentProvider` interface. The checkout engine does not know which gateway it uses:
+Payment providers implement the `PaymentProvider` interface. The checkout engine does not know which provider it uses:
 
 ```ts
 interface PaymentProvider {
@@ -110,7 +110,7 @@ The platform adapter organizes commerce domains by how commonly they are needed:
 | **Engine** | `@prood/platform` | Neon Postgres commerce backend + Admin API |
 | **Data layer** | `@prood/commerce` | Server-only wrapper — caching, tenant scope, providers |
 | **Checkout** | `@prood/checkout`, `@prood/checkout-host` | State machine + Redis session host |
-| **Payments** | `@prood/payment-*` | Gateway-specific provider implementations |
+| **Payments** | `@prood/payment-*` | Provider-specific implementations |
 | **Storage** | `@prood/storage-*` | Tenant-namespaced file uploads |
 | **UI** | `@prood/ui` | Shared React components |
 | **Client** | `@prood/api-client` | Typed HTTP client from OpenAPI |

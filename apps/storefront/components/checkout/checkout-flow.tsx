@@ -1,19 +1,22 @@
 "use client"
 
-import { useCallback, useState } from "react"
-import { CheckIcon } from "@phosphor-icons/react"
+import { useCallback, useEffect, useRef, useState, type Ref } from "react"
+import Link from "next/link"
+import type { PaymentMethodKind } from "@prood/types"
 import { EmptyState } from "@prood/ui/components/empty-state"
-import { localized } from "@prood/ui/lib/commerce"
+import { Skeleton } from "@prood/ui/components/skeleton"
+import { formatPrice, localized } from "@prood/ui/lib/commerce"
 import { cn } from "@prood/ui/lib/utils"
 import { useCart } from "@/components/providers/cart-provider"
 import { startCheckout } from "@/app/(checkout)/checkout/actions"
+import { clearDraft, readDraft, saveDraft, type CheckoutDraft } from "@/lib/checkout-draft"
 import { STORE_CLOSED_MESSAGE, canCheckOut } from "@/lib/store-status"
 import { CheckoutSidebar } from "./checkout-sidebar"
 import { ContactStep } from "./steps/contact-step"
 import { AddressStep } from "./steps/address-step"
 import { ShippingStep } from "./steps/shipping-step"
 import { ReviewStep } from "./steps/review-step"
-import type { AddressValues, ContactValues } from "./schemas"
+import { addressSchema, contactSchema, type AddressValues, type ContactValues } from "./schemas"
 
 const STEPS = [
   { id: "contact", title: "Contact" },
@@ -27,6 +30,27 @@ interface CheckoutData {
   address?: AddressValues & { useSameForBilling?: boolean }
 }
 
+/** The furthest step a saved draft can resume at: one whose earlier steps still hold up. */
+function resumeStep({ contact, address, step = 0 }: CheckoutDraft): number {
+  if (!contactSchema.safeParse(contact).success) return 0
+  if (!addressSchema.safeParse(address).success) return Math.min(step, 1)
+  return step
+}
+
+function formatAddress(address: AddressValues): string {
+  const country = new Intl.DisplayNames(["en"], { type: "region" }).of(address.country)
+  return [
+    `${address.firstName} ${address.lastName}`,
+    address.street,
+    address.street2,
+    [address.postalCode, address.city].filter(Boolean).join(" "),
+    address.state,
+    country,
+  ]
+    .filter(Boolean)
+    .join(", ")
+}
+
 function StepHeader({
   index,
   title,
@@ -34,6 +58,7 @@ function StepHeader({
   completed,
   summary,
   onEdit,
+  headingRef,
 }: {
   index: number
   title: string
@@ -41,81 +66,143 @@ function StepHeader({
   completed: boolean
   summary?: React.ReactNode
   onEdit?: () => void
+  /** Takes focus when this step opens. */
+  headingRef?: Ref<HTMLHeadingElement>
 }) {
-  return (
-    <button
-      type="button"
-      className={cn(
-        "flex w-full items-start gap-3 text-left",
-        !active && !completed && "opacity-50",
-        (completed || active) && "cursor-pointer",
-      )}
-      onClick={completed && onEdit ? onEdit : undefined}
-      disabled={!completed}
-    >
-      <span
-        className={cn(
-          "flex size-7 shrink-0 items-center justify-center rounded-full border text-xs font-medium",
-          completed && "border-primary bg-primary text-primary-foreground",
-          active && "border-primary text-primary",
-          !completed && !active && "border-border text-muted-foreground",
-        )}
-      >
-        {completed ? <CheckIcon weight="bold" className="size-3.5" /> : index + 1}
+  const heading = (
+    <span className="flex min-w-0 flex-col gap-0.5">
+      <span className={cn("text-base", active || completed ? "text-foreground" : "text-muted-foreground")}>
+        {index + 1}. {title}
       </span>
-      <div className="flex flex-1 flex-col gap-0.5">
-        <span
-          className={cn(
-            "text-sm font-medium",
-            active || completed ? "text-foreground" : "text-muted-foreground",
-          )}
-        >
-          {title}
-        </span>
-        {completed && summary ? (
-          <span className="text-xs text-muted-foreground">{summary}</span>
-        ) : null}
-      </div>
-      {completed && onEdit ? (
-        <span className="shrink-0 text-xs text-primary">Edit</span>
+      {completed && summary ? (
+        <span className="text-muted-foreground text-sm">{summary}</span>
       ) : null}
-    </button>
+    </span>
+  )
+
+  return (
+    <h2 ref={headingRef} tabIndex={headingRef ? -1 : undefined} className="font-sans outline-none">
+      {completed && onEdit ? (
+        <button
+          type="button"
+          onClick={onEdit}
+          className="group/step flex w-full items-start justify-between gap-4 text-left"
+        >
+          {heading}
+          <span className="text-muted-foreground group-hover/step:text-foreground shrink-0 text-sm underline underline-offset-4">
+            Edit<span className="sr-only"> {title.toLowerCase()}</span>
+          </span>
+        </button>
+      ) : (
+        heading
+      )}
+    </h2>
   )
 }
 
-export function CheckoutFlow({ geoCountry }: { geoCountry?: string }) {
-  const { cart, canTakeOrders, hydrating, setShippingMethod } = useCart()
-  const [activeStep, setActiveStep] = useState(0)
-  const [data, setData] = useState<CheckoutData>({})
-
-  const goTo = useCallback((step: number) => setActiveStep(step), [])
-
-  if (hydrating) {
-    return (
-      <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
-        <div className="mb-6 h-8 w-40 animate-pulse rounded-lg bg-muted sm:mb-8" />
-        <div className="grid gap-6 lg:grid-cols-[1fr_380px] lg:gap-8">
-          <div className="flex flex-col gap-6">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="flex items-start gap-3">
-                <div className="size-7 shrink-0 animate-pulse rounded-full bg-muted" />
-                <div className="h-5 w-32 animate-pulse rounded bg-muted" />
-              </div>
-            ))}
-          </div>
-          <div className="h-64 animate-pulse rounded-2xl border bg-muted/30" />
+function CheckoutColumns({ work, summary }: { work: React.ReactNode; summary: React.ReactNode }) {
+  return (
+    <div className="grid flex-1 grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+      <div className="bg-muted/50 border-b lg:col-start-2 lg:row-start-1 lg:border-b-0 lg:border-l">
+        <div className="w-full max-w-xl px-5 py-4 md:px-8 lg:sticky lg:top-0 lg:max-w-md lg:px-12 lg:py-12">
+          {summary}
         </div>
       </div>
-    )
-  }
+      <div className="lg:col-start-1 lg:row-start-1">
+        {/* Starts where the header's store name does, at any width. */}
+        <div className="max-w-xl px-5 pt-5 pb-8 md:px-8 md:py-12 lg:ml-[max(0px,calc((100vw-84rem)/2))] lg:max-w-[42rem] lg:px-12 [&_[data-slot=input]]:h-11 [&_[data-slot=select-trigger]]:h-11 [&_[data-slot=select-trigger]]:w-full">
+          {work}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function CheckoutSkeleton() {
+  return (
+    <CheckoutColumns
+      work={
+        <div className="flex flex-col gap-6">
+          <h1 className="sr-only">Checkout</h1>
+          <Skeleton aria-hidden className="h-10 w-40 rounded-lg" />
+          <Skeleton aria-hidden className="h-6 w-48 rounded-md" />
+          <Skeleton aria-hidden className="h-11 rounded-lg" />
+          <Skeleton aria-hidden className="h-11 rounded-lg" />
+        </div>
+      }
+      summary={<Skeleton aria-hidden className="h-6 rounded-md lg:h-64" />}
+    />
+  )
+}
+
+export function CheckoutFlow({
+  geoCountry,
+  storeCountry,
+  demo = false,
+  signUpUrl,
+  storeEmail,
+  paymentMethods = [],
+}: {
+  geoCountry?: string
+  /** Where the address form starts. */
+  storeCountry?: string
+  /** The demo store: everything works but placing the order. */
+  demo?: boolean
+  /** Where the demo's last step sends someone who wants a store of their own. */
+  signUpUrl?: string
+  /** Where questions go at the last step, when the store has listed an address. */
+  storeEmail?: string | null
+  /** How the next page will take payment. */
+  paymentMethods?: readonly PaymentMethodKind[]
+}) {
+  const { cart, canTakeOrders, hydrating, setShippingMethod } = useCart()
+  const [draft] = useState(readDraft)
+  const [activeStep, setActiveStep] = useState(() => resumeStep(draft))
+  const [data, setData] = useState<CheckoutData>({
+    contact: draft.contact as ContactValues | undefined,
+    address: draft.address as AddressValues | undefined,
+  })
+  const [closed, setClosed] = useState(false)
+  const activeHeadingRef = useRef<HTMLHeadingElement>(null)
+  const firstStepRef = useRef(true)
+
+  const goTo = useCallback((step: number) => {
+    setActiveStep(step)
+    saveDraft({ step })
+  }, [])
+  const saveContact = useCallback((contact: Partial<ContactValues>) => saveDraft({ contact }), [])
+  const saveAddress = useCallback((address: Partial<AddressValues>) => saveDraft({ address }), [])
+
+  // The step's form just replaced whatever held focus, which would leave it on <body>.
+  useEffect(() => {
+    if (firstStepRef.current) firstStepRef.current = false
+    else activeHeadingRef.current?.focus()
+  }, [activeStep])
+
+  if (hydrating) return <CheckoutSkeleton />
 
   if (!cart || cart.items.length === 0) {
     return (
       <EmptyState
+        headingLevel="h1"
         title="Your cart is empty"
         description="Add something before checking out."
         actionLabel="Browse products"
         actionHref="/products"
+        className="flex-1"
+      />
+    )
+  }
+
+  if (closed) {
+    return (
+      <EmptyState
+        headingLevel="h1"
+        title="This store isn't taking orders right now"
+        description="Your cart is saved, so try again later."
+        actionLabel="Back to store"
+        actionHref="/"
+        className="flex-1"
       />
     )
   }
@@ -123,15 +210,21 @@ export function CheckoutFlow({ geoCountry }: { geoCountry?: string }) {
   if (!canCheckOut(canTakeOrders, cart)) {
     return (
       <EmptyState
+        headingLevel="h1"
         title={STORE_CLOSED_MESSAGE}
         description="Your cart is saved. Check back soon."
         actionLabel="Back to store"
         actionHref="/"
+        className="flex-1"
       />
     )
   }
 
   const steps = STEPS.filter((step) => cart.requiresShipping || step.id !== "shipping")
+  // A draft can outlive what it resumed to: the cart may have lost its method, or its need for one.
+  const shippingOpen = cart.requiresShipping && !cart.shippingMethod
+  const currentStep =
+    activeStep === 3 && shippingOpen ? 2 : activeStep === 2 && !cart.requiresShipping ? 3 : activeStep
 
   function handleContactSubmit(values: ContactValues) {
     setData((prev) => ({ ...prev, contact: values }))
@@ -156,7 +249,7 @@ export function CheckoutFlow({ geoCountry }: { geoCountry?: string }) {
       address: {
         firstName: data.address.firstName,
         lastName: data.address.lastName,
-        phone: data.address.phone || data.contact.phone || undefined,
+        phone: data.contact.phone || undefined,
         street: data.address.street,
         street2: data.address.street2 || undefined,
         city: data.address.city,
@@ -166,9 +259,14 @@ export function CheckoutFlow({ geoCountry }: { geoCountry?: string }) {
       },
     })
 
+    if (res.closed) {
+      setClosed(true)
+      return
+    }
     if (!res.ok) {
       throw new Error(res.error ?? "Checkout failed")
     }
+    clearDraft()
     if (res.checkoutUrl) {
       window.location.href = res.checkoutUrl
     }
@@ -177,98 +275,103 @@ export function CheckoutFlow({ geoCountry }: { geoCountry?: string }) {
   function stepSummary(stepIndex: number): React.ReactNode {
     switch (stepIndex) {
       case 0:
-        return data.contact?.email
+        return [data.contact?.email, data.contact?.phone].filter(Boolean).join(" · ")
       case 1:
-        if (!data.address) return null
-        return `${data.address.firstName} ${data.address.lastName}, ${data.address.city}`
-      case 2:
-        return cart?.shippingMethod ? localized(cart.shippingMethod.name) : null
+        return data.address ? formatAddress(data.address) : null
+      case 2: {
+        const method = cart?.shippingMethod
+        if (!method) return null
+        return `${localized(method.name)} · ${method.price.amount === 0 ? "Free" : formatPrice(method.price)}`
+      }
       default:
         return null
     }
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
-      <h1 className="mb-6 text-xl font-bold tracking-tight sm:mb-8 sm:text-2xl">Checkout</h1>
-
-      <div className="grid gap-6 lg:grid-cols-[1fr_380px] lg:gap-8">
-        {/* Order summary — top on mobile, right sidebar on desktop */}
-        <div className="lg:col-start-2 lg:row-start-1 lg:sticky lg:top-20 lg:self-start">
-          <div className="rounded-2xl border p-4 sm:p-5">
-            <h2 className="mb-4 hidden text-lg font-semibold lg:block">Order summary</h2>
-            <CheckoutSidebar cart={cart} />
+    <CheckoutColumns
+      summary={<CheckoutSidebar cart={cart} />}
+      work={
+        <>
+          <div className="mb-6 flex items-end justify-between gap-4 md:mb-8">
+            <h1 className="text-display-sm">Checkout</h1>
+            <Link
+              href="/cart"
+              className="text-muted-foreground hover:text-foreground pb-1 text-sm transition-colors"
+            >
+              Back to cart
+            </Link>
           </div>
-        </div>
+          <ol className="flex flex-col border-t">
+            {steps.map((step, position) => {
+              const i = STEPS.indexOf(step)
+              const completed = i < currentStep
+              const active = i === currentStep
 
-        {/* Left: Steps */}
-        <div className="flex flex-col gap-6 lg:col-start-1 lg:row-start-1">
-          {steps.map((step, position) => {
-            const i = STEPS.indexOf(step)
-            const completed = i < activeStep
-            const active = i === activeStep
+              return (
+                <li key={step.id} className="flex flex-col gap-5 border-b py-5">
+                  <StepHeader
+                    index={position}
+                    title={step.title}
+                    active={active}
+                    completed={completed}
+                    summary={completed ? stepSummary(i) : undefined}
+                    onEdit={completed ? () => goTo(i) : undefined}
+                    headingRef={active ? activeHeadingRef : undefined}
+                  />
 
-            return (
-              <div key={step.id} className="flex flex-col gap-4">
-                <StepHeader
-                  index={position}
-                  title={step.title}
-                  active={active}
-                  completed={completed}
-                  summary={completed ? stepSummary(i) : undefined}
-                  onEdit={completed ? () => goTo(i) : undefined}
-                />
-
-                {active ? (
-                  <div className="pl-8 sm:pl-10">
-                    {i === 0 && (
-                      <ContactStep
-                        defaultValues={data.contact}
-                        geoCountry={geoCountry}
-                        onSubmit={handleContactSubmit}
-                      />
-                    )}
-                    {i === 1 && (
-                      <AddressStep
-                        defaultValues={data.address}
-                        geoCountry={geoCountry}
-                        onSubmit={handleAddressSubmit}
-                        onBack={() => goTo(0)}
-                      />
-                    )}
-                    {i === 2 && (
-                      <ShippingStep
-                        cartId={cart.id}
-                        defaultValues={
-                          cart.shippingMethod ? { methodId: cart.shippingMethod.id } : undefined
-                        }
-                        onSelect={setShippingMethod}
-                        onSubmit={() => goTo(3)}
-                        onBack={() => goTo(1)}
-                      />
-                    )}
-                    {i === 3 && data.contact && data.address && (
-                      <ReviewStep
-                        contact={data.contact}
-                        address={data.address}
-                        shippingMethod={cart.shippingMethod}
-                        total={cart.totals.total}
-                        onSubmit={handleFinalSubmit}
-                        onBack={() => goTo(cart.requiresShipping ? 2 : 1)}
-                        onEditStep={goTo}
-                      />
-                    )}
-                  </div>
-                ) : null}
-
-                {position < steps.length - 1 ? (
-                  <div className="ml-3.5 border-l pl-6" />
-                ) : null}
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    </div>
+                  {active ? (
+                    <div>
+                      {i === 0 && (
+                        <ContactStep
+                          defaultValues={data.contact}
+                          geoCountry={geoCountry}
+                          onChange={saveContact}
+                          onSubmit={handleContactSubmit}
+                        />
+                      )}
+                      {i === 1 && (
+                        <AddressStep
+                          defaultValues={data.address}
+                          geoCountry={geoCountry}
+                          storeCountry={storeCountry}
+                          demo={demo}
+                          onChange={saveAddress}
+                          onSubmit={handleAddressSubmit}
+                          onBack={() => goTo(0)}
+                          continueLabel={cart.requiresShipping ? "Continue to shipping" : "Continue to review"}
+                        />
+                      )}
+                      {i === 2 && (
+                        <ShippingStep
+                          cartId={cart.id}
+                          defaultValues={
+                            cart.shippingMethod ? { methodId: cart.shippingMethod.id } : undefined
+                          }
+                          onSelect={setShippingMethod}
+                          onSubmit={() => goTo(3)}
+                          onBack={() => goTo(1)}
+                        />
+                      )}
+                      {i === 3 && data.contact && data.address && (
+                        <ReviewStep
+                          demo={demo}
+                          signUpUrl={signUpUrl}
+                          cart={cart}
+                          storeEmail={storeEmail}
+                          paymentMethods={paymentMethods}
+                          onSubmit={handleFinalSubmit}
+                          onBack={() => goTo(cart.requiresShipping ? 2 : 1)}
+                        />
+                      )}
+                    </div>
+                  ) : null}
+                </li>
+              )
+            })}
+          </ol>
+        </>
+      }
+    />
   )
 }

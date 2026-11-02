@@ -1,6 +1,6 @@
 import 'server-only'
 import type { CheckoutSession } from '@prood/checkout'
-import { getAdapter, getOrder, withTenant } from '@prood/commerce'
+import { getAdapter, getOrder, getStoreInfo, withTenant } from '@prood/commerce'
 import type { Order, OrderOutcome, PaymentMethodKind, PaymentSession } from '@prood/types'
 import type { SessionMeta } from './session-store'
 
@@ -9,6 +9,11 @@ import type { SessionMeta } from './session-store'
 
 export async function loadSessionOrder(meta: SessionMeta): Promise<Order | null> {
   return meta.orderId ? getOrder(meta.orderId, meta.tenantId) : null
+}
+
+/** Where a shopper can reach the store. Only a courtesy, so it never fails the page. */
+export async function loadStoreEmail(tenantId: string): Promise<string | null> {
+  return getStoreInfo(tenantId).then((store) => store.contactEmail, () => null)
 }
 
 /** Move a session to the outcome its order already reached. */

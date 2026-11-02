@@ -1,3 +1,4 @@
+import { DEFAULT_LOCALES } from "@prood/types"
 import { z } from "zod"
 
 // ---------------------------------------------------------------------------
@@ -25,10 +26,7 @@ function isServableImageUrl(value: string): boolean {
   // The media Worker decodes paths, so check what it would actually serve.
   if (/(\.|%2e)svg(%20|\/)*$/i.test(url.pathname)) return false
   const s3PublicUrl = process.env.S3_PUBLIC_URL
-  if (s3PublicUrl && value.startsWith(`${s3PublicUrl.replace(/\/$/, "")}/`)) return true
-  return (
-    url.protocol === "https:" && url.hostname === "placehold.co"
-  )
+  return Boolean(s3PublicUrl) && value.startsWith(`${s3PublicUrl?.replace(/\/$/, "")}/`)
 }
 
 const imageUrl = z.url().refine(isServableImageUrl, {
@@ -76,6 +74,13 @@ export const adminListQuery = z.object({
   sortDirection: z.enum(["asc", "desc"]).optional(),
 })
 
+export const adminListCustomersQuery = adminListQuery.extend({
+  sortField: z
+    .enum(["createdAt", "spent"])
+    .optional()
+    .describe("`createdAt`: when the customer was added. `spent`: what they've paid across their orders, less refunds."),
+})
+
 export const adminListOrdersQuery = z.object({
   page: z.coerce.number().int().positive().optional(),
   perPage: z.coerce.number().int().positive().max(200).optional(),
@@ -86,6 +91,12 @@ export const adminListOrdersQuery = z.object({
   search: z.string().optional(),
   /** Only open orders still waiting for a payment through this provider */
   awaitingPaymentFrom: z.string().optional(),
+  queue: z
+    .enum(["open", "to_fulfill"])
+    .optional()
+    .describe("`open`: not fulfilled or cancelled yet. `to_fulfill`: open, paid and not shipped."),
+  sortField: z.enum(["createdAt", "total"]).optional(),
+  sortDirection: z.enum(["asc", "desc"]).optional(),
 })
 
 const productImageInput = z.object({
@@ -157,6 +168,29 @@ export const updateInventoryBody = z.object({
 
 const CURRENCIES = new Set(Intl.supportedValuesOf("currency"))
 const CURRENCY_MESSAGE = "That isn't a currency code. Use an ISO 4217 code, like EUR."
+const LOCALE_MESSAGE = `That isn't a language the store can use. Choose one of ${DEFAULT_LOCALES.join(", ")}.`
+const TIMEZONE_MESSAGE = "That isn't a timezone. Use an IANA name, like Europe/Lisbon."
+const COUNTRY_MESSAGE = "That isn't a country. Use a two-letter country code, like PT."
+
+const regionNames = new Intl.DisplayNames(["en"], { type: "region", fallback: "none" })
+
+function isCountry(code: string): boolean {
+  return /^[A-Z]{2}$/.test(code) && code !== "ZZ" && regionNames.of(code) !== undefined
+}
+
+function isTimezone(value: string): boolean {
+  try {
+    new Intl.DateTimeFormat("en", { timeZone: value })
+    return true
+  } catch {
+    return false
+  }
+}
+
+const CONTACT_EMAIL_MESSAGE =
+  "We can't use that email. It looks incomplete. Enter the whole address, like ola@casalume.example."
+const CONTACT_PHONE_MESSAGE =
+  "We can't use that phone number. It should only have digits. Enter it like +351 912 345 678."
 
 export const updateStoreBody = z.object({
   name: optionalLocalizedFieldSchema,
@@ -171,15 +205,21 @@ export const updateStoreBody = z.object({
     .toUpperCase()
     .refine((code) => CURRENCIES.has(code), CURRENCY_MESSAGE)
     .optional(),
-  locale: z.string().optional(),
-  timezone: z.string().optional(),
-  country: z.string().regex(/^[A-Za-z]{2}$/, "Use a two-letter country code, like PT.").toUpperCase().optional(),
+  locale: z.enum(DEFAULT_LOCALES, LOCALE_MESSAGE).optional(),
+  timezone: z.string().refine(isTimezone, TIMEZONE_MESSAGE).optional(),
+  country: z.string().toUpperCase().refine(isCountry, COUNTRY_MESSAGE).optional(),
   contactEmail: z
-    .email()
+    .email(CONTACT_EMAIL_MESSAGE)
     .nullable()
     .optional()
     .describe("Shown on the store and to customers. Send null to remove it."),
-  contactPhone: z.string().optional(),
+  contactPhone: z
+    .string()
+    .regex(/^\+?[\d\s().-]+$/, CONTACT_PHONE_MESSAGE)
+    .refine((phone) => phone.replace(/\D/g, "").length >= 6, CONTACT_PHONE_MESSAGE)
+    .nullable()
+    .optional()
+    .describe("Send null to remove it."),
   address: z.string().optional(),
   socialLinks: z.record(z.string(), z.string()).optional(),
 })
@@ -233,6 +273,7 @@ export const listCustomerOrdersQuery = z.object({
 
 export type SearchProductsQuery = z.infer<typeof searchProductsQuery>
 export type AdminListQuery = z.infer<typeof adminListQuery>
+export type AdminListCustomersQuery = z.infer<typeof adminListCustomersQuery>
 export const getOrderQuery = z.object({
   /** The email the order was placed with, which shows a guest their payment details */
   email: z.string().optional(),

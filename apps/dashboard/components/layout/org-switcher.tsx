@@ -1,8 +1,10 @@
 "use client"
 
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { CaretUpDown, Check, Gear, Storefront } from "@phosphor-icons/react"
+import { toast } from "sonner"
+import { CaretUpDown, Check, Gear, Plus } from "@phosphor-icons/react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +19,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@prood/ui/components/sidebar"
+import { cn } from "@prood/ui/lib/utils"
 import { authClient } from "@/lib/auth/client"
 
 export interface OrgSummary {
@@ -24,6 +27,21 @@ export interface OrgSummary {
   name: string
   slug: string
   logo?: string | null
+}
+
+/** The store's own initial, kept quiet: the only Telha tile in the sidebar is Prood's. */
+function StoreTile({ name, className }: { name: string; className?: string }) {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "flex size-8 shrink-0 items-center justify-center rounded-lg border border-sidebar-border bg-background font-heading text-sm font-medium",
+        className
+      )}
+    >
+      {name.trim().charAt(0).toUpperCase()}
+    </span>
+  )
 }
 
 export function OrgSwitcher({
@@ -42,9 +60,14 @@ export function OrgSwitcher({
   async function handleSelect(orgId: string) {
     if (orgId === active?.id) return
     setSwitching(true)
-    await authClient.organization.setActive({ organizationId: orgId })
-    setSwitching(false)
-    router.refresh()
+    try {
+      await authClient.organization.setActive({ organizationId: orgId })
+      router.refresh()
+    } catch {
+      toast.error("We couldn't switch stores. The request didn't finish. Try again.")
+    } finally {
+      setSwitching(false)
+    }
   }
 
   return (
@@ -55,11 +78,9 @@ export function OrgSwitcher({
             <SidebarMenuButton
               size="lg"
               disabled={switching}
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="rounded-lg data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-2xl bg-sidebar-primary text-sidebar-primary-foreground">
-                <Storefront className="size-4" />
-              </div>
+              <StoreTile name={active?.name ?? ""} />
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">
                   {active?.name ?? "Select a store"}
@@ -67,6 +88,7 @@ export function OrgSwitcher({
                 <span className="truncate text-xs text-muted-foreground">
                   {active?.slug ?? ""}
                 </span>
+                <span className="sr-only">, switch store</span>
               </div>
               <CaretUpDown className="ml-auto" />
             </SidebarMenuButton>
@@ -78,7 +100,7 @@ export function OrgSwitcher({
             sideOffset={4}
           >
             <DropdownMenuLabel className="text-xs text-muted-foreground">
-              Stores
+              Your stores
             </DropdownMenuLabel>
             {orgs.map((org) => (
               <DropdownMenuItem
@@ -86,7 +108,7 @@ export function OrgSwitcher({
                 onClick={() => handleSelect(org.id)}
                 className="gap-2"
               >
-                <Storefront className="size-4 shrink-0" />
+                <StoreTile name={org.name} className="size-5 rounded-sm text-xs" />
                 <span className="truncate">{org.name}</span>
                 {org.id === active?.id ? (
                   <Check className="ml-auto size-4" />
@@ -94,9 +116,17 @@ export function OrgSwitcher({
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => router.push("/settings")}>
-              <Gear className="size-4" />
-              <span>Store settings</span>
+            <DropdownMenuItem asChild>
+              <Link href="/new-store">
+                <Plus className="size-4" />
+                <span>Add store</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/settings">
+                <Gear className="size-4" />
+                <span>Store settings</span>
+              </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

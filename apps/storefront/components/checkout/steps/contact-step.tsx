@@ -1,8 +1,9 @@
 "use client"
 
+import { useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Button } from "@prood/ui/components/button"
+import { CommerceButton } from "@prood/ui/components/commerce-button"
 import { Checkbox } from "@prood/ui/components/checkbox"
 import { Input } from "@prood/ui/components/input"
 import {
@@ -17,10 +18,12 @@ import { contactSchema, type ContactValues } from "../schemas"
 interface ContactStepProps {
   defaultValues?: Partial<ContactValues>
   geoCountry?: string
+  /** Hears every change, so it can be saved before the step is finished. */
+  onChange?: (values: Partial<ContactValues>) => void
   onSubmit: (values: ContactValues) => void
 }
 
-export function ContactStep({ defaultValues, geoCountry, onSubmit }: ContactStepProps) {
+export function ContactStep({ defaultValues, geoCountry, onChange, onSubmit }: ContactStepProps) {
   const phonePlaceholder = getPhonePlaceholder(geoCountry ?? "")
 
   const form = useForm<ContactValues>({
@@ -33,6 +36,11 @@ export function ContactStep({ defaultValues, geoCountry, onSubmit }: ContactStep
       ...defaultValues,
     },
   })
+
+  useEffect(
+    () => form.subscribe({ formState: { values: true }, callback: ({ values }) => onChange?.(values) }),
+    [form, onChange],
+  )
 
   return (
     <form
@@ -52,13 +60,14 @@ export function ContactStep({ defaultValues, geoCountry, onSubmit }: ContactStep
               inputMode="email"
               autoComplete="shipping email"
               aria-invalid={fieldState.invalid}
-              placeholder="you@example.com"
+              aria-describedby={fieldState.invalid ? "email-error email-hint" : "email-hint"}
+              placeholder="ana@casalume.example"
             />
-            <FieldDescription>
-              We&apos;ll send your order confirmation here
+            <FieldDescription id="email-hint">
+              We&apos;ll send your order confirmation here. If you&apos;re signed in, it goes to your account email.
             </FieldDescription>
             {fieldState.invalid && (
-              <FieldError errors={[fieldState.error]} />
+              <FieldError id={`${field.name}-error`} errors={[fieldState.error]} />
             )}
           </Field>
         )}
@@ -79,10 +88,12 @@ export function ContactStep({ defaultValues, geoCountry, onSubmit }: ContactStep
               autoComplete="shipping tel"
               inputMode="tel"
               aria-invalid={fieldState.invalid}
+              aria-describedby={fieldState.invalid ? "phone-error phone-hint" : "phone-hint"}
               placeholder={phonePlaceholder}
             />
+            <FieldDescription id="phone-hint">For delivery updates</FieldDescription>
             {fieldState.invalid && (
-              <FieldError errors={[fieldState.error]} />
+              <FieldError id={`${field.name}-error`} errors={[fieldState.error]} />
             )}
           </Field>
         )}
@@ -97,6 +108,7 @@ export function ContactStep({ defaultValues, geoCountry, onSubmit }: ContactStep
               id={field.name}
               checked={field.value}
               onCheckedChange={field.onChange}
+              className="border-input bg-card"
             />
             <FieldLabel htmlFor={field.name} className="font-normal">
               Email me with news and offers
@@ -105,9 +117,9 @@ export function ContactStep({ defaultValues, geoCountry, onSubmit }: ContactStep
         )}
       />
 
-      <Button type="submit" className="mt-2">
-        Continue to shipping
-      </Button>
+      <CommerceButton type="submit" className="mt-2">
+        Continue to address
+      </CommerceButton>
     </form>
   )
 }

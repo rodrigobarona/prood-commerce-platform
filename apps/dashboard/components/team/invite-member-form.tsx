@@ -25,22 +25,26 @@ export function InviteMemberForm() {
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
     startTransition(async () => {
-      const limit = await assertTeamSeatAvailableAction()
-      if (limit.error) {
-        toast.error(limit.error)
-        return
+      try {
+        const limit = await assertTeamSeatAvailableAction()
+        if (limit.error) {
+          toast.error(limit.error)
+          return
+        }
+        const { error } = await authClient.organization.inviteMember({
+          email,
+          role: role as "member" | "admin" | "owner",
+        })
+        if (error) {
+          toast.error(error.message ?? "We couldn't send this invitation. Check the email address and try again.")
+          return
+        }
+        toast.success(`Invitation sent to ${email}.`)
+        setEmail("")
+        router.refresh()
+      } catch {
+        toast.error("We couldn't send this invitation. Nothing changed. Try again.")
       }
-      const { error } = await authClient.organization.inviteMember({
-        email,
-        role: role as "member" | "admin" | "owner",
-      })
-      if (error) {
-        toast.error(error.message ?? "Could not send invitation")
-        return
-      }
-      toast.success(`Invited ${email}`)
-      setEmail("")
-      router.refresh()
     })
   }
 
@@ -55,7 +59,7 @@ export function InviteMemberForm() {
           id="invite-email"
           type="email"
           required
-          placeholder="teammate@example.com"
+          placeholder="ines@casalume.example"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
         />
@@ -63,7 +67,7 @@ export function InviteMemberForm() {
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="invite-role">Role</Label>
         <Select value={role} onValueChange={setRole}>
-          <SelectTrigger id="invite-role" className="sm:w-36">
+          <SelectTrigger id="invite-role" className="w-full data-[size=default]:h-9 sm:w-36">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -73,8 +77,8 @@ export function InviteMemberForm() {
           </SelectContent>
         </Select>
       </div>
-      <Button type="submit" disabled={pending}>
-        {pending ? "Inviting..." : "Invite"}
+      <Button type="submit" size="lg" disabled={pending}>
+        {pending ? "Sending..." : "Send invitation"}
       </Button>
     </form>
   )

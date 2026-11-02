@@ -1,25 +1,31 @@
-import { Suspense } from "react"
+import { Suspense, type ReactNode } from "react"
 import { redirect } from "next/navigation"
 import { connection } from "next/server"
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@prood/ui/components/sidebar"
-import { DashboardSidebar } from "@/components/layout/dashboard-sidebar"
+import { SidebarInset, SidebarProvider } from "@prood/ui/components/sidebar"
+import { SkipLink } from "@prood/ui/components/skip-link"
 import { DashboardHeader } from "@/components/layout/dashboard-header"
+import { DashboardSidebar } from "@/components/layout/dashboard-sidebar"
 import type { OrgSummary } from "@/components/layout/org-switcher"
 import { ViewStoreLink } from "@/components/layout/view-store-link"
+import { PageSkeleton, SidebarSkeleton } from "@/components/skeletons"
 import {
   getActiveOrganizationId,
   getSession,
   listOrganizations,
 } from "@/lib/auth"
 
-export default async function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+function ShellContent({ children }: { children: ReactNode }) {
+  return <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-8 md:py-8">{children}</div>
+}
+
+/**
+ * Reads the session, so it sits behind the layout's Suspense boundary: the
+ * shell's skeleton shows at once and nothing below renders until the session is
+ * confirmed, the same gate as before. The provider stays inside the boundary so
+ * it hydrates with the sidebar; above it, a phone flips `isMobile` first and the
+ * sidebar no longer matches the server's HTML.
+ */
+async function DashboardShell({ children }: { children: ReactNode }) {
   await connection()
 
   const session = await getSession()
@@ -45,24 +51,47 @@ export default async function DashboardLayout({
 
   return (
     <SidebarProvider>
+      <SkipLink />
       <DashboardSidebar
         orgs={orgs}
         activeOrgId={activeOrgId}
-        storeLink={
-          <Suspense fallback={null}>
-            <ViewStoreLink />
-          </Suspense>
-        }
         user={{
           name: session.user.name,
           email: session.user.email,
           image: session.user.image,
         }}
       />
-      <SidebarInset>
-        <DashboardHeader />
-        <div className="flex-1 p-4 md:p-6">{children}</div>
+      <SidebarInset className="min-w-0">
+        <DashboardHeader
+          storeLink={
+            <Suspense fallback={null}>
+              <ViewStoreLink />
+            </Suspense>
+          }
+        />
+        <ShellContent>{children}</ShellContent>
       </SidebarInset>
     </SidebarProvider>
+  )
+}
+
+export default function DashboardLayout({ children }: { children: ReactNode }) {
+  return (
+    <Suspense
+      fallback={
+        <SidebarProvider>
+          <SkipLink />
+          <SidebarSkeleton />
+          <SidebarInset className="min-w-0">
+            <DashboardHeader />
+            <ShellContent>
+              <PageSkeleton />
+            </ShellContent>
+          </SidebarInset>
+        </SidebarProvider>
+      }
+    >
+      <DashboardShell>{children}</DashboardShell>
+    </Suspense>
   )
 }

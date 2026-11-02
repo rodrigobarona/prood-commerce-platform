@@ -3,10 +3,12 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { Button } from "@prood/ui/components/button"
+import { CommerceButton } from "@prood/ui/components/commerce-button"
 import { Input } from "@prood/ui/components/input"
 import { Label } from "@prood/ui/components/label"
+import { FieldError } from "@/components/auth/field-error"
 import { authClient } from "@/lib/auth/client"
+import { focusFirstError, resetPasswordErrors, type ResetPasswordErrors } from "@/lib/auth/form-errors"
 
 export function ResetPasswordForm() {
   const searchParams = useSearchParams()
@@ -15,6 +17,7 @@ export function ResetPasswordForm() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<ResetPasswordErrors>({})
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
 
@@ -22,9 +25,9 @@ export function ResetPasswordForm() {
     return (
       <div className="flex flex-col gap-4">
         <p className="text-destructive text-sm">
-          Invalid or missing reset token. Please request a new password reset link.
+          This reset link isn't valid. Request a new one to choose your password.
         </p>
-        <Link href="/forgot-password" className="text-foreground text-sm hover:underline">
+        <Link href="/forgot-password" className="text-foreground w-fit text-sm underline underline-offset-4">
           Request new link
         </Link>
       </div>
@@ -33,19 +36,12 @@ export function ResetPasswordForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setError(null)
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match")
-      return
-    }
-
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters")
-      return
-    }
+    const found = resetPasswordErrors(password, confirmPassword)
+    setFieldErrors(found)
+    if (focusFirstError(found)) return
 
     setLoading(true)
+    setError(null)
 
     const { error: resetError } = await authClient.resetPassword({
       newPassword: password,
@@ -55,7 +51,7 @@ export function ResetPasswordForm() {
     setLoading(false)
 
     if (resetError) {
-      setError(resetError.message ?? "Failed to reset password")
+      setError(resetError.message ?? "We couldn't reset your password. Request a new link and try again.")
       return
     }
 
@@ -68,7 +64,7 @@ export function ResetPasswordForm() {
         <p className="text-sm">
           Your password has been reset successfully. You can now sign in with your new password.
         </p>
-        <Link href="/login" className="text-foreground text-sm hover:underline">
+        <Link href="/login" className="text-foreground w-fit text-sm underline underline-offset-4">
           Sign in
         </Link>
       </div>
@@ -76,33 +72,43 @@ export function ResetPasswordForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="password">New password</Label>
         <Input
           id="password"
           type="password"
+          autoComplete="new-password"
           required
-          minLength={8}
+          aria-invalid={fieldErrors.password ? true : undefined}
+          aria-describedby={fieldErrors.password ? "password-error" : undefined}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+        <FieldError id="password-error" message={fieldErrors.password} />
       </div>
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="confirmPassword">Confirm password</Label>
         <Input
           id="confirmPassword"
           type="password"
+          autoComplete="new-password"
           required
-          minLength={8}
+          aria-invalid={fieldErrors.confirmPassword ? true : undefined}
+          aria-describedby={fieldErrors.confirmPassword ? "confirmPassword-error" : undefined}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
         />
+        <FieldError id="confirmPassword-error" message={fieldErrors.confirmPassword} />
       </div>
-      {error ? <p className="text-destructive text-sm">{error}</p> : null}
-      <Button type="submit" disabled={loading}>
+      {error ? (
+        <p role="alert" className="text-destructive text-sm">
+          {error}
+        </p>
+      ) : null}
+      <CommerceButton type="submit" className="mt-1" disabled={loading}>
         {loading ? "Resetting..." : "Reset password"}
-      </Button>
+      </CommerceButton>
     </form>
   )
 }

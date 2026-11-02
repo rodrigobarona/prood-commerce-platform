@@ -142,7 +142,7 @@ export const apikey = pgTable("apikey", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   permissions: text("permissions"),
   metadata: text("metadata"),
-})
+}, (table) => [index("apikey_key_idx").on(table.key)])
 
 export const agentHost = pgTable("agentHost", {
   id: text("id").primaryKey(),

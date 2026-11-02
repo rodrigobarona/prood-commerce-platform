@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og"
 
 import { OgImage, ogImageSize } from "@prood/ui/brand/og-image"
 
-export const alt = "Prood Admin"
+export const alt = "Prood admin"
 export const size = ogImageSize
 export const contentType = "image/png"
 

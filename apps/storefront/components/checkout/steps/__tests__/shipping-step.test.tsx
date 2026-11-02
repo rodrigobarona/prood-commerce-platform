@@ -42,9 +42,44 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
+describe("when the options load", () => {
+  it("puts the cheapest on the order straight away, wherever it's listed", async () => {
+    const onSelect = vi.fn().mockResolvedValue(undefined)
+    await open(onSelect, [express, standard])
+
+    expect(onSelect).toHaveBeenCalledExactlyOnceWith("standard")
+    expect((screen.getByRole("radio", { name: /Standard/ }) as HTMLInputElement).getAttribute("aria-checked")).toBe("true")
+    expect(continueButton().disabled).toBe(false)
+  })
+
+  it("leaves a choice the shopper already made alone", async () => {
+    const onSelect = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify({ methods: [standard, express] }))),
+    )
+    render(
+      <ShippingStep
+        cartId="cart-1"
+        defaultValues={{ methodId: "express" }}
+        onSelect={onSelect}
+        onSubmit={vi.fn()}
+        onBack={vi.fn()}
+      />,
+    )
+    await act(async () => {})
+
+    expect(onSelect).not.toHaveBeenCalled()
+  })
+})
+
 describe("after a failed save", () => {
   it("retries the selected method, then lets the shopper continue", async () => {
-    const onSelect = vi.fn().mockRejectedValueOnce(new Error("save failed")).mockResolvedValue(undefined)
+    const onSelect = vi
+      .fn()
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error("save failed"))
+      .mockResolvedValue(undefined)
     await open(onSelect)
 
     await click(screen.getByRole("radio", { name: /Express/ }))
@@ -53,7 +88,7 @@ describe("after a failed save", () => {
 
     await click(retryButton())
 
-    expect(onSelect).toHaveBeenCalledTimes(2)
+    expect(onSelect).toHaveBeenCalledTimes(3)
     expect(onSelect).toHaveBeenLastCalledWith("express")
     expect(screen.queryByRole("alert")).toBeNull()
     expect(continueButton().disabled).toBe(false)
@@ -63,7 +98,6 @@ describe("after a failed save", () => {
     const onSelect = vi.fn().mockRejectedValue(new Error("save failed"))
     await open(onSelect)
 
-    await click(screen.getByRole("radio", { name: /Express/ }))
     await click(retryButton())
 
     expect(retryButton()).toBeTruthy()
@@ -75,7 +109,6 @@ describe("after a failed save", () => {
     await open(onSelect)
 
     await click(screen.getByRole("radio", { name: /Express/ }))
-    await click(screen.getByRole("radio", { name: /Standard/ }))
 
     expect(screen.queryByRole("alert")).toBeNull()
     expect(continueButton().disabled).toBe(false)

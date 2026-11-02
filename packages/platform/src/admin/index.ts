@@ -12,6 +12,7 @@ import { createAdminInventoryDomain } from './inventory.js'
 import {
   countOrdersByStatus,
   sumOrderRevenue,
+  orderActivityBetween,
   findRecentOrders,
   countCustomers,
   countProducts,
@@ -20,6 +21,8 @@ import {
   countPaidOrders,
 } from '../database/index.js'
 import { mapOrder } from '../domains/order-mapper.js'
+
+const DAY_MS = 86_400_000
 
 /**
  * Create an AdminAPI — the merchant-facing management interface.
@@ -76,6 +79,8 @@ export function createAdminAPI(): AdminAPI {
 
     // Dashboard stats
     async getDashboardStats() {
+      const now = Date.now()
+      const daysAgo = (days: number) => new Date(now - days * DAY_MS)
       const [
         totalProducts,
         activeProducts,
@@ -83,6 +88,8 @@ export function createAdminAPI(): AdminAPI {
         paidOrders,
         totalRevenue,
         totalCustomers,
+        last30Days,
+        prior30Days,
         ordersByStatus,
         recentOrderRows,
       ] = await Promise.all([
@@ -92,6 +99,8 @@ export function createAdminAPI(): AdminAPI {
         countPaidOrders(),
         sumOrderRevenue(),
         countCustomers(),
+        orderActivityBetween(daysAgo(30), new Date(now)),
+        orderActivityBetween(daysAgo(60), daysAgo(30)),
         countOrdersByStatus(),
         findRecentOrders(5),
       ])
@@ -105,6 +114,8 @@ export function createAdminAPI(): AdminAPI {
         paidOrders,
         totalRevenue,
         totalCustomers,
+        last30Days,
+        prior30Days,
         recentOrders,
         ordersByStatus,
       }

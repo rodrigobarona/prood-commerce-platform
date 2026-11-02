@@ -1,60 +1,69 @@
 ---
 title: For merchants
-description: What you can do on Prood today—launch a store, sell online, and grow to higher volume and automation.
+description: What you can do on Prood today, from your first store to higher volume and automation.
 ---
 
-Prood is built for anyone who wants to **sell products online** without assembling a fragmented stack. This page summarizes what works today and what is still on the roadmap.
+Prood is for anyone who wants to sell online without assembling a stack of separate tools. This page says what works today and what's still to come.
 
 ## What you get on day one
 
 | Capability | Status |
 | --- | --- |
-| Register and create a store (organization) | Live |
-| Instant subdomain `{your-slug}.prood.app` | Live |
-| **One custom domain** on Free (verified DNS + SSL in production) | Live |
-| Product catalog with variants, images, inventory | Live |
-| Customer storefront (browse, cart, checkout) | Live |
+| Create a store | Live |
+| A prood.app address you choose when you sign up | Live |
+| One custom domain on Free, with HTTPS set up for you | Live |
+| Products with prices, descriptions and an in-stock switch | Live |
+| Customer storefront: browse, cart, checkout | Live |
 | Orders and customers in the dashboard | Live |
-| Stripe, Easypay, or Ifthenpay per store | Live |
-| Team invites (owner, admin, member) | Live |
-| API keys for integrations | Live |
+| Stripe: cards, plus Apple Pay and Google Pay where you've enabled them | Live |
+| Easypay or Ifthenpay: Multibanco, MB WAY and cards | Live |
+| Team invites | From Grow. Free has one seat, the owner. |
+| API keys for your own code | Live |
 
-## What is coming soon
+You choose your store's prood.app address when you sign up. If it's taken, we add a few characters to the end.
 
-| Capability | Status |
-| --- | --- |
-| Platform subscription billing (Stripe Checkout) | Planned |
-| Analytics dashboard | Placeholder UI |
-| Resend, SMTP, GA4 runtime | Not in provider UI until runtime ships |
-| Fine-grained member permissions | Planned |
+Shipping is fixed for now: Standard 15.00 in your currency (5 to 7 days), Express 35.00 (1 to 2 days). Setting your own rates is coming later.
 
-## Typical first hour
+Prices are what you enter. Prood doesn't calculate VAT or issue invoices yet.
 
-1. [Register](https://dashboard.prood.com/register) on the dashboard (use your deployment URL in dev).
+## Coming later
+
+- Paid plan billing
+- Uploading product photos in the dashboard
+- Product variants, categories and stock counts in the dashboard
+- Coupons you can create
+- VAT calculation and invoices
+- Returns, terms and privacy pages
+- Analytics
+- Fine-grained member permissions
+
+## Your first hour
+
+1. [Register](https://dashboard.prood.com/register) on the dashboard.
 2. Add a few [products](/docs/apps/dashboard/products).
-3. Connect [payments](/docs/apps/dashboard/integrations).
-4. Share your subdomain URL—or [add a custom domain](/docs/apps/dashboard/domains)—with test buyers.
-5. Complete a test [checkout](/docs/apps/storefront/cart-checkout) and confirm the order in the dashboard.
+3. Connect a [payment account](/docs/apps/dashboard/integrations).
+4. Share your prood.app address, or [add a custom domain](/docs/apps/dashboard/domains).
+5. Place a test order and confirm it shows up in the dashboard.
 
 For the full checklist, see [Merchant onboarding](/docs/guides/merchant-onboarding).
 
-## Plans (marketing)
+## Plans
 
-Pricing on [prood.com/pricing](https://prood.com/pricing) describes intended tiers. **Custom domain is included on Free** (one verified domain). Paid plans add volume, team seats, and automation—not the ability to look on-brand.
+Prices are on [prood.com/pricing](https://prood.com/pricing). Every plan includes a custom domain, and Prood charges by plan, not by sale.
 
 | Plan | Price | Highlights |
 | --- | --- | --- |
-| **Free** | $0 | 1 store, 1 custom domain, 50 products, 100 orders/mo, 1 seat |
-| **Grow** | $29/mo | Agent Auth, full API/MCP, 3 seats, 1,000 orders/mo |
-| **Scale** | $79/mo | Unlimited products & orders, 10 seats, priority support |
-| **Agency** | Custom | 10+ stores, dedicated support |
+| **Free** | €0 | 1 custom domain, 50 products, 100 orders a month, 1 seat |
+| **Grow** | €29 a month | Agent Auth, the full API, 3 seats, 3 custom domains, 1,000 orders a month |
+| **Scale** | €79 a month | Unlimited products and orders, 10 seats, priority support |
+| **Agency** | €199 a month | Unlimited products and orders, dedicated support |
 
-Subscription billing in the dashboard is not live yet—limits are **enforced at runtime** on Free (products, orders, domains, seats, API write, Agent Auth). See [Plans & entitlements](/docs/billing/plans).
+Paid plans can't be bought yet. Every store starts on Free, and Free limits apply today. Running several client stores? Email us at hello@prood.com. See [Plans and limits](/docs/billing/plans).
 
 ## Related
 
 <Cards>
-  <Card title="Merchant onboarding" href="/docs/guides/merchant-onboarding" description="Step-by-step from register to go-live." />
-  <Card title="Domains" href="/docs/apps/dashboard/domains" description="Subdomain and custom domain setup." />
-  <Card title="Payment integration" href="/docs/guides/payment-integration" description="Stripe, Easypay, Ifthenpay." />
+  <Card title="Merchant onboarding" href="/docs/guides/merchant-onboarding" description="Step by step, from your account to going live." />
+  <Card title="Domains" href="/docs/apps/dashboard/domains" description="Your prood.app address and custom domains." />
+  <Card title="Payment integration" href="/docs/guides/payment-integration" description="Stripe, Easypay and Ifthenpay." />
 </Cards>

@@ -1,5 +1,5 @@
 ---
-title: Cart & Checkout
+title: Cart and checkout
 description: How the storefront manages cart state, places orders, and redirects to the checkout app.
 ---
 
@@ -51,8 +51,6 @@ The cookie stores only the cart ID — not cart contents. Contents are always fe
 | Add item | `POST /api/commerce/cart/items` | `POST /v1/carts/{id}/items` |
 | Update quantity | `PATCH /api/commerce/cart/items/{itemId}` | `PATCH /v1/carts/{id}/items/{itemId}` |
 | Remove item | `DELETE /api/commerce/cart/items/{itemId}` | `DELETE /v1/carts/{id}/items/{itemId}` |
-| Apply coupon | `POST /api/commerce/cart/coupon` | `POST /v1/carts/{id}/coupon` |
-| Remove coupon | `DELETE /api/commerce/cart/coupon` | `DELETE /v1/carts/{id}/coupon` |
 
 ### 4. Client state
 
@@ -71,7 +69,7 @@ The `/checkout` page renders `CheckoutFlow` which collects:
 
 ### Step 2 — Place order (server action)
 
-`app/checkout/actions.ts` → `startCheckout()`:
+`app/(checkout)/checkout/actions.ts` → `startCheckout()`:
 
 1. PUT shipping and billing addresses on the cart via the Commerce API
 2. Set the shipping method the shopper chose; a cart with items that ship cannot be ordered without an address and a method, and a cart without any skips that step
@@ -112,8 +110,6 @@ After successful payment:
 | --- | --- |
 | Cart not found when adding an item | BFF creates a new cart and retries; any other refusal leaves the cart as it was |
 | Out of stock, or more than is left | API returns 422; client shows toast |
-| Invalid coupon | API returns 422; form shows error message |
-| Coupon stops applying (expired, below minimum) | `cart.couponError` says why, the discount is gone, and placing the order returns 422 until it is removed. Per-customer limits depend on who is ordering, so they only show up as that 422 |
 | Checkout session creation fails | Server action throws; checkout page shows error |
 | Payment failed | Checkout app shows retry UI; order stays `pending` |
 
