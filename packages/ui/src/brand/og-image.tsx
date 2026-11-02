@@ -2,8 +2,8 @@ import { brandColors } from "@prood/ui/brand/colors"
 import {
   lockup,
   markGlyphPaths,
-  markRadius,
   markSize,
+  markTilePath,
   wordmarkPaths,
 } from "@prood/ui/brand/geometry"
 
@@ -51,7 +51,7 @@ export function OgImage({ title, description, label, host }: OgImageProps) {
 
       <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
         <svg width={214} height={64} viewBox={`0 0 ${lockup.width} ${lockup.height}`}>
-          <rect width={markSize} height={markSize} rx={markRadius} fill={telha} />
+          <path d={markTilePath} fill={telha} />
           {markGlyphPaths.map((d) => (
             <path key={d} d={d} fill={paper} fillRule="evenodd" />
           ))}
@@ -121,7 +121,8 @@ export function MarkImage() {
   const { telha, paper } = brandColors
   return (
     <svg width="100%" height="100%" viewBox={`0 0 ${markSize} ${markSize}`}>
-      <rect width={markSize} height={markSize} fill={telha} />
+      <rect width={markSize} height={markSize} fill={paper} />
+      <path d={markTilePath} fill={telha} />
       {markGlyphPaths.map((d) => (
         <path key={d} d={d} fill={paper} fillRule="evenodd" />
       ))}

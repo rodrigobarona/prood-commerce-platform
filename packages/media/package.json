@@ -1,0 +1,32 @@
+{
+  "name": "@prood/media",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "media:build": "node --env-file-if-exists=../../.env.local scripts/build.mjs"
+  },
+  "dependencies": {
+    "@phosphor-icons/react": "catalog:",
+    "next": "catalog:",
+    "react": "catalog:"
+  },
+  "devDependencies": {
+    "@prood/eslint-config": "workspace:*",
+    "@prood/typescript-config": "workspace:*",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "eslint": "catalog:",
+    "sharp": "^0.34.5",
+    "typescript": "catalog:",
+    "aws4fetch": "catalog:"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./image": "./src/media-image.tsx",
+    "./video": "./src/media-video.tsx",
+    "./remote-pattern": "./remote-pattern.mjs"
+  }
+}

@@ -3,8 +3,8 @@ import type * as React from "react"
 import {
   lockup,
   markGlyphPaths,
-  markRadius,
   markSize,
+  markTilePath,
   wordmarkPaths,
   wordmarkViewBox,
 } from "@prood/ui/brand/geometry"
@@ -21,16 +21,12 @@ function a11y(title: string | null) {
     : ({ role: "img", "aria-label": title } as const)
 }
 
+/** The tile keeps its true colors on every surface: Telha with a Paper `p`. */
 function MarkShapes() {
   return (
     <>
-      <rect
-        width={markSize}
-        height={markSize}
-        rx={markRadius}
-        style={{ fill: "var(--brand)" }}
-      />
-      <g style={{ fill: "var(--brand-foreground)" }}>
+      <path d={markTilePath} style={{ fill: "var(--telha)" }} />
+      <g style={{ fill: "var(--paper)" }}>
         {markGlyphPaths.map((d) => (
           <path key={d} d={d} fillRule="evenodd" />
         ))}
@@ -43,7 +39,7 @@ function WordmarkShapes() {
   return wordmarkPaths.map((d) => <path key={d} d={d} fillRule="evenodd" />)
 }
 
-/** Compact mark: the Telha tile. Use for favicons, avatars and tight spaces. */
+/** Compact mark: the hanging Telha tile. Use for favicons, avatars and tight spaces. */
 export function LogoMark({ title = "Prood", className, ...props }: LogoProps) {
   return (
     <svg

@@ -159,7 +159,8 @@ function Sidebar({
 
   if (collapsible === "none") {
     return (
-      <div
+      <aside
+        aria-label="Sidebar"
         data-slot="sidebar"
         className={cn(
           "flex h-full w-(--sidebar-width) flex-col bg-sidebar text-sidebar-foreground",
@@ -168,7 +169,7 @@ function Sidebar({
         {...props}
       >
         {children}
-      </div>
+      </aside>
     )
   }
 
@@ -198,7 +199,8 @@ function Sidebar({
   }
 
   return (
-    <div
+    <aside
+      aria-label="Sidebar"
       className="group peer hidden text-sidebar-foreground md:block"
       data-state={state}
       data-collapsible={state === "collapsed" ? collapsible : ""}
@@ -239,7 +241,7 @@ function Sidebar({
           {children}
         </div>
       </div>
-    </div>
+    </aside>
   )
 }
 
@@ -264,7 +266,7 @@ function SidebarTrigger({
       {...props}
     >
       <SidebarSimple />
-      <span className="sr-only">Toggle Sidebar</span>
+      <span className="sr-only">Toggle sidebar</span>
     </Button>
   )
 }
@@ -276,10 +278,10 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
     <button
       data-sidebar="rail"
       data-slot="sidebar-rail"
-      aria-label="Toggle Sidebar"
+      aria-label="Toggle sidebar"
       tabIndex={-1}
       onClick={toggleSidebar}
-      title="Toggle Sidebar"
+      title="Toggle sidebar"
       className={cn(
         "absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear group-data-[side=left]:-right-4 group-data-[side=right]:left-0 after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] hover:after:bg-sidebar-border sm:flex",
         "in-data-[side=left]:cursor-w-resize in-data-[side=right]:cursor-e-resize",
@@ -297,9 +299,11 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
 function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
   return (
     <main
+      id="main-content"
+      tabIndex={-1}
       data-slot="sidebar-inset"
       className={cn(
-        "relative flex w-full flex-1 flex-col bg-background",
+        "relative flex w-full flex-1 flex-col bg-background outline-none",
         "md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-3xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2",
         className
       )}

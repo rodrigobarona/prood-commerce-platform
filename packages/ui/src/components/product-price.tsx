@@ -12,6 +12,8 @@ export interface ProductPriceProps {
   price: Maybe<Price | DiscountablePrice> | undefined
   size?: "sm" | "md" | "lg"
   showDiscount?: boolean
+  /** Leave the percentage off where space is short; the struck price still shows. */
+  showPercent?: boolean
   locale?: Locale
   className?: string
 }
@@ -19,13 +21,14 @@ export interface ProductPriceProps {
 const SIZES: Record<NonNullable<ProductPriceProps["size"]>, string> = {
   sm: "text-sm",
   md: "text-base",
-  lg: "text-2xl",
+  lg: "text-xl",
 }
 
 export function ProductPrice({
   price,
   size = "md",
   showDiscount = true,
+  showPercent = true,
   locale = "en",
   className,
 }: ProductPriceProps) {
@@ -33,16 +36,15 @@ export function ProductPrice({
   const pct = discountPercent(discountable)
 
   return (
-    <div className={cn("flex items-baseline gap-2", className)}>
-      <span className={cn("font-semibold", SIZES[size])}>{formatPrice(price, locale)}</span>
+    <div className={cn("flex flex-wrap items-baseline gap-x-2 tabular-nums", className)}>
+      <span className={SIZES[size]}>{formatPrice(price, locale)}</span>
       {showDiscount && hasDiscount(discountable) && (
         <>
           <span className="text-muted-foreground text-sm line-through">
+            <span className="sr-only">Was </span>
             {formatOriginalPrice(discountable, locale)}
           </span>
-          {pct != null && (
-            <span className="text-destructive text-xs font-medium">-{pct}%</span>
-          )}
+          {showPercent && pct != null && <span className="text-muted-foreground text-xs">-{pct}%</span>}
         </>
       )}
     </div>

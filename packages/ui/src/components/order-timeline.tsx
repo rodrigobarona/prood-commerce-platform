@@ -1,7 +1,12 @@
+import { CheckIcon } from "@phosphor-icons/react/dist/ssr"
 import type { OrderStatus } from "@prood/types"
 import { cn } from "@prood/ui/lib/utils"
 
-const FLOW: OrderStatus[] = ["placed", "approved", "fulfilled"]
+const FLOW: { status: OrderStatus; label: string }[] = [
+  { status: "placed", label: "Placed" },
+  { status: "approved", label: "Paid" },
+  { status: "fulfilled", label: "Fulfilled" },
+]
 
 export interface OrderTimelineProps {
   status: OrderStatus
@@ -9,33 +14,35 @@ export interface OrderTimelineProps {
 }
 
 export function OrderTimeline({ status, className }: OrderTimelineProps) {
-  const terminal = status === "cancelled"
-  const currentIndex = FLOW.indexOf(status)
+  if (status === "cancelled") {
+    return <p className={cn("text-destructive text-sm", className)}>This order was canceled.</p>
+  }
+
+  const currentIndex = FLOW.findIndex((step) => step.status === status)
 
   return (
-    <ol className={cn("flex flex-col gap-3", className)}>
-      {terminal ? (
-        <li className="text-destructive text-sm font-medium capitalize">{status}</li>
-      ) : (
-        FLOW.map((step, i) => (
-          <li key={step} className="flex items-center gap-3">
+    <ol className={cn("grid grid-cols-3 gap-2", className)}>
+      {FLOW.map((step, i) => {
+        const done = i <= currentIndex
+        return (
+          <li
+            key={step.status}
+            aria-current={i === currentIndex ? "step" : undefined}
+            className="flex flex-col gap-2"
+          >
+            <span className={cn("h-1 rounded-full", done ? "bg-foreground" : "bg-muted")} />
             <span
               className={cn(
-                "size-3 rounded-full",
-                i <= currentIndex ? "bg-primary" : "bg-border",
-              )}
-            />
-            <span
-              className={cn(
-                "text-sm capitalize",
-                i <= currentIndex ? "text-foreground" : "text-muted-foreground",
+                "flex items-center gap-1 text-sm",
+                done ? "text-foreground" : "text-muted-foreground",
               )}
             >
-              {step}
+              {done ? <CheckIcon weight="bold" className="size-3.5" /> : null}
+              {step.label}
             </span>
           </li>
-        ))
-      )}
+        )
+      })}
     </ol>
   )
 }

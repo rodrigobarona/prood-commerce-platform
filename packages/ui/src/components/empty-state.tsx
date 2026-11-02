@@ -1,11 +1,13 @@
 import type { ReactNode } from "react"
 import Link from "next/link"
-import { Button } from "@prood/ui/components/button"
+import { CommerceButton } from "@prood/ui/components/commerce-button"
 import { cn } from "@prood/ui/lib/utils"
 
 export interface EmptyStateProps {
   icon?: ReactNode
   title: string
+  /** Use `h1` when the empty state is all the page has to say. */
+  headingLevel?: "h1" | "h2" | "h3"
   description?: string
   actionLabel?: string
   actionHref?: string
@@ -17,6 +19,7 @@ export interface EmptyStateProps {
 export function EmptyState({
   icon,
   title,
+  headingLevel: Heading = "h2",
   description,
   actionLabel,
   actionHref,
@@ -27,24 +30,26 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-3 px-6 py-16 text-center",
+        "flex flex-col items-center justify-center gap-3 px-6 py-20 text-center",
         className,
       )}
     >
-      {icon ? <div className="text-muted-foreground [&>svg]:size-12">{icon}</div> : null}
-      <h3 className="text-lg font-semibold">{title}</h3>
+      {icon ? <div className="text-muted-foreground [&>svg]:size-8">{icon}</div> : null}
+      <Heading className="text-display-sm text-balance">{title}</Heading>
       {description ? (
-        <p className="text-muted-foreground max-w-sm text-sm">{description}</p>
+        <p className="text-muted-foreground max-w-sm text-pretty">{description}</p>
       ) : null}
       {actionLabel ? (
         actionHref ? (
-          <Button asChild className="mt-2">
-            <Link href={actionHref}>{actionLabel}</Link>
-          </Button>
+          <CommerceButton asChild className="mt-3">
+            <Link href={actionHref} onClick={onAction}>
+              {actionLabel}
+            </Link>
+          </CommerceButton>
         ) : (
-          <Button className="mt-2" onClick={onAction}>
+          <CommerceButton className="mt-3" onClick={onAction}>
             {actionLabel}
-          </Button>
+          </CommerceButton>
         )
       ) : null}
       {children}

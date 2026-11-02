@@ -7,6 +7,11 @@
   --radius: 0.375rem;
   --font-family-heading: var(--font-family-sans);
 
+  /* Same names as the Prood theme, without Prood's colors */
+  --ink: oklch(0.145 0 0);
+  --paper: oklch(1 0 0);
+  --telha: oklch(0.205 0 0);
+
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
