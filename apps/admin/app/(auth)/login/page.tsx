@@ -1,25 +1,23 @@
 import { Suspense } from "react"
 import { redirect } from "next/navigation"
+import { AccessDenied } from "@/components/auth/access-denied"
 import { AdminLoginForm } from "@/components/auth/login-form"
-import { UnauthorizedCard } from "@/components/auth/unauthorized-card"
+import { LoginSkeleton } from "@/components/admin/skeletons"
 import { getSession } from "@/lib/auth"
 
 export const metadata = { title: "Sign in" }
 
-export default async function LoginPage() {
+async function LoginGate() {
   const session = await getSession()
-  if (session) {
-    if (session.user.role === "admin") redirect("/")
-    return (
-      <Suspense>
-        <UnauthorizedCard />
-      </Suspense>
-    )
-  }
+  if (!session) return <AdminLoginForm />
+  if (session.user.role === "admin") redirect("/")
+  return <AccessDenied email={session.user.email} />
+}
 
+export default function LoginPage() {
   return (
-    <Suspense>
-      <AdminLoginForm />
+    <Suspense fallback={<LoginSkeleton />}>
+      <LoginGate />
     </Suspense>
   )
 }

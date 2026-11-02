@@ -1,6 +1,7 @@
 import { cache } from "react"
 import { connection } from "next/server"
 import { cookies } from "next/headers"
+import { redirect } from "next/navigation"
 import { validateSessionToken, type Session } from "./server"
 
 export const getSession = cache(async function getSession(): Promise<Session | null> {
@@ -34,6 +35,18 @@ export const requireAdmin = cache(async function requireAdmin() {
   const session = await getSession()
   if (!session) return null
   if (session.user.role !== "admin") return null
+  return session
+})
+
+/**
+ * The gate for every admin page and query. A check in the layout isn't enough:
+ * Next.js renders a page alongside its layout, so page data would reach a
+ * non-admin's HTML before the layout's redirect ran.
+ */
+export const assertAdmin = cache(async function assertAdmin() {
+  await connection()
+  const session = await requireAdmin()
+  if (!session) redirect("/login")
   return session
 })
 

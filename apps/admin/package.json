@@ -16,6 +16,8 @@
     "@neondatabase/serverless": "catalog:",
     "@phosphor-icons/react": "catalog:",
     "@prood/auth": "workspace:*",
+    "@prood/billing": "workspace:*",
+    "@prood/media": "workspace:*",
     "@prood/types": "workspace:*",
     "@prood/ui": "workspace:*",
     "better-auth": "catalog:",

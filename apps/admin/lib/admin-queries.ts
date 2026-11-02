@@ -1,10 +1,12 @@
 import "server-only"
 import { cache } from "react"
-import { connection } from "next/server"
 import { neon } from "@neondatabase/serverless"
 import { drizzle } from "drizzle-orm/neon-http"
-import { count, eq, gt, gte, sql, desc, asc } from "drizzle-orm"
+import { and, count, eq, gt, gte, ilike, isNotNull, or, sql, desc, asc, type SQL } from "drizzle-orm"
 import * as schema from "@prood/auth/schema"
+import { planIds, type PlanId } from "@prood/billing"
+import { contains } from "@prood/types"
+import { assertAdmin } from "@/lib/auth"
 
 const connectionString =
   process.env.DATABASE_URL ??
@@ -12,9 +14,26 @@ const connectionString =
 
 const db = drizzle(neon(connectionString), { schema })
 
+/** One page of a list, with the size of the whole list. */
+export interface ListPage<Row> {
+  rows: Row[]
+  total: number
+}
+
+interface PageOptions {
+  q: string
+  limit: number
+  offset: number
+}
+
+/** Free, Grow, Scale, Agency everywhere. A plan this build doesn't know goes last. */
+function planRank(planId: string): number {
+  const rank = planIds.indexOf(planId as PlanId)
+  return rank === -1 ? planIds.length : rank
+}
+
 export interface PlatformStats {
   totalUsers: number
-  newUsersLast30d: number
   activeSessions: number
   totalOrganizations: number
   totalApiKeys: number
@@ -27,11 +46,6 @@ export interface DailySignup {
 
 export interface OrgByPlan {
   planId: string
-  count: number
-}
-
-export interface ProviderDistribution {
-  providerId: string
   count: number
 }
 
@@ -85,11 +99,11 @@ export interface ApiKeyRow {
   name: string | null
   start: string | null
   enabled: boolean
-  referenceId: string
+  organizationId: string
+  orgName: string | null
   requestCount: number
   lastRequest: Date | null
   createdAt: Date
-  metadata: string | null
 }
 
 export interface AgentRow {
@@ -104,16 +118,10 @@ export interface AgentRow {
 }
 
 export const getPlatformStats = cache(async function getPlatformStats(): Promise<PlatformStats> {
-  await connection()
-  const thirtyDaysAgo = new Date()
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+  await assertAdmin()
 
-  const [users, newUsers, sessions, orgs, apiKeys] = await Promise.all([
+  const [users, sessions, orgs, apiKeys] = await Promise.all([
     db.select({ value: count() }).from(schema.user),
-    db
-      .select({ value: count() })
-      .from(schema.user)
-      .where(gte(schema.user.createdAt, thirtyDaysAgo)),
     db
       .select({ value: count() })
       .from(schema.session)
@@ -124,17 +132,35 @@ export const getPlatformStats = cache(async function getPlatformStats(): Promise
 
   return {
     totalUsers: users[0]?.value ?? 0,
-    newUsersLast30d: newUsers[0]?.value ?? 0,
     activeSessions: sessions[0]?.value ?? 0,
     totalOrganizations: orgs[0]?.value ?? 0,
     totalApiKeys: apiKeys[0]?.value ?? 0,
   }
 })
 
-export const getDailySignups = cache(async function getDailySignups(): Promise<DailySignup[]> {
-  await connection()
-  const thirtyDaysAgo = new Date()
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+export interface AttentionCounts {
+  pastDueOrganizations: number
+  pendingAgents: number
+}
+
+/** What's waiting on someone across every store. */
+export const getAttentionCounts = cache(async function getAttentionCounts(): Promise<AttentionCounts> {
+  await assertAdmin()
+  const [orgs, agents] = await Promise.all([
+    db.select({ value: count() }).from(schema.organization).where(eq(schema.organization.planStatus, "past_due")),
+    db.select({ value: count() }).from(schema.agent).where(eq(schema.agent.status, "pending")),
+  ])
+  return {
+    pastDueOrganizations: orgs[0]?.value ?? 0,
+    pendingAgents: agents[0]?.value ?? 0,
+  }
+})
+
+/** Signups by UTC day, over `days` days ending today. Every 30-day figure on the overview comes from this. */
+export const getDailySignups = cache(async function getDailySignups(days: number): Promise<DailySignup[]> {
+  await assertAdmin()
+  const now = new Date()
+  const firstDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - (days - 1)))
 
   const rows = await db
     .select({
@@ -142,7 +168,7 @@ export const getDailySignups = cache(async function getDailySignups(): Promise<D
       count: count(),
     })
     .from(schema.user)
-    .where(gte(schema.user.createdAt, thirtyDaysAgo))
+    .where(gte(schema.user.createdAt, firstDay))
     .groupBy(sql`to_char(${schema.user.createdAt}, 'YYYY-MM-DD')`)
     .orderBy(asc(sql`to_char(${schema.user.createdAt}, 'YYYY-MM-DD')`))
 
@@ -150,7 +176,7 @@ export const getDailySignups = cache(async function getDailySignups(): Promise<D
 })
 
 export const getOrgsByPlan = cache(async function getOrgsByPlan(): Promise<OrgByPlan[]> {
-  await connection()
+  await assertAdmin()
   const rows = await db
     .select({
       planId: schema.organization.planId,
@@ -158,31 +184,14 @@ export const getOrgsByPlan = cache(async function getOrgsByPlan(): Promise<OrgBy
     })
     .from(schema.organization)
     .groupBy(schema.organization.planId)
-    .orderBy(desc(count()))
 
-  return rows
+  return rows.sort((a, b) => planRank(a.planId) - planRank(b.planId))
 })
-
-export const getProviderDistribution = cache(
-  async function getProviderDistribution(): Promise<ProviderDistribution[]> {
-    await connection()
-    const rows = await db
-      .select({
-        providerId: schema.account.providerId,
-        count: count(),
-      })
-      .from(schema.account)
-      .groupBy(schema.account.providerId)
-      .orderBy(desc(count()))
-
-    return rows
-  }
-)
 
 export const getRecentUsers = cache(async function getRecentUsers(
   limit = 10
 ): Promise<UserRow[]> {
-  await connection()
+  await assertAdmin()
   const rows = await db
     .select({
       id: schema.user.id,
@@ -202,30 +211,80 @@ export const getRecentUsers = cache(async function getRecentUsers(
   return rows
 })
 
-export const listAllUsers = cache(async function listAllUsers(): Promise<UserRow[]> {
-  await connection()
-  const rows = await db
+export type UserFilter = "admin" | "banned" | "unverified"
+export type UserSort = "name" | "email" | "createdAt"
+
+const USER_FILTERS: Record<UserFilter, SQL> = {
+  admin: eq(schema.user.role, "admin"),
+  banned: eq(schema.user.banned, true),
+  unverified: eq(schema.user.emailVerified, false),
+}
+
+const USER_SORTS = {
+  name: schema.user.name,
+  email: schema.user.email,
+  createdAt: schema.user.createdAt,
+}
+
+export async function listUsers(
+  options: PageOptions & { filter?: UserFilter; sort: UserSort; dir: "asc" | "desc" }
+): Promise<ListPage<UserRow>> {
+  await assertAdmin()
+  const where = and(
+    options.filter ? USER_FILTERS[options.filter] : undefined,
+    options.q
+      ? or(ilike(schema.user.name, contains(options.q)), ilike(schema.user.email, contains(options.q)))
+      : undefined
+  )
+  const order = options.dir === "asc" ? asc : desc
+
+  const [rows, totals] = await Promise.all([
+    db
+      .select({
+        id: schema.user.id,
+        name: schema.user.name,
+        email: schema.user.email,
+        emailVerified: schema.user.emailVerified,
+        image: schema.user.image,
+        role: schema.user.role,
+        banned: schema.user.banned,
+        banReason: schema.user.banReason,
+        createdAt: schema.user.createdAt,
+      })
+      .from(schema.user)
+      .where(where)
+      .orderBy(order(USER_SORTS[options.sort]), desc(schema.user.id))
+      .limit(options.limit)
+      .offset(options.offset),
+    db.select({ value: count() }).from(schema.user).where(where),
+  ])
+
+  return { rows, total: totals[0]?.value ?? 0 }
+}
+
+/** How many users each tab of the list holds. */
+export async function getUserCounts(): Promise<Record<"all" | UserFilter, number>> {
+  await assertAdmin()
+  const [row] = await db
     .select({
-      id: schema.user.id,
-      name: schema.user.name,
-      email: schema.user.email,
-      emailVerified: schema.user.emailVerified,
-      image: schema.user.image,
-      role: schema.user.role,
-      banned: schema.user.banned,
-      banReason: schema.user.banReason,
-      createdAt: schema.user.createdAt,
+      all: count(),
+      admin: count(sql`CASE WHEN ${USER_FILTERS.admin} THEN 1 END`),
+      banned: count(sql`CASE WHEN ${USER_FILTERS.banned} THEN 1 END`),
+      unverified: count(sql`CASE WHEN ${USER_FILTERS.unverified} THEN 1 END`),
     })
     .from(schema.user)
-    .orderBy(desc(schema.user.createdAt))
-
-  return rows
-})
+  return {
+    all: row?.all ?? 0,
+    admin: row?.admin ?? 0,
+    banned: row?.banned ?? 0,
+    unverified: row?.unverified ?? 0,
+  }
+}
 
 export const getUserById = cache(async function getUserById(
   id: string
 ): Promise<UserRow | null> {
-  await connection()
+  await assertAdmin()
   const rows = await db
     .select({
       id: schema.user.id,
@@ -248,7 +307,7 @@ export const getUserById = cache(async function getUserById(
 export const getUserSessions = cache(async function getUserSessions(
   userId: string
 ): Promise<SessionRow[]> {
-  await connection()
+  await assertAdmin()
   const rows = await db
     .select({
       id: schema.session.id,
@@ -272,7 +331,7 @@ export const getUserSessions = cache(async function getUserSessions(
 export const getUserOrganizations = cache(async function getUserOrganizations(
   userId: string
 ) {
-  await connection()
+  await assertAdmin()
   return db
     .select({
       orgId: schema.organization.id,
@@ -290,34 +349,62 @@ export const getUserOrganizations = cache(async function getUserOrganizations(
     .orderBy(desc(schema.member.createdAt))
 })
 
-export const listAllOrganizations = cache(async function listAllOrganizations(): Promise<OrgRow[]> {
-  await connection()
-  const rows = await db
-    .select({
-      id: schema.organization.id,
-      name: schema.organization.name,
-      slug: schema.organization.slug,
-      logo: schema.organization.logo,
-      planId: schema.organization.planId,
-      planStatus: schema.organization.planStatus,
-      memberCount: count(schema.member.id),
-      createdAt: schema.organization.createdAt,
-    })
-    .from(schema.organization)
-    .leftJoin(
-      schema.member,
-      eq(schema.organization.id, schema.member.organizationId)
-    )
-    .groupBy(schema.organization.id)
-    .orderBy(desc(schema.organization.createdAt))
+export type OrgSort = "name" | "memberCount" | "createdAt"
 
-  return rows
-})
+export async function listOrganizations(
+  options: PageOptions & { planId?: string; planStatus?: string; sort: OrgSort; dir: "asc" | "desc" }
+): Promise<ListPage<OrgRow>> {
+  await assertAdmin()
+  const where = and(
+    options.planId ? eq(schema.organization.planId, options.planId) : undefined,
+    options.planStatus ? eq(schema.organization.planStatus, options.planStatus) : undefined,
+    options.q
+      ? or(
+          ilike(schema.organization.name, contains(options.q)),
+          ilike(schema.organization.slug, contains(options.q))
+        )
+      : undefined
+  )
+  const memberCount = count(schema.member.id)
+  const sorts = {
+    name: schema.organization.name,
+    memberCount,
+    createdAt: schema.organization.createdAt,
+  }
+  const order = options.dir === "asc" ? asc : desc
+
+  const [rows, totals] = await Promise.all([
+    db
+      .select({
+        id: schema.organization.id,
+        name: schema.organization.name,
+        slug: schema.organization.slug,
+        logo: schema.organization.logo,
+        planId: schema.organization.planId,
+        planStatus: schema.organization.planStatus,
+        memberCount,
+        createdAt: schema.organization.createdAt,
+      })
+      .from(schema.organization)
+      .leftJoin(
+        schema.member,
+        eq(schema.organization.id, schema.member.organizationId)
+      )
+      .where(where)
+      .groupBy(schema.organization.id)
+      .orderBy(order(sorts[options.sort]), desc(schema.organization.id))
+      .limit(options.limit)
+      .offset(options.offset),
+    db.select({ value: count() }).from(schema.organization).where(where),
+  ])
+
+  return { rows, total: totals[0]?.value ?? 0 }
+}
 
 export const getOrganizationById = cache(async function getOrganizationById(
   id: string
 ) {
-  await connection()
+  await assertAdmin()
   const rows = await db
     .select({
       id: schema.organization.id,
@@ -340,7 +427,7 @@ export const getOrganizationById = cache(async function getOrganizationById(
 export const getOrganizationMembers = cache(async function getOrganizationMembers(
   orgId: string
 ) {
-  await connection()
+  await assertAdmin()
   return db
     .select({
       memberId: schema.member.id,
@@ -360,7 +447,7 @@ export const getOrganizationMembers = cache(async function getOrganizationMember
 export const getOrganizationDomains = cache(async function getOrganizationDomains(
   orgId: string
 ) {
-  await connection()
+  await assertAdmin()
   return db
     .select()
     .from(schema.tenantDomain)
@@ -368,87 +455,286 @@ export const getOrganizationDomains = cache(async function getOrganizationDomain
     .orderBy(desc(schema.tenantDomain.createdAt))
 })
 
-export const listAllSessions = cache(async function listAllSessions(): Promise<SessionRow[]> {
-  await connection()
-  return db
+export type SessionSort = "createdAt" | "expiresAt"
+
+export async function listSessions(
+  options: PageOptions & { impersonated: boolean; userId?: string; sort: SessionSort; dir: "asc" | "desc" }
+): Promise<ListPage<SessionRow>> {
+  await assertAdmin()
+  const where = and(
+    gt(schema.session.expiresAt, new Date()),
+    options.impersonated ? isNotNull(schema.session.impersonatedBy) : undefined,
+    options.userId ? eq(schema.session.userId, options.userId) : undefined,
+    options.q
+      ? or(
+          ilike(schema.user.name, contains(options.q)),
+          ilike(schema.user.email, contains(options.q)),
+          ilike(schema.session.ipAddress, contains(options.q))
+        )
+      : undefined
+  )
+  const sorts = { createdAt: schema.session.createdAt, expiresAt: schema.session.expiresAt }
+  const order = options.dir === "asc" ? asc : desc
+
+  const [rows, totals] = await Promise.all([
+    db
+      .select({
+        id: schema.session.id,
+        userId: schema.session.userId,
+        userName: schema.user.name,
+        userEmail: schema.user.email,
+        ipAddress: schema.session.ipAddress,
+        userAgent: schema.session.userAgent,
+        createdAt: schema.session.createdAt,
+        expiresAt: schema.session.expiresAt,
+        impersonatedBy: schema.session.impersonatedBy,
+      })
+      .from(schema.session)
+      .innerJoin(schema.user, eq(schema.session.userId, schema.user.id))
+      .where(where)
+      .orderBy(order(sorts[options.sort]), desc(schema.session.id))
+      .limit(options.limit)
+      .offset(options.offset),
+    db
+      .select({ value: count() })
+      .from(schema.session)
+      .innerJoin(schema.user, eq(schema.session.userId, schema.user.id))
+      .where(where),
+  ])
+
+  return { rows, total: totals[0]?.value ?? 0 }
+}
+
+/** How many live sessions each tab of the list holds. */
+export async function getSessionCounts(): Promise<{ all: number; impersonated: number }> {
+  await assertAdmin()
+  const [row] = await db
     .select({
-      id: schema.session.id,
-      userId: schema.session.userId,
-      userName: schema.user.name,
-      userEmail: schema.user.email,
-      ipAddress: schema.session.ipAddress,
-      userAgent: schema.session.userAgent,
-      createdAt: schema.session.createdAt,
-      expiresAt: schema.session.expiresAt,
-      impersonatedBy: schema.session.impersonatedBy,
+      all: count(),
+      impersonated: count(schema.session.impersonatedBy),
     })
     .from(schema.session)
-    .innerJoin(schema.user, eq(schema.session.userId, schema.user.id))
     .where(gt(schema.session.expiresAt, new Date()))
-    .orderBy(desc(schema.session.createdAt))
-})
+  return { all: row?.all ?? 0, impersonated: row?.impersonated ?? 0 }
+}
 
-export const listAllDomains = cache(async function listAllDomains(): Promise<DomainRow[]> {
-  await connection()
-  return db
+/** The token a revocation needs. It stays on the server: pages only know a session's id. */
+export async function getSessionToken(id: string): Promise<string | null> {
+  await assertAdmin()
+  const rows = await db
+    .select({ token: schema.session.token })
+    .from(schema.session)
+    .where(eq(schema.session.id, id))
+    .limit(1)
+  return rows[0]?.token ?? null
+}
+
+export type DomainFilter = "verified" | "pending"
+
+const DOMAIN_FILTERS: Record<DomainFilter, SQL> = {
+  verified: eq(schema.tenantDomain.verified, true),
+  pending: eq(schema.tenantDomain.verified, false),
+}
+
+export async function listDomains(
+  options: PageOptions & { filter?: DomainFilter; dir: "asc" | "desc" }
+): Promise<ListPage<DomainRow>> {
+  await assertAdmin()
+  const where = and(
+    options.filter ? DOMAIN_FILTERS[options.filter] : undefined,
+    options.q
+      ? or(
+          ilike(schema.tenantDomain.domain, contains(options.q)),
+          ilike(schema.organization.name, contains(options.q))
+        )
+      : undefined
+  )
+  const order = options.dir === "asc" ? asc : desc
+
+  const [rows, totals] = await Promise.all([
+    db
+      .select({
+        id: schema.tenantDomain.id,
+        domain: schema.tenantDomain.domain,
+        organizationId: schema.tenantDomain.organizationId,
+        orgName: schema.organization.name,
+        verified: schema.tenantDomain.verified,
+        isPrimary: schema.tenantDomain.isPrimary,
+        createdAt: schema.tenantDomain.createdAt,
+      })
+      .from(schema.tenantDomain)
+      .innerJoin(schema.organization, eq(schema.tenantDomain.organizationId, schema.organization.id))
+      .where(where)
+      .orderBy(order(schema.tenantDomain.createdAt), desc(schema.tenantDomain.id))
+      .limit(options.limit)
+      .offset(options.offset),
+    db
+      .select({ value: count() })
+      .from(schema.tenantDomain)
+      .innerJoin(schema.organization, eq(schema.tenantDomain.organizationId, schema.organization.id))
+      .where(where),
+  ])
+
+  return { rows, total: totals[0]?.value ?? 0 }
+}
+
+/** How many domains each tab of the list holds. */
+export async function getDomainCounts(): Promise<Record<"all" | DomainFilter, number>> {
+  await assertAdmin()
+  const [row] = await db
     .select({
-      id: schema.tenantDomain.id,
-      domain: schema.tenantDomain.domain,
-      organizationId: schema.tenantDomain.organizationId,
-      orgName: schema.organization.name,
-      verified: schema.tenantDomain.verified,
-      isPrimary: schema.tenantDomain.isPrimary,
-      createdAt: schema.tenantDomain.createdAt,
+      all: count(),
+      verified: count(sql`CASE WHEN ${DOMAIN_FILTERS.verified} THEN 1 END`),
+      pending: count(sql`CASE WHEN ${DOMAIN_FILTERS.pending} THEN 1 END`),
     })
     .from(schema.tenantDomain)
-    .innerJoin(
-      schema.organization,
-      eq(schema.tenantDomain.organizationId, schema.organization.id)
-    )
-    .orderBy(desc(schema.tenantDomain.createdAt))
-})
+  return { all: row?.all ?? 0, verified: row?.verified ?? 0, pending: row?.pending ?? 0 }
+}
 
-export const listAllApiKeys = cache(async function listAllApiKeys(): Promise<ApiKeyRow[]> {
-  await connection()
-  return db
+export type ApiKeyFilter = "active" | "revoked"
+export type ApiKeySort = "createdAt" | "requestCount"
+
+const API_KEY_FILTERS: Record<ApiKeyFilter, SQL> = {
+  active: eq(schema.apikey.enabled, true),
+  revoked: eq(schema.apikey.enabled, false),
+}
+
+export async function listApiKeys(
+  options: PageOptions & { filter?: ApiKeyFilter; sort: ApiKeySort; dir: "asc" | "desc" }
+): Promise<ListPage<ApiKeyRow>> {
+  await assertAdmin()
+  const where = and(
+    options.filter ? API_KEY_FILTERS[options.filter] : undefined,
+    options.q
+      ? or(
+          ilike(schema.apikey.name, contains(options.q)),
+          ilike(schema.apikey.start, contains(options.q)),
+          ilike(schema.organization.name, contains(options.q))
+        )
+      : undefined
+  )
+  const sorts = { createdAt: schema.apikey.createdAt, requestCount: schema.apikey.requestCount }
+  const order = options.dir === "asc" ? asc : desc
+
+  const [rows, totals] = await Promise.all([
+    db
+      .select({
+        id: schema.apikey.id,
+        name: schema.apikey.name,
+        start: schema.apikey.start,
+        enabled: schema.apikey.enabled,
+        organizationId: schema.apikey.referenceId,
+        orgName: schema.organization.name,
+        requestCount: schema.apikey.requestCount,
+        lastRequest: schema.apikey.lastRequest,
+        createdAt: schema.apikey.createdAt,
+      })
+      .from(schema.apikey)
+      // A key's owner is `referenceId`: metadata is client-supplied and only carries scopes.
+      .leftJoin(schema.organization, eq(schema.apikey.referenceId, schema.organization.id))
+      .where(where)
+      .orderBy(order(sorts[options.sort]), desc(schema.apikey.id))
+      .limit(options.limit)
+      .offset(options.offset),
+    db
+      .select({ value: count() })
+      .from(schema.apikey)
+      .leftJoin(schema.organization, eq(schema.apikey.referenceId, schema.organization.id))
+      .where(where),
+  ])
+
+  return { rows, total: totals[0]?.value ?? 0 }
+}
+
+/** How many keys each tab of the list holds. */
+export async function getApiKeyCounts(): Promise<Record<"all" | ApiKeyFilter, number>> {
+  await assertAdmin()
+  const [row] = await db
     .select({
-      id: schema.apikey.id,
-      name: schema.apikey.name,
-      start: schema.apikey.start,
-      enabled: schema.apikey.enabled,
-      referenceId: schema.apikey.referenceId,
-      requestCount: schema.apikey.requestCount,
-      lastRequest: schema.apikey.lastRequest,
-      createdAt: schema.apikey.createdAt,
-      metadata: schema.apikey.metadata,
+      all: count(),
+      active: count(sql`CASE WHEN ${API_KEY_FILTERS.active} THEN 1 END`),
+      revoked: count(sql`CASE WHEN ${API_KEY_FILTERS.revoked} THEN 1 END`),
     })
     .from(schema.apikey)
-    .orderBy(desc(schema.apikey.createdAt))
-})
+  return { all: row?.all ?? 0, active: row?.active ?? 0, revoked: row?.revoked ?? 0 }
+}
 
-export const listAllAgents = cache(async function listAllAgents(): Promise<AgentRow[]> {
-  await connection()
-  return db
-    .select({
-      id: schema.agent.id,
-      name: schema.agent.name,
-      status: schema.agent.status,
-      mode: schema.agent.mode,
-      hostName: schema.agentHost.name,
-      userName: schema.user.name,
-      lastUsedAt: schema.agent.lastUsedAt,
-      createdAt: schema.agent.createdAt,
-    })
+export const AGENT_FILTERS = ["active", "pending", "inactive", "expired", "revoked", "rejected"] as const
+export type AgentFilter = (typeof AGENT_FILTERS)[number]
+export type AgentSort = "createdAt" | "name"
+
+export async function listAgents(
+  options: PageOptions & { filter?: AgentFilter; sort: AgentSort; dir: "asc" | "desc" }
+): Promise<ListPage<AgentRow>> {
+  await assertAdmin()
+  const where = and(
+    options.filter ? eq(schema.agent.status, options.filter) : undefined,
+    options.q
+      ? or(
+          ilike(schema.agent.name, contains(options.q)),
+          ilike(schema.agentHost.name, contains(options.q)),
+          ilike(schema.user.name, contains(options.q))
+        )
+      : undefined
+  )
+  const sorts = { createdAt: schema.agent.createdAt, name: schema.agent.name }
+  const order = options.dir === "asc" ? asc : desc
+
+  const [rows, totals] = await Promise.all([
+    db
+      .select({
+        id: schema.agent.id,
+        name: schema.agent.name,
+        status: schema.agent.status,
+        mode: schema.agent.mode,
+        hostName: schema.agentHost.name,
+        userName: schema.user.name,
+        lastUsedAt: schema.agent.lastUsedAt,
+        createdAt: schema.agent.createdAt,
+      })
+      .from(schema.agent)
+      .leftJoin(schema.agentHost, eq(schema.agent.hostId, schema.agentHost.id))
+      .leftJoin(schema.user, eq(schema.agent.userId, schema.user.id))
+      .where(where)
+      .orderBy(order(sorts[options.sort]), desc(schema.agent.id))
+      .limit(options.limit)
+      .offset(options.offset),
+    db
+      .select({ value: count() })
+      .from(schema.agent)
+      .leftJoin(schema.agentHost, eq(schema.agent.hostId, schema.agentHost.id))
+      .leftJoin(schema.user, eq(schema.agent.userId, schema.user.id))
+      .where(where),
+  ])
+
+  return { rows, total: totals[0]?.value ?? 0 }
+}
+
+/** How many agents each tab of the list holds, by status. */
+export async function getAgentCounts(): Promise<{ all: number; byStatus: Record<string, number> }> {
+  await assertAdmin()
+  const rows = await db
+    .select({ status: schema.agent.status, value: count() })
     .from(schema.agent)
-    .leftJoin(schema.agentHost, eq(schema.agent.hostId, schema.agentHost.id))
-    .leftJoin(schema.user, eq(schema.agent.userId, schema.user.id))
-    .orderBy(desc(schema.agent.createdAt))
-})
+    .groupBy(schema.agent.status)
+  return {
+    all: rows.reduce((sum, row) => sum + row.value, 0),
+    byStatus: Object.fromEntries(rows.map((row) => [row.status, row.value])),
+  }
+}
 
-export async function deactivateAgent(id: string): Promise<void> {
-  await connection()
-  await db
-    .update(schema.agent)
-    .set({ status: "inactive", updatedAt: new Date() })
-    .where(eq(schema.agent.id, id))
+/**
+ * Ends an agent for good. `revoked` is the status Agent Auth refuses on every
+ * call: any word it doesn't know, it lets through.
+ */
+export async function revokeAgent(id: string): Promise<void> {
+  await assertAdmin()
+  const now = new Date()
+  await db.batch([
+    db.update(schema.agent).set({ status: "revoked", updatedAt: now }).where(eq(schema.agent.id, id)),
+    db
+      .update(schema.agentCapabilityGrant)
+      .set({ status: "revoked", updatedAt: now })
+      .where(and(eq(schema.agentCapabilityGrant.agentId, id), eq(schema.agentCapabilityGrant.status, "active"))),
+  ])
 }

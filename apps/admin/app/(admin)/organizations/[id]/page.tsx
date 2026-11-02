@@ -1,18 +1,31 @@
 import { notFound } from "next/navigation"
-import Link from "next/link"
+import { CopyValue } from "@prood/ui/components/copy-block"
+import { Fact, FactList } from "@prood/ui/components/fact-list"
+import { PageHeader } from "@prood/ui/components/page-header"
+import { Panel } from "@prood/ui/components/panel"
+import { Status } from "@prood/ui/components/status-badge"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@prood/ui/components/card"
-import { Badge } from "@prood/ui/components/badge"
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@prood/ui/components/table"
+import { planStatus } from "@prood/ui/lib/status"
+import { BackLink, DetailLayout, PageStack as AdminPage } from "@prood/ui/components/page-layout"
+import { FOLD_CELL, ListTable, NoValue, RowLink } from "@prood/ui/components/list-table"
+import { Timestamp } from "@/components/admin/timestamp"
 import {
   getOrganizationById,
-  getOrganizationMembers,
   getOrganizationDomains,
+  getOrganizationMembers,
 } from "@/lib/admin-queries"
+import { formatNumber, humanize, plural } from "@/lib/format"
+import { storedDomainStatus } from "@/lib/status"
+
+const WIDE = "hidden @2xl:table-cell"
+/** The last column left on a phone, once the ones after it are hidden. */
+const EDGE = "pr-5 @2xl:pr-2"
 
 export async function generateMetadata({
   params,
@@ -39,179 +52,132 @@ export default async function OrgDetailPage({
   if (!org) notFound()
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <Link
-          href="/organizations"
-          className="text-sm text-muted-foreground hover:underline"
-        >
-          &larr; All organizations
-        </Link>
-        <h2 className="font-heading mt-1 text-xl font-medium">{org.name}</h2>
-        <p className="font-mono text-sm text-muted-foreground">{org.slug}</p>
-      </div>
+    <AdminPage>
+      <PageHeader
+        back={<BackLink href="/organizations">All organizations</BackLink>}
+        title={org.name}
+        description={<span className="font-mono">{org.slug}</span>}
+      />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Plan</CardDescription>
-            <CardTitle>
-              <Badge variant="secondary">{org.planId}</Badge>
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Status</CardDescription>
-            <CardTitle>
-              <Badge
-                variant={
-                  org.planStatus === "active" ? "outline" : "destructive"
-                }
-              >
-                {org.planStatus}
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Members</CardDescription>
-            <CardTitle className="text-2xl">{members.length}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Custom Domains</CardDescription>
-            <CardTitle className="text-2xl">{domains.length}</CardTitle>
-          </CardHeader>
-        </Card>
-      </div>
-
-      {org.stripeCustomerId ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Stripe</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-1 text-sm">
-            <div>
-              <span className="text-muted-foreground">Customer: </span>
-              <span className="font-mono">{org.stripeCustomerId}</span>
-            </div>
-            {org.stripeSubscriptionId ? (
-              <div>
-                <span className="text-muted-foreground">Subscription: </span>
-                <span className="font-mono">{org.stripeSubscriptionId}</span>
-              </div>
-            ) : null}
-          </CardContent>
-        </Card>
-      ) : null}
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Members</CardTitle>
-          <CardDescription>
-            Users in this organization ({members.length}).
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      <DetailLayout
+        aside={
+          <Panel title="Details">
+            <FactList>
+              <Fact label="Plan">{humanize(org.planId)}</Fact>
+              <Fact label="Status">
+                <Status look={{ ...planStatus(org.planStatus), needsAction: false }} />
+              </Fact>
+              <Fact label="Members">
+                <span className="tabular-nums">{formatNumber(members.length)}</span>
+              </Fact>
+              <Fact label="Custom domains">
+                <span className="tabular-nums">{formatNumber(domains.length)}</span>
+              </Fact>
+              <Fact label="Created">
+                <Timestamp date={org.createdAt} dateOnly />
+              </Fact>
+              <Fact label="ID">
+                <CopyValue value={org.id} label="organization ID" />
+              </Fact>
+              {org.stripeCustomerId ? (
+                <Fact label="Stripe customer">
+                  <CopyValue value={org.stripeCustomerId} label="Stripe customer ID" />
+                </Fact>
+              ) : null}
+              {org.stripeSubscriptionId ? (
+                <Fact label="Stripe subscription">
+                  <CopyValue value={org.stripeSubscriptionId} label="Stripe subscription ID" />
+                </Fact>
+              ) : null}
+            </FactList>
+          </Panel>
+        }
+        main={
+          <>
+        <Panel flush title={plural(members.length, "member")}>
           {members.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-muted-foreground">
-                    <th className="pb-3 pr-4 font-medium">Name</th>
-                    <th className="pb-3 pr-4 font-medium">Email</th>
-                    <th className="pb-3 pr-4 font-medium">Role</th>
-                    <th className="pb-3 font-medium">Joined</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {members.map((m) => (
-                    <tr key={m.memberId} className="border-b last:border-0">
-                      <td className="py-3 pr-4">
-                        <Link
-                          href={`/users/${m.userId}`}
-                          className="font-medium hover:underline"
-                        >
-                          {m.userName}
-                        </Link>
-                      </td>
-                      <td className="py-3 pr-4 text-muted-foreground">
-                        {m.userEmail}
-                      </td>
-                      <td className="py-3 pr-4">
-                        <Badge variant="secondary">{m.role}</Badge>
-                      </td>
-                      <td className="py-3 text-muted-foreground">
-                        {m.joinedAt.toLocaleDateString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <ListTable>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead className={WIDE}>Email</TableHead>
+                  <TableHead className={EDGE}>Role</TableHead>
+                  <TableHead className={WIDE}>Joined</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {members.map((member) => (
+                  <TableRow key={member.memberId}>
+                    <TableCell className={FOLD_CELL}>
+                      <RowLink href={`/users/${member.userId}`}>
+                        {member.userName}
+                      </RowLink>
+                      <div className="truncate text-xs text-muted-foreground @2xl:hidden">
+                        {member.userEmail}
+                      </div>
+                    </TableCell>
+                    <TableCell className={`${WIDE} text-muted-foreground`}>
+                      {member.userEmail}
+                    </TableCell>
+                    <TableCell className={EDGE}>{humanize(member.role)}</TableCell>
+                    <TableCell className={`${WIDE} text-muted-foreground tabular-nums`}>
+                      <Timestamp date={member.joinedAt} dateOnly />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </ListTable>
           ) : (
-            <p className="py-4 text-sm text-muted-foreground">No members.</p>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Custom Domains</CardTitle>
-          <CardDescription>
-            Domains pointing to this organization&apos;s storefront.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {domains.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-muted-foreground">
-                    <th className="pb-3 pr-4 font-medium">Domain</th>
-                    <th className="pb-3 pr-4 font-medium">Verified</th>
-                    <th className="pb-3 pr-4 font-medium">Primary</th>
-                    <th className="pb-3 font-medium">Added</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {domains.map((d) => (
-                    <tr key={d.id} className="border-b last:border-0">
-                      <td className="py-3 pr-4 font-mono text-xs">
-                        {d.domain}
-                      </td>
-                      <td className="py-3 pr-4">
-                        <Badge
-                          variant={d.verified ? "outline" : "destructive"}
-                        >
-                          {d.verified ? "verified" : "pending"}
-                        </Badge>
-                      </td>
-                      <td className="py-3 pr-4">
-                        {d.isPrimary ? (
-                          <Badge variant="default">primary</Badge>
-                        ) : (
-                          "—"
-                        )}
-                      </td>
-                      <td className="py-3 text-muted-foreground">
-                        {d.createdAt.toLocaleDateString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p className="py-4 text-sm text-muted-foreground">
-              No custom domains configured.
+            <p className="px-5 py-4 text-sm text-muted-foreground">
+              No members yet. People show up here once they accept an invitation
+              to this store.
             </p>
           )}
-        </CardContent>
-      </Card>
-    </div>
+        </Panel>
+
+        <Panel flush title={plural(domains.length, "custom domain")}>
+          {domains.length > 0 ? (
+            <ListTable>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Domain</TableHead>
+                  <TableHead className={EDGE}>Verification</TableHead>
+                  <TableHead className={WIDE}>Primary</TableHead>
+                  <TableHead className={WIDE}>Added</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {domains.map((domain) => (
+                  <TableRow key={domain.id}>
+                    <TableCell>
+                      <span className="font-mono text-xs break-all">{domain.domain}</span>
+                      {domain.isPrimary ? (
+                        <div className="text-xs text-muted-foreground @2xl:hidden">Primary</div>
+                      ) : null}
+                    </TableCell>
+                    <TableCell className={EDGE}>
+                      <Status look={storedDomainStatus(domain.verified)} />
+                    </TableCell>
+                    <TableCell className={WIDE}>
+                      {domain.isPrimary ? "Primary" : <NoValue />}
+                    </TableCell>
+                    <TableCell className={`${WIDE} text-muted-foreground tabular-nums`}>
+                      <Timestamp date={domain.createdAt} dateOnly />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </ListTable>
+          ) : (
+            <p className="px-5 py-4 text-sm text-muted-foreground">
+              No custom domains. This store runs on its Prood address until the
+              merchant adds one.
+            </p>
+          )}
+        </Panel>
+          </>
+        }
+      />
+    </AdminPage>
   )
 }
