@@ -49,7 +49,7 @@ afterEach(() => {
 describe("the cart drawer", () => {
   it("links to checkout from a store that can sell", async () => {
     await openCart(true)
-    expect(screen.getByRole("link", { name: "Checkout" }).getAttribute("href")).toBe("/checkout")
+    expect(screen.getByRole("link", { name: "Check out" }).getAttribute("href")).toBe("/checkout")
   })
 
   it("keeps checkout open for a free cart when the store can't take orders", async () => {
@@ -58,13 +58,13 @@ describe("the cart drawer", () => {
       async () => new Response(JSON.stringify({ cart: { ...cart, totals: { subtotal: free, total: free } } })),
     )
     await openCart(false)
-    expect(screen.getByRole("link", { name: "Checkout" }).getAttribute("href")).toBe("/checkout")
+    expect(screen.getByRole("link", { name: "Check out" }).getAttribute("href")).toBe("/checkout")
   })
 
   it("shuts checkout, with the reason, when the store can't take orders", async () => {
     await openCart(false)
-    expect(screen.queryByRole("link", { name: "Checkout" })).toBeNull()
-    expect((screen.getByRole("button", { name: "Checkout" }) as HTMLButtonElement).disabled).toBe(true)
+    expect(screen.queryByRole("link", { name: "Check out" })).toBeNull()
+    expect((screen.getByRole("button", { name: "Check out" }) as HTMLButtonElement).disabled).toBe(true)
     expect(screen.getByText("This store isn't taking paid orders yet.")).toBeTruthy()
   })
 })

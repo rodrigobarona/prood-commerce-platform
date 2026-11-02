@@ -1,9 +1,13 @@
+import { Suspense } from "react"
 import Link from "next/link"
-import type { SearchParams } from "@prood/types"
 import { Button } from "@prood/ui/components/button"
+import { CollectionHeader } from "@/components/commerce/collection-header"
 import { ConnectedProductGrid } from "@/components/commerce/connected-product-grid"
-import { fetchProductList } from "@/lib/commerce-data"
+import { SortSelect } from "@/components/commerce/sort-select"
+import { Container } from "@/components/layout/container"
+import { fetchCategories, fetchProductList } from "@/lib/commerce-data"
 import { productListEmptyCopy } from "@/lib/product-empty-copy"
+import { parseSort } from "@/lib/product-sort"
 
 export const metadata = { title: "Products" }
 
@@ -12,13 +16,6 @@ type PageSearchParams = {
   category?: string
   page?: string
   sort?: string
-}
-
-function parseSort(sort: string | undefined): SearchParams["sort"] {
-  if (!sort) return undefined
-  const [field, direction] = sort.split(":")
-  if (!field) return undefined
-  return { field, direction: direction === "asc" ? "asc" : "desc" }
 }
 
 /** Anything but a positive integer is a bad link, which the API would refuse. */
@@ -35,14 +32,17 @@ export default async function ProductsPage({
   const sp = await searchParams
   const page = parsePage(sp.page)
   const perPage = 12
-  const result = await fetchProductList({
-    query: sp.q,
-    categoryId: sp.category,
-    page,
-    perPage,
-    sortField: parseSort(sp.sort)?.field,
-    sortDirection: parseSort(sp.sort)?.direction,
-  })
+  const [result, categories] = await Promise.all([
+    fetchProductList({
+      query: sp.q,
+      categoryId: sp.category,
+      page,
+      perPage,
+      sortField: parseSort(sp.sort)?.field,
+      sortDirection: parseSort(sp.sort)?.direction,
+    }),
+    fetchCategories(),
+  ])
   const products = result.products.items
   const total = result.products.total
 
@@ -57,17 +57,21 @@ export default async function ProductsPage({
   }
 
   return (
-    <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">
-          {sp.q ? `Results for "${sp.q}"` : "All products"}
-        </h1>
-        <span className="text-muted-foreground text-sm">{total} products</span>
-      </div>
+    <Container className="flex flex-col gap-8 py-10 md:gap-12 md:py-16">
+      <CollectionHeader
+        title={sp.q ? `Results for \u201c${sp.q}\u201d` : "All products"}
+        count={total}
+        categories={sp.q ? [] : categories}
+      >
+        <Suspense fallback={null}>
+          <SortSelect />
+        </Suspense>
+      </CollectionHeader>
 
       <ConnectedProductGrid
         products={products}
         columns={4}
+        preloadCount={4}
         {...productListEmptyCopy({
           query: sp.q,
           categoryId: sp.category,
@@ -77,16 +81,20 @@ export default async function ProductsPage({
       />
 
       {(page > 1 || hasMore) && products.length > 0 ? (
-        <div className="flex items-center justify-center gap-3">
-          <Button asChild variant="outline" disabled={page <= 1}>
-            <Link href={buildHref(page - 1)}>Previous</Link>
-          </Button>
-          <span className="text-muted-foreground text-sm">Page {page}</span>
-          <Button asChild variant="outline" disabled={!hasMore}>
-            <Link href={buildHref(page + 1)}>Next</Link>
-          </Button>
-        </div>
+        <nav aria-label="Pages" className="flex items-center justify-center gap-4">
+          {page > 1 ? (
+            <Button asChild variant="outline" size="lg">
+              <Link href={buildHref(page - 1)}>Previous page</Link>
+            </Button>
+          ) : null}
+          <span className="text-muted-foreground text-sm tabular-nums">Page {page}</span>
+          {hasMore ? (
+            <Button asChild variant="outline" size="lg">
+              <Link href={buildHref(page + 1)}>Next page</Link>
+            </Button>
+          ) : null}
+        </nav>
       ) : null}
-    </div>
+    </Container>
   )
 }

@@ -1,42 +1,48 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
-import { Button } from "@prood/ui/components/button"
+import { useCallback, useEffect, useRef, useState } from "react"
+import type { StoreHint } from "@prood/checkout-host"
+import { ArrowLeftIcon, BankIcon, CreditCardIcon, DeviceMobileIcon, WarningCircleIcon, type Icon } from "@phosphor-icons/react"
+import { CommerceButton } from "@prood/ui/components/commerce-button"
 import { Input } from "@prood/ui/components/input"
 import { Label } from "@prood/ui/components/label"
 import { RadioGroup, RadioGroupItem } from "@prood/ui/components/radio-group"
 import { Skeleton } from "@prood/ui/components/skeleton"
 import { toPortugueseMobile, type PaymentMethodKind } from "@prood/types"
-import { storeUrl } from "@/lib/store-url"
+import { formatAmount } from "@/lib/format-amount"
+import type { OrderSummary, SessionDetails } from "@/lib/session-details"
+import { storeHome, storeUrl } from "@/lib/store-url"
 import { useCheckoutContext } from "./checkout-context"
 import { MbWayPayment, type MbWayEnd } from "./mbway-payment"
+import { OrderLines, PaymentReceipt } from "./payment-receipt"
+import { StatusPanel, StoreContact, onwardProps } from "./status-panel"
 import { StripePayment } from "./stripe-payment"
 import { ReferencePayment } from "./reference-payment"
 
 const PAY_ERROR = "We couldn't start your payment. You haven't been charged. Try again, or contact the store."
-const LOAD_ERROR = "We couldn't load this payment. Reload the page, or contact the store."
-const EXPIRED_ERROR = "This payment link has expired. You haven't been charged. Ask the store for a new one."
+const LOAD_ERROR = "This payment page can't read its records right now. If you've already paid, you don't need to pay again."
+const NO_METHODS_ERROR = "This store can't take payment here right now. You haven't been charged."
+const EXPIRED_ERROR = "This payment link has expired. You haven't been charged. Go back to the store to order again."
 const BUSY_ERROR = "Your payment is already starting. Wait a moment, then reload this page."
 const STUCK_ERROR = "We couldn't continue this payment. If you already paid, you don't need to pay again. Contact the store."
 const FAILED_NOTICE = "Your last payment didn't go through. Try again, or choose another way to pay."
-const TIMED_OUT_NOTICE = "The MB WAY request timed out. You haven't been charged. Try again."
+const TIMED_OUT_NOTICE =
+  "The MB WAY request expired. You haven't been charged. Check your number and try again, or choose another way to pay."
+const SWITCH_ERROR = "We couldn't change how this order is paid. You haven't been charged. Contact the store."
 const PHONE_ERROR = "Enter a Portuguese mobile number, like 912 345 678."
+const PHONE_ERROR_ID = "mbway-phone-error"
 
-const METHOD_LABELS: Record<PaymentMethodKind, string> = {
-  card: "Card",
-  multibanco: "Multibanco",
-  mbway: "MB WAY",
+const METHODS: Record<PaymentMethodKind, { label: string; hint: string; Icon: Icon }> = {
+  card: { label: "Card", hint: "Pay with a credit or debit card.", Icon: CreditCardIcon },
+  multibanco: {
+    label: "Multibanco",
+    hint: "Get a reference to pay at an ATM or in your banking app.",
+    Icon: BankIcon,
+  },
+  mbway: { label: "MB WAY", hint: "Approve the payment in the MB WAY app.", Icon: DeviceMobileIcon },
 }
 
-function formatAmount(amount: number, currency: string): string {
-  try {
-    return new Intl.NumberFormat("en-IE", { style: "currency", currency }).format(amount)
-  } catch {
-    return `${amount} ${currency}`
-  }
-}
-
-interface SessionData {
+interface SessionData extends SessionDetails {
   sessionId: string
   providerId: string
   publishableKey?: string
@@ -44,12 +50,8 @@ interface SessionData {
   state: string
   payable: boolean
   methods: PaymentMethodKind[]
-  amount: number
-  currency: string
   orderId: string | null
   expiresAt: string | null
-  storeName?: string | null
-  returnUrl?: string | null
   customerInfo?: {
     email: string
     firstName?: string
@@ -66,21 +68,50 @@ interface SessionData {
   } | null
 }
 
-function Notice({
-  title,
-  children,
-  action,
+
+/** What's being paid, to whom, and the way back to the store. */
+function PaymentSummary({
+  storeName,
+  returnUrl,
+  amount,
+  email,
+  expiry,
+  order,
+  currency,
 }: {
-  title: string
-  children: React.ReactNode
-  action?: React.ReactNode
+  storeName?: string | null
+  returnUrl?: string | null
+  amount: string
+  email?: string
+  expiry?: string
+  order?: OrderSummary | null
+  currency: string
 }) {
+  const home = storeHome(returnUrl)
   return (
-    <div className="flex flex-col items-center gap-3 text-center">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <p className="text-muted-foreground text-sm">{children}</p>
-      {action}
-    </div>
+    <header className="flex flex-col gap-4">
+      {home ? (
+        <a
+          href={home}
+          className="text-muted-foreground hover:text-foreground flex w-fit items-center gap-1.5 text-sm transition-colors"
+        >
+          <ArrowLeftIcon className="size-3.5" />
+          Back to {storeName ?? "the store"}
+        </a>
+      ) : null}
+      <div className="flex flex-col gap-1">
+        <p className="text-muted-foreground text-sm">{storeName ? `Pay ${storeName}` : "Amount to pay"}</p>
+        <h1 data-step-heading tabIndex={-1} className="text-display-sm tabular-nums outline-none">
+          {amount}
+        </h1>
+        {email || expiry ? (
+          <p className="text-muted-foreground text-sm tabular-nums">
+            {[email, expiry].filter(Boolean).join(" · ")}
+          </p>
+        ) : null}
+      </div>
+      {order?.items.length ? <OrderLines order={order} currency={currency} /> : null}
+    </header>
   )
 }
 
@@ -102,7 +133,14 @@ function canContinue(session: Pick<SessionData, "state" | "paymentSession" | "pu
   )
 }
 
-export function PaymentPageClient({ sessionId }: { sessionId: string }) {
+export function PaymentPageClient({
+  sessionId,
+  hint = null,
+}: {
+  sessionId: string
+  /** Who this payment belongs to, from its link, for when the session can't say. */
+  hint?: StoreHint | null
+}) {
   const [data, setData] = useState<SessionData | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -113,6 +151,9 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
   const [method, setMethod] = useState<PaymentMethodKind | null>(null)
   const [phone, setPhone] = useState("")
   const [timeLeft, setTimeLeft] = useState<number | null>(null)
+  const [cardFailed, setCardFailed] = useState(false)
+  const phoneRef = useRef<HTMLInputElement>(null)
+  const payIssueRef = useRef<HTMLParagraphElement>(null)
   const { setSession } = useCheckoutContext()
 
   useEffect(() => {
@@ -136,6 +177,7 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
       })
       .catch(() => {
         if (!active) return
+        setSession({ storeName: hint?.name ?? null, returnUrl: hint?.home ?? null })
         setLoadFailed(true)
         setLoading(false)
       })
@@ -143,7 +185,7 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
       active = false
       controller.abort()
     }
-  }, [sessionId, setSession])
+  }, [sessionId, hint, setSession])
 
   // The link's clock stops once a payment starts: a reference outlives it.
   const expiresAt = data?.paymentSession ? null : data?.expiresAt
@@ -159,7 +201,25 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
     }
   }, [expiresAt])
 
+  // Whatever ended this screen took focus with it, so the next one's heading gets it.
+  const screen = `${data?.state}/${data?.paymentSession?.id}/${data?.payable}/${expired}/${cardFailed}`
+  const shownScreenRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (!data) return
+    if (shownScreenRef.current && shownScreenRef.current !== screen) {
+      const headings = document.querySelectorAll<HTMLElement>("[data-step-heading]")
+      headings[headings.length - 1]?.focus()
+    }
+    shownScreenRef.current = screen
+  }, [data, screen])
+
+  // Pay turns itself off while it works, which drops focus. The field takes it for a bad number.
+  useEffect(() => {
+    if (payError && payError !== PHONE_ERROR) payIssueRef.current?.focus()
+  }, [payError])
+
   const handleMbWayEnd = useCallback((end: MbWayEnd, payable?: boolean) => {
+    setMethod("mbway")
     setNotice(end === "timed_out" ? TIMED_OUT_NOTICE : FAILED_NOTICE)
     setData((prev) =>
       prev ? { ...prev, state: "failed", payable: payable ?? prev.payable } : prev,
@@ -171,6 +231,7 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
     const mobile = chosen === "mbway" ? toPortugueseMobile(phone) : null
     if (chosen === "mbway" && !mobile) {
       setPayError(PHONE_ERROR)
+      phoneRef.current?.focus()
       return
     }
 
@@ -209,6 +270,12 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
         window.location.href = result.redirectUrl
         return
       }
+      // A started payment stands until it ends, so the server may answer with the same one.
+      if (cardFailed && result.paymentSession?.method === "card") {
+        setPayError(SWITCH_ERROR)
+        setPaying(false)
+        return
+      }
       const next = { ...data, ...result }
       if (!canContinue(next)) {
         setPayError(STUCK_ERROR)
@@ -216,6 +283,7 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
         return
       }
       setNotice(null)
+      setCardFailed(false)
       setData(next)
       setPaying(false)
     } catch {
@@ -226,45 +294,104 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
 
   if (loading) {
     return (
-      <div className="flex flex-col gap-4">
-        <Skeleton className="h-8 w-3/4" />
-        <Skeleton className="h-4 w-1/2" />
-        <Skeleton className="h-48 w-full" />
+      <div aria-hidden className="flex flex-col gap-4">
+        <Skeleton className="h-4 w-1/3 rounded-md" />
+        <Skeleton className="h-10 w-1/2 rounded-lg" />
+        <Skeleton className="mt-4 h-40 w-full rounded-xl" />
       </div>
     )
   }
 
   if (loadFailed || !data) {
-    return <Notice title="Payment not available">{LOAD_ERROR}</Notice>
+    return (
+      <StatusPanel
+        tone="neutral"
+        title="This payment can't be loaded right now"
+        action={
+          <>
+            <CommerceButton onClick={() => window.location.reload()}>Check again</CommerceButton>
+            {hint?.home ? (
+              <CommerceButton asChild variant="outline">
+                <a href={hint.home}>Back to the store</a>
+              </CommerceButton>
+            ) : null}
+          </>
+        }
+        contact={<StoreContact email={hint?.email} storeName={hint?.name} />}
+      >
+        {LOAD_ERROR}
+      </StatusPanel>
+    )
   }
 
+  const backToStore = storeUrl(data)
+  const backToStoreButton = backToStore ? (
+    <CommerceButton asChild variant="outline">
+      <a href={backToStore}>Back to the store</a>
+    </CommerceButton>
+  ) : null
+
+  const viewOrderButton = backToStore ? (
+    <CommerceButton asChild variant="outline">
+      <a href={backToStore}>View your order</a>
+    </CommerceButton>
+  ) : null
+
   if (data.state === "complete") {
-    return <Notice title="Payment complete">Thank you for your purchase.</Notice>
+    return (
+      <StatusPanel
+        tone="success"
+        title="Payment complete"
+        details={<PaymentReceipt details={data} />}
+        {...onwardProps(viewOrderButton, {
+          email: data.storeEmail,
+          name: data.storeName,
+          orderNumber: data.order?.number,
+        })}
+      >
+        Thank you for your purchase.
+      </StatusPanel>
+    )
   }
 
   if (data.state === "pending") {
     return (
-      <Notice title="Payment pending">
+      <StatusPanel
+        tone="pending"
+        title="Payment pending"
+        details={<PaymentReceipt details={data} pending />}
+        action={viewOrderButton}
+        contact={<StoreContact email={data.storeEmail} storeName={data.storeName} />}
+      >
         We&apos;re waiting for your payment. We&apos;ll email you when it arrives.
-      </Notice>
+      </StatusPanel>
     )
   }
 
   const formatted = formatAmount(data.amount, data.currency)
-  const started = data.state === "payment" ? data.paymentSession : null
+  const started = data.state === "payment" && !cardFailed ? data.paymentSession : null
   const startedData = started?.providerData
-  const heading = (
-    <div className="text-center">
-      <h2 className="text-xl font-bold tabular-nums">{formatted}</h2>
-    </div>
-  )
+  const methods = cardFailed ? data.methods.filter((option) => option !== "card") : data.methods
+  const summary = {
+    storeName: data.storeName,
+    returnUrl: data.returnUrl,
+    amount: formatted,
+    order: data.order,
+    currency: data.currency,
+  }
+  const heading = <PaymentSummary {...summary} />
 
   const clientSecret = text(startedData, "clientSecret")
   if (clientSecret && data.publishableKey) {
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-8">
         {heading}
-        <StripePayment clientSecret={clientSecret} publishableKey={data.publishableKey} />
+        <StripePayment
+          clientSecret={clientSecret}
+          publishableKey={data.publishableKey}
+          onChooseAnother={data.methods.some((option) => option !== "card") ? () => setCardFailed(true) : undefined}
+          storeHref={backToStore}
+        />
       </div>
     )
   }
@@ -272,7 +399,7 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
   const reference = text(startedData, "reference")
   if (reference) {
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-8">
         {heading}
         <ReferencePayment
           entity={text(startedData, "entity")}
@@ -287,7 +414,7 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
 
   if (started?.method === "mbway") {
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-8">
         {heading}
         <MbWayPayment
           sessionId={sessionId}
@@ -301,56 +428,76 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
 
   if (started?.redirectUrl) {
     return (
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-8">
         {heading}
-        <Button asChild className="w-full">
+        <CommerceButton asChild className="w-full">
           <a href={started.redirectUrl}>Continue to the payment page</a>
-        </Button>
+        </CommerceButton>
       </div>
     )
   }
 
   if (!data.payable) {
-    const backToStore = storeUrl(data)
     return (
-      <Notice
-        title="This order can&apos;t be paid"
-        action={
-          backToStore ? (
-            <Button asChild variant="outline" className="mt-1">
-              <a href={backToStore}>Back to the store</a>
-            </Button>
-          ) : null
-        }
+      <StatusPanel
+        tone="neutral"
+        title="This order can't be paid"
+        action={backToStoreButton}
+        contact={<StoreContact email={data.storeEmail} storeName={data.storeName} />}
       >
-        It&apos;s no longer waiting for payment. Contact the store for help.
-      </Notice>
+        It&apos;s no longer waiting for payment.
+      </StatusPanel>
     )
   }
 
   if (expired || timeLeft === 0) {
-    return <Notice title="Payment link expired">{EXPIRED_ERROR}</Notice>
+    return (
+      <StatusPanel
+        tone="neutral"
+        title="Payment link expired"
+        action={backToStoreButton}
+        contact={<StoreContact email={data.storeEmail} storeName={data.storeName} />}
+      >
+        {EXPIRED_ERROR}
+      </StatusPanel>
+    )
   }
 
-  const chosen = method ?? data.methods[0]
+  const chosen = method && methods.includes(method) ? method : methods[0]
   if (!chosen) {
-    return <Notice title="Payment not available">{LOAD_ERROR}</Notice>
+    return (
+      <StatusPanel
+        tone="neutral"
+        title="Payment not available"
+        action={backToStoreButton}
+        contact={<StoreContact email={data.storeEmail} storeName={data.storeName} />}
+      >
+        {NO_METHODS_ERROR}
+      </StatusPanel>
+    )
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="text-center">
-        <h2 className="text-xl font-bold tabular-nums">{formatted}</h2>
-        {timeLeft !== null ? (
-          <p className="text-muted-foreground mt-1 text-xs tabular-nums">
-            Expires in {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, "0")}
-          </p>
-        ) : null}
-      </div>
+    <div className="flex flex-col gap-8">
+      <PaymentSummary
+        {...summary}
+        email={data.customerInfo?.email}
+        expiry={
+          timeLeft !== null
+            ? `Expires in ${Math.floor(timeLeft / 60)}:${String(timeLeft % 60).padStart(2, "0")}`
+            : undefined
+        }
+      />
 
-      {notice ? <p className="text-muted-foreground text-center text-sm">{notice}</p> : null}
+      {notice && !payError ? (
+        <div role="alert" className="border-destructive/40 bg-destructive/5 flex gap-3 rounded-xl border p-4 text-sm">
+          <WarningCircleIcon weight="fill" className="text-destructive size-5 shrink-0" />
+          <p>{notice}</p>
+        </div>
+      ) : null}
 
-      {data.methods.length > 1 ? (
+      <div className="flex flex-col gap-3">
+        <h2 className="font-sans text-base font-medium">How do you want to pay?</h2>
         <RadioGroup
           value={chosen}
           onValueChange={(value) => {
@@ -360,43 +507,65 @@ export function PaymentPageClient({ sessionId }: { sessionId: string }) {
           aria-label="How do you want to pay?"
           className="flex flex-col gap-2"
         >
-          {data.methods.map((option) => (
-            <Label
-              key={option}
-              htmlFor={`method-${option}`}
-              className="flex cursor-pointer items-center gap-3 rounded-xl border p-4"
-            >
-              <RadioGroupItem value={option} id={`method-${option}`} />
-              {METHOD_LABELS[option]}
-            </Label>
-          ))}
+          {methods.map((option) => {
+            const { label, hint, Icon } = METHODS[option]
+            return (
+              <Label
+                key={option}
+                htmlFor={`method-${option}`}
+                className="has-data-checked:border-foreground flex cursor-pointer items-center gap-3 rounded-xl border p-4 font-normal transition-colors"
+              >
+                <RadioGroupItem value={option} id={`method-${option}`} className="border-input bg-card data-checked:border-primary" />
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className="text-sm font-medium">{label}</span>
+                  <span className="text-muted-foreground text-sm">{hint}</span>
+                </span>
+                <Icon className="text-muted-foreground size-6 shrink-0" />
+              </Label>
+            )
+          })}
         </RadioGroup>
-      ) : null}
+      </div>
 
       {chosen === "mbway" ? (
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="mbway-phone">MB WAY phone number</Label>
           <Input
+            ref={phoneRef}
             id="mbway-phone"
             type="tel"
             inputMode="tel"
             autoComplete="tel-national"
             placeholder="912 345 678"
             value={phone}
+            aria-invalid={payError === PHONE_ERROR}
+            aria-describedby={payError === PHONE_ERROR ? PHONE_ERROR_ID : undefined}
             onChange={(event) => setPhone(event.target.value)}
+            className="h-11"
           />
         </div>
       ) : null}
 
-      {payError ? (
-        <p role="alert" className="text-destructive text-center text-sm">
-          {payError}
-        </p>
-      ) : null}
-
-      <Button type="button" className="w-full" disabled={paying} onClick={() => handlePay(chosen)}>
-        {paying ? "Starting your payment..." : `Pay ${formatted}`}
-      </Button>
+      <div className="flex flex-col gap-3">
+        {payError ? (
+          <p
+            ref={payIssueRef}
+            id={payError === PHONE_ERROR ? PHONE_ERROR_ID : undefined}
+            role="alert"
+            tabIndex={-1}
+            className="text-destructive text-sm outline-none"
+          >
+            {payError}
+          </p>
+        ) : null}
+        <CommerceButton
+          type="button" className="w-full"
+          disabled={paying}
+          onClick={() => handlePay(chosen)}
+        >
+          {paying ? "Starting your payment..." : `Pay ${formatted}`}
+        </CommerceButton>
+      </div>
     </div>
   )
 }

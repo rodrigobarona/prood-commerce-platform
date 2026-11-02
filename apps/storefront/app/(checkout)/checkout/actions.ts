@@ -7,12 +7,15 @@ import { clearCartId, getCartId } from "@/lib/cart-cookie"
 import { getCommerceApi } from "@/lib/commerce-api"
 import { resolveTenantId } from "@/lib/tenant"
 import { fetchStoreInfo } from "@/lib/commerce-data"
-import { checkoutErrorMessage } from "@/lib/checkout-error"
+import { checkoutErrorMessage, isStoreClosedError } from "@/lib/checkout-error"
+import { JUST_PLACED } from "@/lib/order-href"
 import { localized } from "@prood/ui/lib/commerce"
 
 export interface CheckoutResult {
   ok: boolean
   error?: string
+  /** The store refused the order: nothing the shopper changes will help. */
+  closed?: boolean
   orderId?: string
   checkoutUrl?: string
 }
@@ -75,7 +78,7 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
     // The order consumed the cart, so the cookie must not outlive it.
     await clearCartId()
 
-    const confirmationUrl = `${storefrontOrigin}/order-confirmation?orderId=${order.id}${input.email ? `&email=${encodeURIComponent(input.email)}` : ""}`
+    const confirmationUrl = `${storefrontOrigin}/order-confirmation?orderId=${order.id}&placed=${JUST_PLACED}${input.email ? `&email=${encodeURIComponent(input.email)}` : ""}`
     if (order.totals.total.amount === 0) {
       return { ok: true, orderId: order.id, checkoutUrl: confirmationUrl }
     }
@@ -131,6 +134,6 @@ export async function startCheckout(input: StartCheckoutInput): Promise<Checkout
     return { ok: true, orderId: order.id, checkoutUrl: session.checkoutUrl }
   } catch (err) {
     console.error("[checkout] failed to start", err)
-    return { ok: false, error: checkoutErrorMessage(err) }
+    return { ok: false, error: checkoutErrorMessage(err), closed: isStoreClosedError(err) }
   }
 }

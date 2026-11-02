@@ -3,6 +3,8 @@ import type { OrderPaymentState } from "@prood/types"
 
 interface OrderStatusContext {
   couldNotOpenPayment: boolean
+  /** Part of the payment already went back, which `cancelled_paid` can't say. */
+  partlyRefunded: boolean
   orderNumber: string
   /** `undefined` when the store couldn't be read, which isn't the same as none listed. */
   contactEmail: string | null | undefined
@@ -14,12 +16,15 @@ interface OrderStatusCopy {
   detail: ReactNode
 }
 
+function mailStore(contactEmail: string, orderNumber: string) {
+  return `mailto:${contactEmail}?subject=${encodeURIComponent(`Order #${orderNumber}`)}`
+}
+
 function EmailStore({ orderNumber, contactEmail }: { orderNumber: string; contactEmail: string }) {
-  const subject = encodeURIComponent(`Order #${orderNumber}`)
   return (
     <>
       Email{" "}
-      <a href={`mailto:${contactEmail}?subject=${subject}`} className="underline">
+      <a href={mailStore(contactEmail, orderNumber)} className="underline">
         {contactEmail}
       </a>
     </>
@@ -29,7 +34,7 @@ function EmailStore({ orderNumber, contactEmail }: { orderNumber: string; contac
 /** With no contact email there's no way to reach the store, so the copy can't suggest it. */
 export function orderStatusCopy(
   state: OrderPaymentState,
-  { couldNotOpenPayment, orderNumber, contactEmail }: OrderStatusContext,
+  { couldNotOpenPayment, partlyRefunded, orderNumber, contactEmail }: OrderStatusContext,
 ): OrderStatusCopy {
   const noEmail =
     contactEmail === null ? "This store hasn't listed a contact email." : "Contact the store if you have any questions."
@@ -66,11 +71,21 @@ export function orderStatusCopy(
         title: "This order wasn't paid",
         detail: contact ? (
           <>
-            The payment didn&apos;t go through, so you haven&apos;t been charged. {contact} if you still
+            This order was canceled before it was paid. You haven&apos;t been charged. {contact} if you still
             want these items.
           </>
         ) : (
-          "The payment didn't go through, so you haven't been charged. To get these items, place a new order."
+          "This order was canceled before it was paid. You haven't been charged. To get these items, place a new order."
+        ),
+      }
+    case "cancelled":
+      return {
+        settled: false,
+        title: "This order was canceled",
+        detail: contact ? (
+          <>You haven&apos;t been charged. {contact} if you still want these items.</>
+        ) : (
+          "You haven't been charged. To get these items, place a new order."
         ),
       }
     case "refunded":
@@ -89,11 +104,31 @@ export function orderStatusCopy(
         title: "Thank you for your order.",
         detail: contact ? <>Part of it was refunded. {contact} if you have any questions.</> : "Part of it was refunded.",
       }
-    case "cancelled_paid":
+    case "cancelled_paid": {
+      // Canceling doesn't send anything back, so this can't promise a refund.
+      const notReturned = partlyRefunded
+        ? "This order was canceled and part of your payment was returned. The rest hasn't been returned yet."
+        : "This order was canceled and your payment hasn't been returned yet."
       return {
         settled: false,
-        title: "This order was cancelled",
-        detail: "Your payment arrived after it was cancelled. The store will refund you.",
+        title: "This order was canceled",
+        detail:
+          contactEmail === null ? (
+            `${notReturned} ${noEmail}`
+          ) : (
+            <>
+              {notReturned}{" "}
+              {contactEmail ? (
+                <a href={mailStore(contactEmail, orderNumber)} className="underline">
+                  Contact the store
+                </a>
+              ) : (
+                "Contact the store"
+              )}{" "}
+              about your refund.
+            </>
+          ),
       }
+    }
   }
 }

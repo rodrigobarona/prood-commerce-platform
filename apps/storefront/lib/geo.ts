@@ -53,7 +53,7 @@ export function getPhonePrefix(countryCode: string): string {
 
 export function getPhonePlaceholder(countryCode: string): string {
   const prefix = getPhonePrefix(countryCode)
-  return prefix ? `${prefix} ...` : "+1 (555) 000-0000"
+  return prefix ? `${prefix} ...` : "+351 912 345 678"
 }
 
 export function countryUsesStates(countryCode: string): boolean {

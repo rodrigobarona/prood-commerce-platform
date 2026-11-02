@@ -3,6 +3,8 @@ import { CheckoutSession, type CheckoutChannel, type CheckoutFulfillment } from 
 import { getTenantPaymentProvider, paymentWebhookUrl, resolveCheckoutBaseUrl } from '@prood/commerce'
 import { buildCheckoutSessionUrl } from './checkout-url'
 import { saveSession, type SessionMeta } from './session-store'
+import { loadStoreEmail } from './order-sync'
+import { STORE_HINT_PARAM, signStoreHint } from './store-hint'
 
 export interface CreateSessionInput {
   /** Organization (tenant) whose payment account settles this session. */
@@ -52,12 +54,18 @@ async function create(
   const checkoutBaseUrl = resolveCheckoutBaseUrl()
   const webhookUrl = paymentWebhookUrl(providerId, input.tenantId)
   const isLink = kind === 'pl'
+  const storeHint = signStoreHint(sessionId, {
+    name: input.storeName ?? null,
+    email: await loadStoreEmail(input.tenantId),
+    home: input.returnUrl ? new URL(input.returnUrl).origin : null,
+  })
+  const hintQuery = storeHint ? `?${STORE_HINT_PARAM}=${storeHint}` : ''
 
   const session = new CheckoutSession({
     paymentProvider: provider,
     currency: input.currency,
     amount: input.amount,
-    returnUrl: `${checkoutBaseUrl}/confirm/${sessionId}`,
+    returnUrl: `${checkoutBaseUrl}/confirm/${sessionId}${hintQuery}`,
     cancelUrl: input.cancelUrl,
     orderId: input.orderId,
     webhookUrl,
@@ -91,7 +99,7 @@ async function create(
 
   return {
     sessionId,
-    url: buildCheckoutSessionUrl(checkoutBaseUrl, sessionId),
+    url: `${buildCheckoutSessionUrl(checkoutBaseUrl, sessionId)}${hintQuery}`,
     providerId,
     publishableKey,
     snapshot,

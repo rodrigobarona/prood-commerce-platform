@@ -3,9 +3,9 @@
 import { useCallback, useSyncExternalStore } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { HeartIcon, ShoppingCartIcon, TrashIcon } from "@phosphor-icons/react"
 import type { CartItem } from "@prood/types"
 import { Button } from "@prood/ui/components/button"
+import { ProductInitial } from "@prood/ui/components/product-initial"
 import { formatPrice, localized, type Locale } from "@prood/ui/lib/commerce"
 
 const STORAGE_KEY = "saved-for-later"
@@ -133,61 +133,61 @@ function SavedItemRow({ item, onMoveToCart, onRemove }: SavedItemRowProps) {
   const url = `/products/${item.productSlug || item.productId}`
 
   return (
-    <div className="flex gap-4">
+    <li className="flex gap-4 border-b py-5 first:border-t">
       <Link
         href={url}
-        className="bg-muted relative size-16 shrink-0 overflow-hidden rounded-lg"
+        tabIndex={-1}
+        aria-hidden
+        className="bg-muted relative aspect-[4/5] w-16 shrink-0 self-start overflow-hidden rounded-lg"
       >
         {item.image ? (
-          <Image
-            src={item.image.url}
-            alt={item.image.alt || item.name}
-            fill
-            sizes="64px"
-            className="object-cover"
-          />
-        ) : null}
+          <Image src={item.image.url} alt="" fill sizes="64px" className="object-cover" />
+        ) : (
+          <ProductInitial name={item.name} className="text-2xl" />
+        )}
       </Link>
 
-      <div className="flex flex-1 flex-col gap-1">
-        <Link href={url} className="text-sm font-medium hover:underline">
-          {item.name}
-        </Link>
-        {item.variantName ? (
-          <span className="text-muted-foreground text-xs">{item.variantName}</span>
-        ) : null}
-        <span className="text-sm font-semibold">
-          {item.unitPrice.formatted ??
-            formatPrice({
-              amount: item.unitPrice.amount,
-              currency: item.unitPrice.currency,
-              formatted: "",
-            })}
-        </span>
+      <div className="flex min-w-0 flex-1 flex-col gap-1 text-sm">
+        <div className="flex items-start justify-between gap-3">
+          <Link href={url} className="underline-offset-4 hover:underline">
+            {item.name}
+          </Link>
+          <span className="tabular-nums whitespace-nowrap">
+            {item.unitPrice.formatted ??
+              formatPrice({
+                amount: item.unitPrice.amount,
+                currency: item.unitPrice.currency,
+                formatted: "",
+              })}
+          </span>
+        </div>
+        {item.variantName ? <span className="text-muted-foreground">{item.variantName}</span> : null}
+        <div className="flex items-center gap-1">
+          <Button
+            type="button"
+            variant="link"
+            className="text-muted-foreground hover:text-foreground h-auto px-0 py-1 font-normal"
+            disabled={!onMoveToCart}
+            onClick={() => onMoveToCart?.(item)}
+            aria-label={`Move to cart: ${item.name}`}
+          >
+            Move to cart
+          </Button>
+          <span aria-hidden className="text-muted-foreground px-1">
+            ·
+          </span>
+          <Button
+            type="button"
+            variant="link"
+            className="text-muted-foreground hover:text-foreground h-auto px-0 py-1 font-normal"
+            onClick={() => onRemove(savedItemKey(item))}
+            aria-label={`Remove ${item.name} from saved items`}
+          >
+            Remove
+          </Button>
+        </div>
       </div>
-
-      <div className="flex shrink-0 items-center gap-1">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          disabled={!onMoveToCart}
-          onClick={() => onMoveToCart?.(item)}
-          aria-label="Move to cart"
-        >
-          <ShoppingCartIcon className="size-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={() => onRemove(savedItemKey(item))}
-          aria-label="Remove saved item"
-        >
-          <TrashIcon className="size-4" />
-        </Button>
-      </div>
-    </div>
+    </li>
   )
 }
 
@@ -205,17 +205,12 @@ export function SaveForLaterSection({
   if (items.length === 0) return null
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2">
-        <HeartIcon className="size-5 text-muted-foreground" />
-        <h2 className="text-lg font-semibold">
-          Saved for later{" "}
-          <span className="text-muted-foreground font-normal">
-            ({items.length})
-          </span>
-        </h2>
-      </div>
-      <div className="flex flex-col gap-4 rounded-2xl border p-5">
+    <section className="flex flex-col gap-4">
+      <h2 className="font-sans text-base font-medium">
+        Saved for later{" "}
+        <span className="text-muted-foreground font-normal tabular-nums">({items.length})</span>
+      </h2>
+      <ul className="flex flex-col">
         {items.map((item) => (
           <SavedItemRow
             key={savedItemKey(item)}
@@ -224,7 +219,7 @@ export function SaveForLaterSection({
             onRemove={onRemove}
           />
         ))}
-      </div>
-    </div>
+      </ul>
+    </section>
   )
 }

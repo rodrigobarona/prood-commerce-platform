@@ -2,57 +2,35 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { SpinnerGapIcon } from "@phosphor-icons/react"
-import type { Price, ShippingMethod } from "@prood/types"
-import { Button } from "@prood/ui/components/button"
-import { formatPrice, localized } from "@prood/ui/lib/commerce"
-import type { ContactValues, AddressValues } from "../schemas"
+import { LockSimpleIcon, SpinnerGapIcon } from "@phosphor-icons/react"
+import type { Cart, PaymentMethodKind } from "@prood/types"
+import { CommerceButton } from "@prood/ui/components/commerce-button"
+import { cartSaving, formatPrice, includedVat, localized, paymentChoices } from "@prood/ui/lib/commerce"
 
 interface ReviewStepProps {
-  contact: ContactValues
-  address: AddressValues
-  shippingMethod: ShippingMethod | null
-  total: Price
+  /** Stops at the last step: the demo store takes no orders. */
+  demo: boolean
+  /** Where the demo sends someone who wants a store of their own. */
+  signUpUrl?: string
+  cart: Cart
+  storeEmail?: string | null
+  paymentMethods?: readonly PaymentMethodKind[]
   onSubmit: () => Promise<void>
   onBack: () => void
-  onEditStep: (step: number) => void
 }
 
-function SectionSummary({
-  title,
-  onEdit,
-  children,
-}: {
-  title: string
-  onEdit: () => void
-  children: React.ReactNode
-}) {
-  return (
-    <div className="flex flex-col gap-1 rounded-2xl border p-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">{title}</h3>
-        <button
-          type="button"
-          className="text-sm text-primary hover:underline"
-          onClick={onEdit}
-        >
-          Edit
-        </button>
-      </div>
-      <div className="text-sm text-muted-foreground">{children}</div>
-    </div>
-  )
+/** What comes after this step, from how the store really takes payment. */
+function nextStep(demo: boolean, methods: readonly PaymentMethodKind[]): string {
+  const choices = paymentChoices(methods)
+  if (demo) {
+    const elsewhere = choices ? ` A real store would take you to a secure page to pay by ${choices}.` : ""
+    return `This is a demo store, so your order stops here and nothing is charged.${elsewhere}`
+  }
+  return choices ? `Next: pay by ${choices} on a secure page.` : "Next: choose how to pay on a secure page."
 }
 
-export function ReviewStep({
-  contact,
-  address,
-  shippingMethod,
-  total,
-  onSubmit,
-  onBack,
-  onEditStep,
-}: ReviewStepProps) {
+/** On a phone the summary is folded away, so the whole order is here. From `lg` it sits beside this step. */
+export function ReviewStep({ demo, signUpUrl, cart, storeEmail, paymentMethods = [], onSubmit, onBack }: ReviewStepProps) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -67,45 +45,44 @@ export function ReviewStep({
     }
   }
 
+  const totals = cart.totals
+  const saving = cartSaving(cart)
+  const vat = includedVat(totals.tax)
+
   return (
-    <div className="flex flex-col gap-4">
-      <SectionSummary title="Contact" onEdit={() => onEditStep(0)}>
-        <p>{contact.email}</p>
-        {contact.phone ? <p>{contact.phone}</p> : null}
-      </SectionSummary>
-
-      <SectionSummary title="Shipping address" onEdit={() => onEditStep(1)}>
-        <p>
-          {address.firstName} {address.lastName}
-        </p>
-        <p>{address.street}</p>
-        {address.street2 ? <p>{address.street2}</p> : null}
-        <p>
-          {[address.city, address.state, address.postalCode]
-            .filter(Boolean)
-            .join(", ")}
-        </p>
-        <p>{address.country}</p>
-      </SectionSummary>
-
-      {shippingMethod ? (
-        <SectionSummary title="Shipping method" onEdit={() => onEditStep(2)}>
-          <p className="flex justify-between gap-3">
-            <span>{localized(shippingMethod.name)}</span>
-            <span className="text-foreground">
-              {shippingMethod.price.amount === 0 ? "Free" : formatPrice(shippingMethod.price)}
-            </span>
-          </p>
-        </SectionSummary>
-      ) : null}
-
-      <div className="flex justify-between px-1 text-base font-semibold">
-        <span>Total</span>
-        <span>{formatPrice(total)}</span>
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-3 rounded-xl border p-5 text-sm lg:hidden">
+        <ul className="flex flex-col gap-2">
+          {cart.items.map((item) => (
+            <li key={item.id} className="flex justify-between gap-4">
+              <span>
+                {localized(item.name)}
+                {item.variantName ? (
+                  <span className="text-muted-foreground"> · {localized(item.variantName)}</span>
+                ) : null}
+                <span className="text-muted-foreground tabular-nums"> × {item.quantity}</span>
+              </span>
+              <span className="tabular-nums whitespace-nowrap">{formatPrice(item.totalPrice)}</span>
+            </li>
+          ))}
+        </ul>
+        {cart.shippingMethod ? (
+          <div className="flex justify-between gap-4 border-t pt-3">
+            <span>{localized(cart.shippingMethod.name)}</span>
+            <span className="tabular-nums">{formatPrice(cart.shippingMethod.price)}</span>
+          </div>
+        ) : null}
+        <div className="flex items-baseline justify-between gap-4 border-t pt-3 text-base">
+          <span>Total</span>
+          <span className="tabular-nums">{formatPrice(totals.total)}</span>
+        </div>
+        {saving || vat ? (
+          <p className="text-muted-foreground -mt-2">{[saving, vat].filter(Boolean).join(" · ")}</p>
+        ) : null}
       </div>
 
       {error ? (
-        <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+        <p role="alert" className="bg-destructive/10 text-destructive rounded-lg p-3 text-sm">
           {error}{" "}
           <Link href="/cart" className="underline">
             Back to cart
@@ -113,15 +90,32 @@ export function ReviewStep({
         </p>
       ) : null}
 
-      <div className="mt-2 flex gap-3">
-        <Button type="button" variant="ghost" onClick={onBack}>
+      <div className="flex gap-3 rounded-xl border p-5 text-sm">
+        <LockSimpleIcon aria-hidden className="text-muted-foreground mt-0.5 size-4 shrink-0" />
+        <div className="flex flex-col gap-1">
+          <p>{nextStep(demo, paymentMethods)}</p>
+          {demo && signUpUrl ? (
+            <a href={signUpUrl} className="text-muted-foreground hover:text-foreground w-fit underline underline-offset-4">
+              Start your own store
+            </a>
+          ) : null}
+        </div>
+      </div>
+
+      {storeEmail ? (
+        <p className="text-muted-foreground text-sm">
+          Questions before you order? Email{" "}
+          <a href={`mailto:${storeEmail}`} className="hover:text-foreground underline underline-offset-4">
+            {storeEmail}
+          </a>
+        </p>
+      ) : null}
+
+      <div className="flex gap-3">
+        <CommerceButton type="button" variant="ghost" className="px-2" onClick={onBack}>
           Back
-        </Button>
-        <Button
-          className="flex-1"
-          disabled={submitting}
-          onClick={handleSubmit}
-        >
+        </CommerceButton>
+        <CommerceButton className="flex-1" disabled={submitting || demo} onClick={handleSubmit}>
           {submitting ? (
             <>
               <SpinnerGapIcon className="size-4 animate-spin" />
@@ -130,7 +124,7 @@ export function ReviewStep({
           ) : (
             "Continue to payment"
           )}
-        </Button>
+        </CommerceButton>
       </div>
     </div>
   )

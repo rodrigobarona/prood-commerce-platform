@@ -1,6 +1,9 @@
 import { Suspense } from "react"
 import { CheckoutFooter } from "@prood/ui/components/checkout-footer"
-import { CheckoutHeader } from "@prood/ui/components/checkout-header"
+import { SkipLink } from "@prood/ui/components/skip-link"
+import { CheckoutBar } from "@/components/checkout/checkout-bar"
+import { DemoNotice } from "@/components/layout/demo-notice"
+import { PolicyLinks } from "@/components/layout/policy-links"
 import { resolveTenantId } from "@/lib/tenant"
 import { fetchStoreInfo } from "@/lib/commerce-data"
 import { localized } from "@prood/ui/lib/commerce"
@@ -14,12 +17,17 @@ async function ResolvedCheckoutHeader() {
     // CheckoutHeader has its own label
   }
 
-  return <CheckoutHeader storeName={storeName} homeHref="/" />
+  return <CheckoutBar storeName={storeName} />
 }
 
 async function TenantGuard({ children }: { children: React.ReactNode }) {
-  await resolveTenantId()
-  return <>{children}</>
+  const tenantId = await resolveTenantId()
+  return (
+    <>
+      <DemoNotice tenantId={tenantId} />
+      {children}
+    </>
+  )
 }
 
 export default function CheckoutLayout({
@@ -29,13 +37,20 @@ export default function CheckoutLayout({
 }) {
   return (
     <>
-      <Suspense fallback={<div className="h-14 border-b" />}>
+      <SkipLink />
+      <Suspense fallback={<div className="h-16 border-b" />}>
         <TenantGuard>
           <ResolvedCheckoutHeader />
         </TenantGuard>
       </Suspense>
-      <main className="flex-1">{children}</main>
-      <CheckoutFooter />
+      <main id="main-content" tabIndex={-1} className="flex flex-1 flex-col outline-none">
+        {children}
+      </main>
+      <CheckoutFooter>
+        <Suspense fallback={null}>
+          <PolicyLinks className="justify-center" />
+        </Suspense>
+      </CheckoutFooter>
     </>
   )
 }

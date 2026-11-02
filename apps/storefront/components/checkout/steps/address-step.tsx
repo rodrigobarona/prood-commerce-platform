@@ -1,10 +1,10 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { iso31661 } from "iso-3166"
-import { Button } from "@prood/ui/components/button"
+import { CommerceButton } from "@prood/ui/components/commerce-button"
 import { Checkbox } from "@prood/ui/components/checkbox"
 import { Input } from "@prood/ui/components/input"
 import {
@@ -23,33 +23,45 @@ import {
   AddressAutocomplete,
   type ParsedAddress,
 } from "../address-autocomplete"
-import { getPhonePlaceholder, countryUsesStates } from "@/lib/geo"
-import { addressSchema, type AddressValues } from "../schemas"
+import { countryUsesStates } from "@/lib/geo"
+import { addressSchema, usesPostalCodes, type AddressValues } from "../schemas"
 
 const GEOAPIFY_KEY = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY ?? ""
 
-const countries = iso31661.map((c) => ({
-  value: c.alpha2,
-  label: c.name,
-}))
+const regionNames = new Intl.DisplayNames(["en"], { type: "region" })
+
+const countries = iso31661
+  .map((c) => ({ value: c.alpha2, label: regionNames.of(c.alpha2) ?? c.name }))
+  .sort((a, b) => a.label.localeCompare(b.label, "en"))
 
 interface AddressStepProps {
   defaultValues?: Partial<AddressValues>
   geoCountry?: string
+  storeCountry?: string
+  /** The demo promises that what's typed stays in the tab, so nothing here goes to a lookup service. */
+  demo?: boolean
+  /** Hears every change, so it can be saved before the step is finished. */
+  onChange?: (values: Partial<AddressValues>) => void
   onSubmit: (values: AddressValues & { useSameForBilling: boolean }) => void
   onBack: () => void
+  /** Says where the shopper goes next, which depends on the cart. */
+  continueLabel: string
 }
 
 export function AddressStep({
   defaultValues,
   geoCountry,
+  storeCountry,
+  demo = false,
+  onChange,
   onSubmit,
   onBack,
+  continueLabel,
 }: AddressStepProps) {
   const [useSameForBilling, setUseSameForBilling] = useState(true)
   const [showStreet2, setShowStreet2] = useState(!!defaultValues?.street2)
 
-  const initialCountry = defaultValues?.country || geoCountry || ""
+  const initialCountry = defaultValues?.country || storeCountry || geoCountry || ""
 
   const form = useForm<AddressValues>({
     resolver: zodResolver(addressSchema),
@@ -63,14 +75,17 @@ export function AddressStep({
       state: "",
       postalCode: "",
       country: initialCountry,
-      phone: "",
       ...defaultValues,
     },
   })
 
+  useEffect(
+    () => form.subscribe({ formState: { values: true }, callback: ({ values }) => onChange?.(values) }),
+    [form, onChange],
+  )
+
   const selectedCountry = useWatch({ control: form.control, name: "country" })
   const showState = countryUsesStates(selectedCountry)
-  const phonePlaceholder = getPhonePlaceholder(selectedCountry || geoCountry || "")
 
   const handleAutocompleteSelect = useCallback(
     (parsed: ParsedAddress) => {
@@ -110,9 +125,10 @@ export function AddressStep({
                 id={field.name}
                 autoComplete="shipping given-name"
                 aria-invalid={fieldState.invalid}
+                aria-describedby={fieldState.invalid ? `${field.name}-error` : undefined}
               />
               {fieldState.invalid && (
-                <FieldError errors={[fieldState.error]} />
+                <FieldError id={`${field.name}-error`} errors={[fieldState.error]} />
               )}
             </Field>
           )}
@@ -129,9 +145,10 @@ export function AddressStep({
                 id={field.name}
                 autoComplete="shipping family-name"
                 aria-invalid={fieldState.invalid}
+                aria-describedby={fieldState.invalid ? `${field.name}-error` : undefined}
               />
               {fieldState.invalid && (
-                <FieldError errors={[fieldState.error]} />
+                <FieldError id={`${field.name}-error`} errors={[fieldState.error]} />
               )}
             </Field>
           )}
@@ -139,35 +156,11 @@ export function AddressStep({
       </div>
 
       <Controller
-        name="phone"
-        control={form.control}
-        render={({ field, fieldState }) => (
-          <Field data-invalid={fieldState.invalid}>
-            <FieldLabel htmlFor={field.name}>
-              Phone <span className="text-muted-foreground font-normal">(for delivery updates)</span>
-            </FieldLabel>
-            <Input
-              {...field}
-              id={field.name}
-              type="tel"
-              inputMode="tel"
-              autoComplete="shipping tel"
-              aria-invalid={fieldState.invalid}
-              placeholder={phonePlaceholder}
-            />
-            {fieldState.invalid && (
-              <FieldError errors={[fieldState.error]} />
-            )}
-          </Field>
-        )}
-      />
-
-      <Controller
         name="country"
         control={form.control}
         render={({ field, fieldState }) => (
           <Field data-invalid={fieldState.invalid}>
-            <FieldLabel htmlFor={field.name}>Country / Region</FieldLabel>
+            <FieldLabel htmlFor={field.name}>Country or region</FieldLabel>
             <input
               type="hidden"
               name="country"
@@ -177,11 +170,16 @@ export function AddressStep({
             <Select
               name={field.name}
               value={field.value}
-              onValueChange={field.onChange}
+              onValueChange={(country) => {
+                field.onChange(country)
+                // A code that was right for the last country may not be for this one.
+                if (form.getFieldState("postalCode").isTouched) void form.trigger("postalCode")
+              }}
             >
               <SelectTrigger
                 id={field.name}
                 aria-invalid={fieldState.invalid}
+                aria-describedby={fieldState.invalid ? `${field.name}-error` : undefined}
               >
                 <SelectValue placeholder="Select a country" />
               </SelectTrigger>
@@ -194,13 +192,13 @@ export function AddressStep({
               </SelectContent>
             </Select>
             {fieldState.invalid && (
-              <FieldError errors={[fieldState.error]} />
+              <FieldError id={`${field.name}-error`} errors={[fieldState.error]} />
             )}
           </Field>
         )}
       />
 
-      {GEOAPIFY_KEY ? (
+      {GEOAPIFY_KEY && !demo ? (
         <Field>
           <FieldLabel htmlFor="address-search">Search address</FieldLabel>
           <AddressAutocomplete
@@ -224,9 +222,10 @@ export function AddressStep({
               id={field.name}
               autoComplete="shipping address-line1"
               aria-invalid={fieldState.invalid}
+              aria-describedby={fieldState.invalid ? `${field.name}-error` : undefined}
             />
             {fieldState.invalid && (
-              <FieldError errors={[fieldState.error]} />
+              <FieldError id={`${field.name}-error`} errors={[fieldState.error]} />
             )}
           </Field>
         )}
@@ -246,9 +245,10 @@ export function AddressStep({
                 id={field.name}
                 autoComplete="shipping address-line2"
                 aria-invalid={fieldState.invalid}
+                aria-describedby={fieldState.invalid ? `${field.name}-error` : undefined}
               />
               {fieldState.invalid && (
-                <FieldError errors={[fieldState.error]} />
+                <FieldError id={`${field.name}-error`} errors={[fieldState.error]} />
               )}
             </Field>
           )}
@@ -256,10 +256,10 @@ export function AddressStep({
       ) : (
         <button
           type="button"
-          className="w-fit text-sm text-primary hover:underline"
+          className="text-muted-foreground hover:text-foreground w-fit text-sm underline underline-offset-4"
           onClick={() => setShowStreet2(true)}
         >
-          + Add apartment, suite, etc.
+          Add apartment, suite, etc.
         </button>
       )}
 
@@ -275,9 +275,10 @@ export function AddressStep({
                 id={field.name}
                 autoComplete="shipping address-level2"
                 aria-invalid={fieldState.invalid}
+                aria-describedby={fieldState.invalid ? `${field.name}-error` : undefined}
               />
               {fieldState.invalid && (
-                <FieldError errors={[fieldState.error]} />
+                <FieldError id={`${field.name}-error`} errors={[fieldState.error]} />
               )}
             </Field>
           )}
@@ -290,16 +291,17 @@ export function AddressStep({
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor={field.name}>
-                  State / Province
+                  State or province
                 </FieldLabel>
                 <Input
                   {...field}
                   id={field.name}
                   autoComplete="shipping address-level1"
                   aria-invalid={fieldState.invalid}
+                  aria-describedby={fieldState.invalid ? `${field.name}-error` : undefined}
                 />
                 {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
+                  <FieldError id={`${field.name}-error`} errors={[fieldState.error]} />
                 )}
               </Field>
             )}
@@ -311,16 +313,22 @@ export function AddressStep({
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Postal code</FieldLabel>
+              <FieldLabel htmlFor={field.name}>
+                Postal code
+                {usesPostalCodes(selectedCountry) ? null : (
+                  <span className="text-muted-foreground font-normal"> (optional)</span>
+                )}
+              </FieldLabel>
               <Input
                 {...field}
                 id={field.name}
                 autoComplete="shipping postal-code"
                 inputMode="text"
                 aria-invalid={fieldState.invalid}
+                aria-describedby={fieldState.invalid ? `${field.name}-error` : undefined}
               />
               {fieldState.invalid && (
-                <FieldError errors={[fieldState.error]} />
+                <FieldError id={`${field.name}-error`} errors={[fieldState.error]} />
               )}
             </Field>
           )}
@@ -332,6 +340,7 @@ export function AddressStep({
           id="useSameForBilling"
           checked={useSameForBilling}
           onCheckedChange={(v) => setUseSameForBilling(v === true)}
+          className="border-input bg-card"
         />
         <FieldLabel htmlFor="useSameForBilling" className="font-normal">
           Use same address for billing
@@ -339,12 +348,12 @@ export function AddressStep({
       </Field>
 
       <div className="mt-2 flex gap-3">
-        <Button type="button" variant="ghost" onClick={onBack}>
+        <CommerceButton type="button" variant="ghost" className="px-2" onClick={onBack}>
           Back
-        </Button>
-        <Button type="submit" className="flex-1">
-          Continue to shipping method
-        </Button>
+        </CommerceButton>
+        <CommerceButton type="submit" className="flex-1">
+          {continueLabel}
+        </CommerceButton>
       </div>
     </form>
   )

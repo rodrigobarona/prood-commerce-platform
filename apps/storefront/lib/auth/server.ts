@@ -6,6 +6,7 @@ import { autoLinkGuestCustomers, getStorefrontIdentity, lookupTenantByHost } fro
 import { resolveTenantId } from "../tenant"
 import { authDb } from "./db"
 import * as schema from "@prood/auth/schema"
+import { sharedAuthOptions, sharedEmailAndPassword } from "@prood/auth/shared-options"
 import { getMailer } from "../mailer"
 
 /** Name and origin of the store serving the current request. */
@@ -79,7 +80,7 @@ function createAuth() {
       },
     },
     emailAndPassword: {
-      enabled: true,
+      ...sharedEmailAndPassword,
       sendResetPassword: async ({ user, url }) => {
         sendStoreEmail(user.email, (store) => ({
           subject: `Reset your ${store.name} password`,
@@ -107,6 +108,8 @@ function createAuth() {
       },
     },
     secret,
+    // Stores are served directly, so Vercel's own header is the shopper's address.
+    ...sharedAuthOptions("x-real-ip"),
     plugins: [nextCookies()],
   })
 }

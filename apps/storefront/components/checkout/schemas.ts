@@ -1,35 +1,48 @@
 import { z } from "zod"
 import { postcodeValidator, postcodeValidatorExistsForCountry } from "postcode-validator"
 
+/** Hong Kong or the UAE have no postal codes, so nothing can be asked of them. */
+export function usesPostalCodes(country: string): boolean {
+  return postcodeValidatorExistsForCountry(country)
+}
+
+/** The validator also takes the four-digit form, which can't find a street. */
+const PORTUGUESE_POSTAL_CODE = /^\d{4}-\d{3}$/
+
 export const contactSchema = z.object({
-  email: z.string().email("Enter a valid email address"),
+  email: z.string().email("Enter your whole email address, like ana@casalume.example."),
   phone: z.string().optional(),
   marketingOptIn: z.boolean().optional(),
 })
 
 export const addressSchema = z
   .object({
-    firstName: z.string().min(1, "First name is required"),
-    lastName: z.string().min(1, "Last name is required"),
-    street: z.string().min(1, "Street address is required"),
+    firstName: z.string().min(1, "Enter your first name."),
+    lastName: z.string().min(1, "Enter your last name."),
+    street: z.string().min(1, "Enter your street address."),
     street2: z.string().optional(),
-    city: z.string().min(1, "City is required"),
+    city: z.string().min(1, "Enter your city."),
     state: z.string().optional(),
-    postalCode: z.string().optional(),
-    country: z.string().min(1, "Country is required"),
-    phone: z.string().optional(),
+    postalCode: z.string().trim().optional(),
+    country: z.string().min(1, "Choose your country."),
   })
-  .refine(
-    (data) => {
-      if (!data.postalCode || !data.country) return true
-      if (!postcodeValidatorExistsForCountry(data.country)) return true
-      return postcodeValidator(data.postalCode, data.country)
-    },
-    { message: "Invalid postal code for this country", path: ["postalCode"] },
-  )
+  .superRefine(({ postalCode, country }, ctx) => {
+    if (!usesPostalCodes(country)) return
+    if (!postalCode) {
+      ctx.addIssue({ code: "custom", message: "Enter your postal code.", path: ["postalCode"] })
+    } else if (country === "PT" && !PORTUGUESE_POSTAL_CODE.test(postalCode)) {
+      ctx.addIssue({ code: "custom", message: "We can't read that postal code. Enter all seven digits, like 1200-195.", path: ["postalCode"] })
+    } else if (!postcodeValidator(postalCode, country)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "That postal code doesn't match this country. Check it, or change the country.",
+        path: ["postalCode"],
+      })
+    }
+  })
 
 export const shippingMethodSchema = z.object({
-  methodId: z.string().min(1, "Select a shipping method"),
+  methodId: z.string().min(1, "Choose a shipping method, so we can work out your total."),
 })
 
 export const checkoutSchema = z.object({

@@ -1,191 +1,34 @@
-"use client"
+import { Suspense } from "react"
+import { CartView } from "@/components/cart/cart-view"
+import { ConnectedProductGrid } from "@/components/commerce/connected-product-grid"
+import { SectionHeader } from "@/components/commerce/section-header"
+import { Container } from "@/components/layout/container"
+import { fetchProductList } from "@/lib/commerce-data"
 
-import { useState } from "react"
-import Link from "next/link"
-import { ArrowLeftIcon, HeartIcon, ShoppingBagIcon } from "@phosphor-icons/react"
-import { Button } from "@prood/ui/components/button"
-import { CartItemRow } from "@prood/ui/components/cart-item"
-import { CartSummary } from "@prood/ui/components/cart-summary"
-import { CouponInput } from "@prood/ui/components/coupon-input"
-import { EmptyState } from "@prood/ui/components/empty-state"
-import { Separator } from "@prood/ui/components/separator"
-import {
-  SaveForLaterSection,
-  cartItemToSaved,
-  savedItemKey,
-  useSavedItems,
-  type SavedItem,
-} from "@/components/cart/save-for-later"
-import { useCart } from "@/components/providers/cart-provider"
-import { STORE_CLOSED_MESSAGE, canCheckOut } from "@/lib/store-status"
-
-export default function CartPage() {
-  const {
-    cart,
-    canTakeOrders,
-    loading,
-    addItem,
-    updateItem,
-    removeItem,
-    applyCoupon,
-    removeCoupon,
-  } = useCart()
-  const { items: savedItems, save: saveItem, remove: removeSaved } = useSavedItems()
-  const [couponLoading, setCouponLoading] = useState(false)
-  const [couponError, setCouponError] = useState<string | null>(null)
-
-  function handleSaveForLater(itemId: string) {
-    const item = cart?.items.find((i) => i.id === itemId)
-    if (!item) return
-    saveItem(cartItemToSaved(item))
-    void removeItem(itemId)
-  }
-
-  async function handleMoveToCart(saved: SavedItem) {
-    const added = await addItem({
-      productId: saved.productId,
-      variantId: saved.variantId,
-      quantity: 1,
-    })
-    if (added) removeSaved(savedItemKey(saved))
-  }
-
-  async function handleApplyCoupon(code: string) {
-    setCouponLoading(true)
-    setCouponError(null)
-    try {
-      await applyCoupon(code)
-    } catch (err) {
-      setCouponError(
-        err instanceof Error ? err.message : "Failed to apply coupon",
-      )
-    } finally {
-      setCouponLoading(false)
-    }
-  }
-
-  async function handleRemoveCoupon() {
-    setCouponLoading(true)
-    try {
-      await removeCoupon()
-    } finally {
-      setCouponLoading(false)
-    }
-  }
-
-  if (!cart || cart.items.length === 0) {
-    return (
-      <div className="mx-auto max-w-7xl px-4 py-12">
-        <EmptyState
-          icon={<ShoppingBagIcon />}
-          title="Your cart is empty"
-          description="Looks like you haven't added anything yet. Start browsing to find something you love."
-          actionLabel="Continue shopping"
-          actionHref="/products"
-        />
-      </div>
-    )
-  }
-
-  const formattedTotal = cart.totals.total.formatted || ""
-  const checkoutOpen = canCheckOut(canTakeOrders, cart)
+/** A way on from an empty cart. It's a bonus, so a failure just leaves it out. */
+async function Suggestions() {
+  const list = await fetchProductList({ perPage: 4 }).catch(() => null)
+  const products = list?.products.items ?? []
+  if (products.length === 0) return null
 
   return (
-    <>
-      <div className="mx-auto max-w-7xl px-4 py-8 pb-32 lg:pb-8">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
-            Your cart{" "}
-            <span className="text-muted-foreground font-normal">
-              ({cart.itemCount} {cart.itemCount === 1 ? "item" : "items"})
-            </span>
-          </h1>
-          <Link
-            href="/products"
-            className="flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <ArrowLeftIcon className="size-4" />
-            <span className="hidden sm:inline">Continue shopping</span>
-          </Link>
-        </div>
+    <section>
+      <Container className="flex flex-col gap-6 pb-16 md:gap-8 md:pb-24">
+        <SectionHeader title="From the store" href="/products" linkLabel="View all products" />
+        <ConnectedProductGrid products={products} columns={4} />
+      </Container>
+    </section>
+  )
+}
 
-        <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
-          {/* Cart items */}
-          <div className="flex flex-col gap-6">
-            {cart.items.map((item) => (
-              <div key={item.id} className="flex flex-col gap-2">
-                <CartItemRow
-                  item={item}
-                  loading={loading}
-                  onUpdateQuantity={updateItem}
-                  onRemove={removeItem}
-                />
-                <div className="pl-24">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground h-auto px-0 text-xs hover:text-foreground"
-                    onClick={() => handleSaveForLater(item.id)}
-                  >
-                    <HeartIcon className="mr-1 size-3.5" />
-                    Save for later
-                  </Button>
-                </div>
-              </div>
-            ))}
-
-            {savedItems.length > 0 ? (
-              <>
-                <Separator />
-                <SaveForLaterSection
-                  items={savedItems}
-                  onMoveToCart={canTakeOrders ? (item) => void handleMoveToCart(item) : undefined}
-                  onRemove={removeSaved}
-                />
-              </>
-            ) : null}
-          </div>
-
-          {/* Sidebar: Summary + Coupon */}
-          <div className="flex flex-col gap-4 lg:sticky lg:top-20 lg:self-start">
-
-            <CartSummary
-              cart={cart}
-              checkoutDisabledReason={checkoutOpen ? undefined : STORE_CLOSED_MESSAGE}
-            />
-
-            <div className="rounded-2xl border p-5">
-              <h3 className="mb-3 text-sm font-medium">Discount code</h3>
-              <CouponInput
-                appliedCode={cart.couponCode}
-                loading={couponLoading}
-                error={couponError ?? cart.couponError}
-                onApply={handleApplyCoupon}
-                onRemove={handleRemoveCoupon}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Sticky mobile checkout CTA */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-4 backdrop-blur-sm lg:hidden">
-        {checkoutOpen ? (
-          <Button asChild className="w-full" size="lg">
-            <Link href="/checkout">
-              Checkout · {formattedTotal}
-            </Link>
-          </Button>
-        ) : (
-          <div className="flex flex-col gap-2">
-            <p className="text-muted-foreground text-center text-sm">{STORE_CLOSED_MESSAGE}</p>
-            <Button className="w-full" size="lg" disabled>
-              Proceed to checkout
-            </Button>
-          </div>
-        )}
-      </div>
-    </>
+export default function CartPage() {
+  return (
+    <CartView
+      suggestions={
+        <Suspense fallback={null}>
+          <Suggestions />
+        </Suspense>
+      }
+    />
   )
 }
