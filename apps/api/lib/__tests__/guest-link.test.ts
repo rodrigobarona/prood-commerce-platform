@@ -12,7 +12,7 @@ vi.mock("@prood/auth/db", () => ({ authDb: {} }))
 vi.mock("@prood/commerce", () => ({ assertFeature: vi.fn() }))
 vi.mock("@prood/platform", () => ({ autoLinkGuestCustomers: mocks.autoLinkGuestCustomers }))
 vi.mock("../mailer", () => ({ getMailer: mocks.getMailer }))
-vi.mock("../auth/organization-hooks", () => ({ organizationHooks: {} }))
+vi.mock("../auth/organization-hooks", () => ({ organizationHooks: {}, membershipLimit: vi.fn() }))
 vi.mock("../openapi", () => ({ buildOpenApiDocument: () => ({ paths: {} }) }))
 vi.mock("better-auth/adapters/drizzle", async () => {
   const { memoryAdapter } = await import("better-auth/adapters/memory")

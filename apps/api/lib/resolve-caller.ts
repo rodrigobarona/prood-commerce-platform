@@ -9,7 +9,8 @@ import {
   operationForRequest,
   REQUEST_TARGET_HEADER,
 } from "@/lib/agent-capability"
-import { hasScope, scopesForRole, type ApiScope } from "@/lib/scopes"
+import { assertApiKeyRate, countApiKeyRequest, readApiKey } from "@/lib/api-key-limit"
+import { hasScope, scopeRefusal, scopesForRole, type ApiScope } from "@/lib/scopes"
 import type { ApiCaller } from "@/lib/auth-tenant"
 
 const API_KEY_HEADER = "x-api-key"
@@ -20,8 +21,13 @@ function platformDomain(): string {
   return domain
 }
 
-function parseApiKeyScopes(metadata: unknown): ApiScope[] {
-  const scopes = (metadata as { scopes?: unknown } | null)?.scopes
+function parseApiKeyScopes(metadata: string | null): ApiScope[] {
+  let scopes: unknown
+  try {
+    scopes = (JSON.parse(metadata ?? "null") as { scopes?: unknown } | null)?.scopes
+  } catch {
+    return ["storefront"]
+  }
   if (!Array.isArray(scopes)) return ["storefront"]
   return scopes.filter((s): s is ApiScope => s === "storefront" || s === "admin")
 }
@@ -54,12 +60,10 @@ export async function resolveCallerFromHeaders(
 
   const key = headerList.get(API_KEY_HEADER)
   if (key) {
-    const result = await getAuth().api.verifyApiKey({ body: { key } })
-    if (!result.valid || !result.key) {
-      throw new CommerceError("Invalid API key", "UNAUTHORIZED")
-    }
-    const orgId = result.key.referenceId
-    const scopes = parseApiKeyScopes(result.key.metadata)
+    const { id, referenceId: orgId, metadata } = await readApiKey(key)
+    await assertApiKeyRate(id)
+    countApiKeyRequest(id)
+    const scopes = parseApiKeyScopes(metadata)
     const limits = await getOrganizationLimits(orgId)
     if (scopes.includes("admin") && !limits.apiWriteEnabled) {
       throw new CommerceError(
@@ -123,15 +127,13 @@ export async function requireCallerFromHeaders(
 ): Promise<ApiCaller> {
   const caller = await resolveCallerFromHeaders(headerList)
   if (!caller) {
-    throw new CommerceError("Authentication required", "UNAUTHORIZED")
+    throw new CommerceError(
+      "Authentication required. Send your API key in the x-api-key header. Create one in your dashboard, under API keys.",
+      "UNAUTHORIZED"
+    )
   }
   if (!hasScope(caller.scopes, scope)) {
-    throw new CommerceError(
-      caller.via === "session"
-        ? "Only store owners and admins can do this."
-        : "Insufficient scope for this resource",
-      "FORBIDDEN"
-    )
+    throw new CommerceError(scopeRefusal(scope, caller.via), "FORBIDDEN")
   }
   if (caller.capabilities) {
     assertCapability(

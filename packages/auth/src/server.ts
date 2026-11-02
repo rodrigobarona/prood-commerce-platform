@@ -17,14 +17,21 @@ export interface CreateAuthOptions {
   extraPlugins?: BetterAuthPlugin[]
 }
 
-/** Shared secret + issuer URL (apps/api) for every Better Auth instance. */
 /**
  * API keys belong to a store: the plugin checks membership at creation and
  * stores the organization as `referenceId`, which is the only tenant binding
  * to trust. Metadata is client-supplied and only carries the requested scopes.
  */
-export const storeApiKey = () => apiKey({ references: "organization", enableMetadata: true })
+export const storeApiKey = () =>
+  apiKey({
+    references: "organization",
+    enableMetadata: true,
+    // The plugin's limit is stored on each key at creation (10 a day by default)
+    // and answers as an invalid key. apps/api limits keys itself, with a 429.
+    rateLimit: { enabled: false },
+  })
 
+/** Shared secret + issuer URL (apps/api) for every Better Auth instance. */
 export function resolveBetterAuthEnv() {
   return {
     secret: requiredEnv(process.env.BETTER_AUTH_SECRET, "BETTER_AUTH_SECRET"),

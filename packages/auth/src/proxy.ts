@@ -1,5 +1,6 @@
 import "server-only"
 import { requiredEnv } from "@prood/types"
+import { forwardClientIp } from "./client-ip"
 
 // Dashboard and admin have no auth handler of their own: their same-origin
 // /api/auth/* routes forward to apps/api (the issuer) and rewrite Set-Cookie
@@ -50,6 +51,7 @@ function upstreamHeaders(request: Request): Headers {
     if (lower === "host" || lower === "accept-encoding" || HOP_BY_HOP_HEADERS.has(lower)) continue
     headers.set(key, value)
   }
+  forwardClientIp(request.headers, headers)
   return headers
 }
 

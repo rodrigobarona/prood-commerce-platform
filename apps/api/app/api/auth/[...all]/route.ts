@@ -1,3 +1,4 @@
+import { withTrustedClientIp } from "@prood/auth/client-ip"
 import { toNextJsHandler } from "better-auth/next-js"
 import { applyAuthCors, authPreflightResponse } from "@/lib/auth/cors"
 import { getAuth } from "@/lib/auth/server"
@@ -10,7 +11,7 @@ async function withCors(
   handler: (request: Request) => Promise<Response>,
   request: Request
 ) {
-  return applyAuthCors(request, await handler(request))
+  return applyAuthCors(request, await handler(withTrustedClientIp(request)))
 }
 
 export const GET = (request: Request) => withCors(authHandler.GET, request)

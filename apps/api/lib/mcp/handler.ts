@@ -1,5 +1,6 @@
 import { createMcpHandler } from "mcp-handler"
 import { CommerceError, toErrorResponse } from "@prood/types"
+import { retryHeaders } from "@/lib/api"
 import { resolveCallerFromHeaders } from "@/lib/resolve-caller"
 import { mcpCallerStorage } from "@/lib/mcp/context"
 import { registerCommerceMcpTools } from "@/lib/mcp/tools"
@@ -34,7 +35,7 @@ export async function handleMcpRequest(request: Request): Promise<Response> {
   } catch (err) {
     if (err instanceof CommerceError) {
       const { status, body } = toErrorResponse(err)
-      return Response.json(body, { status })
+      return Response.json(body, { status, headers: retryHeaders(err) })
     }
     throw err
   }

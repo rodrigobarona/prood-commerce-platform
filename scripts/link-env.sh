@@ -37,7 +37,9 @@ write_app_env() {
   echo "Wrote apps/$app/.env.local"
 }
 
-write_app_env "api" "http://localhost:3005" "http://localhost:3005"
+# The API needs the admin origin too: it's the auth issuer, and Better Auth rejects
+# sign-ins from any origin that isn't in its trusted list.
+write_app_env "api" "http://localhost:3005" "http://localhost:3005" "http://localhost:3006"
 # Storefront auth infers its base URL per store origin — no BETTER_AUTH_URL.
 write_app_env "storefront" "" "http://localhost:3005"
 write_app_env "dashboard" "http://localhost:3005" "http://localhost:3005"

@@ -1,6 +1,7 @@
 import "server-only"
-import { assertFeature, assertLimit, withTenant } from "@prood/commerce"
-import { countOrdersThisMonth, countProducts } from "@prood/platform"
+import { assertLimit, withTenant } from "@prood/commerce"
+import { countOrdersThisMonth, countProducts, DEMO_ORG_ID } from "@prood/platform"
+import { CommerceError } from "@prood/types"
 import { getOrganizationLimits } from "@/lib/org-plan"
 
 export async function assertCanCreateProduct(orgId: string): Promise<void> {
@@ -9,33 +10,20 @@ export async function assertCanCreateProduct(orgId: string): Promise<void> {
   assertLimit(
     count,
     limits.maxProducts,
-    "Product limit reached for your plan. Upgrade to add more products.",
+    "You've reached your plan's product limit. Paid plans can't be bought yet.",
   )
 }
 
 export async function assertCanPlaceOrder(orgId: string): Promise<void> {
+  if (orgId === DEMO_ORG_ID) {
+    throw new CommerceError("This is a demo store, so it can't take orders.", "ORDERS_UNAVAILABLE")
+  }
   const limits = await getOrganizationLimits(orgId)
   const count: number = await withTenant(orgId, () => countOrdersThisMonth())
   assertLimit(
     count,
     limits.maxOrdersPerMonth,
-    "Monthly order limit reached for your plan. Upgrade to accept more orders.",
+    "This store reached its plan's monthly order limit. Paid plans can't be bought yet.",
     "ORDERS_UNAVAILABLE",
-  )
-}
-
-export async function assertApiWriteEnabled(orgId: string): Promise<void> {
-  const limits = await getOrganizationLimits(orgId)
-  assertFeature(
-    limits.apiWriteEnabled,
-    "Write access requires a Grow plan or higher",
-  )
-}
-
-export async function assertAgentAuthEnabled(orgId: string): Promise<void> {
-  const limits = await getOrganizationLimits(orgId)
-  assertFeature(
-    limits.agentAuthEnabled,
-    "Agent Auth requires a Grow plan or higher",
   )
 }

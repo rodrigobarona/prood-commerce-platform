@@ -8,6 +8,9 @@ const mocks = vi.hoisted(() => ({
   getAgentSession: vi.fn(),
   resolveOrgForAgent: vi.fn(),
   lookupTenantByHost: vi.fn(),
+  readApiKey: vi.fn(),
+  assertApiKeyRate: vi.fn(),
+  countApiKeyRequest: vi.fn(),
 }))
 
 vi.mock("server-only", () => ({}))
@@ -19,6 +22,11 @@ vi.mock("@/lib/auth", () => ({
 }))
 vi.mock("@/lib/org-plan", () => ({
   getOrganizationLimits: async () => ({ agentAuthEnabled: true, apiWriteEnabled: true }),
+}))
+vi.mock("@/lib/api-key-limit", () => ({
+  readApiKey: mocks.readApiKey,
+  assertApiKeyRate: mocks.assertApiKeyRate,
+  countApiKeyRequest: mocks.countApiKeyRequest,
 }))
 vi.mock("@/lib/agent-org", () => ({ resolveOrgForAgent: mocks.resolveOrgForAgent }))
 vi.mock("@prood/commerce", () => ({ assertFeature: vi.fn() }))
@@ -36,6 +44,56 @@ function denial(promise: Promise<unknown>) {
     (err: unknown) => err as CommerceError,
   )
 }
+
+describe("API key callers", () => {
+  const withKey = () => new Headers({ "x-api-key": "pk_test" })
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mocks.assertApiKeyRate.mockResolvedValue(undefined)
+  })
+
+  it("checks the limit and counts the request for a good key", async () => {
+    mocks.readApiKey.mockResolvedValue({
+      id: "key-1",
+      referenceId: "org-1",
+      metadata: JSON.stringify({ scopes: ["storefront"] }),
+    })
+
+    await expect(resolveCallerFromHeaders(withKey())).resolves.toMatchObject({ orgId: "org-1", via: "api-key" })
+    expect(mocks.assertApiKeyRate).toHaveBeenCalledWith("key-1")
+    expect(mocks.countApiKeyRequest).toHaveBeenCalledWith("key-1")
+  })
+
+  it("doesn't count a request it refused for the rate", async () => {
+    mocks.readApiKey.mockResolvedValue({
+      id: "key-1",
+      referenceId: "org-1",
+      metadata: JSON.stringify({ scopes: ["storefront"] }),
+    })
+    mocks.assertApiKeyRate.mockRejectedValue(new CommerceError("Too many", "RATE_LIMIT", 429))
+
+    await expect(denial(resolveCallerFromHeaders(withKey()))).resolves.toMatchObject({ code: "RATE_LIMIT" })
+    expect(mocks.countApiKeyRequest).not.toHaveBeenCalled()
+  })
+
+  it("passes a refused key's reason straight on, before the limit", async () => {
+    mocks.readApiKey.mockRejectedValue(new CommerceError("This API key was revoked.", "UNAUTHORIZED"))
+
+    await expect(denial(resolveCallerFromHeaders(withKey()))).resolves.toMatchObject({ code: "UNAUTHORIZED" })
+    expect(mocks.assertApiKeyRate).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ["no metadata", null],
+    ["broken metadata", "{oops"],
+    ["no scopes", "{}"],
+  ])("treats %s as storefront only", async (_, metadata) => {
+    mocks.readApiKey.mockResolvedValue({ id: "key-1", referenceId: "org-1", metadata })
+
+    await expect(resolveCallerFromHeaders(withKey())).resolves.toMatchObject({ scopes: ["storefront"] })
+  })
+})
 
 describe("session callers", () => {
   beforeEach(() => {

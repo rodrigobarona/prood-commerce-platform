@@ -10,12 +10,15 @@ const mocks = vi.hoisted(() => ({
   verifyPaymentWebhook: vi.fn(),
   applyPaymentEvent: vi.fn(),
   after: vi.fn(),
+  send: vi.fn(),
 }))
 
 vi.mock("server-only", () => ({}))
 vi.mock("next/server", () => ({ after: mocks.after }))
-vi.mock("@prood/platform", () => ({ getStorefrontIdentity: vi.fn() }))
-vi.mock("@/lib/mailer", () => ({ getMailer: vi.fn() }))
+vi.mock("@prood/platform", () => ({
+  getStorefrontIdentity: async () => ({ name: "Loja", origin: "https://loja.pt" }),
+}))
+vi.mock("@/lib/mailer", () => ({ getMailer: () => ({ send: mocks.send }) }))
 vi.mock("@prood/commerce", () => ({
   getOrder: mocks.storefrontGetOrder,
   resolveCustomerId: mocks.resolveCustomerId,
@@ -167,6 +170,90 @@ describe("refundOrder", () => {
     await expect(admin.refundOrder("org", "order-1", {})).rejects.toThrow("Don't send it again")
 
     expect(emailsQueued()).toBe(0)
+  })
+})
+
+describe("the refund email", () => {
+  const multibanco = {
+    ...paid,
+    contactEmail: "ana@loja.pt",
+    paymentDetails: { method: "multibanco", entity: "1", reference: "2", expiresAt: null },
+  } as unknown as Order
+
+  /** Sends what `after()` was given, and returns the data the template got. */
+  async function emailData() {
+    await (mocks.after.mock.calls[0]?.[0] as () => Promise<void>)()
+    return mocks.send.mock.calls[0]?.[1]?.data as { returnedToPaymentMethod: boolean }
+  }
+
+  beforeEach(() => {
+    vi.stubEnv("NEXT_PUBLIC_STOREFRONT_URL", "https://prood.app")
+    mocks.getOrder.mockResolvedValue({ ...paid, contactEmail: "ana@loja.pt" })
+  })
+
+  it("promises the original payment method when the provider sent the money", async () => {
+    connect()
+
+    await admin.refundOrder("org", "order-1", {})
+
+    expect((await emailData()).returnedToPaymentMethod).toBe(true)
+  })
+
+  it("promises nothing about the money on a recorded refund", async () => {
+    await admin.refundOrder("org", "order-1", { recordOnly: true })
+
+    expect((await emailData()).returnedToPaymentMethod).toBe(false)
+  })
+
+  it("promises nothing on Multibanco, even when a provider reports the refund", async () => {
+    mocks.getOrder.mockResolvedValue(multibanco)
+    mocks.verifyPaymentWebhook.mockResolvedValue({ type: "payment.refunded", sessionId: "s", orderId: "order-1", data: {} })
+    mocks.applyPaymentEvent.mockResolvedValue("applied")
+
+    await webhooks.reconcilePayment("easypay", "{}", "sig", "org")
+
+    expect((await emailData()).returnedToPaymentMethod).toBe(false)
+  })
+
+  describe("what it calls the amount", () => {
+    const label = async () => ((await emailData()) as unknown as { refundAmountLabel: string }).refundAmountLabel
+    const providerRefund = { type: "payment.refunded", sessionId: "s", orderId: "order-1", data: {} }
+
+    it("says refund amount for a whole refund on its own", async () => {
+      mocks.verifyPaymentWebhook.mockResolvedValue(providerRefund)
+      mocks.applyPaymentEvent.mockResolvedValue("applied")
+
+      await webhooks.reconcilePayment("stripe", "{}", "sig", "org")
+
+      expect(await label()).toBe("Refund amount")
+    })
+
+    it("says refunded in total once earlier partial refunds add up to it", async () => {
+      mocks.getOrder.mockResolvedValue({ ...paid, contactEmail: "ana@loja.pt", paymentStatus: "partially_refunded" })
+      mocks.verifyPaymentWebhook.mockResolvedValue(providerRefund)
+      mocks.applyPaymentEvent.mockResolvedValue("applied")
+
+      await webhooks.reconcilePayment("stripe", "{}", "sig", "org")
+
+      expect(await label()).toBe("Refunded in total")
+    })
+
+    it("says refunded in total when a partial refund completes the order", async () => {
+      mocks.verifyPaymentWebhook.mockResolvedValue({ ...providerRefund, type: "payment.partially_refunded", amount: 5 })
+      mocks.applyPaymentEvent.mockResolvedValue("refund_completed")
+
+      await webhooks.reconcilePayment("easypay", "{}", "sig", "org")
+
+      expect(await label()).toBe("Refunded in total")
+    })
+
+    it("still applies the refund when it can't read the order first", async () => {
+      mocks.getOrder.mockRejectedValueOnce(new Error("connection lost"))
+      mocks.verifyPaymentWebhook.mockResolvedValue(providerRefund)
+      mocks.applyPaymentEvent.mockResolvedValue("applied")
+
+      await expect(webhooks.reconcilePayment("stripe", "{}", "sig", "org")).resolves.toBe("applied")
+    })
   })
 })
 

@@ -14,7 +14,12 @@ export async function GET(req: Request) {
     const query = readQuery(req, listCustomerOrdersQuery)
 
     if (!caller.userId) {
-      throw new CommerceError("Sign in to view your orders", "UNAUTHORIZED")
+      throw new CommerceError(
+        caller.via === "api-key"
+          ? "This route is for signed-in shoppers, so it needs a customer session, not an API key. To read a store's orders with a key, use GET /v1/admin/orders with an admin key."
+          : "Sign in to view your orders",
+        "UNAUTHORIZED"
+      )
     }
 
     let customerId = await resolveCustomerId(caller.orgId, caller.userId)

@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server"
 import { requireCaller } from "@/lib/auth-tenant"
 import { admin } from "@/lib/commerce-service"
-import { adminListQuery } from "@/lib/schemas"
+import { adminListCustomersQuery } from "@/lib/schemas"
 import { readQuery } from "@/lib/validate"
 import { errorResponse } from "@/lib/api"
 
 export async function GET(req: Request) {
   try {
     const { orgId } = await requireCaller("staff")
-    const query = readQuery(req, adminListQuery)
+    const query = readQuery(req, adminListCustomersQuery)
     return NextResponse.json(await admin.listCustomers(orgId, query))
   } catch (err) {
     return errorResponse(err)
