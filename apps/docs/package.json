@@ -15,13 +15,14 @@
     "postinstall": "fumadocs-mdx"
   },
   "dependencies": {
+    "@phosphor-icons/react": "catalog:",
+    "@prood/media": "workspace:*",
+    "@prood/ui": "workspace:*",
     "beautiful-mermaid": "^1.1.3",
     "fumadocs-core": "catalog:",
     "fumadocs-mdx": "catalog:",
     "fumadocs-openapi": "catalog:",
     "fumadocs-ui": "catalog:",
-    "@phosphor-icons/react": "catalog:",
-    "@prood/ui": "workspace:*",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",

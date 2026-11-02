@@ -1,5 +1,5 @@
 ---
-title: Checkout Sessions
+title: Checkout sessions
 description: Session creation, loading, and persistence in Upstash Redis via @prood/checkout-host.
 ---
 
@@ -165,13 +165,13 @@ const session = await createCheckoutSession({
   currency,
   tenantId,
   returnUrl,
-  provider: getPaymentProvider(providerId, tenantConfig),
+  provider: (await getTenantPaymentProvider(tenantId, providerId)).provider,
 })
 
 // Load
 const snapshot = await loadSession(sessionId)
-const session = await loadAndHydrate(sessionId, (id) =>
-  getPaymentProvider(id, tenantConfig)
+const session = await loadAndHydrate(sessionId, async (id) =>
+  (await getTenantPaymentProvider(tenantId, id, { includeDisabled: true })).provider
 )
 ```
 

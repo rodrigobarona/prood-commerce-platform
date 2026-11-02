@@ -46,7 +46,7 @@ Every request resolves the active merchant from the `Host` header:
 1. Custom domain → `tenant_domain` table lookup
 2. `{slug}.{NEXT_PUBLIC_PLATFORM_DOMAIN}` → organization slug
 
-The resolved tenant ID is forwarded to the API via the `Host` header. Catalog cache tags are scoped per tenant.
+The store's host is forwarded to the API in the `x-storefront-host` header, and the API resolves the tenant from it. Catalog cache tags are scoped per tenant.
 
 See [Auth & tenant](/docs/apps/storefront/auth-tenant) for implementation details.
 

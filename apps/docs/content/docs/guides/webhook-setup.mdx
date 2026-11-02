@@ -1,197 +1,59 @@
 ---
-title: Webhook Setup
-description: Configure payment provider webhooks for async payment confirmation and order reconciliation.
+title: Webhook setup
+description: Add your store's webhook URL at your payment provider, so orders get marked as paid.
 ---
 
-Payment webhooks are essential for async payment methods (Multibanco, MB WAY) and as a safety net for card payments (3DS failures, browser closes). This guide covers webhook configuration for all supported providers.
+A webhook is how your payment provider tells your store that a payment arrived. Orders are only marked as paid this way. It matters most for Multibanco and MB WAY, where the customer can pay long after they leave checkout, and it's the safety net for cards if a customer closes the browser.
 
-## Webhook architecture
+## Find your webhook URL
 
-```mermaid
-sequenceDiagram
-  participant PP as Payment provider
-  participant CHK as Checkout app
-  participant API as Commerce API
-  participant ORD as Order
+Go to **Integrations**, under **Connections** in the dashboard, and open your provider. The page shows your store's webhook URL, ready to copy. Each store has its own.
 
-  PP->>CHK: POST /api/webhooks/{provider}/{orgId}
-  CHK->>CHK: Verify signature
-  CHK->>API: forwardPaymentWebhook()
-  API->>API: verifyPaymentWebhook()
-  API->>ORD: pending → confirmed / failed
-```
+## Stripe
 
-## Why webhooks matter
+1. In the Stripe dashboard, open Developers, then Webhooks, and add a destination. Choose **Snapshot**, then paste your URL.
+2. Select these events:
 
-| Scenario | Without webhook | With webhook |
-| --- | --- | --- |
-| Customer closes browser during 3DS | Order stuck as `pending` | Webhook confirms payment |
-| Multibanco payment (async) | No way to detect payment | Webhook fires when customer pays at ATM |
-| MB WAY timeout | Order stuck | Webhook on phone confirmation |
-| Network error on confirm | Order stuck | Webhook as safety net |
+   - `checkout.session.completed`
+   - `checkout.session.async_payment_succeeded`
+   - `checkout.session.async_payment_failed`
+   - `checkout.session.expired`
+   - `charge.refunded`
 
-## Stripe webhooks
+3. Copy the signing secret, which starts with `whsec_`, and paste it into **Signing secret** in Prood.
 
-### 1. Create webhook endpoint
+Test mode and live mode have separate destinations and signing secrets, so repeat this when you go live.
 
-In Stripe Dashboard → Developers → Webhooks → Add endpoint:
+## Easypay
+
+In your Easypay account, open Developers, then Configuration API 2.0, then Notifications. Paste this address as the Generic URL.
+
+Easypay doesn't sign its notifications, so Prood treats each one as a prompt and reads the payment back from Easypay before changing the order.
+
+## Ifthenpay
+
+Send your URL to Ifthenpay as your callback URL, exactly as the dashboard shows it, with your anti-phishing key. It includes placeholders that Ifthenpay fills in on each call:
 
 ```
-Endpoint URL: https://checkout.example.com/api/webhooks/stripe/{orgId}
+?key=[ANTI_PHISHING_KEY]&orderId=[ORDER_ID]&amount=[AMOUNT]&requestId=[REQUEST_ID]
 ```
 
-Replace `{orgId}` with the merchant's organization ID (e.g. `org_demo`).
-
-### 2. Select events
-
-**Checkout Session events** (primary — required for Checkout Sessions API):
-
-| Event | Purpose |
-| --- | --- |
-| `checkout.session.completed` | Payment captured (primary success signal) |
-| `checkout.session.expired` | Session timed out before payment |
-| `checkout.session.async_payment_succeeded` | Delayed payment confirmed (bank transfers, Boleto, etc.) |
-| `checkout.session.async_payment_failed` | Delayed payment failed |
-| `charge.refunded` | Money went back to the shopper, including refunds made in the Stripe dashboard |
-
-**PaymentIntent events** (Stripe fires these alongside Checkout Session events):
-
-| Event | Purpose |
-| --- | --- |
-| `payment_intent.succeeded` | Payment captured |
-| `payment_intent.payment_failed` | Payment declined |
-| `payment_intent.canceled` | Payment canceled |
-| `payment_intent.processing` | Payment processing |
-| `payment_intent.amount_capturable_updated` | Funds available for manual capture |
-
-**Charge / Refund events:**
-
-| Event | Purpose |
-| --- | --- |
-| `charge.refunded` | Refund processed, including one made in the Stripe dashboard |
-| `refund.created` | Received and ignored: `charge.refunded` already reports the refund |
-
-You can configure all events at once using the provided setup script:
-
-```bash
-./scripts/stripe-webhook-setup.sh
-```
-
-### 3. Copy signing secret
-
-After creating the endpoint, copy the **Signing secret** (`whsec_...`).
-
-### 4. Configure in dashboard
-
-Dashboard → Integrations → Stripe → Webhook secret: `whsec_...`
-
-Or set globally: `STRIPE_WEBHOOK_SECRET=whsec_...`
-
-### 5. Test locally
-
-Use Stripe CLI for local webhook testing:
-
-```bash
-stripe listen --forward-to localhost:3004/api/webhooks/stripe/org_demo
-stripe trigger checkout.session.completed
-stripe trigger payment_intent.succeeded
-```
-
-## Easypay webhooks
-
-### 1. Configure in Easypay panel
-
-Log in to Easypay merchant panel → Settings → Notifications:
-
-```
-Notification URL: https://checkout.example.com/api/webhooks/easypay/{orgId}
-```
-
-### 2. Events
-
-Easypay sends notifications for:
-
-- Payment received (Multibanco, MB WAY, card)
-- Payment expired
-- Refund processed
-
-### 3. Sandbox testing
-
-Use `EASYPAY_BASE_URL=https://api.test.easypay.pt` and configure test webhook URL similarly.
-
-## Ifthenpay webhooks
-
-### 1. Configure in backoffice
-
-Log in to Ifthenpay backoffice → Configurações → Callback URL:
-
-```
-Callback URL: https://checkout.example.com/api/webhooks/ifthenpay/{orgId}
-```
-
-### 2. Anti-phishing verification
-
-Ifthenpay includes an anti-phishing key in webhook payloads. The provider verifies this against `IFTHENPAY_ANTIPHISHING_KEY` (or tenant config).
-
-## Per-tenant webhook URLs
-
-Each merchant gets their own webhook URL with their org ID:
-
-```
-https://checkout.example.com/api/webhooks/stripe/org_merchant_a
-https://checkout.example.com/api/webhooks/stripe/org_merchant_b
-https://checkout.example.com/api/webhooks/easypay/org_merchant_a
-```
-
-This ensures webhook verification uses the correct tenant's stored secret.
-
-For platform-wide (env-only) webhooks, use `_` as the org:
-
-```
-https://checkout.example.com/api/webhooks/stripe/_
-```
-
-## Webhook verification flow
-
-```mermaid
-flowchart TD
-  A[Incoming webhook] --> B[Load integration_config for orgId + provider]
-  B --> C[Decrypt stored webhookSecret]
-  C --> D{Secret found?}
-  D -->|No| E[Fall back to env var]
-  D -->|Yes| F[Use decrypted secret]
-  E --> G[provider.verifyWebhook]
-  F --> G
-  G --> H{Valid?}
-  H -->|Yes| I[Return status, sessionId, amount]
-  H -->|No| J[Reject with 401]
-```
-
-## Direct API webhooks
-
-Alternatively, route webhooks directly to the API (bypassing checkout):
-
-```
-POST https://api.example.com/v1/webhooks/payments/stripe?org={orgId}
-Header: x-checkout-secret: {CHECKOUT_API_SECRET}
-```
-
-This is useful if you prefer a single webhook ingress point.
+Ifthenpay doesn't report refunds, so you record those by hand.
 
 ## Troubleshooting
 
-| Issue | Check |
+| Issue | What to check |
 | --- | --- |
-| 401 on webhook | `x-checkout-secret` mismatch between checkout and API |
-| Signature verification fails | Webhook secret in dashboard doesn't match provider dashboard |
-| Order not updating | Check API logs for webhook processing errors |
-| Wrong tenant updated | Verify org ID in webhook URL matches the merchant |
-| Webhook not received | Check provider dashboard for delivery logs and retry |
+| Orders stay **Unpaid** | Your provider's delivery log, then that the URL matches the dashboard exactly |
+| Stripe says the signature failed | The signing secret in Prood matches this endpoint, in the same mode |
+| Nothing arrives | The events you subscribed to, for Stripe |
+| A refund made at your provider doesn't show | Stripe and Easypay report refunds. Ifthenpay doesn't, so record it on the order |
+
+Developers can read how webhooks are handled in [Checkout webhooks](/docs/apps/checkout/webhooks).
 
 ## Related pages
 
 <Cards>
-  <Card title="Checkout webhooks" href="/docs/apps/checkout/webhooks" description="Checkout app webhook routes." />
-  <Card title="Payment integration" href="/docs/guides/payment-integration" description="Provider setup." />
-  <Card title="Checkout flow" href="/docs/architecture/checkout-flow" description="Sync-on-return vs webhook strategy." />
+  <Card title="Payment integration" href="/docs/guides/payment-integration" description="Connect a payment account." />
+  <Card title="Orders" href="/docs/apps/dashboard/orders" description="What each payment status means." />
 </Cards>

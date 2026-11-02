@@ -7,6 +7,14 @@ The Commerce API implements [Better Auth Agent Auth](https://www.better-auth.com
 
 AI agents can discover, register, request capabilities, and call commerce operations with delegated user authority.
 
+## What the merchant decides
+
+With Agent Auth, an AI agent starts with nothing until you approve it for your store. After that it keeps the public catalog, and anything else needs your approval. You see every capability the agent asks for and approve or deny the request as a whole. Approved access ends after an hour idle, or 24 hours at most. Then the agent asks again.
+
+An API key isn't Agent Auth: anything holding an admin key can do what the key allows, without asking.
+
+Agent Auth is coming with Grow. Free keys reach the 21 storefront tools.
+
 ## Discovery
 
 Agents load the provider configuration from:
@@ -19,11 +27,28 @@ Response includes:
 
 ```json
 {
-  "issuer": "http://localhost:3005",
-  "authorization_endpoint": "http://localhost:3005/api/auth/agent/authorize",
-  "token_endpoint": "http://localhost:3005/api/auth/agent/token",
-  "registration_endpoint": "http://localhost:3005/api/auth/agent/register",
-  "capabilities_endpoint": "http://localhost:3005/api/auth/agent/capabilities"
+  "version": "1.0-draft",
+  "provider_name": "Prood Commerce API",
+  "description": "Multi-tenant commerce HTTP API. ...",
+  "issuer": "http://localhost:3005/api/auth",
+  "default_location": "http://localhost:3005/api/auth/capability/execute",
+  "algorithms": ["Ed25519"],
+  "modes": ["delegated", "autonomous"],
+  "approval_methods": ["ciba", "device_authorization"],
+  "endpoints": {
+    "register": "http://localhost:3005/api/auth/agent/register",
+    "capabilities": "http://localhost:3005/api/auth/capability/list",
+    "describe_capability": "http://localhost:3005/api/auth/capability/describe",
+    "execute": "http://localhost:3005/api/auth/capability/execute",
+    "request_capability": "http://localhost:3005/api/auth/agent/request-capability",
+    "status": "http://localhost:3005/api/auth/agent/status",
+    "reactivate": "http://localhost:3005/api/auth/agent/reactivate",
+    "revoke": "http://localhost:3005/api/auth/agent/revoke",
+    "revoke_host": "http://localhost:3005/api/auth/host/revoke",
+    "rotate_key": "http://localhost:3005/api/auth/agent/rotate-key",
+    "rotate_host_key": "http://localhost:3005/api/auth/host/rotate-key",
+    "introspect": "http://localhost:3005/api/auth/agent/introspect"
+  }
 }
 ```
 
@@ -35,14 +60,16 @@ Every REST operation with an `operationId` in the OpenAPI spec becomes an agent 
 
 | Capability | Method | Scope required |
 | --- | --- | --- |
-| `listProducts` | GET | `storefront` (auto-grant) |
-| `getProduct` | GET | `storefront` (auto-grant) |
+| `listProducts` | GET | `storefront` (default, once the agent has a store) |
+| `getProduct` | GET | `storefront` (default, once the agent has a store) |
 | `addCartItem` | POST | `storefront` (requires approval) |
 | `placeOrder` | POST | `storefront` (requires approval) |
 | `adminCreateProduct` | POST | `admin` (requires approval) |
 | `adminRefundOrder` | POST | `admin` (requires approval) |
 
-Only public catalog reads (`listProducts`, `getProduct`, `getProductBySlug`, `listCategories`, `getStore`, `listCountries`) are auto-granted to new agent hosts. Everything else, including other `GET` operations and every `admin*` operation, requires user approval via device authorization or CIBA. Approving also binds the agent to the active store.
+An agent starts with nothing it can use. `resolveAgentAccess` refuses an agent with no store: one with no user behind it, or one whose user has several stores and hasn't approved it for one. Once the agent has a store it keeps the public catalog reads (`listProducts`, `getProduct`, `getProductBySlug`, `listCategories`, `getStore`, `listCountries`), the default grants for an agent host. Everything else, including other `GET` operations and every `admin*` operation, requires approval on the dashboard's device authorization page. All the capabilities in a request are approved or denied together. Only store owners and admins can approve a request that includes an `admin*` capability. Approving also binds the agent to the active store. On a Free store, Agent Auth is refused.
+
+When the session ends, after an hour idle (`agentSessionTTL: 3600`) or 24 hours at most (`agentMaxLifetime: 86400`), it reactivates with the catalog defaults only, and the agent has to ask again.
 
 ## Agent registration flow
 
@@ -51,8 +78,8 @@ flowchart LR
   A["1. Discover<br/>.well-known/agent-configuration"] --> B["2. Register<br/>POST /api/auth/agent/register"]
   B --> C["3. Request capabilities"]
   C --> D["4. Merchant approves<br/>device authorization UI"]
-  D --> E["5. Receive JWT"]
-  E --> F["6. Call /v1/*<br/>Authorization: Bearer"]
+  D --> E["5. Sign a short-lived JWT<br/>with the agent's key"]
+  E --> F["6. Call capability/execute or /v1/*<br/>Authorization: Bearer"]
 ```
 
 ## Calling the REST API directly
@@ -66,7 +93,7 @@ When an agent calls `/v1/*` with an `Authorization: Bearer` agent JWT:
 
 ```bash
 curl -H "Authorization: Bearer eyJ..." \
-  http://localhost:3005/v1/products?limit=5
+  "https://api.prood.com/v1/products?perPage=5"
 ```
 
 ## OpenAPI proxy execution
@@ -79,7 +106,7 @@ sequenceDiagram
   participant Auth as apps/api auth plugin
   participant API as apps/api /v1/*
 
-  Agent->>Auth: POST /api/auth/agent/capabilities/execute
+  Agent->>Auth: POST /api/auth/capability/execute
   Auth->>Auth: Validate agent JWT + grant
   Auth->>API: Proxy with org-scoped API key
   Note over Auth,API: {API_PUBLIC_URL}/v1/{operationPath}
@@ -91,9 +118,8 @@ sequenceDiagram
 
 | Variable | Purpose |
 | --- | --- |
-| `API_PUBLIC_URL` | Public API origin used in OpenAPI + proxy (defaults to `BETTER_AUTH_URL`) |
+| `API_PUBLIC_URL` | Public API origin used in OpenAPI + proxy. Required |
 | `AGENT_PROXY_API_KEYS_BY_ORG` | JSON object mapping organization IDs to org-scoped API keys for proxied capability execution |
-| `AGENT_DEVICE_AUTH_PAGE` | Path for the merchant approval UI (default `/device/capabilities`) |
 | `TRUST_PROXY` | Set `true` behind a reverse proxy for JWT `aud` validation |
 
 ## Database tables
@@ -110,8 +136,8 @@ The Agent Auth tables are defined in `packages/auth/src/schema.ts` and created b
 ## Security considerations
 
 - Agents operate with **delegated user authority** — they can only access data the approving user can access
-- Mutating capabilities require explicit user approval (device authorization flow)
-- Agent JWTs are short-lived and scoped to granted capabilities
+- An agent can do nothing until it's approved for a store. After that, everything past the six public catalog capabilities needs explicit approval on the device authorization page
+- Agent JWTs are short-lived and scoped to granted capabilities. Access ends after an hour idle, or 24 hours at most
 - Tenant isolation applies — agents cannot cross organization boundaries
 - Proxied capability execution requires agent metadata with `organizationId` and a matching key in `AGENT_PROXY_API_KEYS_BY_ORG`
 
@@ -123,11 +149,11 @@ An AI shopping assistant agent might request these capabilities:
 | --- | --- | --- |
 | `listProducts` | Search catalog | Yes |
 | `getProduct` | View product details | Yes |
-| `createCart` | Start a cart | Yes |
+| `createCart` | Start a cart | No — requires approval |
 | `addCartItem` | Add to cart | No — requires approval |
 | `placeOrder` | Complete purchase | No — requires approval |
 
-The merchant approves mutating capabilities via the device authorization page, ensuring the agent cannot place orders without explicit consent.
+The merchant sees all five on the device authorization page and approves or denies the request as a whole. The two catalog reads were already granted, so the agent cannot start a cart or place an order without that approval.
 
 ## Related pages
 

@@ -1,17 +1,20 @@
 ---
-title: API Reference
-description: Interactive OpenAPI documentation for the Prood Commerce REST API v1.
-icon: BracketsCurly
+title: API reference
+description: OpenAPI documentation for the Prood Commerce REST API v1.
 ---
 
-The **Commerce API** exposes a RESTful interface at `/v1/*` with a machine-readable **OpenAPI 3.1** specification. This section provides interactive documentation for every endpoint — generated automatically from the API's Zod schemas via **Fumadocs OpenAPI**.
+The **Commerce API** exposes a RESTful interface at `/v1/*` with a machine-readable **OpenAPI 3.1** specification. This section documents every endpoint, generated from the same specification.
+
+<Callout title="Sending an API key">
+Examples use `x-api-key: pk...`. Agent tokens use `Authorization: Bearer`, from code rather than this console.
+</Callout>
 
 ## Base URL
 
 | Environment | URL |
 | --- | --- |
 | Local development | `http://localhost:3005/v1` |
-| Production | `https://api.example.com/v1` |
+| Production | `https://api.prood.com/v1` |
 
 ## OpenAPI spec
 
@@ -21,14 +24,14 @@ Download the raw specification:
 GET /v1/openapi.json
 ```
 
-The docs site syncs this spec at build time (`pnpm sync:openapi`) and renders each operation as an interactive page below.
+Each operation below has its own page, built from this spec.
 
 ## Authentication
 
 All endpoints require authentication except `/v1/health` and `/v1/openapi.json`. See [Authentication](/docs/apps/api/authentication) for details on:
 
 - Session cookies (dashboard)
-- Host header (storefront)
+- `x-storefront-host` header (storefront)
 - API keys (`x-api-key`)
 - Agent JWT (`Authorization: Bearer`)
 
@@ -38,10 +41,8 @@ The pages below are organized by OpenAPI tags:
 
 | Tag | Scope | Description |
 | --- | --- | --- |
-| **Catalog** | storefront | Products, categories, store info, countries |
-| **Carts** | storefront | Cart CRUD, coupons, shipping, place order |
-| **Orders** | storefront | Customer order history |
-| **Admin** | admin | Product/order/customer CRUD, inventory, stats |
+| **Storefront** | storefront | Products, categories, store info, carts, shipping, placing an order, order history. Coupon routes exist, but no merchant can create coupons yet |
+| **Admin** | admin | Reads and changes catalog, inventory, orders and store settings, and reads customers. Payment accounts, domains, team and keys stay in the dashboard. Starts on Grow. |
 | **Webhooks** | checkout-secret | Payment webhook ingress |
 
 ## Using the reference
@@ -52,7 +53,6 @@ Each operation page includes:
 - **Parameters** — path, query, and header parameters with types
 - **Request body** — JSON schema for POST/PATCH requests
 - **Responses** — status codes and response schemas
-- **Try it** — execute requests against your local or production API
 
 ## Client libraries
 

@@ -2,19 +2,20 @@ import Link from "next/link"
 
 import { Button } from "@prood/ui/components/button"
 import { Logo } from "@prood/ui/components/logo"
+import { HeaderFrame } from "@/components/header-frame"
 import { MobileNav } from "@/components/mobile-nav"
 import { NavLink } from "@/components/nav-link"
 import { mainNav, siteConfig } from "@/lib/site"
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/75">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-5 sm:px-6">
+    <HeaderFrame>
+      <div className="mx-auto flex h-16 max-w-[84rem] items-center gap-6 px-5 sm:px-8 lg:px-12">
         <Link href="/" aria-label="Prood home" className="rounded-md">
           <Logo title={null} className="h-7" />
         </Link>
 
-        <nav aria-label="Main" className="hidden md:block">
+        <nav aria-label="Main" className="hidden lg:block">
           <ul className="flex items-center gap-1">
             {mainNav.map((item) => (
               <li key={item.href}>
@@ -36,12 +37,12 @@ export function SiteHeader() {
           <Button variant="ghost" size="lg" className="hidden sm:inline-flex" asChild>
             <a href={siteConfig.loginUrl}>Sign in</a>
           </Button>
-          <Button variant="brand" size="lg" asChild>
+          <Button size="lg" className="rounded-full" asChild>
             <a href={siteConfig.registerUrl}>Start free</a>
           </Button>
           <MobileNav />
         </div>
       </div>
-    </header>
+    </HeaderFrame>
   )
 }

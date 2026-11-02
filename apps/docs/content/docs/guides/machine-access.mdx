@@ -1,73 +1,71 @@
 ---
-title: Machine Access
-description: API keys, Agent Auth, MCP, OpenAPI, and CLI access for machines and agents.
+title: Machine access
+description: API keys, Agent Auth, MCP, OpenAPI and the CLI, for code and AI agents.
 ---
 
-Prood exposes one API-first automation surface for humans, services, and agents:
+Prood has one API for people, services and AI agents:
 
-- **OpenAPI**: `GET /v1/openapi.json`
-- **Interactive docs**: Fumadocs OpenAPI at `/docs/api`
-- **TypeScript client**: `@prood/api-client`
-- **MCP**: `POST /mcp`
-- **Agent Auth**: `GET /.well-known/agent-configuration`
-- **CLI**: `prood`
+- **OpenAPI:** `GET https://api.prood.com/v1/openapi.json`
+- **Reference:** [Commerce API](/docs/api)
+- **TypeScript client:** `@prood/api-client`, available from the source repo for now
+- **MCP:** `POST https://api.prood.com/mcp`
+- **Agent Auth:** `GET https://api.prood.com/.well-known/agent-configuration`
+- **CLI:** `prood`, available from the source repo for now
 
 ## API keys
 
-Create organization-scoped keys in Dashboard → Settings → API keys. Keys include metadata:
+Create keys in the dashboard, under **Connections**, then **API keys**. Each key belongs to one organization and is shown once.
 
-```json
-{
-  "organizationId": "org_...",
-  "scopes": ["storefront", "admin"]
-}
-```
+| Scope | What it does |
+| --- | --- |
+| **Storefront** | Browse products, fill a cart and place an order. Payment runs on hosted checkout, started from the store |
+| **Admin** | Reads and changes catalog, inventory, orders and store settings, and reads customers. Payment accounts, domains, team and keys stay in the dashboard. Starts on Grow. |
 
-Use the key with REST, MCP, or the CLI:
+Keys start with `pk`, followed straight away by random letters and numbers, with no underscore: `pkAbC123...`.
+
+Free API keys reach the public storefront API: catalog, carts and placing orders. Reading your orders and customers by API, and all admin writes, start on Grow.
+
+Use the key with REST, MCP or the CLI:
 
 ```bash
-curl -H "x-api-key: pk_xxx" http://localhost:3005/v1/me
-prood auth whoami --api-url http://localhost:3005/v1 --api-key pk_xxx --json
+curl -H "x-api-key: $PROOD_API_KEY" https://api.prood.com/v1/me
 ```
 
+Errors come back as JSON: `{ "code": "UNAUTHORIZED", "message": "Invalid API key. It may be mistyped, or it may have expired. Create a new one in your dashboard, under API keys." }`.
+
 ## Agent Auth
+
+With Agent Auth, an AI agent starts with nothing until you approve it for your store. After that it keeps the public catalog, and anything else needs your approval. You see every capability the agent asks for and approve or deny the request as a whole. Approved access ends after an hour idle, or 24 hours at most. Then the agent asks again.
+
+An API key isn't Agent Auth: anything holding an admin key can do what the key allows, without asking.
+
+Agent Auth is coming with Grow.
 
 Agents discover the provider configuration:
 
 ```bash
-curl http://localhost:3005/.well-known/agent-configuration
+curl https://api.prood.com/.well-known/agent-configuration
 ```
 
-Every OpenAPI `operationId` becomes an Agent Auth capability. Direct REST calls use:
+Every OpenAPI `operationId` becomes an Agent Auth capability. Direct REST calls use a bearer token:
 
 ```bash
-curl -H "Authorization: Bearer eyJ..." http://localhost:3005/v1/products
+curl -H "Authorization: Bearer eyJ..." https://api.prood.com/v1/products
 ```
 
-Proxied capability execution requires `AGENT_PROXY_API_KEYS_BY_ORG`. This
-environment variable is a JSON object that maps organization IDs to
-tenant-scoped API keys:
-
-```bash
-export AGENT_PROXY_API_KEYS_BY_ORG='{"org_abc":"pk_xxx","org_def":"pk_yyy"}'
-```
-
-Configure it anywhere the API app runs: local `.env` / `.env.local`, CI, and
-deployment environment variables. These keys are sensitive secrets; store them
-only in encrypted secret managers or platform environment-variable stores, and
-rotate any key that is exposed.
+See [Agent Auth](/docs/apps/api/agent-auth) for the full flow.
 
 ## MCP
 
-MCP tools use the same names as OpenAPI operation IDs:
+MCP tools use the same names as OpenAPI operation IDs. Free keys reach the 21 storefront tools.
 
 ```json
 {
   "mcpServers": {
     "prood-commerce": {
-      "url": "http://localhost:3005/mcp",
+      "url": "https://api.prood.com/mcp",
       "headers": {
-        "x-api-key": "pk_xxx"
+        "x-api-key": "pkAbC123..."
       }
     }
   }
@@ -80,8 +78,8 @@ MCP tools use the same names as OpenAPI operation IDs:
 import { createCommerceApiClient, unwrap } from '@prood/api-client'
 
 const api = createCommerceApiClient({
-  baseUrl: 'http://localhost:3005/v1',
-  apiKey: 'pk_xxx',
+  baseUrl: 'https://api.prood.com/v1',
+  apiKey: process.env.PROOD_API_KEY,
 })
 
 const caller = await unwrap(api.GET('/me'))
@@ -90,9 +88,8 @@ const caller = await unwrap(api.GET('/me'))
 ## CLI
 
 ```bash
-prood auth whoami --api-url http://localhost:3005/v1 --api-key pk_xxx --json
-prood products list --api-url http://localhost:3005/v1 --api-key pk_xxx --json
-prood mcp config --api-url http://localhost:3005/v1 --api-key pk_xxx
+prood auth whoami --api-url https://api.prood.com/v1 --api-key "$PROOD_API_KEY" --json
+prood products list --api-url https://api.prood.com/v1 --api-key "$PROOD_API_KEY" --json
+prood mcp config --api-url https://api.prood.com/v1 --api-key "$PROOD_API_KEY"
 prood openapi sync --check
 ```
-

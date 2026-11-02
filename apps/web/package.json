@@ -14,6 +14,7 @@
   "dependencies": {
     "@phosphor-icons/react": "catalog:",
     "@prood/billing": "workspace:*",
+    "@prood/media": "workspace:*",
     "@prood/types": "workspace:*",
     "@prood/ui": "workspace:*",
     "next": "catalog:",

@@ -1,171 +1,70 @@
 ---
 title: Orders
-description: Order management in the dashboard — listing, detail, fulfillment, and refunds.
+description: See every order, then fulfill, cancel or refund it.
 ---
 
-The dashboard provides order visibility and management actions for the active organization's store.
+**Orders** lists every order in your store, newest first. Filter by stage with the tabs (New, In progress, Fulfilled and Cancelled), or search by order number.
 
-## Order list
+## What each status means
 
-**Route:** `/orders`
+### Stage
 
-Paginated table of orders:
-
-| Column | Description |
+| Stage | What it means |
 | --- | --- |
-| Order # | Order ID (short format) |
-| Customer | Email and name |
-| Status | `placed`, `approved`, `fulfilled`, `cancelled` |
-| Payment | `unpaid`, `paid`, `refunded`, `voided` |
-| Fulfillment | `unfulfilled`, `in_progress`, `fulfilled` |
-| Total | Grand total (formatted with currency) |
-| Date | Order creation date |
+| New | The customer placed the order. It may still be waiting for payment |
+| In progress | Payment is confirmed and it's ready for you to fulfill |
+| Fulfilled | You've sent it |
+| Cancelled | The order was cancelled, or a payment failed |
 
-Filters: status, payment status, date range.
+### Payment
+
+| Payment | What it means |
+| --- | --- |
+| Unpaid | No payment yet. Multibanco and MB WAY can take a while |
+| Authorized | The money is held and not yet taken |
+| Paid | The payment went through |
+| Partially refunded | Part of it was refunded |
+| Refunded | All of it was refunded |
+| Failed | The payment didn't go through |
+| Free | There was nothing to pay |
+
+### Fulfillment
+
+| Fulfillment | What it means |
+| --- | --- |
+| Unfulfilled | Nothing sent yet |
+| In progress | On its way to being sent |
+| Fulfilled | Sent |
+| Not required | Nothing to send |
 
 ## Order detail
 
-**Route:** `/orders/[id]`
+Open an order to see its items and timeline, and the customer, payment and shipping details. The timeline records each change, with its time and any note.
 
-Displays full order information:
+## What you can do
 
-### Order summary
-
-- Order ID, status, creation date
-- Customer info (email, name, phone)
-- Payment status and provider
-- Fulfillment status
-- Order totals (subtotal, tax, shipping, discount, grand total)
-
-### Line items
-
-Each item shows product name, variant, quantity, unit price, and line total.
-
-### Addresses
-
-Shipping and billing addresses as provided during checkout.
-
-### Actions
-
-| Action | API endpoint | Description |
+| Action | When | What happens |
 | --- | --- | --- |
-| **Fulfill** | `POST /v1/admin/orders/{id}/fulfill` | Mark as shipped with tracking info |
-| **Cancel** | `POST /v1/admin/orders/{id}/cancel` | Cancel the order with optional reason |
-| **Refund** | `POST /v1/admin/orders/{id}/refund` | Full refund via payment provider |
+| **Fulfill order** | The order is paid and not cancelled | Marks it as sent. You can add a tracking number, a tracking URL and a note |
+| **Cancel order** | The order isn't paid, or it's partly refunded, and it isn't fulfilled or cancelled | Cancels it, with an optional note. It moves no money |
+| **Refund order** | The payment can be refunded through your provider | Sends the money back, cancels the order and emails the customer |
+| **Record refund** | Your provider can't send this refund from Prood | Refund in your payment account first, then record it here. No money moves |
 
-Actions are conditionally shown based on current status:
+## Refunds
 
-| Action | Visible when |
-| --- | --- |
-| Fulfill | `status` is `placed` or `approved` AND `paymentStatus` is `paid`, `free` or `partially_refunded`. The API refuses to fulfil a cancelled order |
-| Cancel | `status` is `placed` or `approved` |
-| Refund | `paymentStatus` is `paid`, including a paid order that was cancelled. `GET /v1/admin/orders/{id}` returns `refund`: `provider` sends the money through the payment provider, `manual` means the merchant refunds in their payment account, then records it. A refund already made in the payment account can be recorded either way with `recordOnly`, which moves no money |
+**Refund order** works for Stripe payments, and for Easypay's MB WAY and card payments.
 
-Server actions in `app/(dashboard)/orders/actions.ts`:
+For Easypay's Multibanco payments and everything through Ifthenpay, refund in your payment account, then use **Record refund**.
 
-```ts
-'use server'
-export async function fulfillOrderAction(id: string, input: FulfillOrderInput) { ... }
-export async function cancelOrderAction(id: string, note?: string) { ... }
-export async function refundOrderAction(
-  id: string,
-  input: { note?: string; recordOnly?: boolean },
-): Promise<RefundOrderResult> { ... }
-```
+Already refunded something in your payment account? You can record it on the order, and no money moves. Refunds made in Stripe, or in Easypay with your address set as the Generic URL, reach your store by webhook, so the order updates by itself. The customer is emailed once.
 
-### Order timeline
+## Limits
 
-The detail page includes a timeline card showing the full history of status changes, with timestamps and notes. Data is fetched from `GET /v1/admin/orders/{id}/history`.
-
-### Customer card
-
-Displays the customer's name, email (`contactEmail` captured at checkout), and phone number from the shipping address.
-
-## Order status model
-
-Orders use a **three-dimensional status model** inspired by Commerce Layer, separating order lifecycle, payment, and fulfillment into independent fields.
-
-### Order status (lifecycle)
-
-| Status | Meaning | Triggered by |
-| --- | --- | --- |
-| `placed` | Order submitted, awaiting payment | Customer completes checkout |
-| `approved` | Payment confirmed, ready to fulfill | Stripe webhook (`payment.captured`) |
-| `fulfilled` | All items shipped | Admin fulfills order |
-| `cancelled` | Order voided | Payment failure or admin cancellation |
-
-### Payment status
-
-| Status | Meaning | Triggered by |
-| --- | --- | --- |
-| `unpaid` | No payment received yet | Default at placement |
-| `authorized` | Funds held, capture pending | Auth-only gateways |
-| `paid` | Payment captured successfully | Stripe webhook |
-| `partially_refunded` | Partial refund issued | Admin partial refund |
-| `refunded` | Fully refunded | Admin full refund |
-| `voided` | Authorization cancelled | Payment failure or cancellation |
-| `free` | Zero-amount order | Coupons cover full total |
-
-### Fulfillment status
-
-| Status | Meaning | Triggered by |
-| --- | --- | --- |
-| `unfulfilled` | No items shipped yet | Default at placement |
-| `in_progress` | Some items shipped | Partial fulfillment (future) |
-| `fulfilled` | All items shipped | Admin fulfills order |
-| `not_required` | Digital-only order | Auto-set for non-physical items |
-
-### Lifecycle timestamps
-
-| Field | Set when |
-| --- | --- |
-| `placedAt` | Order is created |
-| `approvedAt` | Payment is confirmed |
-| `cancelledAt` | Order is cancelled |
-| `fulfilledAt` | Order is fully shipped |
-
-### Typical flow
-
-```
-Customer places order
-  → status: placed, paymentStatus: unpaid, fulfillmentStatus: unfulfilled
-
-Stripe webhook confirms payment
-  → status: approved, paymentStatus: paid
-
-Admin ships the order
-  → status: fulfilled, fulfillmentStatus: fulfilled
-
---- OR ---
-
-Payment fails
-  → status: cancelled, paymentStatus: voided
-```
-
-## Refund flow
-
-1. Merchant clicks **Refund** on order detail page
-2. Dashboard sends `POST /v1/admin/orders/{id}/refund` with an optional note
-3. API calls payment provider's `refund()` method with tenant credentials
-4. Order status updated to `cancelled`, payment status to `refunded`, and the shopper is emailed
-
-A refund made in the Stripe dashboard or Easypay's backoffice arrives as a webhook and does the same. Whichever reports it first records it, and the shopper is emailed once. Ifthenpay sends no refund webhook, so those refunds are recorded by hand.
-
-## API endpoints used
-
-| Action | Method | Endpoint |
-| --- | --- | --- |
-| List orders | GET | `/v1/admin/orders` |
-| Get order | GET | `/v1/admin/orders/{id}` |
-| Get order history | GET | `/v1/admin/orders/{id}/history` |
-| Fulfill order | POST | `/v1/admin/orders/{id}/fulfill` |
-| Cancel order | POST | `/v1/admin/orders/{id}/cancel` |
-| Refund order | POST | `/v1/admin/orders/{id}/refund` |
+Free includes 100 orders a month. Order 101 is refused until the next month. See [Plans and limits](/docs/billing/plans).
 
 ## Related pages
 
 <Cards>
-  <Card title="Order lifecycle" href="/docs/architecture/order-lifecycle" description="Full architecture reference for the three-dimensional order status model." />
-  <Card title="Checkout flow" href="/docs/architecture/checkout-flow" description="How orders are created and payment confirmed." />
-  <Card title="Payment integration" href="/docs/guides/payment-integration" description="Provider-specific refund behavior." />
+  <Card title="Payment integration" href="/docs/guides/payment-integration" description="Refunds by provider." />
+  <Card title="Order lifecycle" href="/docs/architecture/order-lifecycle" description="For developers: the full status model." />
 </Cards>

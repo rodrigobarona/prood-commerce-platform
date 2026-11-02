@@ -1,5 +1,5 @@
 ---
-title: Order Lifecycle
+title: Order lifecycle
 description: Three-dimensional order status model — separating order, payment, and fulfillment into independent dimensions.
 ---
 
@@ -24,7 +24,7 @@ The primary lifecycle status of the order.
 | `placed` | Order submitted by customer — awaiting payment |
 | `approved` | Payment confirmed — ready for fulfillment |
 | `fulfilled` | All items shipped to customer |
-| `cancelled` | Order cancelled (payment failed, admin action, or timeout) |
+| `cancelled` | Order cancelled (payment failed or admin action) |
 
 ### State machine
 
@@ -41,7 +41,7 @@ Independent from order status. Tracks the payment lifecycle.
 | Value | Description |
 | --- | --- |
 | `unpaid` | No payment received (default) |
-| `authorized` | Funds held but not captured (auth-only gateways) |
+| `authorized` | Funds held but not captured (auth-only providers) |
 | `paid` | Payment captured — funds collected |
 | `partially_refunded` | Partial refund issued |
 | `refunded` | Full refund issued |
@@ -56,7 +56,7 @@ unpaid → authorized → paid → partially_refunded → refunded
 voided    voided
 ```
 
-For auto-capture gateways (Stripe default), `unpaid` transitions directly to `paid`.
+For auto-capture providers (Stripe default), `unpaid` transitions directly to `paid`.
 
 ## Fulfillment status
 
@@ -112,7 +112,7 @@ Each status transition records a timestamp:
 | Step | Trigger | `status` | `paymentStatus` | `fulfillmentStatus` |
 | --- | --- | --- | --- | --- |
 | Customer submits checkout | Place order | `placed` | `unpaid` | `unfulfilled` |
-| Card declined | Webhook `payment_intent.payment_failed` | `cancelled` | `voided` | `unfulfilled` |
+| Payment fails | Webhook `checkout.session.async_payment_failed` | `cancelled` | `voided` | `unfulfilled` |
 
 ### Refund after fulfillment
 
@@ -185,7 +185,7 @@ The payment status is updated exclusively by webhooks from the payment provider.
 | Webhook event | Sets `status` | Sets `paymentStatus` |
 | --- | --- | --- |
 | `checkout.session.completed` / `payment.captured` | `approved` | `paid` |
-| `payment_intent.payment_failed` | `cancelled` | `voided` |
+| `checkout.session.async_payment_failed` / `payment.failed` | `cancelled` | `voided` |
 | `payment.refunded` (Stripe `charge.refunded`, Easypay refund notification) | `cancelled` | `refunded` |
 | `payment.partially_refunded` | no change | `partially_refunded` |
 

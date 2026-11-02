@@ -1,5 +1,5 @@
 {
-  "title": "Payment Providers",
+  "title": "Payment providers",
   "icon": "CreditCard",
   "pages": ["index", "stripe", "easypay", "ifthenpay"]
 }

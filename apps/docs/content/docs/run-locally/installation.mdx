@@ -18,7 +18,7 @@ Optional services for full functionality:
 | Service | Used by | Purpose |
 | --- | --- | --- |
 | Upstash Redis | `apps/checkout` | Checkout session persistence |
-| Cloudflare R2 | `@prood/storage-s3` | Product image uploads |
+| Cloudflare R2 | `@prood/storage-s3` | File storage |
 | Stripe / Easypay / Ifthenpay | Payment providers | Live payment flows |
 
 ## Step 1 — Clone and install
@@ -48,7 +48,7 @@ BETTER_AUTH_SECRET="<openssl rand -base64 32>"
 NEXT_PUBLIC_PLATFORM_DOMAIN="localhost"
 ```
 
-See [Environment variables](/docs/getting-started/environment) for the complete reference.
+See [Environment variables](/docs/run-locally/environment) for the complete reference.
 
 ## Step 3 — Database setup
 
@@ -155,7 +155,7 @@ Every app that touches auth or commerce requires `DATABASE_URL`. Ensure `.env.lo
 
 ### Checkout sessions fail to create
 
-`apps/checkout` requires Upstash Redis. Set `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` in `.env.local`. Without Redis, session creation returns 500.
+`apps/checkout` requires Upstash Redis. Set `KV_REST_API_URL` and `KV_REST_API_TOKEN` in `.env.local`. Without Redis, session creation returns 500.
 
 ### Storefront redirects to the marketing site
 

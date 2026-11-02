@@ -7,9 +7,7 @@ description: Server-only data layer wrapping the commerce adapter, payment provi
 
 ## Installation
 
-```bash
-pnpm add @prood/commerce
-```
+Workspace package. Available from the source repo for now.
 
 This package is `"server-only"` — it cannot be imported in client components.
 
@@ -24,7 +22,7 @@ import {
   placeOrder,
   getAdmin,
   withTenant,
-  getPaymentProvider,
+  getTenantPaymentProvider,
   verifyPaymentWebhook,
 } from '@prood/commerce'
 ```
@@ -46,7 +44,7 @@ Cache tags: `products-{orgId}`, `categories-{orgId}`, `store-{orgId}`.
 ```ts
 const cart = await createCart(orgId)
 const updated = await addCartItem(orgId, cartId, { productId, variantId, quantity: 1 })
-await applyCartCoupon(orgId, cartId, 'SAVE10')
+await applyCartCoupon(orgId, cartId, 'SAVE10') // API and MCP only: stores have no coupon field
 const order = await placeOrder(orgId, cartId)
 ```
 
@@ -64,14 +62,14 @@ const stats = await admin.getDashboardStats()
 ## Payment providers
 
 ```ts
-// Build provider with tenant config or configured environment defaults
-const provider = await getPaymentProvider('stripe', orgId)
+// Build provider with the tenant's stored config
+const { provider } = await getTenantPaymentProvider(orgId, 'stripe')
 
 // Verify webhook with tenant's stored secret
 const result = await verifyPaymentWebhook(payload, signature, 'stripe', orgId)
 ```
 
-Provider factory reads from the encrypted `integration_config` table and falls back to configured environment defaults for fields that are not stored per tenant.
+The provider factory reads from the encrypted `integration_config` table. There are no environment-level provider defaults: a store with no stored credentials has no provider.
 
 ## Storage
 
@@ -120,7 +118,7 @@ Read via `getCommerceConfig()`:
 
 | Setting | Env var | Default |
 | --- | --- | --- |
-| Payment | `DEFAULT_PAYMENT_PROVIDER` | `stripe` |
+| Database | `DATABASE_URL` | None. Required |
 
 ## Module structure
 

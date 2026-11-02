@@ -1,93 +1,45 @@
 ---
 title: Dashboard
-description: The merchant admin dashboard — products, orders, integrations, domains, and team management.
+description: Where you run your store. Products, orders, customers, payment accounts, domains and team.
 ---
 
-`apps/dashboard` is the **merchant admin** application. Merchants sign in, select an active organization (their store), and manage products, orders, customers, payment integrations, and custom domains.
+The dashboard at [dashboard.prood.com](https://dashboard.prood.com) is where you run your store. Sign in with your email and password. If you run more than one store, the store switcher at the top of the sidebar moves between them, and **Add store** creates another.
 
-**Port:** 3002 · **Framework:** Next.js 16 · **Auth:** Better Auth + organization plugin
+## What's in the sidebar
 
-## Architecture
+### Store
 
-```mermaid
-flowchart TB
-  PAGE[Dashboard page]
-  SC[Server Component]
-  SA[Server Action]
-  ADMIN[admin-api.ts]
-  API[@prood/api-client]
-  REST["API /v1/admin/*"]
-  DB["Direct DB<br/>integrations & domains"]
-  COM["@prood/commerce.withTenant()"]
-
-  PAGE --> SC --> ADMIN --> API --> REST
-  PAGE --> SA --> ADMIN
-  PAGE --> DB --> COM
-```
-
-Most data operations go through the Commerce API. Integration credentials and domain records are managed directly via Drizzle (encrypted at rest).
-
-## Features
-
-| Section | Route | Status | Description |
-| --- | --- | --- | --- |
-| Overview | `/` | Live | Dashboard stats — revenue, orders, customers |
-| Products | `/products` | Live | List, create, edit products with variants and images |
-| Orders | `/orders` | Live | List, detail, fulfill, refund |
-| Customers | `/customers` | Live | Customer list and detail |
-| Integrations | `/integrations` | Live | Payment and service provider configuration |
-| Domains | `/domains` | Live | Custom domain setup with Vercel + DNS |
-| Team | `/team` | Live | Organization members and invitations |
-| Settings | `/settings` | Live | Store name, currency, contact info |
-| API Keys | `/settings/api-keys` | Placeholder | API keys are issued by Better Auth/API today; in-dashboard creation is not wired yet |
-| Analytics | `/analytics` | Placeholder | Future analytics dashboard |
-| Billing | `/billing` | Placeholder | Shows current plan from DB; Stripe subscription billing is not wired yet |
-
-## Auth & organization
-
-Merchants authenticate with email/password. Better Auth's **organization plugin** enables multi-store management:
-
-- Registration creates a user + first organization
-- `session.activeOrganizationId` determines which store's data is shown
-- Organization switching updates the active org in the session
-- All admin API calls are scoped to the active organization
-
-```ts
-// lib/admin.ts
-export async function withActiveOrg<T>(fn: (orgId: string) => Promise<T>) {
-  const orgId = await requireActiveOrg()
-  return withTenant(orgId, fn)
-}
-```
-
-## Navigation
-
-Sidebar groups defined in `lib/nav.ts`:
-
-| Group | Items |
+| Page | What you do there |
 | --- | --- |
-| **Store** | Overview, Products, Orders, Customers |
-| **Platform** | Domains, Integrations, Analytics |
-| **Account** | Team, Settings, API Keys, Billing |
+| Overview | See how the store is doing and what's left to set up |
+| Orders | Fulfill, cancel and refund |
+| Products | Add and edit products |
+| Customers | See every customer with their order history |
 
-## Configuration
+### Connections
 
-| Variable | Purpose |
+| Page | What you do there |
 | --- | --- |
-| `DATABASE_URL` | Auth + integration_config + tenant_domain tables |
-| `COMMERCE_API_URL` | Admin API client base URL |
-| `BETTER_AUTH_SECRET` | Session validation on SSR (same secret as API) |
-| `NEXT_PUBLIC_AUTH_URL` | Browser auth client → `apps/api` (default `http://localhost:3005`) |
-| `INTEGRATION_ENCRYPTION_KEY` | Encrypt provider credentials at rest |
-| `VERCEL_TOKEN`, `STOREFRONT_VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID` | Custom domain provisioning |
-| `NEXT_PUBLIC_PLATFORM_DOMAIN` | Shown on domains page for subdomain preview |
+| Domains | See your Prood address and add your own domain |
+| Integrations | Connect a payment account |
+| API keys | Create and revoke keys. Store owners and admins only |
+
+### Organization
+
+| Page | What you do there |
+| --- | --- |
+| Team | Invite and remove people. Invites start on Grow |
+| Store settings | Store details, contact details and region |
+| Billing | See your current plan. Paid plans are coming |
+
+Developers can read how the dashboard is built in [Dashboard internals](/docs/architecture/dashboard).
 
 ## Related pages
 
 <Cards>
-  <Card title="Products" href="/docs/apps/dashboard/products" description="Product CRUD, variants, and inventory." />
-  <Card title="Orders" href="/docs/apps/dashboard/orders" description="Order management, fulfillment, and refunds." />
-  <Card title="Integrations" href="/docs/apps/dashboard/integrations" description="Payment provider credentials per tenant." />
-  <Card title="Domains" href="/docs/apps/dashboard/domains" description="Custom domain setup and verification." />
-  <Card title="Team" href="/docs/apps/dashboard/team" description="Organization members and invitations." />
+  <Card title="Products" href="/docs/apps/dashboard/products" description="Add and edit products." />
+  <Card title="Orders" href="/docs/apps/dashboard/orders" description="Fulfill, cancel and refund." />
+  <Card title="Integrations" href="/docs/apps/dashboard/integrations" description="Connect a payment account." />
+  <Card title="Domains" href="/docs/apps/dashboard/domains" description="Your Prood address and custom domains." />
+  <Card title="Team" href="/docs/apps/dashboard/team" description="Roles and invitations." />
 </Cards>

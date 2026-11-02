@@ -1,121 +1,41 @@
 ---
 title: Integrations
-description: Configure payment and service provider credentials per tenant in the dashboard.
+description: Connect your own payment account to your store.
 ---
 
-The dashboard **Integrations** section lets merchants configure provider credentials that override environment-level defaults. Credentials are encrypted at rest and scoped per organization.
+**Integrations**, under **Connections**, is where you connect your own payment account. Each store's credentials are stored separately and encrypted at rest with AES-256-GCM.
 
-## Integration list
+## Providers
 
-**Route:** `/integrations`
-
-Shows available providers grouped by category:
-
-| Category | Providers |
+| Provider | What it adds |
 | --- | --- |
-| **Payments** | Stripe, Easypay, Ifthenpay |
-| **Notifications** | Resend, SMTP (UI only — no runtime factory yet) |
-| **Analytics** | Google Analytics 4 (UI only) |
+| **Stripe** | Cards, plus Apple Pay and Google Pay where you've enabled them |
+| **Easypay** | Multibanco, MB WAY and cards |
+| **Ifthenpay** | Multibanco, plus MB WAY and cards if you enter their keys |
 
-Each provider card shows connection status (configured / not configured).
+Each provider shows whether it's connected. Each store's checkout runs on one provider, and Stripe comes first if it's connected.
 
-## Provider configuration
+## Connect a provider
 
-**Route:** `/integrations/[provider]`
+Open a provider and enter its credentials:
 
-Dynamic form rendered from the provider registry in `lib/providers.ts`. It shows the store's webhook URL, because orders are only marked as paid when the provider calls it. The dashboard needs `CHECKOUT_URL` to build that URL.
+| Provider | Fields |
+| --- | --- |
+| **Stripe** | Publishable key, secret key, webhook signing secret |
+| **Easypay** | Account ID, API key, and an optional Easypay address |
+| **Ifthenpay** | Anti-phishing key, Multibanco key, and optional MB WAY and credit card keys |
 
-Saving a new provider enables it. Stripe and Easypay keys are tested with a read-only call on save; Ifthenpay has no such call.
+Saving a new provider turns it on. Stripe and Easypay keys are tested when you save. Ifthenpay can't test keys, so place a small order to check them.
 
-Each provider defines its configurable fields:
+The same page shows your store's webhook URL. Orders are only marked as paid when your provider calls it, so add it in your provider's account. See [Webhook setup](/docs/guides/webhook-setup).
 
-### Stripe
+## Turn a provider off
 
-| Field | Env fallback | Description |
-| --- | --- | --- |
-| `secretKey` | `STRIPE_SECRET_KEY` | Server-side secret key |
-| `webhookSecret` | `STRIPE_WEBHOOK_SECRET` | Webhook signing secret (required) |
-| `publishableKey` | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Client-side publishable key |
-
-### Easypay
-
-| Field | Env fallback | Description |
-| --- | --- | --- |
-| `accountId` | `EASYPAY_ACCOUNT_ID` | Easypay account ID |
-| `apiKey` | `EASYPAY_API_KEY` | API key |
-| `baseUrl` | `EASYPAY_BASE_URL` | API base URL (prod/sandbox) |
-
-### Ifthenpay
-
-| Field | Env fallback | Description |
-| --- | --- | --- |
-| `antiPhishingKey` | `IFTHENPAY_ANTIPHISHING_KEY` | Anti-phishing key |
-| `mbKey` | `IFTHENPAY_MB_KEY` | Multibanco key (required) |
-| `mbwayKey` | `IFTHENPAY_MBWAY_KEY` | MB WAY key |
-| `ccKey` | `IFTHENPAY_CC_KEY` | Credit card key |
-
-## How credentials flow
-
-```mermaid
-flowchart TB
-  subgraph save [Dashboard save]
-    ENC[encryptConfig]
-    DB[(integration_config)]
-    ENC --> DB
-  end
-
-  subgraph runtime [Checkout pay / API webhook]
-    LOAD[loadIntegrationConfig]
-    DEC[decryptConfig]
-    FACTORY[getPaymentProvider]
-    ENV[Env var fallback]
-    LOAD --> DEC --> FACTORY
-    ENV -.-> FACTORY
-  end
-
-  DB --> LOAD
-```
-
-## Storage schema
-
-```sql
-CREATE TABLE integration_config (
-  id          TEXT PRIMARY KEY,
-  organization_id TEXT NOT NULL,
-  provider    TEXT NOT NULL,  -- 'stripe', 'easypay', 'ifthenpay'
-  config      JSONB NOT NULL, -- encrypted key-value pairs
-  created_at  TIMESTAMPTZ,
-  updated_at  TIMESTAMPTZ,
-  UNIQUE (organization_id, provider)
-);
-```
-
-## Server actions
-
-`app/(dashboard)/integrations/actions.ts`:
-
-```ts
-'use server'
-export async function saveIntegration(provider: string, config: Record<string, string>) {
-  return withActiveOrg(async (orgId) => {
-    const encrypted = encryptConfig(config)
-    await upsertIntegrationConfig(orgId, provider, encrypted)
-  })
-}
-```
-
-## Security
-
-- Credentials encrypted with AES-256-GCM (`enc:v1:` prefix)
-- Encryption key: `INTEGRATION_ENCRYPTION_KEY` (dedicated key in production)
-- Dashboard decrypts on read for form display; never exposes raw secrets to client
-- Commerce layer decrypts when building providers at runtime
-- Plaintext values (no `enc:v1:` prefix) supported for dev/migration
+Switch off **Turned on** and save. Your store stops taking new payments through it. It still reports on payments it took before.
 
 ## Related pages
 
 <Cards>
-  <Card title="Payment integration guide" href="/docs/guides/payment-integration" description="End-to-end payment setup." />
-  <Card title="Payment packages" href="/docs/packages/payments/stripe" description="Stripe provider details." />
-  <Card title="Multi-tenant payments" href="/docs/architecture/multi-tenant" description="Per-tenant credential isolation." />
+  <Card title="Payment integration" href="/docs/guides/payment-integration" description="Provider-by-provider setup." />
+  <Card title="Webhook setup" href="/docs/guides/webhook-setup" description="Add your webhook URL." />
 </Cards>

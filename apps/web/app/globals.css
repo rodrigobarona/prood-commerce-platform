@@ -11,3 +11,13 @@
     }
   }
 }
+
+/* The footer's tile edge continues whatever closes the page. */
+main:has(> .surface-telha:last-child) + footer {
+  --footer-edge: var(--telha);
+}
+
+/* The closing section's tile edge does the same, when an Ink panel sits above it. */
+main > .surface-ink + .surface-telha {
+  --closing-edge: var(--ink);
+}

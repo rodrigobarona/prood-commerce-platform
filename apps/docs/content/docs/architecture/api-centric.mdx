@@ -1,5 +1,5 @@
 ---
-title: API-Centric Architecture
+title: API-centric architecture
 description: Why Prood routes all commerce operations through apps/api and how callers authenticate.
 ---
 
@@ -33,7 +33,7 @@ flowchart TB
   JWT["Bearer JWT → org from agent metadata"]
   KEY["x-api-key → org + scopes"]
   SESS["Session cookie → activeOrganizationId"]
-  HOST["Host header → tenant lookup"]
+  HOST["x-storefront-host → tenant lookup"]
 
   SVC["commerce-service.ts"]
   PLATFORM["@prood/commerce.withTenant(orgId)<br/>→ @prood/platform"]
@@ -87,7 +87,7 @@ export function getCommerceApi() {
 }
 ```
 
-The API uses the `Host` header for tenant resolution on storefront-scoped routes and the session cookie for dashboard admin routes.
+The API uses the `x-storefront-host` header for tenant resolution on storefront-scoped routes and the session cookie for dashboard admin routes.
 
 ## Scopes
 
@@ -97,7 +97,7 @@ The API enforces three scopes:
 | --- | --- |
 | `storefront` | Catalog reads, cart CRUD, place order, customer orders |
 | `staff` | Read admin data, for every member of a store |
-| `admin` | Full CRUD — products, orders, customers, store settings, inventory, dashboard stats |
+| `admin` | Reads and changes catalog, inventory, orders and store settings, and reads customers. Payment accounts, domains, team and keys stay in the dashboard. Starts on Grow. |
 
 Route handlers call `requireCaller('storefront')`, `requireCaller('staff')` or `requireCaller('admin')` to enforce scope.
 

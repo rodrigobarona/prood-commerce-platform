@@ -1,96 +1,40 @@
 ---
 title: Introduction
-description: Launch and run online stores on Prood—subdomain storefront, merchant dashboard, payments, and APIs for humans and AI.
+description: Open a store on your own domain, take payments through your own accounts, and work through an API built for developers and AI agents.
 ---
 
-Welcome to the **Prood** documentation. Prood helps you **sell your products online**: create a store, go live on `yourname.prood.app`, manage catalog and orders in the dashboard, and accept payments through Stripe and regional providers.
+Prood helps you sell online. You get a store on a prood.app address or your own domain, a dashboard for products and orders, and checkout through your own Stripe, Easypay or Ifthenpay account.
 
-Under the hood, Prood is a multi-tenant commerce platform (Next.js 16, Neon Postgres, pluggable payments). Each merchant is a Better Auth **organization** with isolated data via **row-level security (RLS)**.
+## Start here
 
 <Cards>
-  <Card title="For merchants" href="/docs/guides/for-merchants" description="What you can do today and how to launch your first store." />
-  <Card title="For agencies" href="/docs/guides/for-agencies" description="Run many client stores with isolated tenants and domains." />
-  <Card title="Getting started" href="/docs/getting-started" description="Install, configure env vars, and run locally." />
-  <Card title="Merchant onboarding" href="/docs/guides/merchant-onboarding" description="Register to go-live in about an hour." />
+  <Card title="Open your store" href="/docs/getting-started" description="Your first product, payment account and order." />
+  <Card title="Merchant guide" href="/docs/guides/for-merchants" description="What you can do today and what's coming later." />
+  <Card title="Agency guide" href="/docs/guides/for-agencies" description="Build and run client stores, each with its own data and domain." />
+  <Card title="Quick start for developers" href="/docs/getting-started/quick-start" description="Make an API key and call the API in three steps." />
 </Cards>
 
-## What is Prood?
+## What you get
 
-Prood is a **commerce platform** for creators, brands, and agencies—not just a code template. You get:
+- **A store:** catalog, cart, checkout and customer accounts, on a prood.app address or your own domain.
+- **A dashboard:** products, orders, customers, payment accounts, domains and team.
+- **Hosted checkout:** cards, Multibanco and MB WAY through your own payment account, depending on your provider.
+- **An API:** catalog, orders, customers, inventory and store settings all run on `/v1`, the same calls the dashboard makes, with an OpenAPI 3.1 spec and an MCP server.
 
-- A **customer storefront** (catalog, cart, checkout, accounts)
-- A **merchant dashboard** (products, orders, integrations, domains, team)
-- A **hosted checkout** app (Stripe, Easypay, Ifthenpay)
-- A **Commerce API** with OpenAPI, MCP, and Agent Auth for automation
+Payment accounts, domains, team and keys stay in the dashboard.
 
-You can swap payment providers and storage backends per store without rewriting your apps.
+## What stays yours
 
-## Monorepo applications
+- **Your domain.** Every plan includes one custom domain or more, with HTTPS set up for you.
+- **Your payment accounts.** Each store's credentials are stored separately and encrypted at rest with AES-256-GCM. Payouts go straight from your provider to you.
+- **Your API keys.** Organization keys for your own code.
+- **The final say.** With Agent Auth, an AI agent starts with nothing until you approve it for your store. After that it keeps the public catalog, and anything else needs your approval. You see every capability the agent asks for and approve or deny the request as a whole. Approved access ends after an hour idle, or 24 hours at most. Then the agent asks again. An API key isn't Agent Auth: anything holding an admin key can do what the key allows, without asking. Agent Auth starts on Grow. Paid plans are coming.
 
-| App | Port | Purpose |
-| --- | --- | --- |
-| `storefront` | 3000 | Customer-facing store — catalog, cart, checkout redirect, account |
-| `web` | 3001 | Marketing site (prood.com) |
-| `dashboard` | 3002 | Merchant admin — products, orders, integrations, domains, team |
-| `docs` | 3003 | This documentation site (Fumadocs + OpenAPI) |
-| `checkout` | 3004 | Hosted payment app — Stripe, Easypay, Ifthenpay |
-| `api` | 3005 | Commerce REST API (`/v1/*`), MCP server, Agent Auth |
-
-## Core packages
-
-| Package | Role |
-| --- | --- |
-| `@prood/types` | Unified domain types and provider interfaces |
-| `@prood/platform` | Built-in commerce engine (Neon Postgres + Drizzle + RLS) |
-| `@prood/commerce` | Server-only data layer wrapping the adapter and providers |
-| `@prood/checkout` | Framework-agnostic checkout state machine |
-| `@prood/checkout-host` | Next.js session host (Upstash Redis) |
-| `@prood/api-client` | Typed OpenAPI fetch client |
-| `@prood/ui` | shadcn/Radix + 33+ commerce UI components |
-
-## How data flows
-
-```mermaid
-flowchart TB
-  subgraph clients [Client apps]
-    SF[Storefront]
-    DB[Dashboard]
-  end
-
-  API[apps/api]
-  COM["@prood/commerce"]
-  PLAT["@prood/platform"]
-  DBN[(Neon Postgres)]
-  CHK[apps/checkout]
-
-  SF -->|HTTP| API
-  DB -->|HTTP| API
-  SF -->|CHECKOUT_URL| CHK
-  CHK -->|webhooks| API
-  API --> COM --> PLAT --> DBN
-```
-
-The **storefront** and **dashboard** call the **Commerce API** via `@prood/api-client`. Only `apps/api` (and dashboard integration helpers) invoke `@prood/commerce`, which scopes every query to the active tenant with `withTenant()`.
-
-## Key concepts
-
-### Multi-tenancy
-
-Each store is a Better Auth organization. The storefront resolves the tenant from the request **Host** header (custom domain or `{slug}.prood.app` subdomain). See [Multi-tenant platform](/docs/architecture/multi-tenant).
-
-### API-centric architecture
-
-All commerce operations go through `apps/api` for consistent auth, OpenAPI contracts, and agent tooling. See [API-centric architecture](/docs/architecture/api-centric).
-
-### Checkout separation
-
-Order placement happens on the storefront (via the API). Payment UI lives in `apps/checkout`, with sessions in **Upstash Redis**. Webhooks reconcile order status through the API.
-
-## Next steps
+## Where to go next
 
 <Cards>
-  <Card title="Installation" href="/docs/getting-started/installation" description="Clone, install, migrate the database, and start dev servers." />
-  <Card title="Quick start" href="/docs/getting-started/quick-start" description="Browse products, add to cart, and complete checkout." />
-  <Card title="Pricing (marketing)" href="https://prood.com/pricing" description="Free, Grow, Scale, and Agency plans." />
-  <Card title="Storefront guide" href="/docs/apps/storefront" description="Pages, cart BFF, tenant resolution, checkout." />
+  <Card title="Merchant onboarding" href="/docs/guides/merchant-onboarding" description="The full checklist, from your account to your first real order." />
+  <Card title="Plans and limits" href="/docs/billing/plans" description="What each plan includes and where the limits apply." />
+  <Card title="API reference" href="/docs/api" description="Every operation under /v1." />
+  <Card title="Run it locally" href="/docs/run-locally" description="For contributors: clone the source repo and run every app." />
 </Cards>

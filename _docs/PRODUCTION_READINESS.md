@@ -13,7 +13,7 @@ Audited the pnpm/Turborepo monorepo across all runtime apps and related packages
 
 - Runtime engine: built-in `platform` adapter only, backed by Neon Postgres and Drizzle.
 - Tenant isolation: Better Auth organizations, `withTenant(orgId)`, and forced RLS on commerce tables.
-- Auth: `apps/api` issues merchant/auth sessions; `apps/storefront` owns customer auth per storefront origin; `apps/admin` validates shared sessions directly and requires `ADMIN_USER_IDS`.
+- Auth: `apps/api` issues merchant/auth sessions; `apps/storefront` owns customer auth per storefront origin; `apps/admin` validates shared sessions directly and requires the admin role.
 - Checkout: `apps/checkout` stores sessions in Upstash Redis and forwards payment events to the Commerce API.
 - Docs: Fumadocs under `apps/docs`, with OpenAPI synced at build time.
 
@@ -63,3 +63,17 @@ pnpm verify
 - Marketing/CMS content is still static/MDX; Sanity/Payload integration is not implemented.
 - Resend production deliverability requires a verified sender domain and DNS records.
 - Payment webhooks must be configured per provider and pointed at `apps/checkout`.
+
+## Release checklist
+
+Update (2026-11-02). Before a deploy that changes auth or infrastructure:
+
+- `AUTH_PROXY_SECRET` has the same value on `prood-api`, `prood-dashboard` and
+  `prood-admin`. Without it every request to `/api/auth` fails in production.
+- `KV_REST_API_URL` and `KV_REST_API_TOKEN` are on `prood-api` and
+  `prood-storefront`, through the Upstash integration. If Redis is unavailable the
+  limiters allow requests rather than block sign-in.
+- Vercel doesn't run migrations: run `pnpm db:migrate` yourself. Additive migrations
+  go first.
+- `RESEND_FROM_EMAIL` must use a domain verified in Resend. An unverified sender is
+  logged as "Resend refused an email", and the caller carries on.

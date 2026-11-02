@@ -7,18 +7,13 @@ The checkout app renders provider-specific payment UI on `/c/[id]`. The active p
 
 ## Provider selection
 
-Priority order:
+A session uses one provider: the first the store has connected and turned on, in the order Stripe, Easypay, Ifthenpay. With none connected, it fails with "This store has no payment provider connected yet."
 
-1. `provider` field in session creation request
-2. Tenant's configured default in `integration_config`
-3. `DEFAULT_PAYMENT_PROVIDER` env var (default: `stripe`)
-
-At payment time, `@prood/checkout-host` rebuilds the provider with tenant credentials:
+At payment time, `@prood/checkout-host` rebuilds the provider with the store's own credentials:
 
 ```ts
-const provider = getPaymentProvider(session.providerId, tenantConfig)
-// tenantConfig from decryptConfig(integration_config.config)
-// env vars as fallback for missing fields
+const { provider } = await getTenantPaymentProvider(tenantId, session.providerId, { includeDisabled: true })
+// credentials come from integration_config, decrypted. There is no environment fallback.
 ```
 
 ## Stripe (embedded Payment Element)
@@ -36,7 +31,7 @@ Uses `@stripe/react-stripe-js` with the Payment Element:
 
 ### Flow
 
-1. Session loaded → `submitPayment()` creates Stripe PaymentIntent
+1. Session loaded → `submitPayment()` creates a Stripe Checkout Session
 2. Client receives `clientSecret` from payment session
 3. Payment Element renders card form
 4. Customer submits → Stripe handles 3DS if required
@@ -50,12 +45,7 @@ Uses `@stripe/react-stripe-js` with the Payment Element:
 | `4000 0000 0000 3220` | 3DS required |
 | `4000 0000 0000 9995` | Declined |
 
-### Required env vars
-
-| Variable | Purpose |
-| --- | --- |
-| `STRIPE_SECRET_KEY` | Server-side (via tenant config or env) |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Client-side Payment Element |
+The publishable and secret keys are the store's own, entered under Integrations in the dashboard.
 
 ## Easypay (Portugal)
 
@@ -79,7 +69,7 @@ Reference-based payment for Portuguese methods:
 
 ### Sandbox
 
-Set `EASYPAY_BASE_URL=https://api.test.easypay.pt` for testing.
+Set the **Easypay address** field to `https://api.test.easypay.pt` under Integrations for testing.
 
 ## Ifthenpay (Portugal)
 
@@ -87,13 +77,13 @@ Set `EASYPAY_BASE_URL=https://api.test.easypay.pt` for testing.
 
 Similar reference-based flow:
 
-| Method | Key env var |
+| Method | Integrations field |
 | --- | --- |
-| Multibanco | `IFTHENPAY_MB_KEY` |
-| MB WAY | `IFTHENPAY_MBWAY_KEY` |
-| Credit card | `IFTHENPAY_CC_KEY` |
+| Multibanco | Multibanco key |
+| MB WAY | MB WAY key |
+| Credit card | Credit card key |
 
-Anti-phishing verification via `IFTHENPAY_ANTIPHISHING_KEY`.
+Calls back are verified with the store's anti-phishing key.
 
 ## Shared payment page
 

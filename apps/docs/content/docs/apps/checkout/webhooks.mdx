@@ -15,14 +15,14 @@ GET  /api/webhooks/{provider}/{org}  (provider verification)
 | Segment | Values |
 | --- | --- |
 | `provider` | `stripe`, `easypay`, `ifthenpay` |
-| `org` | Organization ID (tenant) or `_` for env-fallback |
+| `org` | Organization ID (tenant) |
 
 ### Example URLs
 
 ```
 POST https://checkout.example.com/api/webhooks/stripe/org_abc123
 POST https://checkout.example.com/api/webhooks/easypay/org_abc123
-POST https://checkout.example.com/api/webhooks/ifthenpay/_
+POST https://checkout.example.com/api/webhooks/ifthenpay/org_abc123
 ```
 
 ## Flow
@@ -44,24 +44,21 @@ sequenceDiagram
 
 ## Per-tenant verification
 
-Each tenant can configure their own webhook secret in the dashboard (Integrations page). The verification flow:
+Each store connects its own provider in the dashboard (Integrations page). The verification flow:
 
-1. Load tenant's `integration_config` for the provider
-2. Decrypt stored `webhookSecret`
-3. Verify signature against tenant's secret
-4. Fall back to env var (`STRIPE_WEBHOOK_SECRET`, etc.) if org is `_` or secret not configured
+1. Load the store's `integration_config` for the provider
+2. Decrypt its credentials
+3. Verify the call with `provider.verifyWebhook()`
+
+What that means depends on the provider. Stripe checks the signature against the store's `webhookSecret`. Ifthenpay checks the anti-phishing key. Easypay notifications are unsigned, so the body is only a trigger: the payment is read back from Easypay's API, and that response is the source of truth.
+
+There is no environment fallback.
 
 ```ts
 // @prood/commerce
-export async function verifyPaymentWebhook(
-  payload: string,
-  signature: string,
-  providerId: string,
-  orgId: string,
-): Promise<PaymentWebhookResult> {
-  const config = await loadIntegrationConfig(orgId, providerId)
-  const provider = getPaymentProvider(providerId, config)
-  return provider.verifyWebhook({ payload, signature })
+export async function verifyPaymentWebhook(tenantId, providerId, payload, signature) {
+  const { provider } = await getTenantPaymentProvider(tenantId, providerId, { includeDisabled: true })
+  return provider.verifyWebhook(payload, signature)
 }
 ```
 
@@ -71,10 +68,7 @@ export async function verifyPaymentWebhook(
 
 1. In Stripe Dashboard → Webhooks → Add endpoint
 2. URL: `https://checkout.example.com/api/webhooks/stripe/{orgId}`
-3. Events (11 total):
-   - `checkout.session.completed`, `checkout.session.expired`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `charge.refunded`
-   - `payment_intent.succeeded`, `payment_intent.payment_failed`, `payment_intent.canceled`, `payment_intent.processing`, `payment_intent.amount_capturable_updated`
-   - `charge.refunded`, `refund.created`
+3. Events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`, `charge.refunded`
 4. Copy signing secret → dashboard Integrations → Stripe → webhook secret
 
 Or run `./scripts/stripe-webhook-setup.sh` to configure via CLI.

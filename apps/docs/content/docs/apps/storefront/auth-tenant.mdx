@@ -1,5 +1,5 @@
 ---
-title: Auth & Tenant Resolution
+title: Auth and store resolution
 description: Customer authentication and host-based tenant resolution in the storefront.
 ---
 
@@ -59,7 +59,7 @@ There is no fallback tenant.
 
 | Priority | Source | Example |
 | --- | --- | --- |
-| 1 | Custom domain (verified) | `shop.merchant.com` |
+| 1 | Custom domain (verified) | `shop.example.com` |
 | 2 | Platform subdomain | `merchant.prood.app` |
 | 3 | Unknown host | Redirect to marketing site |
 
@@ -69,7 +69,7 @@ There is no fallback tenant.
 
 ### Forwarding to API
 
-The storefront API client forwards the `Host` header and session cookie to the Commerce API for tenant-scoped routes.
+The storefront API client forwards `x-storefront-host` and the session cookie to the Commerce API for tenant-scoped routes.
 
 ## Development setup
 

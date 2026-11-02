@@ -13,8 +13,8 @@ The API checks authentication methods in this order:
 | --- | --- | --- | --- | --- |
 | 1 | Agent JWT | `Authorization: Bearer {jwt}` | The store it was approved for, or the user's only store | Per operation, from capability grants |
 | 2 | API key | `x-api-key: {key}` | The organization that owns the key | Key metadata `scopes` |
-| 3 | Session cookie | `Cookie: better-auth.session=...` | `session.activeOrganizationId` | `admin`, `storefront` |
-| 4 | Host header | `Host: merchant.example.com` | Tenant domain / subdomain lookup | `storefront` only |
+| 3 | Store host | `x-storefront-host: merchant.example.com` | Tenant domain / subdomain lookup | `storefront`, or the member's role scopes |
+| 4 | Session cookie | `Cookie: better-auth.session=...` | `session.activeOrganizationId` | `admin`, `staff`, `storefront` |
 
 If no method resolves a valid caller, the request returns `401 Unauthorized`.
 
@@ -26,7 +26,7 @@ Three scopes control access:
 | --- | --- | --- |
 | `storefront` | Catalog reads, cart CRUD, place order, customer orders | Storefront (Host), customer sessions, agents with storefront grants |
 | `staff` | Read admin data — products, orders, customers, store, stats | Every member of the store |
-| `admin` | Full CRUD — products, orders, customers, store, inventory, stats. Implies `staff` | Sessions of store owners and admins, API keys with admin scope, agents with admin grants acting for an owner or admin |
+| `admin` | Reads and changes catalog, inventory, orders and store settings, and reads customers. Payment accounts, domains, team and keys stay in the dashboard. Starts on Grow. Implies `staff` | Sessions of store owners and admins, API keys with admin scope, agents with admin grants acting for an owner or admin |
 
 Route handlers enforce scope:
 
@@ -73,37 +73,42 @@ The API reads the session, extracts `activeOrganizationId`, and looks up the use
 
 ## Host-based authentication (storefront)
 
-The storefront forwards the `Host` header:
+The storefront forwards the store's host in `x-storefront-host`. The API never uses its own `Host` header to find a store. The client sets the header from its `host` option:
 
 ```ts
 // apps/storefront/lib/commerce-api.ts
-headers: async () => ({
-  cookie: (await headers()).get('cookie') ?? '',
-  host: (await headers()).get('host') ?? '',
+const headerList = await headers()
+return createCommerceApiClient({
+  baseUrl: getCommerceApiBaseUrl(),
+  host: headerList.get('host')?.split(':')[0]?.toLowerCase(),
+  cookie: headerList.get('cookie') ?? undefined,
 })
 ```
 
-The API resolves the tenant from the host and grants `storefront` scope only. This prevents storefront requests from accessing admin endpoints.
+The API resolves the tenant from the host. A shopper gets `storefront` scope, which keeps storefront requests away from admin endpoints. A signed-in member of that store gets their role's scopes, and the store being visited wins over the session's active store.
 
 ## API key authentication
 
-API keys are created in the dashboard (Settings → API Keys) and stored by Better Auth's `apiKey()` plugin:
+API keys are created in the dashboard (API keys, under Connections, at `/settings/api-keys`) and stored by Better Auth's `apiKey()` plugin. Each key has the Storefront scope, the Admin scope or both, and the Admin scope needs Grow:
 
 ```ts
 // Creating a key (dashboard)
 await auth.api.createApiKey({
   body: {
     name: 'Integration key',
+    prefix: 'pk',
     organizationId: activeOrgId,
     metadata: { scopes: ['admin'] },
   },
 })
 ```
 
+Better Auth joins the prefix and the random part with no separator, so a key looks like `pkAbC123...`, with no underscore.
+
 Usage:
 
 ```bash
-curl -H "x-api-key: pk_xxx" http://localhost:3005/v1/admin/products
+curl -H "x-api-key: $PROOD_API_KEY" https://api.prood.com/v1/admin/products
 ```
 
 ## Agent JWT authentication
@@ -130,23 +135,27 @@ This allows the checkout app to forward webhooks without a session or API key.
 
 ## Error responses
 
-All auth failures use consistent error format from `@prood/types`:
+Every error is JSON with a `code` and a `message`, from `toErrorResponse()` in `@prood/types`. The status is the HTTP status of the response.
 
 ```json
 {
-  "error": "Unauthorized",
   "code": "UNAUTHORIZED",
-  "status": 401
+  "message": "Invalid API key. It may be mistyped, or it may have expired. Create a new one in your dashboard, under API keys."
 }
 ```
 
 ```json
 {
-  "error": "Insufficient scope",
   "code": "FORBIDDEN",
-  "status": 403
+  "message": "This API key doesn't have the admin scope. Create a key with it in your dashboard, under API keys. Admin keys start on Grow."
 }
 ```
+
+A key with the Admin scope on a Free store is refused on every call, whatever the route, with `FORBIDDEN` and "Write access requires a Grow plan or higher".
+
+## Rate limits
+
+Each API key can make 600 requests a minute. Past that the API returns `429` with a `Retry-After` header saying how many seconds to wait.
 
 ## Related pages
 

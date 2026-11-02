@@ -1,5 +1,5 @@
 {
   "title": "Applications",
   "icon": "AppWindow",
-  "pages": ["overview", "storefront", "dashboard", "checkout", "api"]
+  "pages": ["overview", "storefront", "checkout"]
 }

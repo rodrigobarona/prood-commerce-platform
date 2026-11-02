@@ -7,9 +7,7 @@ description: Unified data model — domain types, adapter interfaces, and provid
 
 ## Installation
 
-```bash
-pnpm add @prood/types
-```
+Workspace package. Available from the source repo for now.
 
 Already included as a dependency of `@prood/commerce`, `@prood/platform`, and `@prood/ui`.
 
@@ -99,7 +97,8 @@ import { CommerceError, toErrorResponse } from '@prood/types'
 throw new CommerceError('Product not found', 'NOT_FOUND', 404)
 
 // Convert to HTTP response
-const { error, code, status } = toErrorResponse(err)
+const { status, body } = toErrorResponse(err)
+// body: { code: 'NOT_FOUND', message: 'Product not found' }
 ```
 
 ## Admin types

@@ -7,9 +7,7 @@ description: Typed OpenAPI fetch client for the Commerce API.
 
 ## Installation
 
-```bash
-pnpm add @prood/api-client
-```
+`@prood/api-client` isn't published to npm yet. Available from the source repo for now: in this monorepo, depend on it with `"@prood/api-client": "workspace:*"`.
 
 ## Basic usage
 
@@ -22,7 +20,7 @@ const api = createCommerceApiClient({
 
 // List products
 const { data, error } = await api.GET('/products', {
-  params: { query: { query: 'shirt', limit: 10 } },
+  params: { query: { query: 'shirt', perPage: 10 } },
 })
 
 // Get product by ID
@@ -42,7 +40,9 @@ const api = createCommerceApiClient({
 })
 ```
 
-### Host header (storefront)
+### Store host (storefront)
+
+The client sends `host` as the `x-storefront-host` header.
 
 ```ts
 const api = createCommerceApiClient({
@@ -57,7 +57,7 @@ const api = createCommerceApiClient({
 ```ts
 const api = createCommerceApiClient({
   baseUrl: COMMERCE_API_URL,
-  apiKey: 'pk_xxx',
+  apiKey: 'pkAbC123...',
 })
 ```
 

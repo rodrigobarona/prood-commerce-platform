@@ -3,13 +3,11 @@ title: "@prood/payment-ifthenpay"
 description: Ifthenpay payment provider for Portugal — Multibanco, MB WAY, and credit card.
 ---
 
-`@prood/payment-ifthenpay` implements the `PaymentProvider` interface for [Ifthenpay](https://www.ifthenpay.com/) — a Portuguese payment gateway supporting Multibanco, MB WAY, and credit card payments.
+`@prood/payment-ifthenpay` implements the `PaymentProvider` interface for [Ifthenpay](https://www.ifthenpay.com/) — a Portuguese payment provider supporting Multibanco, MB WAY, and credit card payments.
 
 ## Installation
 
-```bash
-pnpm add @prood/payment-ifthenpay
-```
+Workspace package. Available from the source repo for now.
 
 ## Usage
 
@@ -17,21 +15,23 @@ pnpm add @prood/payment-ifthenpay
 import { IfthenpayPaymentProvider } from '@prood/payment-ifthenpay'
 
 const provider = new IfthenpayPaymentProvider({
-  antiPhishingKey: process.env.IFTHENPAY_ANTIPHISHING_KEY!,
-  mbKey: process.env.IFTHENPAY_MB_KEY!,
-  mbwayKey: process.env.IFTHENPAY_MBWAY_KEY!,
-  ccKey: process.env.IFTHENPAY_CC_KEY!,
+  antiPhishingKey: config.antiPhishingKey,
+  mbKey: config.mbKey,
+  mbWayKey: config.mbWayKey,
+  ccKey: config.ccKey,
 })
 ```
 
 ## Configuration
 
-| Field | Env var | Description |
-| --- | --- | --- |
-| `antiPhishingKey` | `IFTHENPAY_ANTIPHISHING_KEY` | Anti-phishing verification key |
-| `mbKey` | `IFTHENPAY_MB_KEY` | Multibanco gateway key |
-| `mbwayKey` | `IFTHENPAY_MBWAY_KEY` | MB WAY gateway key |
-| `ccKey` | `IFTHENPAY_CC_KEY` | Credit card gateway key |
+| Field | Description |
+| --- | --- |
+| `antiPhishingKey` | Anti-phishing verification key |
+| `mbKey` | Multibanco gateway key |
+| `mbWayKey` | MB WAY gateway key. Optional |
+| `ccKey` | Credit card gateway key. Optional |
+
+Each store enters these under Integrations in the dashboard. There is no environment fallback.
 
 `mbKey` is required, since Multibanco is the default method. The other keys are optional, and each one unlocks its method at checkout.
 
@@ -44,7 +44,7 @@ Pass `method` on `createSession()` (defaults to `multibanco`):
 | `method` | Key used | Result |
 | --- | --- | --- |
 | `multibanco` | `mbKey` | Entity + reference in `providerData` |
-| `mbway` | `mbwayKey` | MB WAY push; `providerData.requestId` |
+| `mbway` | `mbWayKey` | MB WAY push; `providerData.requestId` |
 | `card` | `ccKey` | Redirect to Ifthenpay hosted card page |
 
 ```ts
@@ -62,9 +62,9 @@ Reference-based methods (Multibanco) confirm asynchronously — the webhook call
 ## Factory usage
 
 ```ts
-import { getPaymentProvider } from '@prood/commerce'
+import { getTenantPaymentProvider } from '@prood/commerce'
 
-const provider = await getPaymentProvider('ifthenpay', orgId)
+const { provider } = await getTenantPaymentProvider(orgId, 'ifthenpay')
 ```
 
 ## Payment methods
@@ -72,7 +72,7 @@ const provider = await getPaymentProvider('ifthenpay', orgId)
 | Method | Key | Flow |
 | --- | --- | --- |
 | **Multibanco** | `mbKey` | Entity + reference; async ATM/homebanking payment |
-| **MB WAY** | `mbwayKey` | Phone push notification |
+| **MB WAY** | `mbWayKey` | Phone push notification |
 | **Credit card** | `ccKey` | Redirect to Ifthenpay hosted page |
 
 ## Anti-phishing verification

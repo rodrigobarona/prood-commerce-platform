@@ -1,5 +1,5 @@
 ---
-title: Packages Overview
+title: Packages overview
 description: Shared packages in the Prood monorepo — types, platform engine, commerce layer, checkout, UI, and providers.
 ---
 
@@ -50,13 +50,14 @@ flowchart TB
 | Package | Version | Description |
 | --- | --- | --- |
 | [`@prood/api-client`](/docs/packages/api-client) | 0.0.0 | Typed OpenAPI fetch client |
-| [`@prood/ui`](/docs/packages/ui) | 0.0.0 | shadcn/Radix + 33+ commerce components |
+| [`@prood/ui`](/docs/packages/ui) | 0.0.0 | The design system: tokens, shadcn/Radix primitives and commerce components |
+| [`@prood/media`](/docs/packages/media) | 0.0.0 | Curated photography and film with `MediaImage` and `MediaVideo` |
 
 ## Providers
 
 | Package | Version | Description |
 | --- | --- | --- |
-| [`@prood/payment-stripe`](/docs/packages/payments/stripe) | 0.1.0 | Stripe Payment Element via PaymentIntents |
+| [`@prood/payment-stripe`](/docs/packages/payments/stripe) | 0.1.0 | Stripe Payment Element via Checkout Sessions |
 | [`@prood/payment-easypay`](/docs/packages/payments/easypay) | 0.1.0 | Portugal — Multibanco, MB WAY, card |
 | [`@prood/payment-ifthenpay`](/docs/packages/payments/ifthenpay) | 0.1.0 | Portugal — Multibanco, MB WAY, credit card |
 | [`@prood/storage-s3`](/docs/packages/storage/s3) | 0.2.0 | S3-compatible storage (AWS, R2, MinIO) |
@@ -77,7 +78,7 @@ flowchart TB
 | Custom commerce adapter | `@prood/types` (implement `CommerceAdapter`) |
 | Direct database access | `@prood/platform` (prefer API for apps) |
 | Hosted checkout session | `@prood/checkout-host` |
-| Upload product images | `@prood/storage-*` via `@prood/commerce` |
+| Store a file for a tenant | `@prood/storage-*` via `@prood/commerce` |
 
 ## Package guides
 
@@ -87,5 +88,6 @@ flowchart TB
   <Card title="@prood/commerce" href="/docs/packages/commerce" description="Server data layer and provider factory." />
   <Card title="Payment providers" href="/docs/packages/payments" description="Stripe, Easypay, Ifthenpay." />
   <Card title="Storage" href="/docs/packages/storage" description="Cloudflare R2." />
-  <Card title="@prood/ui" href="/docs/packages/ui" description="Shared React components." />
+  <Card title="@prood/ui" href="/docs/packages/ui" description="The design system and shared React components." />
+  <Card title="@prood/media" href="/docs/packages/media" description="Curated photography and film." />
 </Cards>

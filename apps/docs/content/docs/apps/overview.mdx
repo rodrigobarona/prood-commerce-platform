@@ -1,5 +1,5 @@
 ---
-title: Applications Overview
+title: Applications overview
 description: The seven runtime applications in the Prood monorepo and how they interact.
 ---
 
@@ -75,7 +75,7 @@ In production, each app is a **separate Vercel project** sharing the same Neon d
 | Storefront | Per-merchant domains + subdomains | Tenant resolved from Host |
 | Dashboard | Single admin URL (e.g. `admin.example.com`) | Org switching in session |
 | Checkout | Single checkout URL (e.g. `checkout.example.com`) | Shared across all tenants |
-| API | Single API URL (e.g. `api.example.com`) | All callers hit one origin |
+| API | Single API URL (e.g. `api.prood.com`) | All callers hit one origin |
 | Admin | Restricted admin URL (e.g. `ops-admin.example.com`) | Platform operations only |
 | Docs | `docs.example.com` | Static + OpenAPI |
 

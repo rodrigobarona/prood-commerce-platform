@@ -163,7 +163,7 @@ multi-step checkout, and customer account pages.
 | `/products`            | Product listing with search, filters, sort, pagination        |
 | `/products/[slug]`     | Product detail — gallery, price, ratings, variants, add-to-cart |
 | `/categories/[slug]`   | Category browsing with recursive slug lookup                  |
-| `/cart`                | Full cart with coupon input, save-for-later, mobile CTA       |
+| `/cart`                | Full cart with save-for-later, mobile CTA                     |
 | `/checkout`            | 4-step wizard: Contact, Address, Shipping, Review             |
 | `/order-confirmation`  | Post-payment summary + guest account creation                 |
 | `/account`             | Account dashboard with 5 most recent orders                   |
@@ -186,7 +186,6 @@ multi-step checkout, and customer account pages.
 | `/api/commerce/cart`                   | GET, POST   | Get/create cart (cookie-based)   |
 | `/api/commerce/cart/items`             | POST        | Add item; auto-create cart       |
 | `/api/commerce/cart/items/[itemId]`    | PUT, DELETE | Update quantity / remove item    |
-| `/api/commerce/cart/coupon`            | POST, DELETE| Apply / remove coupon            |
 | `/api/commerce/cart/shipping-methods`  | GET         | Shipping options for cart        |
 | `/api/commerce/search`                 | GET         | Product search (max 8 results)   |
 | `/api/commerce/countries`              | GET         | Supported countries              |
@@ -602,8 +601,6 @@ visibility via direct Neon DB queries (Drizzle). Not merchant-facing.
 #### Authorization
 
 - Gated by `role === "admin"` in the database session
-- `ADMIN_USER_IDS` environment variable on `apps/api` auto-promotes specified
-  Better Auth user IDs to admin role
 - Session validated via direct DB read (bypasses Better Auth origin checks)
 - Non-admin users who authenticate see an "Access Denied" card
 
@@ -920,7 +917,7 @@ breadcrumb, sidebar, scroll-area, empty-state, sonner
 
 **Commerce-specific (33+):** product-card, product-grid, product-gallery,
 product-price, product-type-badge, category-filter, cart-item,
-cart-drawer, cart-summary, quantity-selector, coupon-input, free-shipping-bar,
+cart-drawer, cart-summary, quantity-selector, free-shipping-bar,
 address-form, checkout-header, checkout-footer, checkout-stepper, order-card,
 order-timeline, review-stars, review-card, wishlist-grid, search-palette,
 hero-banner, promo-banner
@@ -1118,7 +1115,7 @@ issuer. Different apps consume auth differently:
 | --------------- | ---------------------------------------------- |
 | `organization`  | Multi-store tenants; hooks + invite emails     |
 | `apiKey`        | Machine API keys with org metadata             |
-| `admin`         | Platform admin via `ADMIN_USER_IDS`            |
+| `admin`         | Platform admin by database role                |
 | `agentAuth`     | Delegated + autonomous agent modes             |
 | `nextCookies`   | Next.js cookie integration                     |
 
@@ -1251,7 +1248,7 @@ Cart → Place Order → Order (placed)
 
 ### Plan Tiers
 
-| Feature             | Free       | Grow ($29/mo)  | Scale ($79/mo)  | Agency (custom)  |
+| Feature             | Free       | Grow (€29/mo)  | Scale (€79/mo)  | Agency (custom)  |
 | ------------------- | ---------- | -------------- | --------------- | ---------------- |
 | Stores              | 1          | 1              | 1               | 10+              |
 | Products            | 50         | 500            | Unlimited       | Unlimited        |
@@ -1450,7 +1447,7 @@ Each app deploys as a separate Vercel project sharing the same Neon database:
 | `apps/checkout` | `https://checkout.prood.com`   | Hosted checkout + payment webhooks |
 | `apps/docs`    | `https://docs.prood.com`        | Documentation                     |
 | `apps/storefront` | `https://{slug}.prood.app`   | Wildcard tenant storefront        |
-| `apps/admin`   | `https://admin.prood.com`       | Restrict via `ADMIN_USER_IDS`     |
+| `apps/admin`   | `https://admin.prood.com`       | Platform admins only              |
 
 ### Required Production Secrets
 
@@ -1460,12 +1457,12 @@ Each app deploys as a separate Vercel project sharing the same Neon database:
 | `BETTER_AUTH_SECRET`          | Auth signing secret (strong value)     |
 | `CHECKOUT_API_SECRET`         | Checkout ↔ API authentication          |
 | `INTEGRATION_ENCRYPTION_KEY`  | AES-256-GCM for stored credentials     |
-| `UPSTASH_REDIS_REST_URL/TOKEN`| Checkout session storage               |
+| `AUTH_PROXY_SECRET`           | Trusted client address on auth calls   |
+| `KV_REST_API_*`               | Checkout sessions, auth rate limits    |
 | `RESEND_API_KEY`              | Transactional email                    |
 | `RESEND_FROM_EMAIL`           | Verified sender address                |
 | `STOREFRONT_VERCEL_PROJECT_ID`| Dashboard domain automation            |
 | `VERCEL_TOKEN`                | Domain provisioning API                |
-| `ADMIN_USER_IDS`              | Platform admin user IDs                |
 
 ### CI Pipeline
 

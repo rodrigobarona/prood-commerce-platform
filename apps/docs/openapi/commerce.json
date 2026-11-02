@@ -3,7 +3,7 @@
   "info": {
     "title": "Prood Commerce API",
     "version": "1.0.0",
-    "description": "Multi-tenant commerce HTTP API. Authenticate with Agent Auth (Bearer JWT + capability grants), `x-api-key` (org + scopes in key metadata), a Better Auth session cookie (dashboard), or resolve the tenant from the request `Host`. Agent discovery: `/.well-known/agent-configuration`."
+    "description": "Multi-tenant commerce HTTP API. Authenticate with `x-api-key` (org + scopes in key metadata), Agent Auth (Bearer JWT + capability grants), a Better Auth session cookie (dashboard), or resolve the tenant from the request `Host`. Agent discovery: `/.well-known/agent-configuration`."
   },
   "servers": [
     {
@@ -136,10 +136,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -192,7 +192,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -319,6 +319,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -332,10 +375,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -973,7 +1016,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1100,6 +1143,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -1113,10 +1199,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -1601,7 +1687,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1728,6 +1814,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -1741,10 +1870,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -2229,7 +2358,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2399,6 +2528,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -2412,10 +2584,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -2542,7 +2714,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2669,6 +2841,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -2682,10 +2897,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -2823,6 +3038,18 @@
                     "canTakeOrders": {
                       "type": "boolean",
                       "description": "True when a payment provider is connected, or when that couldn't be checked. Paid orders are refused without one, whatever this says."
+                    },
+                    "paymentMethods": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "card",
+                          "multibanco",
+                          "mbway"
+                        ]
+                      },
+                      "description": "How shoppers can pay, from the provider the store's checkout uses. Empty when that can't be read."
                     }
                   },
                   "required": [
@@ -2833,7 +3060,8 @@
                     "locales",
                     "country",
                     "contactEmail",
-                    "canTakeOrders"
+                    "canTakeOrders",
+                    "paymentMethods"
                   ],
                   "additionalProperties": false
                 }
@@ -2841,7 +3069,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2968,6 +3196,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -2981,10 +3252,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -3067,7 +3338,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3194,6 +3465,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -3207,10 +3521,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -3822,7 +4136,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3949,6 +4263,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -3962,10 +4319,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -4587,7 +4944,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -4714,6 +5071,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -4727,10 +5127,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -5351,8 +5751,51 @@
               }
             }
           },
+          "400": {
+            "description": "The body isn't valid JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5439,6 +5882,49 @@
           },
           "422": {
             "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5522,10 +6008,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -6154,8 +6640,51 @@
               }
             }
           },
+          "400": {
+            "description": "The body isn't valid JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -6242,6 +6771,49 @@
           },
           "422": {
             "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
             "content": {
               "application/json": {
                 "schema": {
@@ -6315,10 +6887,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -6948,7 +7520,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -7075,6 +7647,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -7088,10 +7703,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -7712,8 +8327,51 @@
               }
             }
           },
+          "400": {
+            "description": "The body isn't valid JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -7800,6 +8458,49 @@
           },
           "422": {
             "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
             "content": {
               "application/json": {
                 "schema": {
@@ -7872,10 +8573,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -8497,7 +9198,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -8624,6 +9325,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -8637,10 +9381,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -8749,7 +9493,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -8876,6 +9620,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -8889,10 +9676,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -8989,7 +9776,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -9074,8 +9861,94 @@
               }
             }
           },
+          "404": {
+            "description": "Cart not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "422": {
             "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
             "content": {
               "application/json": {
                 "schema": {
@@ -9129,10 +10002,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -9753,8 +10626,51 @@
               }
             }
           },
+          "400": {
+            "description": "The body isn't valid JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -9841,6 +10757,49 @@
           },
           "422": {
             "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
             "content": {
               "application/json": {
                 "schema": {
@@ -9947,10 +10906,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -10571,8 +11530,51 @@
               }
             }
           },
+          "400": {
+            "description": "The body isn't valid JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -10659,6 +11661,49 @@
           },
           "422": {
             "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
             "content": {
               "application/json": {
                 "schema": {
@@ -10765,10 +11810,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -11389,8 +12434,51 @@
               }
             }
           },
+          "400": {
+            "description": "The body isn't valid JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -11517,6 +12605,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         },
         "requestBody": {
@@ -11552,10 +12683,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -12342,8 +13473,51 @@
               }
             }
           },
+          "400": {
+            "description": "The body isn't valid JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -12513,6 +13687,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         },
         "requestBody": {
@@ -12548,10 +13765,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -13377,7 +14594,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -13504,6 +14721,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -13518,10 +14778,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -14316,7 +15576,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -14443,6 +15703,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -14456,10 +15759,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -15004,7 +16307,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -15131,6 +16434,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       },
@@ -15142,10 +16488,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -15616,8 +16962,51 @@
               }
             }
           },
+          "400": {
+            "description": "The body isn't valid JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -15704,6 +17093,49 @@
           },
           "422": {
             "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
             "content": {
               "application/json": {
                 "schema": {
@@ -15970,10 +17402,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -16455,7 +17887,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -16542,6 +17974,49 @@
           },
           "422": {
             "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
             "content": {
               "application/json": {
                 "schema": {
@@ -16593,10 +18068,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -17077,8 +18552,51 @@
               }
             }
           },
+          "400": {
+            "description": "The body isn't valid JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -17165,6 +18683,49 @@
           },
           "422": {
             "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
             "content": {
               "application/json": {
                 "schema": {
@@ -17426,10 +18987,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -17450,7 +19011,7 @@
             "description": "Deleted"
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -17577,6 +19138,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -17590,10 +19194,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -17695,8 +19299,51 @@
               }
             }
           },
+          "400": {
+            "description": "The body isn't valid JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -17783,6 +19430,49 @@
           },
           "422": {
             "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
             "content": {
               "application/json": {
                 "schema": {
@@ -17894,10 +19584,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -18009,8 +19699,51 @@
               }
             }
           },
+          "400": {
+            "description": "The body isn't valid JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -18097,6 +19830,49 @@
           },
           "422": {
             "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
             "content": {
               "application/json": {
                 "schema": {
@@ -18203,10 +19979,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -18227,7 +20003,7 @@
             "description": "Deleted"
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -18354,6 +20130,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -18367,10 +20186,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -18435,6 +20254,40 @@
             "in": "query",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "queue",
+            "in": "query",
+            "schema": {
+              "description": "`open`: not fulfilled or cancelled yet. `to_fulfill`: open, paid and not shipped.",
+              "type": "string",
+              "enum": [
+                "open",
+                "to_fulfill"
+              ]
+            }
+          },
+          {
+            "name": "sortField",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "total"
+              ]
+            }
+          },
+          {
+            "name": "sortDirection",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
             }
           }
         ],
@@ -19235,7 +21088,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -19362,6 +21215,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -19375,10 +21271,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -20179,7 +22075,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -20306,6 +22202,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -20319,10 +22258,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -20360,8 +22299,51 @@
               }
             }
           },
+          "400": {
+            "description": "The body isn't valid JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -20531,6 +22513,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         },
         "requestBody": {
@@ -20561,10 +22586,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -20624,7 +22649,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -20711,6 +22736,49 @@
           },
           "422": {
             "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
             "content": {
               "application/json": {
                 "schema": {
@@ -20764,10 +22832,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -20805,8 +22873,51 @@
               }
             }
           },
+          "400": {
+            "description": "The body isn't valid JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -20893,6 +23004,49 @@
           },
           "422": {
             "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
             "content": {
               "application/json": {
                 "schema": {
@@ -20969,10 +23123,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -21010,8 +23164,51 @@
               }
             }
           },
+          "400": {
+            "description": "The body isn't valid JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -21138,6 +23335,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         },
         "requestBody": {
@@ -21172,10 +23412,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -21211,7 +23451,12 @@
             "name": "sortField",
             "in": "query",
             "schema": {
-              "type": "string"
+              "description": "`createdAt`: when the customer was added. `spent`: what they've paid across their orders, less refunds.",
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "spent"
+              ]
             }
           },
           {
@@ -21345,6 +23590,14 @@
                           },
                           "updatedAt": {
                             "type": "string"
+                          },
+                          "orderCount": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "spent": {
+                            "type": "number"
                           }
                         },
                         "required": [
@@ -21356,7 +23609,9 @@
                           "addresses",
                           "defaultAddressId",
                           "createdAt",
-                          "updatedAt"
+                          "updatedAt",
+                          "orderCount",
+                          "spent"
                         ],
                         "additionalProperties": false
                       }
@@ -21387,7 +23642,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -21514,6 +23769,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -21527,10 +23825,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -21660,6 +23958,14 @@
                     },
                     "updatedAt": {
                       "type": "string"
+                    },
+                    "orderCount": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "spent": {
+                      "type": "number"
                     }
                   },
                   "required": [
@@ -21671,7 +23977,9 @@
                     "addresses",
                     "defaultAddressId",
                     "createdAt",
-                    "updatedAt"
+                    "updatedAt",
+                    "orderCount",
+                    "spent"
                   ],
                   "additionalProperties": false
                 }
@@ -21679,7 +23987,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -21806,6 +24114,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -21819,10 +24170,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -21967,7 +24318,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -22094,6 +24445,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       },
@@ -22105,10 +24499,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -22244,8 +24638,51 @@
               }
             }
           },
+          "400": {
+            "description": "The body isn't valid JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -22332,6 +24769,49 @@
           },
           "422": {
             "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
             "content": {
               "application/json": {
                 "schema": {
@@ -22428,14 +24908,18 @@
                     "pattern": "^[A-Za-z]{3}$"
                   },
                   "locale": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                      "en",
+                      "pt",
+                      "es"
+                    ]
                   },
                   "timezone": {
                     "type": "string"
                   },
                   "country": {
-                    "type": "string",
-                    "pattern": "^[A-Za-z]{2}$"
+                    "type": "string"
                   },
                   "contactEmail": {
                     "description": "Shown on the store and to customers. Send null to remove it.",
@@ -22451,7 +24935,16 @@
                     ]
                   },
                   "contactPhone": {
-                    "type": "string"
+                    "description": "Send null to remove it.",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^\\+?[\\d\\s().-]+$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   },
                   "address": {
                     "type": "string"
@@ -22482,10 +24975,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -22513,8 +25006,51 @@
               }
             }
           },
+          "400": {
+            "description": "The body isn't valid JSON",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -22641,6 +25177,49 @@
                 }
               }
             }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         },
         "requestBody": {
@@ -22692,10 +25271,10 @@
         ],
         "security": [
           {
-            "bearerAuth": []
+            "apiKey": []
           },
           {
-            "apiKey": []
+            "bearerAuth": []
           },
           {
             "sessionCookie": []
@@ -22728,6 +25307,44 @@
                     },
                     "totalCustomers": {
                       "type": "number"
+                    },
+                    "last30Days": {
+                      "type": "object",
+                      "properties": {
+                        "orders": {
+                          "type": "number",
+                          "description": "Orders placed in the period."
+                        },
+                        "revenue": {
+                          "type": "number",
+                          "description": "What those orders brought in, less refunds so far."
+                        }
+                      },
+                      "required": [
+                        "orders",
+                        "revenue"
+                      ],
+                      "additionalProperties": false,
+                      "description": "The 30 days up to now."
+                    },
+                    "prior30Days": {
+                      "type": "object",
+                      "properties": {
+                        "orders": {
+                          "type": "number",
+                          "description": "Orders placed in the period."
+                        },
+                        "revenue": {
+                          "type": "number",
+                          "description": "What those orders brought in, less refunds so far."
+                        }
+                      },
+                      "required": [
+                        "orders",
+                        "revenue"
+                      ],
+                      "additionalProperties": false,
+                      "description": "The 30 days before those."
                     },
                     "recentOrders": {
                       "type": "array",
@@ -23512,6 +26129,8 @@
                     "paidOrders",
                     "totalRevenue",
                     "totalCustomers",
+                    "last30Days",
+                    "prior30Days",
                     "recentOrders",
                     "ordersByStatus",
                     "canTakeOrders"
@@ -23522,7 +26141,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -23609,6 +26228,49 @@
           },
           "422": {
             "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
             "content": {
               "application/json": {
                 "schema": {
@@ -23714,7 +26376,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -23801,6 +26463,49 @@
           },
           "422": {
             "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
             "content": {
               "application/json": {
                 "schema": {
@@ -23904,7 +26609,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "No valid credentials. Send your API key in the `x-api-key` header. Create one in your dashboard, under API keys.",
             "content": {
               "application/json": {
                 "schema": {
@@ -23991,6 +26696,49 @@
           },
           "422": {
             "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "path",
+                          "message"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests. Each API key can make 600 requests a minute. The `Retry-After` header says how many seconds to wait.",
             "content": {
               "application/json": {
                 "schema": {

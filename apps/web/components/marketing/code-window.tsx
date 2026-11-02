@@ -27,7 +27,7 @@ export function CodeWindow({
         </span>
         <span className="ml-2 font-mono text-xs text-muted-foreground">{title}</span>
       </figcaption>
-      <pre className="overflow-x-auto p-5 font-mono text-[0.8125rem] leading-6">
+      <pre tabIndex={0} aria-label={`Code sample: ${title}`} className="overflow-x-auto p-4 font-mono text-xs leading-6 sm:p-5 sm:text-[0.8125rem]">
         <code>
           {lines.map((line) => (
             <span

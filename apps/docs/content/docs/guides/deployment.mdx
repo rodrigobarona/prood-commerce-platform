@@ -16,7 +16,7 @@ Prood deploys as **separate Vercel projects** sharing a single Neon Postgres dat
 | `docs.prood.com` | Documentation |
 | `admin.prood.com` | Platform super-admin |
 | `{slug}.prood.app` | Storefront (wildcard on storefront project) |
-| `shop.client.com` | Store custom domain (per merchant) |
+| `shop.example.com` | Store custom domain (per merchant) |
 
 Set `NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app` for storefront subdomain resolution only. Platform services use `*.prood.com` via each app's `BETTER_AUTH_URL` and public URL env vars.
 
@@ -90,11 +90,14 @@ The API must be deployed first — other apps depend on it.
 ```bash
 DATABASE_URL=postgresql://...
 BETTER_AUTH_SECRET=<openssl rand -base64 32>
+AUTH_PROXY_SECRET=<openssl rand -base64 32>
 BETTER_AUTH_URL=https://api.prood.com
 AUTH_COOKIE_DOMAIN=.prood.com
+KV_REST_API_URL=https://...
+KV_REST_API_TOKEN=...
 NEXT_PUBLIC_DASHBOARD_URL=https://dashboard.prood.com
+NEXT_PUBLIC_DOCS_URL=https://docs.prood.com
 API_PUBLIC_URL=https://api.prood.com
-DEFAULT_PAYMENT_PROVIDER=stripe
 S3_ENDPOINT=https://<account>.eu.r2.cloudflarestorage.com
 S3_BUCKET=prood-public
 S3_ACCESS_KEY_ID=...
@@ -102,8 +105,6 @@ S3_SECRET_ACCESS_KEY=...
 S3_PUBLIC_URL=https://prood-media.rbarona.workers.dev
 # Also set S3_PUBLIC_URL on storefront, dashboard, admin and checkout: next/image
 # reads it at build time and rejects the host without it.
-STRIPE_SECRET_KEY=sk_live_...
-STRIPE_WEBHOOK_SECRET=whsec_...
 CHECKOUT_API_SECRET=<shared secret>
 INTEGRATION_ENCRYPTION_KEY=<openssl rand -base64 32>
 RESEND_API_KEY=re_...
@@ -124,11 +125,12 @@ NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app
 DATABASE_URL=postgresql://...
 COMMERCE_API_URL=https://api.prood.com/v1
 BETTER_AUTH_SECRET=<same as API>
-BETTER_AUTH_URL=https://storefront.example.com
+KV_REST_API_URL=<same as API>
+KV_REST_API_TOKEN=<same as API>
 CHECKOUT_URL=https://checkout.prood.com
 CHECKOUT_API_SECRET=<same as API>
 RESEND_API_KEY=re_...
-RESEND_FROM_EMAIL="Prood <noreply@merchant-domain.com>"
+RESEND_FROM_EMAIL="Prood <noreply@casalume.example>"
 NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app
 ```
 
@@ -144,16 +146,15 @@ Custom domains are added per-merchant via the dashboard Domains page.
 ### Environment variables
 
 ```bash
-UPSTASH_REDIS_REST_URL=https://...
-UPSTASH_REDIS_REST_TOKEN=...
+KV_REST_API_URL=https://...
+KV_REST_API_TOKEN=...
 CHECKOUT_API_SECRET=<same as API>
 CHECKOUT_URL=https://checkout.prood.com
 COMMERCE_API_URL=https://api.prood.com/v1
 STOREFRONT_URL=https://storefront.example.com
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_...
-STRIPE_SECRET_KEY=sk_live_...
-# Payment provider keys as fallbacks
 ```
+
+Payment credentials aren't environment variables. Each store enters its own under Integrations in the dashboard, and there is no platform fallback.
 
 Configure payment webhooks to: `https://checkout.prood.com/api/webhooks/{provider}/{orgId}`
 
@@ -170,6 +171,7 @@ Configure payment webhooks to: `https://checkout.prood.com/api/webhooks/{provide
 DATABASE_URL=postgresql://...
 COMMERCE_API_URL=https://api.prood.com/v1
 BETTER_AUTH_SECRET=<same as API>
+AUTH_PROXY_SECRET=<same as API>
 NEXT_PUBLIC_AUTH_URL=https://api.prood.com
 INTEGRATION_ENCRYPTION_KEY=<same as API>
 VERCEL_TOKEN=<for domain provisioning>
@@ -192,6 +194,7 @@ Dashboard auth (sign-in, sign-up, organization ops) is issued by **apps/api** bu
 ```bash
 DATABASE_URL=postgresql://...
 BETTER_AUTH_SECRET=<same as API>
+AUTH_PROXY_SECRET=<same as API>
 BETTER_AUTH_URL=https://api.prood.com
 NEXT_PUBLIC_AUTH_URL=https://api.prood.com
 NEXT_PUBLIC_ADMIN_URL=https://admin.prood.com
@@ -224,9 +227,11 @@ These must be **identical** across projects:
 | Secret | Apps |
 | --- | --- |
 | `BETTER_AUTH_SECRET` | API, dashboard (SSR session validation), storefront |
+| `AUTH_PROXY_SECRET` | API, dashboard, admin |
 | `CHECKOUT_API_SECRET` | API, storefront, checkout |
 | `INTEGRATION_ENCRYPTION_KEY` | API, dashboard |
 | `DATABASE_URL` | API, storefront, dashboard, admin |
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | API, storefront, checkout |
 
 ## Caching in production
 
@@ -238,19 +243,19 @@ The storefront uses Next.js Cache Components:
 
 ## Production checklist
 
-- [ ] Strong secrets generated for `BETTER_AUTH_SECRET`, `CHECKOUT_API_SECRET`, `INTEGRATION_ENCRYPTION_KEY`
-- [ ] `NEXT_PUBLIC_PLATFORM_DOMAIN` configured
-- [ ] Upstash Redis provisioned for checkout
-- [ ] Payment webhooks pointed to checkout domain
-- [ ] Resend sender uses a verified production domain
-- [ ] `pnpm db:migrate` run against production database
-- [ ] Custom domains verified for at least one merchant
-- [ ] SSL certificates active on all domains
+- Strong secrets generated for `BETTER_AUTH_SECRET`, `AUTH_PROXY_SECRET`, `CHECKOUT_API_SECRET`, `INTEGRATION_ENCRYPTION_KEY`
+- `NEXT_PUBLIC_PLATFORM_DOMAIN` configured
+- Upstash Redis provisioned for checkout and auth rate limits, with `KV_REST_API_URL` and `KV_REST_API_TOKEN` set on API, storefront and checkout
+- Payment webhooks pointed to checkout domain
+- Resend sender uses a verified production domain
+- `pnpm db:migrate` run against production database
+- Custom domains verified for at least one merchant
+- SSL certificates active on all domains
 
 ## Related pages
 
 <Cards>
-  <Card title="Environment variables" href="/docs/getting-started/environment" description="Complete env var reference." />
+  <Card title="Environment variables" href="/docs/run-locally/environment" description="Complete env var reference." />
   <Card title="Webhook setup" href="/docs/guides/webhook-setup" description="Configure payment webhooks." />
   <Card title="Payment integration" href="/docs/guides/payment-integration" description="Payment provider setup." />
 </Cards>
