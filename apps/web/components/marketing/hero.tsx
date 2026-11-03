@@ -63,9 +63,17 @@ export function Hero() {
               </Button>
             </div>
             <p className="mt-6 text-[0.9375rem] text-paper">
-              Building stores for clients?{" "}
+              For{" "}
+              <Link href="/merchants" className="font-medium underline underline-offset-4">
+                merchants
+              </Link>
+              ,{" "}
               <Link href="/agencies" className="font-medium underline underline-offset-4">
-                See how agencies work
+                agencies
+              </Link>{" "}
+              and{" "}
+              <Link href="/developers" className="font-medium underline underline-offset-4">
+                developers
               </Link>
               .
             </p>

@@ -6,7 +6,17 @@ import { useEffect, useRef, useState } from "react"
 
 import { Button } from "@prood/ui/components/button"
 import { NavLink } from "@/components/nav-link"
-import { mainNav, siteConfig } from "@/lib/site"
+import { mainNav, siteConfig, solutionsNav, type NavItem } from "@/lib/site"
+
+function link(item: NavItem) {
+  return (
+    <li key={item.href}>
+      <NavLink href={item.href} className="block px-0 py-3 text-base">
+        {item.label}
+      </NavLink>
+    </li>
+  )
+}
 
 export function MobileNav() {
   const pathname = usePathname()
@@ -45,16 +55,19 @@ export function MobileNav() {
         id="mobile-nav"
         aria-label="Main"
         hidden={!open}
-        className="absolute inset-x-0 top-16 border-b border-border bg-background px-5 pt-2 pb-6 shadow-sm"
+        className="absolute inset-x-0 top-16 max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-border bg-background px-5 pt-2 pb-6 shadow-sm"
       >
         <ul className="flex flex-col">
-          {mainNav.map((item) => (
-            <li key={item.href}>
-              <NavLink href={item.href} className="block px-0 py-3 text-base">
-                {item.label}
-              </NavLink>
-            </li>
-          ))}
+          {mainNav.before.map(link)}
+          <li className="py-3">
+            <p id="mobile-solutions" className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              Solutions
+            </p>
+            <ul aria-labelledby="mobile-solutions" className="mt-1 flex flex-col">
+              {solutionsNav.map(link)}
+            </ul>
+          </li>
+          {mainNav.after.map(link)}
           <li>
             <a href={siteConfig.docsUrl} className="block py-3 text-base text-muted-foreground">
               Docs

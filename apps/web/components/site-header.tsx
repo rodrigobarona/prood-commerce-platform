@@ -5,6 +5,7 @@ import { Logo } from "@prood/ui/components/logo"
 import { HeaderFrame } from "@/components/header-frame"
 import { MobileNav } from "@/components/mobile-nav"
 import { NavLink } from "@/components/nav-link"
+import { SolutionsMenu } from "@/components/solutions-menu"
 import { mainNav, siteConfig } from "@/lib/site"
 
 export function SiteHeader() {
@@ -17,7 +18,15 @@ export function SiteHeader() {
 
         <nav aria-label="Main" className="hidden lg:block">
           <ul className="flex items-center gap-1">
-            {mainNav.map((item) => (
+            {mainNav.before.map((item) => (
+              <li key={item.href}>
+                <NavLink href={item.href}>{item.label}</NavLink>
+              </li>
+            ))}
+            <li>
+              <SolutionsMenu />
+            </li>
+            {mainNav.after.map((item) => (
               <li key={item.href}>
                 <NavLink href={item.href}>{item.label}</NavLink>
               </li>
