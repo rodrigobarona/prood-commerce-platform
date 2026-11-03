@@ -86,10 +86,10 @@ Update (2026-11-03). Stores buy Prood plans through `@better-auth/stripe` on
 is still collecting and writes it onto `organization.planId` (`setOrganizationPlan`
 in `@prood/auth/billing`). If that fails, the webhook fails and Stripe retries.
 
-- `prood-api`: `BILLING_STRIPE_SECRET_KEY` and `BILLING_STRIPE_WEBHOOK_SECRET`.
-  Without both, billing is off and the plugin isn't loaded.
-- `prood-dashboard`: `BILLING_MODE` is `test` or `live`, matching the API key.
-  Unset hides the plan picker.
+- `prood-api`: `BILLING_STRIPE_SECRET_KEY`, `BILLING_STRIPE_WEBHOOK_SECRET` and
+  `BILLING_MODE`. Billing is off unless all three are set and `BILLING_MODE`
+  matches the key (`live` for `sk_live_`/`rk_live_`, `test` for anything else).
+- `prood-dashboard`: the same `BILLING_MODE`. Unset hides the plan picker.
 - Today it's the "prood.com sandbox" account in test mode, and only platform admins
   can subscribe, so a test card never buys a real plan.
 - Prices are monthly in EUR, found by lookup key (`prood_<plan>_monthly_eur`).

@@ -21,6 +21,8 @@ export type OrganizationPlanSnapshot = {
   subscribed: boolean
   /** When a cancelled subscription stops. The store moves to Free then. */
   endsAt: Date | null
+  /** Has paid through Stripe before, so its invoices are in Stripe's billing page. */
+  hasBillingHistory: boolean
 }
 
 export async function getActiveOrganizationPlan(): Promise<OrganizationPlanSnapshot | null> {
@@ -35,6 +37,7 @@ export async function getActiveOrganizationPlan(): Promise<OrganizationPlanSnaps
       planName: getPlan(defaultPlanId).name,
       subscribed: false,
       endsAt: null,
+      hasBillingHistory: false,
     }
   }
 
@@ -43,6 +46,7 @@ export async function getActiveOrganizationPlan(): Promise<OrganizationPlanSnaps
       planId: organization.planId,
       planStatus: organization.planStatus,
       stripeSubscriptionId: organization.stripeSubscriptionId,
+      stripeCustomerId: organization.stripeCustomerId,
     })
     .from(organization)
     .where(eq(organization.id, orgId))
@@ -68,6 +72,7 @@ export async function getActiveOrganizationPlan(): Promise<OrganizationPlanSnaps
     planName: getPlan(planId).name,
     subscribed: !!row?.stripeSubscriptionId,
     endsAt: sub?.cancelAt ?? (sub?.cancelAtPeriodEnd ? sub.periodEnd : null),
+    hasBillingHistory: !!row?.stripeCustomerId,
   }
 }
 
@@ -75,8 +80,8 @@ export { countTeamSeats } from "@prood/auth/membership"
 export { domainLimitMessage, seatLimitMessage } from "./plan-usage"
 
 /**
- * `BILLING_MODE` mirrors the key apps/api bills with: "test" for a Stripe test
- * key, "live" for a live one. Unset means plans can't be bought.
+ * `BILLING_MODE` is set to the same value on apps/api, which turns billing off
+ * when it doesn't match its Stripe key. Unset means plans can't be bought.
  */
 export type BillingMode = "test" | "live"
 

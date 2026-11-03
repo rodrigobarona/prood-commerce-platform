@@ -122,7 +122,7 @@ async function BillingContent({ searchParams }: { searchParams: SearchParams }) 
       >
         {awaitingPlan ? (
           <p className="mb-4 text-sm text-muted-foreground">
-            Payment received. Your new plan shows here within a minute. Refresh the page if it doesn&apos;t.
+            If you&apos;ve just paid, your new plan shows here within a minute. Refresh the page if it doesn&apos;t.
           </p>
         ) : null}
         {counts ? (
@@ -141,7 +141,12 @@ async function BillingContent({ searchParams }: { searchParams: SearchParams }) 
         >
           <div className="flex flex-col gap-4">
             {mode === "test" ? <TestModeNote /> : null}
-            <PlanCheckout organizationId={plan.organizationId} currentPlanId={plan.planId} subscribed={plan.subscribed} />
+            <PlanCheckout
+              organizationId={plan.organizationId}
+              currentPlanId={plan.planId}
+              subscribed={plan.subscribed}
+              hasBillingHistory={plan.hasBillingHistory}
+            />
           </div>
         </Panel>
       ) : null}

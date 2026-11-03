@@ -4,7 +4,7 @@ import { canChangePlan, isLivePlanStatus, stripeLookupKey } from "@prood/billing
 
 vi.mock("server-only", () => ({}))
 
-import { currentPlan, isPersonalBillingRequest } from "../auth/billing"
+import { billingKeyMode, currentPlan, isPersonalBillingRequest } from "../auth/billing"
 
 describe("who can change a store's plan", () => {
   it("lets the owner change it with a live key", () => {
@@ -74,5 +74,14 @@ describe("the plan Stripe says a store pays for", () => {
     expect(await currentPlan(stripeWith([{ id: "s", status: "canceled", lookupKey: "prood_grow_monthly_eur" }]), "c")).toBeNull()
     expect(await currentPlan(stripeWith([{ id: "s", status: "active", lookupKey: "something_else" }]), "c")).toBeNull()
     expect(await currentPlan(stripeWith([{ id: "s", status: "incomplete", lookupKey: "prood_grow_monthly_eur" }]), "c")).toBeNull()
+  })
+})
+
+describe("billing key mode", () => {
+  it("bills for real only with a live secret or restricted key", () => {
+    expect(billingKeyMode("sk_live_abc")).toBe("live")
+    expect(billingKeyMode("rk_live_abc")).toBe("live")
+    expect(billingKeyMode("sk_test_abc")).toBe("test")
+    expect(billingKeyMode("rk_test_abc")).toBe("test")
   })
 })

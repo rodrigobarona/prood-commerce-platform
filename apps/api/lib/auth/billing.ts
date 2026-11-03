@@ -36,20 +36,33 @@ function eventCustomerId(event: Stripe.Event): string | null {
   return typeof customer === "string" ? customer : customer.id
 }
 
+/** Only a live secret or restricted key bills for real. Anything else is treated as test mode. */
+export function billingKeyMode(secretKey: string): "test" | "live" {
+  return /^(sk|rk)_live_/.test(secretKey) ? "live" : "test"
+}
+
 /**
  * Prood's own plans, billed to each store (organization) through the Prood
  * Stripe account. This is not a merchant's payment account: those are stored
  * per store and never read from env.
  *
- * Off until both keys are set. With a test key, only platform admins can
- * subscribe, so nobody gets a paid plan with a test card.
+ * Off until both keys are set and `BILLING_MODE` matches the key. With a test
+ * key, only platform admins can subscribe, so nobody gets a paid plan with a
+ * test card.
  */
 export function billingPlugin() {
   const secretKey = process.env.BILLING_STRIPE_SECRET_KEY?.trim()
   const webhookSecret = process.env.BILLING_STRIPE_WEBHOOK_SECRET?.trim()
   if (!secretKey || !webhookSecret) return null
 
-  const testMode = secretKey.startsWith("sk_test_")
+  const mode = billingKeyMode(secretKey)
+  // The dashboard tells people whether real money moves from BILLING_MODE, so a
+  // mismatch with the key turns billing off rather than mislabel a charge.
+  if (process.env.BILLING_MODE?.trim() !== mode) {
+    console.error(`[billing] BILLING_MODE doesn't match the ${mode} Stripe key, so billing is off.`)
+    return null
+  }
+  const testMode = mode === "test"
   const client = new Stripe(secretKey)
 
   return stripe({
