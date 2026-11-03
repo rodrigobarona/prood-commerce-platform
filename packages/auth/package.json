@@ -17,7 +17,8 @@
     "./shared-options": "./src/shared-options.ts",
     "./rate-limit-storage": "./src/rate-limit-storage.ts",
     "./password-reset-panels": "./src/password-reset-panels.tsx",
-    "./admin-role": "./src/admin-role.ts"
+    "./admin-role": "./src/admin-role.ts",
+    "./billing": "./src/billing.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
@@ -25,6 +26,7 @@
   "dependencies": {
     "@better-auth/api-key": "catalog:",
     "@neondatabase/serverless": "catalog:",
+    "@prood/billing": "workspace:*",
     "@prood/types": "workspace:*",
     "@prood/ui": "workspace:*",
     "@upstash/redis": "catalog:",

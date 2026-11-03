@@ -15,6 +15,7 @@
   "dependencies": {
     "@better-auth/agent-auth": "catalog:",
     "@better-auth/api-key": "catalog:",
+    "@better-auth/stripe": "catalog:",
     "@modelcontextprotocol/server": "catalog:",
     "@neondatabase/serverless": "catalog:",
     "@prood/auth": "workspace:*",
@@ -29,6 +30,7 @@
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "stripe": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

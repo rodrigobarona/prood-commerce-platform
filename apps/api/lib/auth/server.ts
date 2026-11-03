@@ -21,6 +21,7 @@ import { sendPasswordResetEmail } from "./password-reset-email"
 import { getAgentAuthOpenAPIOptions } from "./agent-config"
 import { requiredEnv } from "@prood/types"
 import { getMailer } from "../mailer"
+import { billingPlugin, isPersonalBillingRequest } from "./billing"
 
 /**
  * Agents are approved in the dashboard, which checks the approver's role in the
@@ -38,6 +39,7 @@ function createAuth() {
   const cookieDomain = process.env.AUTH_COOKIE_DOMAIN?.trim()
   const dashboardUrl = requiredEnv(process.env.NEXT_PUBLIC_DASHBOARD_URL, "NEXT_PUBLIC_DASHBOARD_URL")
   const shared = sharedAuthOptions(CLIENT_IP_HEADER)
+  const billing = billingPlugin()
 
   return betterAuth({
     database: drizzleAdapter(authDb, { provider: "pg", schema }),
@@ -45,6 +47,9 @@ function createAuth() {
       before: createAuthMiddleware(async (ctx) => {
         if (DASHBOARD_ONLY_PATHS.has(ctx.path)) {
           throw new APIError("FORBIDDEN", { message: "Approve agents in your dashboard." })
+        }
+        if (isPersonalBillingRequest(ctx.path, ctx.body?.customerType ?? ctx.query?.customerType)) {
+          throw new APIError("FORBIDDEN", { message: "Plans are bought for a store." })
         }
         await guardRoleChange(ctx)
       }),
@@ -117,6 +122,7 @@ function createAuth() {
         trustProxy: process.env.TRUST_PROXY === "true",
         ...getAgentAuthOpenAPIOptions(),
       }),
+      ...(billing ? [billing] : []),
       nextCookies(),
     ],
   })
