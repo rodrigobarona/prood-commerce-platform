@@ -65,7 +65,7 @@ export function Hero() {
             <p className="mt-6 text-[0.9375rem] text-paper">
               For{" "}
               <Link href="/merchants" className="font-medium underline underline-offset-4">
-                brands and shops
+                merchants
               </Link>
               ,{" "}
               <Link href="/agencies" className="font-medium underline underline-offset-4">

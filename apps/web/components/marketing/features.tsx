@@ -28,9 +28,9 @@ const features = [
 const ROW = "grid gap-1 border-t border-border py-4 sm:grid-cols-[11rem_minmax(0,1fr)] sm:gap-6"
 
 /** Every part of a store, for the page where people compare. */
-export function StoreSpec() {
+export function StoreSpec({ className = "pt-0 md:pt-0" }: { className?: string }) {
   return (
-    <Section labelledBy="features-title" className="pt-0 md:pt-0">
+    <Section labelledBy="features-title" className={className}>
       <div className="grid items-end gap-x-16 gap-y-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
         <SectionHeading id="features-title" eyebrow="On every plan" title="The parts a store runs on." />
         <p className="text-lead text-muted-foreground lg:pb-1">

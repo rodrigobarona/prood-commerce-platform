@@ -12,7 +12,7 @@ const columns = [
       { label: "Overview", href: "/product" },
       { label: "Integrations", href: "/integrations" },
       { label: "Pricing", href: "/pricing" },
-      { label: "For brands and shops", href: "/merchants" },
+      { label: "For merchants", href: "/merchants" },
       { label: "For agencies", href: "/agencies" },
       { label: "For developers", href: "/developers" },
     ],

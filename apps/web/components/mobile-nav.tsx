@@ -55,7 +55,7 @@ export function MobileNav() {
         id="mobile-nav"
         aria-label="Main"
         hidden={!open}
-        className="absolute inset-x-0 top-16 border-b border-border bg-background px-5 pt-2 pb-6 shadow-sm"
+        className="absolute inset-x-0 top-16 max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-border bg-background px-5 pt-2 pb-6 shadow-sm"
       >
         <ul className="flex flex-col">
           {mainNav.before.map(link)}

@@ -25,9 +25,12 @@ const hosted = [
 ] as const
 
 const connections = [
-  { title: "Payments", body: "Stripe for cards, Easypay or Ifthenpay for Multibanco and MB WAY, each on your own account." },
+  { title: "Payments", body: "Easypay or Ifthenpay for Multibanco, MB WAY and cards in one checkout, or Stripe for cards and wallets. Each on your own account." },
   { title: "Your domain", body: "Point your domain at your store and we set up HTTPS. Every store also has a prood.app address." },
-  { title: "REST API and MCP", body: "Connect your own tools through /v1, or give an AI client the store's MCP tools." },
+  {
+    title: "REST API and MCP",
+    body: "Connect your own tools through /v1, or give an AI client the store's MCP tools. Free keys reach the storefront API and its 21 MCP tools. Admin calls start on Grow.",
+  },
 ] as const
 
 export default function ProductPage() {
@@ -35,7 +38,7 @@ export default function ProductPage() {
     <>
       <PageHero
         eyebrow="Product"
-        title={["Everything a", "store runs on."]}
+        title={["What your", "store runs on."]}
         lead="Storefront, checkout, orders and an API, hosted in Frankfurt. Nothing to deploy: open a store, connect your payment account and sell on your own domain."
         image="keys-door"
         position="50% 45%"
@@ -76,7 +79,7 @@ export default function ProductPage() {
 
       <Payments />
       <WaysToRun />
-      <StoreSpec />
+      <StoreSpec className="" />
 
       <Section labelledBy="connections-title" className="pt-0 md:pt-0">
         <div className="flex flex-wrap items-end justify-between gap-6">

@@ -41,7 +41,7 @@ export type NavItem = { label: string; href: string }
 
 /** Who Prood is for. One menu, so no single audience reads as the whole product. */
 export const solutionsNav = [
-  { label: "For brands and shops", href: "/merchants", description: "Sell on your own domain and payment accounts." },
+  { label: "For merchants", href: "/merchants", description: "Sell on your own domain and payment accounts." },
   { label: "For agencies", href: "/agencies", description: "Run every client store from one login." },
   { label: "For developers and AI agents", href: "/developers", description: "Build on the API and MCP. Nothing to deploy." },
 ] as const
