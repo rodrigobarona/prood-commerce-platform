@@ -4,7 +4,9 @@ import { siteConfig } from "@/lib/site"
 
 const routes = [
   { path: "", priority: 1 },
+  { path: "/product", priority: 0.9 },
   { path: "/pricing", priority: 0.9 },
+  { path: "/merchants", priority: 0.8 },
   { path: "/agencies", priority: 0.8 },
   { path: "/developers", priority: 0.8 },
   { path: "/integrations", priority: 0.8 },

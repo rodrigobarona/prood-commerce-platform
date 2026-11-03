@@ -9,8 +9,10 @@ const columns = [
   {
     title: "Product",
     links: [
-      { label: "Pricing", href: "/pricing" },
+      { label: "Overview", href: "/product" },
       { label: "Integrations", href: "/integrations" },
+      { label: "Pricing", href: "/pricing" },
+      { label: "For brands and shops", href: "/merchants" },
       { label: "For agencies", href: "/agencies" },
       { label: "For developers", href: "/developers" },
     ],

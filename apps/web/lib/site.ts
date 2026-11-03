@@ -35,11 +35,22 @@ export const contactHref = (subject: string) =>
   `mailto:${siteConfig.email}?subject=${encodeURIComponent(subject)}`
 
 /** Routes that open on a full-bleed image, so the header starts transparent over it. */
-export const overlayRoutes = ["/", "/agencies", "/integrations", "/pricing"] as readonly string[]
+export const overlayRoutes = ["/", "/product", "/merchants", "/agencies", "/integrations", "/pricing"] as readonly string[]
 
-export const mainNav = [
-  { label: "Agencies", href: "/agencies" },
-  { label: "Developers", href: "/developers" },
-  { label: "Integrations", href: "/integrations" },
-  { label: "Pricing", href: "/pricing" },
+export type NavItem = { label: string; href: string }
+
+/** Who Prood is for. One menu, so no single audience reads as the whole product. */
+export const solutionsNav = [
+  { label: "For brands and shops", href: "/merchants", description: "Sell on your own domain and payment accounts." },
+  { label: "For agencies", href: "/agencies", description: "Run every client store from one login." },
+  { label: "For developers and AI agents", href: "/developers", description: "Build on the API and MCP. Nothing to deploy." },
 ] as const
+
+/** The header, in order. Solutions sits second and opens `solutionsNav`. */
+export const mainNav = {
+  before: [{ label: "Product", href: "/product" }],
+  after: [
+    { label: "Developers", href: "/developers" },
+    { label: "Pricing", href: "/pricing" },
+  ],
+} as const satisfies Record<string, readonly NavItem[]>
