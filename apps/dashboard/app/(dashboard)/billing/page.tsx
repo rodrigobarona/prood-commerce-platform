@@ -17,10 +17,9 @@ import {
   canBuyPlans,
   countTeamSeats,
   getActiveOrganizationPlan,
-  syncOrganizationPlan,
   type BillingMode,
+  type OrganizationPlanSnapshot,
 } from "@/lib/billing"
-import { getActiveOrganizationId } from "@/lib/auth"
 import { listDomains } from "@/lib/domains"
 import { planUsage } from "@/lib/plan-usage"
 import { planStatus } from "@/lib/status"
@@ -47,13 +46,17 @@ function monthStart(now: Date): string {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString()
 }
 
-function planDescription(status: string | undefined, subscribed: boolean, mode: BillingMode | null): ReactNode {
-  if (status === "past_due") {
-    return mode
+const endDate = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })
+
+function planDescription(plan: OrganizationPlanSnapshot | null, canBuy: boolean, mode: BillingMode | null): ReactNode {
+  const managed = !!plan?.subscribed && canBuy
+  if (plan?.planStatus === "past_due") {
+    return managed
       ? "A payment on this plan failed. Update your card in Manage billing, and Stripe tries again."
-      : "A payment on this plan is overdue. To sort it out, email hello@prood.com."
+      : "A payment on this plan is overdue. Your store's owner can sort it out, or email hello@prood.com."
   }
-  if (!subscribed) return "Nothing is charged today."
+  if (plan?.endsAt) return `Cancelled. Your plan ends on ${endDate.format(plan.endsAt)}, then the store moves to Free.`
+  if (!plan?.subscribed) return "Nothing is charged today."
   return mode === "test" ? "Billed monthly in Stripe test mode. No real money moves." : "Billed monthly, in euros."
 }
 
@@ -100,11 +103,6 @@ async function BillingContent({ searchParams }: { searchParams: SearchParams }) 
   let counts: Awaited<ReturnType<typeof loadCounts>> | null = null
   let canBuy = false
   try {
-    // Back from Stripe: the subscription may be written before its webhook reaches the plan.
-    if (checkout === "success" && mode) {
-      const orgId = await getActiveOrganizationId()
-      if (orgId) await syncOrganizationPlan(orgId)
-    }
     ;[plan, canBuy] = await Promise.all([getActiveOrganizationPlan(), canBuyPlans(mode)])
     if (plan) counts = await loadCounts(plan.organizationId)
   } catch (error) {
@@ -112,14 +110,14 @@ async function BillingContent({ searchParams }: { searchParams: SearchParams }) 
   }
   const planName = plan?.planName ?? "Free"
   const limits = getEntitlements(plan?.planId ?? "free")
-  const paid = !!plan && plan.planId !== "free"
-  const awaitingPlan = checkout === "success" && !paid
+  // Back from Stripe before its webhook has moved the plan. Hiding the plans meanwhile stops a second subscription.
+  const awaitingPlan = checkout === "success" && !plan?.subscribed
 
   return (
     <>
       <Panel
         title={`${planName} plan`}
-        description={planDescription(plan?.planStatus, !!plan?.subscribed, mode)}
+        description={planDescription(plan, canBuy, mode)}
         actions={plan?.planStatus ? <Status look={planStatus(plan.planStatus)} /> : undefined}
       >
         {awaitingPlan ? (
@@ -136,7 +134,7 @@ async function BillingContent({ searchParams }: { searchParams: SearchParams }) 
         )}
       </Panel>
 
-      {canBuy && plan ? (
+      {canBuy && plan && !awaitingPlan ? (
         <Panel
           title={plan.subscribed ? "Your subscription" : "Choose a plan"}
           description={plan.subscribed ? undefined : "Billed monthly, in euros. Cancel any time."}

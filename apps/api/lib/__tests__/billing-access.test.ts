@@ -1,5 +1,10 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
+import type Stripe from "stripe"
 import { canChangePlan, isLivePlanStatus, stripeLookupKey } from "@prood/billing"
+
+vi.mock("server-only", () => ({}))
+
+import { currentPlan, isPersonalBillingRequest } from "../auth/billing"
 
 describe("who can change a store's plan", () => {
   it("lets the owner change it with a live key", () => {
@@ -31,5 +36,43 @@ describe("plan sync rules", () => {
 
   it("names each EUR price by plan", () => {
     expect(stripeLookupKey("grow")).toBe("prood_grow_monthly_eur")
+  })
+})
+
+describe("personal billing", () => {
+  it("refuses subscription routes that don't name a store", () => {
+    expect(isPersonalBillingRequest("/subscription/upgrade", undefined)).toBe(true)
+    expect(isPersonalBillingRequest("/subscription/billing-portal", "user")).toBe(true)
+    expect(isPersonalBillingRequest("/subscription/cancel", "organization")).toBe(false)
+  })
+
+  it("lets Stripe's redirect and the webhook through", () => {
+    expect(isPersonalBillingRequest("/subscription/success", undefined)).toBe(false)
+    expect(isPersonalBillingRequest("/stripe/webhook", undefined)).toBe(false)
+  })
+})
+
+function stripeWith(subscriptions: Array<{ id: string; status: string; lookupKey: string | null }>) {
+  const data = subscriptions.map(({ id, status, lookupKey }) => ({
+    id,
+    status,
+    items: { data: [{ price: { lookup_key: lookupKey } }] },
+  }))
+  return { subscriptions: { list: vi.fn().mockResolvedValue({ data }) } } as unknown as Stripe
+}
+
+describe("the plan Stripe says a store pays for", () => {
+  it("takes the subscription still collecting, whatever order the events came in", async () => {
+    const client = stripeWith([
+      { id: "sub_old", status: "canceled", lookupKey: "prood_grow_monthly_eur" },
+      { id: "sub_new", status: "past_due", lookupKey: "prood_scale_monthly_eur" },
+    ])
+    expect(await currentPlan(client, "cus_1")).toEqual({ plan: "scale", status: "past_due", stripeSubscriptionId: "sub_new" })
+  })
+
+  it("is Free when nothing is collecting, or the price isn't a Prood plan", async () => {
+    expect(await currentPlan(stripeWith([{ id: "s", status: "canceled", lookupKey: "prood_grow_monthly_eur" }]), "c")).toBeNull()
+    expect(await currentPlan(stripeWith([{ id: "s", status: "active", lookupKey: "something_else" }]), "c")).toBeNull()
+    expect(await currentPlan(stripeWith([{ id: "s", status: "incomplete", lookupKey: "prood_grow_monthly_eur" }]), "c")).toBeNull()
   })
 })

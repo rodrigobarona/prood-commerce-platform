@@ -22,33 +22,41 @@ function billingUrl(query = ""): string {
 export function PlanCheckout({ organizationId, currentPlanId, subscribed }: Props) {
   const [pending, setPending] = useState<PaidPlanId | "portal" | null>(null)
 
-  async function choose(plan: PaidPlanId) {
-    setPending(plan)
-    const { error } = await authClient.subscription.upgrade({
-      plan,
-      customerType: "organization",
-      referenceId: organizationId,
-      successUrl: billingUrl("?checkout=success"),
-      cancelUrl: billingUrl(),
-    })
-    if (error) {
+  /** On success the auth client leaves for Stripe, so only a failure comes back here. */
+  async function open(target: PaidPlanId | "portal", go: () => Promise<{ error: unknown }>, failure: string) {
+    setPending(target)
+    const failed = await go().then(({ error }) => !!error, () => true)
+    if (failed) {
       setPending(null)
-      toast.error("We couldn't open the payment page. Nothing was charged. Try again.")
+      toast.error(failure)
     }
   }
 
-  async function manage() {
-    setPending("portal")
-    const { error } = await authClient.subscription.billingPortal({
-      customerType: "organization",
-      referenceId: organizationId,
-      returnUrl: billingUrl(),
-    })
-    if (error) {
-      setPending(null)
-      toast.error("We couldn't open your billing page. Try again.")
-    }
-  }
+  const choose = (plan: PaidPlanId) =>
+    open(
+      plan,
+      () =>
+        authClient.subscription.upgrade({
+          plan,
+          customerType: "organization",
+          referenceId: organizationId,
+          successUrl: billingUrl("?checkout=success"),
+          cancelUrl: billingUrl(),
+        }),
+      "We couldn't open the payment page. Nothing was charged. Try again."
+    )
+
+  const manage = () =>
+    open(
+      "portal",
+      () =>
+        authClient.subscription.billingPortal({
+          customerType: "organization",
+          referenceId: organizationId,
+          returnUrl: billingUrl(),
+        }),
+      "We couldn't open your billing page. Try again."
+    )
 
   if (subscribed) {
     return (

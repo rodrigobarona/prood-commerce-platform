@@ -1,32 +1,25 @@
-import { desc, eq } from "drizzle-orm"
-import { defaultPlanId, defaultPlanStatus, isLivePlanStatus, isValidPlanId } from "@prood/billing"
+import { eq } from "drizzle-orm"
+import { defaultPlanId, defaultPlanStatus, type PaidPlanId, type PlanStatus } from "@prood/billing"
 import { authDb } from "./db"
-import { organization, subscription } from "./schema"
+import { organization } from "./schema"
+
+export type LivePlan = { plan: PaidPlanId; status: PlanStatus; stripeSubscriptionId: string }
 
 /**
- * Copies a store's live Stripe subscription onto `organization.planId`, which
- * is what every limit reads. With none live, the store is back on Free. Safe to
- * run any number of times: it only reads the subscription rows.
+ * Writes what Stripe says a customer pays for onto its store's
+ * `organization.planId`, which every limit reads. `live` is null when no
+ * subscription is still collecting, and the store goes back to Free. Returns
+ * false when no store has this customer.
  */
-export async function syncOrganizationPlan(organizationId: string): Promise<void> {
-  const rows = await authDb
-    .select({
-      plan: subscription.plan,
-      status: subscription.status,
-      stripeSubscriptionId: subscription.stripeSubscriptionId,
-    })
-    .from(subscription)
-    .where(eq(subscription.referenceId, organizationId))
-    .orderBy(desc(subscription.periodStart))
-
-  const live = rows.find((row) => isLivePlanStatus(row.status) && isValidPlanId(row.plan))
-
-  await authDb
+export async function setOrganizationPlan(stripeCustomerId: string, live: LivePlan | null): Promise<boolean> {
+  const updated = await authDb
     .update(organization)
     .set(
       live
         ? { planId: live.plan, planStatus: live.status, stripeSubscriptionId: live.stripeSubscriptionId }
         : { planId: defaultPlanId, planStatus: defaultPlanStatus, stripeSubscriptionId: null }
     )
-    .where(eq(organization.id, organizationId))
+    .where(eq(organization.stripeCustomerId, stripeCustomerId))
+    .returning({ id: organization.id })
+  return updated.length > 0
 }

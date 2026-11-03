@@ -10,7 +10,7 @@ import {
 
 import { getActiveMemberRole, getActiveOrganizationId, getCurrentUser } from "./auth"
 import { authDb } from "./auth/db"
-import { organization } from "./auth/schema"
+import { organization, subscription } from "./auth/schema"
 
 export type OrganizationPlanSnapshot = {
   organizationId: string
@@ -19,6 +19,8 @@ export type OrganizationPlanSnapshot = {
   planName: string
   /** Billed through Stripe. A plan set by hand in admin has no subscription. */
   subscribed: boolean
+  /** When a cancelled subscription stops. The store moves to Free then. */
+  endsAt: Date | null
 }
 
 export async function getActiveOrganizationPlan(): Promise<OrganizationPlanSnapshot | null> {
@@ -32,6 +34,7 @@ export async function getActiveOrganizationPlan(): Promise<OrganizationPlanSnaps
       planStatus: "active",
       planName: getPlan(defaultPlanId).name,
       subscribed: false,
+      endsAt: null,
     }
   }
 
@@ -46,6 +49,17 @@ export async function getActiveOrganizationPlan(): Promise<OrganizationPlanSnaps
     .limit(1)
 
   const planId = row && isValidPlanId(row.planId) ? row.planId : defaultPlanId
+  const [sub] = row?.stripeSubscriptionId
+    ? await authDb
+        .select({
+          cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+          cancelAt: subscription.cancelAt,
+          periodEnd: subscription.periodEnd,
+        })
+        .from(subscription)
+        .where(eq(subscription.stripeSubscriptionId, row.stripeSubscriptionId))
+        .limit(1)
+    : []
 
   return {
     organizationId: orgId,
@@ -53,6 +67,7 @@ export async function getActiveOrganizationPlan(): Promise<OrganizationPlanSnaps
     planStatus: row?.planStatus ?? "active",
     planName: getPlan(planId).name,
     subscribed: !!row?.stripeSubscriptionId,
+    endsAt: sub?.cancelAt ?? (sub?.cancelAtPeriodEnd ? sub.periodEnd : null),
   }
 }
 
@@ -76,5 +91,3 @@ export async function canBuyPlans(mode: BillingMode | null): Promise<boolean> {
   const [memberRole, user] = await Promise.all([getActiveMemberRole(), getCurrentUser()])
   return canChangePlan({ memberRole, userRole: user?.role, testMode: mode === "test" })
 }
-
-export { syncOrganizationPlan } from "@prood/auth/billing"

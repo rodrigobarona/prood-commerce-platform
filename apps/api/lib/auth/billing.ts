@@ -1,9 +1,40 @@
 import "server-only"
 import { stripe } from "@better-auth/stripe"
 import Stripe from "stripe"
-import { canChangePlan, paidPlanIds, stripeLookupKey } from "@prood/billing"
-import { syncOrganizationPlan } from "@prood/auth/billing"
+import {
+  canChangePlan,
+  isLivePlanStatus,
+  paidPlanIds,
+  stripeLookupKey,
+  type PaidPlanId,
+} from "@prood/billing"
+import { setOrganizationPlan, type LivePlan } from "@prood/auth/billing"
 import { getMemberRole } from "@prood/auth/membership"
+
+const PLAN_EVENTS = new Set<Stripe.Event.Type>([
+  "checkout.session.completed",
+  "customer.subscription.created",
+  "customer.subscription.updated",
+  "customer.subscription.deleted",
+])
+
+const planByLookupKey = new Map<string, PaidPlanId>(paidPlanIds.map((id) => [stripeLookupKey(id), id]))
+
+/** The subscription still collecting for a customer, read from Stripe rather than from the event. */
+export async function currentPlan(client: Stripe, customerId: string): Promise<LivePlan | null> {
+  const { data } = await client.subscriptions.list({ customer: customerId, status: "all", limit: 20 })
+  for (const sub of data) {
+    const plan = sub.items.data.map((item) => planByLookupKey.get(item.price.lookup_key ?? "")).find(Boolean)
+    if (plan && isLivePlanStatus(sub.status)) return { plan, status: sub.status, stripeSubscriptionId: sub.id }
+  }
+  return null
+}
+
+function eventCustomerId(event: Stripe.Event): string | null {
+  const { customer } = event.data.object as { customer?: string | { id: string } | null }
+  if (!customer) return null
+  return typeof customer === "string" ? customer : customer.id
+}
 
 /**
  * Prood's own plans, billed to each store (organization) through the Prood
@@ -19,12 +50,18 @@ export function billingPlugin() {
   if (!secretKey || !webhookSecret) return null
 
   const testMode = secretKey.startsWith("sk_test_")
-  const sync = async ({ subscription }: { subscription: { referenceId: string } }) =>
-    syncOrganizationPlan(subscription.referenceId)
+  const client = new Stripe(secretKey)
 
   return stripe({
-    stripeClient: new Stripe(secretKey),
+    stripeClient: client,
     stripeWebhookSecret: webhookSecret,
+    // Errors here fail the webhook, so Stripe delivers it again. Reading Stripe
+    // rather than the event means late or repeated events can't undo a change.
+    onEvent: async (event) => {
+      if (!PLAN_EVENTS.has(event.type)) return
+      const customerId = eventCustomerId(event)
+      if (customerId) await setOrganizationPlan(customerId, await currentPlan(client, customerId))
+    },
     organization: {
       enabled: true,
       // The invoice goes to whoever runs the store, so the owner's email is the billing email.
@@ -46,11 +83,15 @@ export function billingPlugin() {
           customer_update: { name: "auto", address: "auto" },
         },
       }),
-      onSubscriptionComplete: sync,
-      onSubscriptionCreated: sync,
-      onSubscriptionUpdate: sync,
-      onSubscriptionCancel: sync,
-      onSubscriptionDeleted: sync,
     },
   })
+}
+
+/**
+ * Prood bills stores, never people. The plugin skips `authorizeReference` for
+ * personal subscriptions, so every subscription route has to name a store.
+ * Stripe's redirect back after Checkout carries no body, so it's let through.
+ */
+export function isPersonalBillingRequest(path: string, customerType: unknown): boolean {
+  return path.startsWith("/subscription/") && path !== "/subscription/success" && customerType !== "organization"
 }

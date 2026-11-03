@@ -82,8 +82,9 @@ Update (2026-11-02). Before a deploy that changes auth or infrastructure:
 
 Update (2026-11-03). Stores buy Prood plans through `@better-auth/stripe` on
 `apps/api`, with the organization as the Stripe customer. Webhooks arrive at
-`/api/auth/stripe/webhook` and copy the live subscription onto
-`organization.planId` (`syncOrganizationPlan` in `@prood/auth/billing`).
+`/api/auth/stripe/webhook`. For each one, the API asks Stripe which subscription
+is still collecting and writes it onto `organization.planId` (`setOrganizationPlan`
+in `@prood/auth/billing`). If that fails, the webhook fails and Stripe retries.
 
 - `prood-api`: `BILLING_STRIPE_SECRET_KEY` and `BILLING_STRIPE_WEBHOOK_SECRET`.
   Without both, billing is off and the plugin isn't loaded.
@@ -101,5 +102,9 @@ To go live:
 2. Decide VAT. Prices are tax-exclusive today, and Stripe Tax isn't on.
 3. Issue certified invoices in TOConline from `invoice.paid`, on a Prood series,
    as Eleva does (see `_docs/LEGAL.md`).
-4. Swap the env to the live key and secret, set `BILLING_MODE=live`, and change
+4. Clear the test data first: test customer IDs on `organization.stripe_customer_id`
+   don't exist in live mode, so Checkout would fail for those stores. Delete the
+   `subscription` rows, null `stripe_customer_id` and `stripe_subscription_id`, and
+   put stores with a test plan back on Free.
+5. Swap the env to the live key and secret, set `BILLING_MODE=live`, and change
    the "can't be bought yet" copy on the site, dashboard and docs.
