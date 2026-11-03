@@ -2,8 +2,14 @@
 @import "@prood/ui/themes/prood.css";
 
 @layer base {
-  html {
-    scroll-padding-top: 5rem;
+  /*
+   * Anchor jumps and keyboard focus stop clear of the sticky header. This is a
+   * scroll margin on the targets, not scroll-padding on html: Next.js reads
+   * html's scroll-padding after every navigation, and scrolls past any page
+   * whose first element starts above it, as the photo heroes do.
+   */
+  :where([id], a, button, input, select, textarea, summary, [tabindex]) {
+    scroll-margin-top: 5rem;
   }
   @media (prefers-reduced-motion: no-preference) {
     html {

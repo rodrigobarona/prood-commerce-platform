@@ -62,8 +62,9 @@ one login; the API and MCP. Last: the free start and how Prood charges.
 | Developers and AI agents | A real API, not a theme engine | More than 40 REST operations under `/v1`, OpenAPI 3.1, TypeScript client and `prood` CLI (from the source repo for now), 41 MCP tools, Agent Auth discovery |
 
 **Navigation** follows what people look for, not who we sell to first: Product,
-Solutions (merchants, agencies, developers and AI agents), Developers,
-Pricing, Docs. No single audience leads the header. Don't add an Industries menu
+Solutions (merchants, agencies), Developers, Pricing, Docs. Developers and AI
+agents have their own link, so Solutions doesn't repeat it: one page, one entry.
+No single audience leads the header. Don't add an Industries menu
 until real stores can show each industry.
 
 ### What we may claim

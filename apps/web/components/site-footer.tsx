@@ -47,7 +47,7 @@ export function SiteFooter() {
         <div className="mx-auto max-w-[84rem] px-5 pt-24 pb-10 sm:px-8 lg:px-12">
           <div className="grid gap-12 md:grid-cols-[1.4fr_repeat(3,1fr)]">
             <p className="max-w-xs text-lead">
-              Hosted commerce for Europe, on your own domain and payment accounts. Priced in euros. Hosted in Frankfurt.
+              Hosted commerce for Europe, on your own domain and payment accounts. Priced in euros, hosted in Frankfurt. Made in Portugal.
             </p>
             {columns.map((column) => (
               <nav key={column.title} aria-label={column.title}>
