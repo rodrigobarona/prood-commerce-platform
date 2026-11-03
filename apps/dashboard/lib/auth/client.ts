@@ -1,6 +1,7 @@
 import { createAuthClient } from "better-auth/react"
 import { requiredEnv } from "@prood/types"
 import { organizationClient } from "better-auth/client/plugins"
+import { stripeClient } from "@better-auth/stripe/client"
 
 /** Same-origin /api/auth (proxied to apps/api); the env URL is only for SSR. */
 function authClientBaseUrl(): string {
@@ -11,7 +12,7 @@ function authClientBaseUrl(): string {
 /** Browser auth client — same-origin BFF at /api/auth proxies to apps/api. */
 export const authClient = createAuthClient({
   baseURL: authClientBaseUrl(),
-  plugins: [organizationClient()],
+  plugins: [organizationClient(), stripeClient({ subscription: true })],
   fetchOptions: {
     credentials: "include",
   },

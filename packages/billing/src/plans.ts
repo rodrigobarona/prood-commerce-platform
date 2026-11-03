@@ -129,3 +129,28 @@ export function formatPrice(cents: number | null): string {
   if (cents === 0) return "€0"
   return `€${Math.round(cents / 100)}`
 }
+
+/** Plans a store can subscribe to through Stripe. Free needs no subscription. */
+export const paidPlanIds = ["grow", "scale", "agency"] as const satisfies readonly PlanId[]
+export type PaidPlanId = (typeof paidPlanIds)[number]
+
+/** Each paid plan's monthly EUR price in Stripe carries this lookup key. */
+export function stripeLookupKey(planId: PaidPlanId): string {
+  return `prood_${planId}_monthly_eur`
+}
+
+/** Subscription statuses that keep a paid plan on. Anything else is Free. */
+export const livePlanStatuses = ["active", "trialing", "past_due"] as const satisfies readonly PlanStatus[]
+
+export function isLivePlanStatus(status: string): status is (typeof livePlanStatuses)[number] {
+  return (livePlanStatuses as readonly string[]).includes(status)
+}
+
+/**
+ * Only a store's owner changes what the store pays for. With a Stripe test key,
+ * only platform admins can either, so a test card never buys a real plan.
+ */
+export function canChangePlan(input: { memberRole: string | null; userRole: string | null | undefined; testMode: boolean }): boolean {
+  const owner = (input.memberRole ?? "").split(",").some((name) => name.trim() === "owner")
+  return owner && (!input.testMode || input.userRole === "admin")
+}

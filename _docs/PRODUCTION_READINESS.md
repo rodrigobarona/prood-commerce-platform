@@ -56,7 +56,7 @@ pnpm verify
 
 ## Remaining Production Gaps
 
-- SaaS subscription billing is not wired to Stripe yet; dashboard billing remains a plan-display placeholder.
+- Prood plan billing runs in Stripe test mode. TOConline invoicing and Stripe Tax aren't wired yet (see "Prood plan billing").
 - Dashboard analytics and in-dashboard API key creation remain placeholders.
 - Observability is not wired yet: add Sentry and PostHog before launch.
 - CI platform database tests require a `CI_DATABASE_URL` secret.
@@ -77,3 +77,29 @@ Update (2026-11-02). Before a deploy that changes auth or infrastructure:
   go first.
 - `RESEND_FROM_EMAIL` must use a domain verified in Resend. An unverified sender is
   logged as "Resend refused an email", and the caller carries on.
+
+## Prood plan billing
+
+Update (2026-11-03). Stores buy Prood plans through `@better-auth/stripe` on
+`apps/api`, with the organization as the Stripe customer. Webhooks arrive at
+`/api/auth/stripe/webhook` and copy the live subscription onto
+`organization.planId` (`syncOrganizationPlan` in `@prood/auth/billing`).
+
+- `prood-api`: `BILLING_STRIPE_SECRET_KEY` and `BILLING_STRIPE_WEBHOOK_SECRET`.
+  Without both, billing is off and the plugin isn't loaded.
+- `prood-dashboard`: `BILLING_MODE` is `test` or `live`, matching the API key.
+  Unset hides the plan picker.
+- Today it's the "prood.com sandbox" account in test mode, and only platform admins
+  can subscribe, so a test card never buys a real plan.
+- Prices are monthly in EUR, found by lookup key (`prood_<plan>_monthly_eur`).
+  The billing portal handles plan changes, card, invoices and cancelling at period end.
+
+To go live:
+
+1. Activate the Stripe account, then create the same products, prices, lookup
+   keys, billing portal and webhook in live mode.
+2. Decide VAT. Prices are tax-exclusive today, and Stripe Tax isn't on.
+3. Issue certified invoices in TOConline from `invoice.paid`, on a Prood series,
+   as Eleva does (see `_docs/LEGAL.md`).
+4. Swap the env to the live key and secret, set `BILLING_MODE=live`, and change
+   the "can't be bought yet" copy on the site, dashboard and docs.

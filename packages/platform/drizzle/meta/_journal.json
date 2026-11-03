@@ -78,6 +78,13 @@
       "when": 1793660207863,
       "tag": "0010_lookup_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793691384021,
+      "tag": "0011_billing_subscriptions",
+      "breakpoints": true
     }
   ]
 }
