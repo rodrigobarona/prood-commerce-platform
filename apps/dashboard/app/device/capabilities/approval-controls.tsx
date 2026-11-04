@@ -1,6 +1,7 @@
 "use client"
 
-import { useActionState, useEffect, useState } from "react"
+import { useActionState, useState } from "react"
+import Link from "next/link"
 import { unstable_rethrow, useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Button } from "@prood/ui/components/button"
@@ -55,22 +56,46 @@ function SignInAgainButton({ requestId, storeId, disabled }: { requestId: string
 }
 
 /**
- * Signing in again starts on the merchant's first store. This switches back to
- * the store the request was opened for, so the agent isn't approved for another.
+ * Signing in again starts on the merchant's first store. The merchant switches
+ * back to the store the request was opened in here, by choice, so the agent
+ * isn't approved for another store by accident.
  */
-export function ReturnToStore({ storeId, activeStoreId }: { storeId: string; activeStoreId: string }) {
+export function SwitchToStore({ storeId, storeName }: { storeId: string; storeName: string }) {
   const router = useRouter()
-  useEffect(() => {
-    if (storeId === activeStoreId) return
-    authClient.organization
-      .setActive({ organizationId: storeId })
-      .then(({ error }) => {
-        if (error) throw error
-        router.refresh()
-      })
-      .catch(() => toast.error("We couldn't switch back to the store this request was for. Switch stores to approve it."))
-  }, [storeId, activeStoreId, router])
-  return null
+  const [pending, setPending] = useState(false)
+  const [failed, setFailed] = useState(false)
+
+  async function switchStore() {
+    setPending(true)
+    setFailed(false)
+    try {
+      const { error } = await authClient.organization.setActive({ organizationId: storeId })
+      if (error) throw error
+      router.refresh()
+    } catch {
+      setPending(false)
+      setFailed(true)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {failed ? (
+        <p role="alert" className="text-sm text-destructive">
+          We couldn&apos;t switch to {storeName}. Try again, or{" "}
+          <Link href="/" className="underline underline-offset-4">
+            go to your dashboard
+          </Link>
+          .
+        </p>
+      ) : null}
+      <div>
+        <Button type="button" size="lg" onClick={switchStore} disabled={pending}>
+          {pending ? "Switching..." : `Switch to ${storeName}`}
+        </Button>
+      </div>
+    </div>
+  )
 }
 
 export function ApprovalControls({

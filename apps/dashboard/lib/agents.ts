@@ -1,5 +1,5 @@
 import "server-only"
-import { and, desc, eq, inArray, like } from "drizzle-orm"
+import { and, desc, eq, inArray, like, sql } from "drizzle-orm"
 import { agentOrganizationId, recordAgentEvent } from "@prood/auth/agent-events"
 import { getSession } from "@/lib/auth"
 import { authDb } from "@/lib/auth/db"
@@ -13,6 +13,8 @@ export interface StoreAgent {
   mode: string
   hostName: string | null
   userName: string | null
+  /** Who granted its access, from the grants. The agent may have no owner. */
+  approvedBy: string | null
   capabilities: string[]
   lastUsedAt: Date | null
   createdAt: Date
@@ -20,6 +22,7 @@ export interface StoreAgent {
 
 export interface StoreAgentEvent {
   id: string
+  agentId: string | null
   type: string
   agentName: string | null
   capability: string | null
@@ -34,6 +37,9 @@ export interface StoreAgentEvent {
  * membership: an autonomous agent can have no owner and still hold grants here.
  * The LIKE only narrows the read; the parsed metadata decides.
  */
+/** The newest agents shown, so a long history doesn't slow the page. */
+const STORE_AGENTS_SHOWN = 50
+
 export async function listStoreAgents(): Promise<StoreAgent[]> {
   const orgId = await requireStoreAdmin()
   const rows = await authDb
@@ -54,13 +60,20 @@ export async function listStoreAgents(): Promise<StoreAgent[]> {
     .leftJoin(user, eq(user.id, agent.userId))
     .where(like(agent.metadata, `%${orgId}%`))
     .orderBy(desc(agent.createdAt))
+    .limit(STORE_AGENTS_SHOWN)
 
   const agents = rows.filter((row) => agentOrganizationId(row.metadata) === orgId)
   if (agents.length === 0) return []
 
   const grants = await authDb
-    .select({ agentId: agentCapabilityGrant.agentId, capability: agentCapabilityGrant.capability })
+    .select({
+      agentId: agentCapabilityGrant.agentId,
+      capability: agentCapabilityGrant.capability,
+      grantedByName: user.name,
+      grantedByEmail: user.email,
+    })
     .from(agentCapabilityGrant)
+    .leftJoin(user, eq(user.id, agentCapabilityGrant.grantedBy))
     .where(
       and(
         inArray(
@@ -71,8 +84,11 @@ export async function listStoreAgents(): Promise<StoreAgent[]> {
       )
     )
   const byAgent = new Map<string, string[]>()
+  const approver = new Map<string, string>()
   for (const grant of grants) {
     byAgent.set(grant.agentId, [...(byAgent.get(grant.agentId) ?? []), grant.capability])
+    const name = grant.grantedByName || grant.grantedByEmail
+    if (name) approver.set(grant.agentId, name)
   }
 
   return agents.map((row) => ({
@@ -82,6 +98,7 @@ export async function listStoreAgents(): Promise<StoreAgent[]> {
     mode: row.mode,
     hostName: row.hostName,
     userName: row.userName || row.userEmail,
+    approvedBy: approver.get(row.id) ?? null,
     capabilities: (byAgent.get(row.id) ?? []).sort(),
     lastUsedAt: row.lastUsedAt,
     createdAt: row.createdAt,
@@ -95,6 +112,7 @@ export async function listStoreAgentEvents(limit = 20): Promise<StoreAgentEvent[
     .select({
       id: agentEvent.id,
       type: agentEvent.type,
+      agentId: agentEvent.agentId,
       agentName: agent.name,
       capability: agentEvent.capability,
       status: agentEvent.status,
@@ -122,11 +140,22 @@ export async function revokeStoreAgent(agentId: string): Promise<void> {
 
   const now = new Date()
   await authDb.batch([
-    authDb.update(agent).set({ status: "revoked", updatedAt: now }).where(eq(agent.id, agentId)),
+    // Grants first, while the agent row still matches; both only touch it if
+    // it's still bound to this store, in case it was rebound since the read.
     authDb
       .update(agentCapabilityGrant)
       .set({ status: "revoked", updatedAt: now })
-      .where(and(eq(agentCapabilityGrant.agentId, agentId), eq(agentCapabilityGrant.status, "active"))),
+      .where(
+        and(
+          eq(agentCapabilityGrant.agentId, agentId),
+          eq(agentCapabilityGrant.status, "active"),
+          sql`exists (select 1 from ${agent} where ${agent.id} = ${agentId} and ${agent.metadata} = ${row.metadata})`
+        )
+      ),
+    authDb
+      .update(agent)
+      .set({ status: "revoked", updatedAt: now })
+      .where(and(eq(agent.id, agentId), eq(agent.metadata, row.metadata!))),
   ])
   await recordAgentEvent({
     type: "agent.revoked",

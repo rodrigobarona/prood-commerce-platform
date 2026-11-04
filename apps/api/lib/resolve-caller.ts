@@ -162,20 +162,19 @@ export async function requireCallerFromHeaders(
       "UNAUTHORIZED"
     )
   }
-  if (!hasScope(caller.scopes, scope)) {
-    throw new CommerceError(scopeRefusal(scope, caller.via), "FORBIDDEN")
-  }
-  if (caller.capabilities) {
-    const operation = operationForRequest(headerList.get(REQUEST_TARGET_HEADER))
-    // Calls through the execute endpoint are recorded there, with their outcome.
-    const direct = !caller.proxied && caller.agentId && operation
-    try {
-      assertCapability(caller.capabilities, operation)
-    } catch (err) {
-      if (direct) recordAgentCall(caller, operation, err instanceof Error ? err.message : "Refused")
-      throw err
+  const operation = caller.capabilities ? operationForRequest(headerList.get(REQUEST_TARGET_HEADER)) : null
+  // An agent's own calls, refused or not. Calls through the execute endpoint
+  // are recorded there, with their outcome.
+  const recorded = caller.capabilities && !caller.proxied && caller.agentId ? operation : null
+  try {
+    if (!hasScope(caller.scopes, scope)) {
+      throw new CommerceError(scopeRefusal(scope, caller.via), "FORBIDDEN")
     }
-    if (direct) recordAgentCall(caller, operation)
+    if (caller.capabilities) assertCapability(caller.capabilities, operation)
+  } catch (err) {
+    if (recorded) recordAgentCall(caller, recorded, err instanceof Error ? err.message : "Refused")
+    throw err
   }
+  if (recorded) recordAgentCall(caller, recorded)
   return caller
 }

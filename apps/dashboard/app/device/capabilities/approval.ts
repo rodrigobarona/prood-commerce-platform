@@ -2,13 +2,14 @@
 
 import "server-only"
 
-import { and, eq, inArray } from "drizzle-orm"
+import { and, eq, inArray, isNull } from "drizzle-orm"
 import { redirect, unstable_rethrow } from "next/navigation"
 import { authDb } from "@/lib/auth/db"
 import {
   agent,
   agentCapabilityGrant,
   agentHost,
+  agentEvent,
   approvalRequest,
   organization,
 } from "@/lib/auth/schema"
@@ -273,6 +274,12 @@ export async function approveCapabilityRequest(
           metadata: JSON.stringify({ organizationId: row.orgId }),
         })
         .where(eq(agent.id, row.agent.id)),
+      // What the agent did before it had a store, like asking to connect,
+      // belongs to the store it's approved for.
+      authDb
+        .update(agentEvent)
+        .set({ organizationId: row.orgId })
+        .where(and(eq(agentEvent.agentId, row.agent.id), isNull(agentEvent.organizationId))),
       ...grantUpdates,
       ...grantInserts,
     ])

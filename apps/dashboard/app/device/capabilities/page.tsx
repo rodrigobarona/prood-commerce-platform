@@ -9,9 +9,9 @@ import { FormPanelSkeleton } from "@/components/skeletons"
 import { Status } from "@prood/ui/components/status-badge"
 import { formatDateTime, humanize } from "@/lib/format"
 import { approvalStatus } from "@/lib/status"
-import { ApprovalControls, ReturnToStore } from "./approval-controls"
+import { ApprovalControls, SwitchToStore } from "./approval-controls"
 import { getApprovalRequest } from "./approval"
-import { getActiveOrganizationId } from "@/lib/auth"
+import { getActiveOrganizationId, listOrganizations } from "@/lib/auth"
 
 export const metadata = { title: "Approve AI agent access" }
 
@@ -50,14 +50,32 @@ async function ApprovalRequest({ searchParams }: { searchParams: SearchParams })
     )
   }
 
+  // Set by "Sign in again", which lands on the merchant's first store. Only a
+  // store the merchant belongs to counts, and switching to it is their choice.
   const activeStoreId = await getActiveOrganizationId()
   if (returnStore && activeStoreId && returnStore !== activeStoreId) {
-    return (
-      <Panel>
-        <ReturnToStore storeId={returnStore} activeStoreId={activeStoreId} />
-        <p className="text-sm text-muted-foreground">Switching back to the store this request was for...</p>
-      </Panel>
-    )
+    const stores = await listOrganizations().catch(() => [])
+    const store = stores.find((s) => s.id === returnStore)
+    const active = stores.find((s) => s.id === activeStoreId)
+    if (store) {
+      return (
+        <Panel>
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-muted-foreground">
+              You opened this request in {store.name}, and you&apos;re now in {active?.name ?? "another store"}. The
+              agent is approved for the store you&apos;re in.
+            </p>
+            <SwitchToStore storeId={store.id} storeName={store.name} />
+            <Link
+              href={`/device/capabilities?request_id=${encodeURIComponent(requestId)}`}
+              className="w-fit text-sm underline underline-offset-4"
+            >
+              Review it in {active?.name ?? "this store"} instead
+            </Link>
+          </div>
+        </Panel>
+      )
+    }
   }
 
   const details = await getApprovalRequest(requestId).catch((error: unknown) => {

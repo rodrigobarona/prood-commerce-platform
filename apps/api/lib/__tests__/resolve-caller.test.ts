@@ -378,6 +378,29 @@ describe("agents calling /v1 with their own token", () => {
     )
   })
 
+  it("records a call outside the agent's scope as failed", async () => {
+    mocks.getAgentSession.mockResolvedValue({
+      user: { id: "user-1" },
+      agent: { id: "agent-1", capabilityGrants: [{ capability: "listProducts", status: "active" }] },
+    })
+    mocks.getMemberRole.mockResolvedValue("member")
+
+    const err = await denial(
+      requireCallerFromHeaders(
+        new Headers({ authorization: "Bearer token", [REQUEST_TARGET_HEADER]: "GET /v1/admin/orders/order-1" }),
+        "admin",
+      ),
+    )
+
+    expect(err?.code).toBe("FORBIDDEN")
+    expect(mocks.recordAgentCall).toHaveBeenCalledTimes(1)
+    expect(mocks.recordAgentCall).toHaveBeenCalledWith(
+      expect.objectContaining({ agentId: "agent-1" }),
+      "adminGetOrder",
+      expect.any(String),
+    )
+  })
+
   it("records a refused call as failed", async () => {
     mocks.getAgentSession.mockResolvedValue({
       user: { id: "user-1" },

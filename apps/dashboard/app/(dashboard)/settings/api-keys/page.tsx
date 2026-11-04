@@ -236,7 +236,7 @@ async function ApiKeysContent() {
                       </div>
                       <div className="text-xs font-normal text-muted-foreground @2xl:hidden">{access}</div>
                     </TableCell>
-                    <TableCell className={`${WIDE} text-muted-foreground`}>{agent.userName ?? "Unknown"}</TableCell>
+                    <TableCell className={`${WIDE} text-muted-foreground`}>{agent.approvedBy ?? "Unknown"}</TableCell>
                     <TableCell className={WIDE}>
                       <span title={agent.capabilities.join(", ")}>{access}</span>
                     </TableCell>
@@ -279,7 +279,7 @@ async function ApiKeysContent() {
             {events.map((event) => (
               <li key={event.id} className="flex items-baseline justify-between gap-4 px-5 py-3 text-sm">
                 <span className="min-w-0">
-                  <span className="font-medium">{event.agentName ?? "An agent"}</span>{" "}
+                  <span className="font-medium">{event.agentName ?? (event.agentId ? `Agent ${event.agentId}` : "An agent")}</span>{" "}
                   <span className="text-muted-foreground">{eventLabel(event)}</span>
                 </span>
                 <time
