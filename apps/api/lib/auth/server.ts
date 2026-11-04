@@ -49,6 +49,14 @@ function createAuth() {
         if (DASHBOARD_ONLY_PATHS.has(ctx.path)) {
           throw new APIError("FORBIDDEN", { message: "Approve agents in your dashboard." })
         }
+        // An agent's metadata holds the store it was approved for, and only
+        // approval writes it. Letting the owner set it would move an agent to
+        // another store without that store's approval. Renaming still works.
+        if (ctx.path === "/agent/update" && ctx.body?.metadata !== undefined) {
+          throw new APIError("FORBIDDEN", {
+            message: "An agent's store is set when you approve it in your dashboard.",
+          })
+        }
         if (isPersonalBillingRequest(ctx.path, ctx.body?.customerType ?? ctx.query?.customerType)) {
           throw new APIError("FORBIDDEN", { message: "Plans are bought for a store." })
         }

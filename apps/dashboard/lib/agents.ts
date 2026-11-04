@@ -1,5 +1,5 @@
 import "server-only"
-import { and, desc, eq, inArray, like, sql } from "drizzle-orm"
+import { and, desc, eq, inArray, sql } from "drizzle-orm"
 import { agentOrganizationId, recordAgentEvent } from "@prood/auth/agent-events"
 import { getSession } from "@/lib/auth"
 import { authDb } from "@/lib/auth/db"
@@ -35,7 +35,9 @@ export interface StoreAgentEvent {
  * The agents approved for the active store. Approval writes the store into the
  * agent's metadata, a JSON string, so that's what scopes them. Not the owner's
  * membership: an autonomous agent can have no owner and still hold grants here.
- * The LIKE only narrows the read; the parsed metadata decides.
+ * Only approval writes it (the API refuses metadata on `/agent/update`), always
+ * as `{"organizationId":"..."}`, so the match is exact and runs before the
+ * limit. The parsed metadata is checked again below.
  */
 /** The newest agents shown, so a long history doesn't slow the page. */
 const STORE_AGENTS_SHOWN = 50
@@ -58,7 +60,7 @@ export async function listStoreAgents(): Promise<StoreAgent[]> {
     .from(agent)
     .leftJoin(agentHost, eq(agentHost.id, agent.hostId))
     .leftJoin(user, eq(user.id, agent.userId))
-    .where(like(agent.metadata, `%${orgId}%`))
+    .where(eq(agent.metadata, JSON.stringify({ organizationId: orgId })))
     .orderBy(desc(agent.createdAt))
     .limit(STORE_AGENTS_SHOWN)
 
