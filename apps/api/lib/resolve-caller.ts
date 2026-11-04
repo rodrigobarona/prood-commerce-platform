@@ -10,6 +10,8 @@ import {
   REQUEST_TARGET_HEADER,
 } from "@/lib/agent-capability"
 import { assertApiKeyRate, countApiKeyRequest, readApiKey } from "@/lib/api-key-limit"
+import { AGENT_PROXY_HEADER, verifyAgentProxyToken } from "@/lib/agent-proxy-token"
+import { recordAgentCall } from "@/lib/auth/agent-events"
 import { hasScope, scopeRefusal, scopesForRole, type ApiScope } from "@/lib/scopes"
 import type { ApiCaller } from "@/lib/auth-tenant"
 
@@ -43,6 +45,25 @@ function scopesFromCapabilities(capabilities: string[]): ApiScope[] {
 export async function resolveCallerFromHeaders(
   headerList: Headers
 ): Promise<ApiCaller | null> {
+  // Agent Auth's execute endpoint calling `/v1` for an agent. It has already
+  // checked the agent, so the token is trusted for its one operation only.
+  const proxyToken = headerList.get(AGENT_PROXY_HEADER)
+  if (proxyToken) {
+    const claims = verifyAgentProxyToken(proxyToken)
+    const operation = operationForRequest(headerList.get(REQUEST_TARGET_HEADER))
+    if (!claims || claims.operation !== operation) {
+      throw new CommerceError("This agent call isn't valid here", "UNAUTHORIZED")
+    }
+    return {
+      orgId: claims.orgId,
+      scopes: scopesFromCapabilities(claims.capabilities),
+      via: "agent",
+      capabilities: claims.capabilities,
+      agentId: claims.agentId,
+      proxied: true,
+    }
+  }
+
   const authorization = headerList.get("authorization")
   if (authorization?.startsWith("Bearer ")) {
     const agentSession = await getAuth().api.getAgentSession({
@@ -54,7 +75,14 @@ export async function resolveCallerFromHeaders(
       if (scopes.length === 0) {
         throw new CommerceError("Agent has no active capability grants", "FORBIDDEN")
       }
-      return { orgId, scopes, via: "agent", capabilities }
+      return {
+        orgId,
+        scopes,
+        via: "agent",
+        capabilities,
+        agentId: agentSession.agent.id,
+        actorId: agentSession.user?.id,
+      }
     }
   }
 
@@ -136,10 +164,10 @@ export async function requireCallerFromHeaders(
     throw new CommerceError(scopeRefusal(scope, caller.via), "FORBIDDEN")
   }
   if (caller.capabilities) {
-    assertCapability(
-      caller.capabilities,
-      operationForRequest(headerList.get(REQUEST_TARGET_HEADER))
-    )
+    const operation = operationForRequest(headerList.get(REQUEST_TARGET_HEADER))
+    assertCapability(caller.capabilities, operation)
+    // Calls through the execute endpoint are recorded there, with their outcome.
+    if (!caller.proxied && caller.agentId && operation) recordAgentCall(caller, operation)
   }
   return caller
 }

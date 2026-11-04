@@ -8,6 +8,7 @@ import { getAuth } from "@/lib/auth/server"
 import { ADMIN_ONLY_MESSAGE, canManageStore, requireStoreAdmin } from "@/lib/admin"
 import { ADMIN_SCOPE_NEEDS_GROW } from "@/lib/api-key-copy"
 import { revokeActiveOrgApiKey } from "@/lib/api-keys"
+import { revokeStoreAgent } from "@/lib/agents"
 import { getActiveOrganizationPlan } from "@/lib/billing"
 
 export interface ApiKeyActionState {
@@ -56,5 +57,10 @@ export async function createApiKeyAction(
 
 export async function revokeApiKeyAction(id: string): Promise<void> {
   await revokeActiveOrgApiKey(id)
+  revalidatePath("/settings/api-keys")
+}
+
+export async function revokeAgentAction(id: string): Promise<void> {
+  await revokeStoreAgent(id)
   revalidatePath("/settings/api-keys")
 }

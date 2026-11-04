@@ -19,6 +19,7 @@ import { CLIENT_IP_HEADER } from "@prood/auth/client-ip"
 import { sharedAuthOptions, sharedEmailAndPassword } from "@prood/auth/shared-options"
 import { sendPasswordResetEmail } from "./password-reset-email"
 import { getAgentAuthOpenAPIOptions } from "./agent-config"
+import { recordPluginEvent } from "./agent-events"
 import { requiredEnv } from "@prood/types"
 import { getMailer } from "../mailer"
 import { billingPlugin, isPersonalBillingRequest } from "./billing"
@@ -120,6 +121,7 @@ function createAuth() {
         // The approval UI lives in the dashboard, not on the API origin.
         deviceAuthorizationPage: `${dashboardUrl}/device/capabilities`,
         trustProxy: process.env.TRUST_PROXY === "true",
+        onEvent: recordPluginEvent,
         ...getAgentAuthOpenAPIOptions(),
       }),
       ...(billing ? [billing] : []),

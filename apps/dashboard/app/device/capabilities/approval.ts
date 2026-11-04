@@ -12,6 +12,8 @@ import {
   approvalRequest,
 } from "@/lib/auth/schema"
 import { getSession } from "@/lib/auth"
+import { changesStore, isFreshSignIn } from "@prood/auth/agent-capabilities"
+import { recordAgentEvent } from "@prood/auth/agent-events"
 import { ADMIN_ONLY_MESSAGE, canManageStore, requireActiveOrg } from "@/lib/admin"
 
 export interface ApprovalRequestDetails {
@@ -19,6 +21,10 @@ export interface ApprovalRequestDetails {
   status: string
   method: string
   capabilities: string[]
+  /** Capabilities in this request that let the agent change the store. */
+  storeChanges: string[]
+  /** Approving needs a sign-in from the last few minutes, and this session is older. */
+  needsFreshSignIn: boolean
   bindingMessage: string | null
   expiresAt: Date
   agent: {
@@ -78,7 +84,9 @@ function parseAgentMetadata(raw: string | null): { organizationId?: string } {
 
 async function getScopedApprovalRequest(requestId: string) {
   const [session, orgId] = await Promise.all([getSession(), requireActiveOrg()])
-  if (!session) redirect("/login")
+  if (!session) {
+    redirect(`/login?redirect=${encodeURIComponent(`/device/capabilities?request_id=${requestId}`)}`)
+  }
 
   const rows = await authDb
     .select({
@@ -111,6 +119,7 @@ async function getScopedApprovalRequest(requestId: string) {
     host: row.host,
     orgId,
     userId: session.user.id,
+    signedInAt: new Date(session.session.createdAt),
   }
 }
 
@@ -121,12 +130,15 @@ export async function getApprovalRequest(
   if (!row) return null
 
   const capabilities = parseCapabilities(row.request.capabilities)
+  const storeChanges = capabilities.filter(changesStore)
 
   return {
     id: row.request.id,
     status: row.request.status,
     method: row.request.method,
     capabilities,
+    storeChanges,
+    needsFreshSignIn: storeChanges.length > 0 && !isFreshSignIn(row.signedInAt),
     bindingMessage: row.request.bindingMessage,
     expiresAt: row.request.expiresAt,
     agent: {
@@ -148,7 +160,12 @@ export async function getApprovalRequest(
 
 export interface ApprovalActionState {
   error?: string
+  /** The session is too old to approve store changes; signing in again fixes it. */
+  needsFreshSignIn?: boolean
 }
+
+const FRESH_SIGN_IN_MESSAGE =
+  "This agent could change your store, so approving it needs a sign-in from the last 10 minutes. Sign in again to approve."
 
 async function resolvePendingRequest(requestId: string) {
   const row = await getScopedApprovalRequest(requestId)
@@ -178,6 +195,9 @@ export async function approveCapabilityRequest(
     }
     if (capabilities.some((capability) => capability.startsWith("admin")) && !(await canManageStore())) {
       return { error: ADMIN_ONLY_MESSAGE }
+    }
+    if (capabilities.some(changesStore) && !isFreshSignIn(row.signedInAt)) {
+      return { error: FRESH_SIGN_IN_MESSAGE, needsFreshSignIn: true }
     }
 
     const existing = await authDb
@@ -247,6 +267,15 @@ export async function approveCapabilityRequest(
       ...grantUpdates,
       ...grantInserts,
     ])
+    await recordAgentEvent({
+      type: "approval.approved",
+      organizationId: row.orgId,
+      agentId: row.agent.id,
+      hostId: row.agent.hostId,
+      actorId: row.userId,
+      actorType: "user",
+      metadata: { requestId, capabilities },
+    })
   } catch (error) {
     unstable_rethrow(error)
     console.error("[approveCapabilityRequest] failed:", error)
@@ -330,6 +359,15 @@ export async function denyCapabilityRequest(
       ...grantUpdates,
       ...grantInserts,
     ])
+    await recordAgentEvent({
+      type: "approval.denied",
+      organizationId: row.orgId,
+      agentId: row.agent.id,
+      hostId: row.agent.hostId,
+      actorId: row.userId,
+      actorType: "user",
+      metadata: { requestId, capabilities, reason },
+    })
   } catch (error) {
     unstable_rethrow(error)
     console.error("[denyCapabilityRequest] failed:", error)

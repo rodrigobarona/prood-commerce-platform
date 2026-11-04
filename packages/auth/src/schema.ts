@@ -264,6 +264,35 @@ export const approvalRequest = pgTable("approvalRequest", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 })
 
+/**
+ * What happened to and through AI agents, per store: registrations, approvals,
+ * denials, revocations and calls. Agent and actor ids aren't foreign keys, so
+ * the record outlives the agent it describes. Arguments and results are never
+ * stored, because they can hold customer data.
+ */
+export const agentEvent = pgTable(
+  "agent_event",
+  {
+    id: text("id").primaryKey(),
+    type: text("type").notNull(),
+    organizationId: text("organization_id").references(() => organization.id, { onDelete: "cascade" }),
+    agentId: text("agent_id"),
+    hostId: text("host_id"),
+    actorId: text("actor_id"),
+    actorType: text("actor_type"),
+    capability: text("capability"),
+    status: text("status"),
+    error: text("error"),
+    durationMs: integer("duration_ms"),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("agent_event_org_created_idx").on(table.organizationId, table.createdAt),
+    index("agent_event_agent_created_idx").on(table.agentId, table.createdAt),
+  ]
+)
+
 export const tenantDomain = pgTable("tenant_domain", {
   id: text("id").primaryKey(),
   organizationId: text("organization_id")

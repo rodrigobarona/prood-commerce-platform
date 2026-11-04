@@ -4,6 +4,7 @@ import { neon } from "@neondatabase/serverless"
 import { drizzle } from "drizzle-orm/neon-http"
 import { and, count, eq, gt, gte, ilike, isNotNull, or, sql, desc, asc, type SQL } from "drizzle-orm"
 import * as schema from "@prood/auth/schema"
+import { agentOrganizationId, recordAgentEvent } from "@prood/auth/agent-events"
 import { planIds, type PlanId } from "@prood/billing"
 import { contains } from "@prood/types"
 import { assertAdmin } from "@/lib/auth"
@@ -728,7 +729,12 @@ export async function getAgentCounts(): Promise<{ all: number; byStatus: Record<
  * call: any word it doesn't know, it lets through.
  */
 export async function revokeAgent(id: string): Promise<void> {
-  await assertAdmin()
+  const session = await assertAdmin()
+  const [target] = await db
+    .select({ metadata: schema.agent.metadata, hostId: schema.agent.hostId })
+    .from(schema.agent)
+    .where(eq(schema.agent.id, id))
+    .limit(1)
   const now = new Date()
   await db.batch([
     db.update(schema.agent).set({ status: "revoked", updatedAt: now }).where(eq(schema.agent.id, id)),
@@ -737,4 +743,13 @@ export async function revokeAgent(id: string): Promise<void> {
       .set({ status: "revoked", updatedAt: now })
       .where(and(eq(schema.agentCapabilityGrant.agentId, id), eq(schema.agentCapabilityGrant.status, "active"))),
   ])
+  await recordAgentEvent({
+    type: "agent.revoked",
+    organizationId: agentOrganizationId(target?.metadata ?? null),
+    agentId: id,
+    hostId: target?.hostId,
+    actorId: session.user.id,
+    actorType: "user",
+    metadata: { by: "platform-admin" },
+  })
 }

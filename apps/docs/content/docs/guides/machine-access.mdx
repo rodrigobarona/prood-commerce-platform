@@ -35,7 +35,7 @@ Errors come back as JSON: `{ "code": "UNAUTHORIZED", "message": "Invalid API key
 
 ## Agent Auth
 
-With Agent Auth, an AI agent starts with nothing until you approve it for your store. After that it keeps the public catalog, and anything else needs your approval. You see every capability the agent asks for and approve or deny the request as a whole. Approved access ends after an hour idle, or 24 hours at most. Then the agent asks again.
+With Agent Auth, an AI agent starts with nothing until you approve it for your store. After that it keeps the public catalog, and anything else needs your approval. You see every capability the agent asks for and approve or deny the request as a whole. Approving anything that changes your store needs a sign-in from the last 10 minutes. Approved access ends after an hour idle, or 24 hours at most. Then the agent asks again. You see and revoke approved agents under **Settings → API keys**.
 
 An API key isn't Agent Auth: anything holding an admin key can do what the key allows, without asking.
 

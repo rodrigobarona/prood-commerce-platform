@@ -16,6 +16,12 @@ export interface ApiCaller {
   userId?: string
   /** Operations an agent was granted. Agents can only use these, whatever their scopes. */
   capabilities?: string[]
+  /** The agent behind the call, for the audit log. */
+  agentId?: string
+  /** The user the agent acts for, for the audit log. */
+  actorId?: string
+  /** Sent by Agent Auth's execute endpoint, which records the call itself. */
+  proxied?: boolean
 }
 
 export async function resolveApiCaller(): Promise<ApiCaller | null> {

@@ -97,8 +97,11 @@ async function ApprovalRequest({ searchParams }: { searchParams: SearchParams })
         {details.capabilities.length > 0 ? (
           <ul className="divide-y divide-border">
             {details.capabilities.map((capability) => (
-              <li key={capability} className="px-5 py-3 font-mono text-xs">
-                {capability}
+              <li key={capability} className="flex items-center justify-between gap-3 px-5 py-3">
+                <span className="font-mono text-xs">{capability}</span>
+                {details.storeChanges.includes(capability) ? (
+                  <span className="text-xs text-muted-foreground">Changes your store</span>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -107,7 +110,9 @@ async function ApprovalRequest({ searchParams }: { searchParams: SearchParams })
         )}
       </Panel>
 
-      {details.status === "pending" ? <ApprovalControls requestId={requestId} /> : null}
+      {details.status === "pending" ? (
+        <ApprovalControls requestId={requestId} needsFreshSignIn={details.needsFreshSignIn} />
+      ) : null}
     </>
   )
 }
