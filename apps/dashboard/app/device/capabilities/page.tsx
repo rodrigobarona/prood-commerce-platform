@@ -9,8 +9,9 @@ import { FormPanelSkeleton } from "@/components/skeletons"
 import { Status } from "@prood/ui/components/status-badge"
 import { formatDateTime, humanize } from "@/lib/format"
 import { approvalStatus } from "@/lib/status"
-import { ApprovalControls } from "./approval-controls"
+import { ApprovalControls, ReturnToStore } from "./approval-controls"
 import { getApprovalRequest } from "./approval"
+import { getActiveOrganizationId } from "@/lib/auth"
 
 export const metadata = { title: "Approve AI agent access" }
 
@@ -36,6 +37,7 @@ export default function AgentCapabilityApprovalPage({ searchParams }: { searchPa
 async function ApprovalRequest({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams
   const requestId = typeof params.request_id === "string" ? params.request_id : null
+  const returnStore = typeof params.store === "string" ? params.store : null
 
   if (!requestId) {
     return (
@@ -44,6 +46,16 @@ async function ApprovalRequest({ searchParams }: { searchParams: SearchParams })
           There&apos;s no request to review. Start from the AI agent that asked for access, and it will send you back
           here.
         </p>
+      </Panel>
+    )
+  }
+
+  const activeStoreId = await getActiveOrganizationId()
+  if (returnStore && activeStoreId && returnStore !== activeStoreId) {
+    return (
+      <Panel>
+        <ReturnToStore storeId={returnStore} activeStoreId={activeStoreId} />
+        <p className="text-sm text-muted-foreground">Switching back to the store this request was for...</p>
       </Panel>
     )
   }
@@ -79,6 +91,7 @@ async function ApprovalRequest({ searchParams }: { searchParams: SearchParams })
       <Panel title={details.agent.name} actions={<Status look={approvalStatus(details.status)} />}>
         <div className="flex flex-col gap-4">
           <FactList>
+            <Fact label="Store">{details.storeName}</Fact>
             <Fact label="Request">
               <span className="font-mono text-xs break-all">{details.id}</span>
             </Fact>
@@ -111,7 +124,11 @@ async function ApprovalRequest({ searchParams }: { searchParams: SearchParams })
       </Panel>
 
       {details.status === "pending" ? (
-        <ApprovalControls requestId={requestId} needsFreshSignIn={details.needsFreshSignIn} />
+        <ApprovalControls
+          requestId={requestId}
+          storeId={details.agent.organizationId}
+          needsFreshSignIn={details.needsFreshSignIn}
+        />
       ) : null}
     </>
   )

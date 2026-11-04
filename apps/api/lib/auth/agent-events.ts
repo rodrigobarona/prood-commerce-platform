@@ -40,6 +40,10 @@ export async function recordPluginEvent(event: AgentAuthEvent): Promise<void> {
     return
   }
 
+  // Audit metadata is capability names, counts and reasons. `agent.updated`
+  // carries the values the caller sent, which can be anything, so not those.
+  const metadata = event.type === "agent.updated" ? undefined : event.metadata
+  const target = event.targetId ? { targetId: event.targetId, targetType: event.targetType } : null
   await recordAgentEvent({
     type: event.type,
     organizationId,
@@ -47,16 +51,15 @@ export async function recordPluginEvent(event: AgentAuthEvent): Promise<void> {
     hostId: event.hostId,
     actorId: event.actorId,
     actorType: event.actorType,
-    // Audit metadata is capability names, counts and reasons.
-    metadata:
-      event.metadata || event.targetId
-        ? { ...event.metadata, ...(event.targetId ? { targetId: event.targetId, targetType: event.targetType } : {}) }
-        : null,
+    metadata: metadata || target ? { ...metadata, ...target } : null,
   })
 }
 
-/** A call an agent made to `/v1` with its own token, written once the response is sent. */
-export function recordAgentCall(caller: ApiCaller, operation: string): void {
+/**
+ * A call an agent made to `/v1` with its own token, written once the response
+ * is sent. Its outcome isn't known here, only a refusal, passed as `refused`.
+ */
+export function recordAgentCall(caller: ApiCaller, operation: string, refused?: string): void {
   after(() =>
     recordAgentEvent({
       type: "capability.called",
@@ -65,6 +68,7 @@ export function recordAgentCall(caller: ApiCaller, operation: string): void {
       actorId: caller.actorId,
       actorType: "agent",
       capability: operation,
+      ...(refused ? { status: "error" as const, error: refused } : {}),
     })
   )
 }

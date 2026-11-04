@@ -32,5 +32,6 @@ describe("a fresh sign-in", () => {
   it("is one from the last 10 minutes", () => {
     expect(isFreshSignIn(new Date("2026-11-04T11:50:00Z"), now)).toBe(true)
     expect(isFreshSignIn(new Date("2026-11-04T11:49:59Z"), now)).toBe(false)
+    expect(isFreshSignIn(new Date("2026-11-04T12:05:00Z"), now)).toBe(false)
   })
 })

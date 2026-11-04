@@ -139,10 +139,11 @@ The Agent Auth tables are defined in `packages/auth/src/schema.ts` and created b
 
 ## Audit log
 
-Every Agent Auth event the plugin emits (`onEvent`) is written to `agent_event`, along with the approvals, denials and revocations made in the dashboard and admin, which don't go through the plugin. Calls through the execute endpoint are recorded as `capability.executed` with their outcome and duration. Calls an agent makes to `/v1` with its own token are recorded as `capability.called`. Arguments and results are never stored, because they can hold customer data.
+Every Agent Auth event the plugin emits (`onEvent`) is written to `agent_event`, along with the approvals, denials and revocations made in the dashboard and admin, which don't go through the plugin. Calls through the execute endpoint are recorded as `capability.executed` with their outcome and duration. Calls an agent makes to `/v1` with its own token are recorded as `capability.called`, and as failed if the agent lacks the capability. Updating an agent records that it changed, not the values sent. Arguments and results are never stored, because they can hold customer data.
 
 ## Security considerations
 
+- A store's agents share one allowance of 600 requests a minute, the same size as an API key's, whether they call `/v1` directly or through the execute endpoint
 - Agents operate with **delegated user authority** — they can only access data the approving user can access
 - An agent can do nothing until it's approved for a store. After that, everything past the six public catalog capabilities needs explicit approval on the device authorization page
 - Agent JWTs are short-lived and scoped to granted capabilities. Access ends after an hour idle, or 24 hours at most

@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   lookupTenantByHost: vi.fn(),
   readApiKey: vi.fn(),
   assertApiKeyRate: vi.fn(),
+  assertAgentRate: vi.fn(),
   countApiKeyRequest: vi.fn(),
   recordAgentCall: vi.fn(),
 }))
@@ -27,6 +28,7 @@ vi.mock("@/lib/org-plan", () => ({
 vi.mock("@/lib/api-key-limit", () => ({
   readApiKey: mocks.readApiKey,
   assertApiKeyRate: mocks.assertApiKeyRate,
+  assertAgentRate: mocks.assertAgentRate,
   countApiKeyRequest: mocks.countApiKeyRequest,
 }))
 vi.mock("@/lib/auth/agent-events", () => ({ recordAgentCall: mocks.recordAgentCall }))
@@ -302,6 +304,17 @@ describe("calls from Agent Auth's execute endpoint", () => {
     })
     expect(mocks.getAgentSession).not.toHaveBeenCalled()
     expect(mocks.recordAgentCall).not.toHaveBeenCalled()
+    expect(mocks.assertAgentRate).toHaveBeenCalledWith("org-1")
+  })
+
+  it("counts the call against the store's agent limit", async () => {
+    mocks.assertAgentRate.mockRejectedValueOnce(new CommerceError("limit", "RATE_LIMIT", 429))
+
+    const err = await denial(
+      resolveCallerFromHeaders(call(signAgentProxyToken(claims), "GET /v1/admin/orders/order-1")),
+    )
+
+    expect(err?.code).toBe("RATE_LIMIT")
   })
 
   it("refuses the token on any other operation", async () => {
@@ -362,6 +375,28 @@ describe("agents calling /v1 with their own token", () => {
     expect(mocks.recordAgentCall).toHaveBeenCalledWith(
       expect.objectContaining({ agentId: "agent-1", actorId: "user-1", orgId: "org-1" }),
       "listProducts",
+    )
+  })
+
+  it("records a refused call as failed", async () => {
+    mocks.getAgentSession.mockResolvedValue({
+      user: { id: "user-1" },
+      agent: { id: "agent-1", capabilityGrants: [{ capability: "listProducts", status: "active" }] },
+    })
+    mocks.getMemberRole.mockResolvedValue("member")
+
+    const err = await denial(
+      requireCallerFromHeaders(
+        new Headers({ authorization: "Bearer token", [REQUEST_TARGET_HEADER]: "GET /v1/products/p-1" }),
+        "storefront",
+      ),
+    )
+
+    expect(err?.code).toBe("FORBIDDEN")
+    expect(mocks.recordAgentCall).toHaveBeenCalledWith(
+      expect.objectContaining({ agentId: "agent-1" }),
+      "getProduct",
+      expect.stringContaining("getProduct"),
     )
   })
 })

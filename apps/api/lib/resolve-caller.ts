@@ -9,7 +9,7 @@ import {
   operationForRequest,
   REQUEST_TARGET_HEADER,
 } from "@/lib/agent-capability"
-import { assertApiKeyRate, countApiKeyRequest, readApiKey } from "@/lib/api-key-limit"
+import { assertAgentRate, assertApiKeyRate, countApiKeyRequest, readApiKey } from "@/lib/api-key-limit"
 import { AGENT_PROXY_HEADER, verifyAgentProxyToken } from "@/lib/agent-proxy-token"
 import { recordAgentCall } from "@/lib/auth/agent-events"
 import { hasScope, scopeRefusal, scopesForRole, type ApiScope } from "@/lib/scopes"
@@ -54,6 +54,7 @@ export async function resolveCallerFromHeaders(
     if (!claims || claims.operation !== operation) {
       throw new CommerceError("This agent call isn't valid here", "UNAUTHORIZED")
     }
+    await assertAgentRate(claims.orgId)
     return {
       orgId: claims.orgId,
       scopes: scopesFromCapabilities(claims.capabilities),
@@ -75,6 +76,7 @@ export async function resolveCallerFromHeaders(
       if (scopes.length === 0) {
         throw new CommerceError("Agent has no active capability grants", "FORBIDDEN")
       }
+      await assertAgentRate(orgId)
       return {
         orgId,
         scopes,
@@ -165,9 +167,15 @@ export async function requireCallerFromHeaders(
   }
   if (caller.capabilities) {
     const operation = operationForRequest(headerList.get(REQUEST_TARGET_HEADER))
-    assertCapability(caller.capabilities, operation)
     // Calls through the execute endpoint are recorded there, with their outcome.
-    if (!caller.proxied && caller.agentId && operation) recordAgentCall(caller, operation)
+    const direct = !caller.proxied && caller.agentId && operation
+    try {
+      assertCapability(caller.capabilities, operation)
+    } catch (err) {
+      if (direct) recordAgentCall(caller, operation, err instanceof Error ? err.message : "Refused")
+      throw err
+    }
+    if (direct) recordAgentCall(caller, operation)
   }
   return caller
 }

@@ -1,9 +1,9 @@
 import "server-only"
-import { and, desc, eq, inArray } from "drizzle-orm"
+import { and, desc, eq, inArray, like } from "drizzle-orm"
 import { agentOrganizationId, recordAgentEvent } from "@prood/auth/agent-events"
 import { getSession } from "@/lib/auth"
 import { authDb } from "@/lib/auth/db"
-import { agent, agentCapabilityGrant, agentEvent, agentHost, member, user } from "@/lib/auth/schema"
+import { agent, agentCapabilityGrant, agentEvent, agentHost, user } from "@/lib/auth/schema"
 import { requireStoreAdmin } from "@/lib/admin"
 
 export interface StoreAgent {
@@ -30,8 +30,9 @@ export interface StoreAgentEvent {
 
 /**
  * The agents approved for the active store. Approval writes the store into the
- * agent's metadata, a JSON string, so agents are found through the store's
- * members and then matched on it.
+ * agent's metadata, a JSON string, so that's what scopes them. Not the owner's
+ * membership: an autonomous agent can have no owner and still hold grants here.
+ * The LIKE only narrows the read; the parsed metadata decides.
  */
 export async function listStoreAgents(): Promise<StoreAgent[]> {
   const orgId = await requireStoreAdmin()
@@ -49,9 +50,9 @@ export async function listStoreAgents(): Promise<StoreAgent[]> {
       userEmail: user.email,
     })
     .from(agent)
-    .innerJoin(member, and(eq(member.userId, agent.userId), eq(member.organizationId, orgId)))
     .leftJoin(agentHost, eq(agentHost.id, agent.hostId))
     .leftJoin(user, eq(user.id, agent.userId))
+    .where(like(agent.metadata, `%${orgId}%`))
     .orderBy(desc(agent.createdAt))
 
   const agents = rows.filter((row) => agentOrganizationId(row.metadata) === orgId)

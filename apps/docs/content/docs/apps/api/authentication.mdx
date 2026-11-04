@@ -156,7 +156,7 @@ A key with the Admin scope on a Free store is refused on every call, whatever th
 
 ## Rate limits
 
-Each API key can make 600 requests a minute. Past that the API returns `429` with a `Retry-After` header saying how many seconds to wait.
+Each API key can make 600 requests a minute. Past that the API returns `429` with a `Retry-After` header saying how many seconds to wait. A store's AI agents share one allowance of the same size.
 
 ## Related pages
 

@@ -15,5 +15,6 @@ export const FRESH_SIGN_IN_SECONDS = 10 * 60
 
 /** Whether a session started recently enough to approve store changes. */
 export function isFreshSignIn(sessionCreatedAt: Date, now = new Date()): boolean {
-  return now.getTime() - sessionCreatedAt.getTime() <= FRESH_SIGN_IN_SECONDS * 1000
+  const age = now.getTime() - sessionCreatedAt.getTime()
+  return age >= 0 && age <= FRESH_SIGN_IN_SECONDS * 1000
 }

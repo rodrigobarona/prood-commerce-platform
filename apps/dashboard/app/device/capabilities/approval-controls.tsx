@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState, useState } from "react"
+import { useActionState, useEffect, useState } from "react"
 import { unstable_rethrow, useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Button } from "@prood/ui/components/button"
@@ -29,15 +29,16 @@ function staysOnFailure(action: (state: ApprovalActionState, formData: FormData)
 }
 
 /** Ends this session and comes back here after signing in, which counts as a fresh sign-in. */
-function SignInAgainButton({ requestId, disabled }: { requestId: string; disabled: boolean }) {
+function SignInAgainButton({ requestId, storeId, disabled }: { requestId: string; storeId: string; disabled: boolean }) {
   const router = useRouter()
   const [pending, setPending] = useState(false)
 
   async function signInAgain() {
     setPending(true)
     try {
-      await authClient.signOut()
-      const back = `/device/capabilities?request_id=${encodeURIComponent(requestId)}`
+      const { error } = await authClient.signOut()
+      if (error) throw error
+      const back = `/device/capabilities?request_id=${encodeURIComponent(requestId)}&store=${encodeURIComponent(storeId)}`
       router.push(`/login?redirect=${encodeURIComponent(back)}`)
       router.refresh()
     } catch {
@@ -53,11 +54,33 @@ function SignInAgainButton({ requestId, disabled }: { requestId: string; disable
   )
 }
 
+/**
+ * Signing in again starts on the merchant's first store. This switches back to
+ * the store the request was opened for, so the agent isn't approved for another.
+ */
+export function ReturnToStore({ storeId, activeStoreId }: { storeId: string; activeStoreId: string }) {
+  const router = useRouter()
+  useEffect(() => {
+    if (storeId === activeStoreId) return
+    authClient.organization
+      .setActive({ organizationId: storeId })
+      .then(({ error }) => {
+        if (error) throw error
+        router.refresh()
+      })
+      .catch(() => toast.error("We couldn't switch back to the store this request was for. Switch stores to approve it."))
+  }, [storeId, activeStoreId, router])
+  return null
+}
+
 export function ApprovalControls({
   requestId,
+  storeId,
   needsFreshSignIn,
 }: {
   requestId: string
+  /** The store the agent will be approved for. */
+  storeId: string
   needsFreshSignIn: boolean
 }) {
   const approveAction = staysOnFailure(
@@ -105,7 +128,7 @@ export function ApprovalControls({
               This agent could change your store, so approving it needs a sign-in from the last 10 minutes.
             </p>
             <div>
-              <SignInAgainButton requestId={requestId} disabled={pending} />
+              <SignInAgainButton requestId={requestId} storeId={storeId} disabled={pending} />
             </div>
           </div>
         ) : (

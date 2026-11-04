@@ -10,6 +10,7 @@ import {
   agentCapabilityGrant,
   agentHost,
   approvalRequest,
+  organization,
 } from "@/lib/auth/schema"
 import { getSession } from "@/lib/auth"
 import { changesStore, isFreshSignIn } from "@prood/auth/agent-capabilities"
@@ -25,6 +26,8 @@ export interface ApprovalRequestDetails {
   storeChanges: string[]
   /** Approving needs a sign-in from the last few minutes, and this session is older. */
   needsFreshSignIn: boolean
+  /** The store approving binds the agent to: the active one. */
+  storeName: string
   bindingMessage: string | null
   expiresAt: Date
   agent: {
@@ -131,6 +134,11 @@ export async function getApprovalRequest(
 
   const capabilities = parseCapabilities(row.request.capabilities)
   const storeChanges = capabilities.filter(changesStore)
+  const [store] = await authDb
+    .select({ name: organization.name })
+    .from(organization)
+    .where(eq(organization.id, row.orgId))
+    .limit(1)
 
   return {
     id: row.request.id,
@@ -139,6 +147,7 @@ export async function getApprovalRequest(
     capabilities,
     storeChanges,
     needsFreshSignIn: storeChanges.length > 0 && !isFreshSignIn(row.signedInAt),
+    storeName: store?.name ?? "Your store",
     bindingMessage: row.request.bindingMessage,
     expiresAt: row.request.expiresAt,
     agent: {

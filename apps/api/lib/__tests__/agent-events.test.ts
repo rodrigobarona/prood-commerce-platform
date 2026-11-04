@@ -69,6 +69,23 @@ describe("recording Agent Auth events", () => {
     )
   })
 
+  it("leaves out the values a caller sent when updating an agent", async () => {
+    await recordPluginEvent({
+      type: "agent.updated",
+      agentId: "agent-1",
+      actorId: "user-1",
+      actorType: "user",
+      targetId: "agent-1",
+      targetType: "agent",
+      metadata: { note: "customer@example.com" },
+    })
+
+    expect(mocks.recordAgentEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ metadata: { targetId: "agent-1", targetType: "agent" } }),
+    )
+    expect(JSON.stringify(mocks.recordAgentEvent.mock.calls)).not.toContain("customer@example.com")
+  })
+
   it("records an event with no store when the agent hasn't been approved for one", async () => {
     mocks.limit.mockResolvedValue([{ metadata: null }])
 

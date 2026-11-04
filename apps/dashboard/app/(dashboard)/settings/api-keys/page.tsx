@@ -46,7 +46,7 @@ const EVENT_LABELS: Record<string, string> = {
   "capability.granted": "was granted access",
   "capability.revoked": "lost access",
   "capability.executed": "used",
-  "capability.called": "used",
+  "capability.called": "called",
 }
 
 function eventLabel(event: StoreAgentEvent): string {
@@ -87,9 +87,10 @@ async function ApiKeysContent() {
   let events: StoreAgentEvent[] = []
   let agentsError: string | null = null
 
-  const [keysResult, agentsResult] = await Promise.allSettled([
+  const [keysResult, agentsResult, eventsResult] = await Promise.allSettled([
     listOrgApiKeys(),
-    Promise.all([listStoreAgents(), listStoreAgentEvents()]),
+    listStoreAgents(),
+    listStoreAgentEvents(),
   ])
   if (keysResult.status === "fulfilled") {
     keys = keysResult.value
@@ -98,8 +99,15 @@ async function ApiKeysContent() {
     console.error("[ApiKeysPage] listOrgApiKeys failed:", keysResult.reason)
     keysError = "We couldn't load your API keys. Refresh the page to try again."
   }
+  if (eventsResult.status === "fulfilled") {
+    events = eventsResult.value
+  } else {
+    // Only hides the activity panel; the agents and their revoke buttons stay.
+    unstable_rethrow(eventsResult.reason)
+    console.error("[ApiKeysPage] listStoreAgentEvents failed:", eventsResult.reason)
+  }
   if (agentsResult.status === "fulfilled") {
-    ;[agents, events] = agentsResult.value
+    agents = agentsResult.value
   } else {
     unstable_rethrow(agentsResult.reason)
     console.error("[ApiKeysPage] listStoreAgents failed:", agentsResult.reason)
