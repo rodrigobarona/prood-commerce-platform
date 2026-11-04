@@ -89,6 +89,29 @@ export async function assertApiKeyRate(keyId: string): Promise<void> {
   if (!allowed) throw rateLimitError(retryAfter ?? WINDOW_S)
 }
 
+/**
+ * Agents don't use a key, so their calls share one allowance per store, the
+ * same size as a key's. Without it only the per-IP limit on the execute route
+ * would cap them.
+ */
+export async function assertAgentRate(orgId: string): Promise<void> {
+  limiter ??= authRateLimitStorage() ?? memoryLimiter()
+  const { allowed, retryAfter } = await limiter.consume(`agent|${orgId}`, {
+    window: WINDOW_S,
+    max: API_KEY_REQUESTS_PER_MINUTE,
+  })
+  if (!allowed) {
+    const wait = retryAfter ?? WINDOW_S
+    throw new CommerceError(
+      `This store's AI agents have reached their limit of ${API_KEY_REQUESTS_PER_MINUTE} requests a minute. Wait ${wait} ${wait === 1 ? "second" : "seconds"} and try again.`,
+      "RATE_LIMIT",
+      429,
+      undefined,
+      wait
+    )
+  }
+}
+
 const unwritten = new Map<string, { requests: number; lastRequest: Date }>()
 /** Each key's own clock, so a busy key can't hold back another key's first count. */
 const nextFlushAt = new Map<string, number>()

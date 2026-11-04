@@ -11,6 +11,10 @@ AI agents can discover, register, request capabilities, and call commerce operat
 
 With Agent Auth, an AI agent starts with nothing until you approve it for your store. After that it keeps the public catalog, and anything else needs your approval. You see every capability the agent asks for and approve or deny the request as a whole. Approved access ends after an hour idle, or 24 hours at most. Then the agent asks again.
 
+If the agent asks for anything that changes your store (an `admin*` operation that isn't a read, such as a refund, a cancellation or a price change), approving it needs a sign-in from the last 10 minutes. If yours is older, the approval page asks you to sign in again first.
+
+You see every agent approved for your store under **Settings → API keys**, with what it can do and when it was last used, and you can revoke one there right away. The same page shows the store's recent agent activity.
+
 An API key isn't Agent Auth: anything holding an admin key can do what the key allows, without asking.
 
 Agent Auth is coming with Grow. Free keys reach the 21 storefront tools.
@@ -67,7 +71,7 @@ Every REST operation with an `operationId` in the OpenAPI spec becomes an agent 
 | `adminCreateProduct` | POST | `admin` (requires approval) |
 | `adminRefundOrder` | POST | `admin` (requires approval) |
 
-An agent starts with nothing it can use. `resolveAgentAccess` refuses an agent with no store: one with no user behind it, or one whose user has several stores and hasn't approved it for one. Once the agent has a store it keeps the public catalog reads (`listProducts`, `getProduct`, `getProductBySlug`, `listCategories`, `getStore`, `listCountries`), the default grants for an agent host. Everything else, including other `GET` operations and every `admin*` operation, requires approval on the dashboard's device authorization page. All the capabilities in a request are approved or denied together. Only store owners and admins can approve a request that includes an `admin*` capability. Approving also binds the agent to the active store. On a Free store, Agent Auth is refused.
+An agent starts with nothing it can use. `resolveAgentAccess` refuses an agent with no store: one with no user behind it, or one whose user has several stores and hasn't approved it for one. Once the agent has a store it keeps the public catalog reads (`listProducts`, `getProduct`, `getProductBySlug`, `listCategories`, `getStore`, `listCountries`), the default grants for an agent host. Everything else, including other `GET` operations and every `admin*` operation, requires approval on the dashboard's device authorization page. All the capabilities in a request are approved or denied together. Only store owners and admins can approve a request that includes an `admin*` capability. A request that includes a capability that changes the store (`changesStore` in `@prood/auth/agent-capabilities`: every `admin*` operation except `adminGet*` and `adminList*`) also needs a session started in the last 10 minutes. Approving also binds the agent to the active store. On a Free store, Agent Auth is refused.
 
 When the session ends, after an hour idle (`agentSessionTTL: 3600`) or 24 hours at most (`agentMaxLifetime: 86400`), it reactivates with the catalog defaults only, and the agent has to ask again.
 
@@ -98,7 +102,7 @@ curl -H "Authorization: Bearer eyJ..." \
 
 ## OpenAPI proxy execution
 
-When capabilities run through the default execute endpoint, the plugin proxies HTTP to the public API base URL:
+When capabilities run through the default execute endpoint, the plugin proxies HTTP to the public API base URL. No API key is stored for this: the proxy checks the agent's store, plan and role, then sends a token signed with a key derived from `BETTER_AUTH_SECRET`. The token lasts a minute and names the store, the agent, the capabilities it holds and the one operation it may reach. `/v1` refuses it on any other operation.
 
 ```mermaid
 sequenceDiagram
@@ -108,7 +112,7 @@ sequenceDiagram
 
   Agent->>Auth: POST /api/auth/capability/execute
   Auth->>Auth: Validate agent JWT + grant
-  Auth->>API: Proxy with org-scoped API key
+  Auth->>API: Proxy with a signed one-operation token
   Note over Auth,API: {API_PUBLIC_URL}/v1/{operationPath}
   API-->>Auth: Response
   Auth-->>Agent: Response
@@ -119,7 +123,6 @@ sequenceDiagram
 | Variable | Purpose |
 | --- | --- |
 | `API_PUBLIC_URL` | Public API origin used in OpenAPI + proxy. Required |
-| `AGENT_PROXY_API_KEYS_BY_ORG` | JSON object mapping organization IDs to org-scoped API keys for proxied capability execution |
 | `TRUST_PROXY` | Set `true` behind a reverse proxy for JWT `aud` validation |
 
 ## Database tables
@@ -132,14 +135,24 @@ The Agent Auth tables are defined in `packages/auth/src/schema.ts` and created b
 | `agent` | Individual agent instances |
 | `agentCapabilityGrant` | Approved capabilities per agent |
 | `approvalRequest` | Pending user approval requests |
+| `agent_event` | Audit log per store: registrations, approvals, denials, revocations and calls. Never stores arguments or results |
+
+## Audit log
+
+Every Agent Auth event the plugin emits (`onEvent`) is written to `agent_event`, along with the approvals, denials and revocations made in the dashboard and admin, which don't go through the plugin. Calls through the execute endpoint are recorded as `capability.executed` with their outcome and duration. Calls an agent makes to `/v1` with its own token are recorded as `capability.called`, and as failed if the agent lacks the capability. Updating an agent records that it changed, not the values sent. Arguments and results are never stored, because they can hold customer data.
 
 ## Security considerations
 
+- A store's agents share one allowance of 600 requests a minute, the same size as an API key's, whether they call `/v1` directly or through the execute endpoint
 - Agents operate with **delegated user authority** — they can only access data the approving user can access
 - An agent can do nothing until it's approved for a store. After that, everything past the six public catalog capabilities needs explicit approval on the device authorization page
 - Agent JWTs are short-lived and scoped to granted capabilities. Access ends after an hour idle, or 24 hours at most
 - Tenant isolation applies — agents cannot cross organization boundaries
-- Proxied capability execution requires agent metadata with `organizationId` and a matching key in `AGENT_PROXY_API_KEYS_BY_ORG`
+- Proxied capability execution requires agent metadata with `organizationId`, and `/v1` only accepts the proxy's signed token for the one operation it names
+
+## Stability
+
+`@better-auth/agent-auth` implements a protocol that's still a draft, and its API changes between releases. Its version is pinned exactly in `pnpm-workspace.yaml`, not with a range. Before upgrading, read its changelog, then run the API tests (`agent-execute`, `resolve-caller`, `agent-store-changes`) and walk through an approval in the dashboard.
 
 ## Example: agent shopping assistant
 

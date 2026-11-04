@@ -9,8 +9,9 @@ import { FormPanelSkeleton } from "@/components/skeletons"
 import { Status } from "@prood/ui/components/status-badge"
 import { formatDateTime, humanize } from "@/lib/format"
 import { approvalStatus } from "@/lib/status"
-import { ApprovalControls } from "./approval-controls"
+import { ApprovalControls, SwitchToStore } from "./approval-controls"
 import { getApprovalRequest } from "./approval"
+import { getActiveOrganizationId, listOrganizations } from "@/lib/auth"
 
 export const metadata = { title: "Approve AI agent access" }
 
@@ -36,6 +37,7 @@ export default function AgentCapabilityApprovalPage({ searchParams }: { searchPa
 async function ApprovalRequest({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams
   const requestId = typeof params.request_id === "string" ? params.request_id : null
+  const returnStore = typeof params.store === "string" ? params.store : null
 
   if (!requestId) {
     return (
@@ -46,6 +48,34 @@ async function ApprovalRequest({ searchParams }: { searchParams: SearchParams })
         </p>
       </Panel>
     )
+  }
+
+  // Set by "Sign in again", which lands on the merchant's first store. Only a
+  // store the merchant belongs to counts, and switching to it is their choice.
+  const activeStoreId = await getActiveOrganizationId()
+  if (returnStore && activeStoreId && returnStore !== activeStoreId) {
+    const stores = await listOrganizations().catch(() => [])
+    const store = stores.find((s) => s.id === returnStore)
+    const active = stores.find((s) => s.id === activeStoreId)
+    if (store) {
+      return (
+        <Panel>
+          <div className="flex flex-col gap-4">
+            <p className="text-sm text-muted-foreground">
+              You opened this request in {store.name}, and you&apos;re now in {active?.name ?? "another store"}. The
+              agent is approved for the store you&apos;re in.
+            </p>
+            <SwitchToStore storeId={store.id} storeName={store.name} />
+            <Link
+              href={`/device/capabilities?request_id=${encodeURIComponent(requestId)}`}
+              className="w-fit text-sm underline underline-offset-4"
+            >
+              Review it in {active?.name ?? "this store"} instead
+            </Link>
+          </div>
+        </Panel>
+      )
+    }
   }
 
   const details = await getApprovalRequest(requestId).catch((error: unknown) => {
@@ -79,6 +109,7 @@ async function ApprovalRequest({ searchParams }: { searchParams: SearchParams })
       <Panel title={details.agent.name} actions={<Status look={approvalStatus(details.status)} />}>
         <div className="flex flex-col gap-4">
           <FactList>
+            <Fact label="Store">{details.storeName}</Fact>
             <Fact label="Request">
               <span className="font-mono text-xs break-all">{details.id}</span>
             </Fact>
@@ -97,8 +128,11 @@ async function ApprovalRequest({ searchParams }: { searchParams: SearchParams })
         {details.capabilities.length > 0 ? (
           <ul className="divide-y divide-border">
             {details.capabilities.map((capability) => (
-              <li key={capability} className="px-5 py-3 font-mono text-xs">
-                {capability}
+              <li key={capability} className="flex items-center justify-between gap-3 px-5 py-3">
+                <span className="font-mono text-xs">{capability}</span>
+                {details.storeChanges.includes(capability) ? (
+                  <span className="text-xs text-muted-foreground">Changes your store</span>
+                ) : null}
               </li>
             ))}
           </ul>
@@ -107,7 +141,13 @@ async function ApprovalRequest({ searchParams }: { searchParams: SearchParams })
         )}
       </Panel>
 
-      {details.status === "pending" ? <ApprovalControls requestId={requestId} /> : null}
+      {details.status === "pending" ? (
+        <ApprovalControls
+          requestId={requestId}
+          storeId={details.agent.organizationId}
+          needsFreshSignIn={details.needsFreshSignIn}
+        />
+      ) : null}
     </>
   )
 }

@@ -769,7 +769,7 @@ plugin, API keys, admin plugin, and Agent Auth tables.
 
 | Export                    | Purpose                                      |
 | ------------------------ | -------------------------------------------- |
-| Schema tables             | `user`, `session`, `account`, `verification`, `organization` (with `planId`, Stripe billing fields), `member`, `invitation`, `apikey`, `agentHost`, `agent`, `agentCapabilityGrant`, `approvalRequest` |
+| Schema tables             | `user`, `session`, `account`, `verification`, `organization` (with `planId`, Stripe billing fields), `member`, `invitation`, `apikey`, `agentHost`, `agent`, `agentCapabilityGrant`, `approvalRequest`, `agent_event` |
 | `createAuth()`           | Better Auth instance factory                 |
 | `createAuthGetter()`     | Cached session getter for RSC                |
 | `getSession()`           | React `cache()` + `connection()` wrapper     |

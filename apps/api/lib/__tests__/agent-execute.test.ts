@@ -23,10 +23,12 @@ vi.mock("@prood/auth/membership", async (importOriginal) => ({
 
 import { CommerceError } from "@prood/types"
 import { getAgentAuthOpenAPIOptions } from "../auth/agent-config"
+import { AGENT_PROXY_HEADER, verifyAgentProxyToken } from "../agent-proxy-token"
 
 const agentSession = (...capabilities: string[]) => ({
   user: { id: "user-1" },
   agent: {
+    id: "agent-1",
     capabilityGrants: capabilities.map((capability) => ({ capability, status: "active" })),
   },
 })
@@ -48,31 +50,45 @@ function denial(promise: Promise<unknown>) {
   )
 }
 
+function sentClaims() {
+  const init = mocks.fetch.mock.calls[0]?.[1] as RequestInit
+  const headers = init.headers as Record<string, string>
+  expect(headers["x-api-key"]).toBeUndefined()
+  const token = headers[AGENT_PROXY_HEADER]
+  expect(token).toBeTypeOf("string")
+  return verifyAgentProxyToken(token!)
+}
+
 describe("executing a capability through the plugin", () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.stubEnv("API_PUBLIC_URL", "https://api.prood.test")
-    vi.stubEnv("AGENT_PROXY_API_KEYS_BY_ORG", JSON.stringify({ "org-1": "proxy-key" }))
+    vi.stubEnv("BETTER_AUTH_SECRET", "test-secret")
     vi.stubGlobal("fetch", mocks.fetch)
     mocks.fetch.mockImplementation(async () => Response.json({ ok: true }))
     mocks.resolveOrgForAgent.mockResolvedValue("org-1")
     mocks.getOrganizationLimits.mockResolvedValue({ agentAuthEnabled: true })
   })
 
-  it("sends an admin's call with the store's key", async () => {
+  it("sends an admin's call with a signed token for that one operation, not a store key", async () => {
     mocks.getMemberRole.mockResolvedValue("admin")
 
-    await execute("adminGetDashboard")
+    await execute("adminGetDashboard", undefined, agentSession("adminGetDashboard", "listProducts"))
 
     expect(mocks.getMemberRole).toHaveBeenCalledWith("org-1", "user-1")
-    const init = mocks.fetch.mock.calls[0]?.[1] as RequestInit
-    expect(init.headers).toMatchObject({ "x-api-key": "proxy-key" })
+    expect(sentClaims()).toMatchObject({
+      orgId: "org-1",
+      agentId: "agent-1",
+      userId: "user-1",
+      operation: "adminGetDashboard",
+      capabilities: ["adminGetDashboard", "listProducts"],
+    })
   })
 
   it("refuses an admin capability once the user is demoted", async () => {
     mocks.getMemberRole.mockResolvedValue("member")
 
-    const err = await denial(execute("adminRefundOrder", { id: "order-1" }))
+    const err = await denial(execute("adminRefundOrder", { id: "order-1" }, agentSession("adminRefundOrder")))
 
     expect(err).toBeInstanceOf(APIError)
     expect(err?.status).toBe("FORBIDDEN")
@@ -82,45 +98,32 @@ describe("executing a capability through the plugin", () => {
   it("lets a member's agent use shopper capabilities", async () => {
     mocks.getMemberRole.mockResolvedValue("member")
 
-    await execute("listProducts")
+    await execute("listProducts", undefined, agentSession("listProducts"))
 
-    expect(mocks.fetch).toHaveBeenCalledOnce()
+    expect(sentClaims()?.operation).toBe("listProducts")
   })
 
-  it("refuses getOrder without adminGetOrder, since the store's key reads the whole order", async () => {
+  it("refuses a capability the agent holds no active grant for", async () => {
     mocks.getMemberRole.mockResolvedValue("owner")
 
-    const err = await denial(
-      execute("getOrder", { id: "order-1" }, agentSession("getOrder", "adminGetDashboard")),
-    )
+    const err = await denial(execute("adminGetDashboard", undefined, agentSession("listProducts")))
 
     expect(err?.status).toBe("FORBIDDEN")
     expect(mocks.fetch).not.toHaveBeenCalled()
   })
 
-  it("allows getOrder with adminGetOrder", async () => {
-    mocks.getMemberRole.mockResolvedValue("owner")
+  it("leaves a demoted user's admin grants out of the token, so getOrder gets the public view", async () => {
+    mocks.getMemberRole.mockResolvedValue("member")
 
     await execute("getOrder", { id: "order-1" }, agentSession("getOrder", "adminGetOrder"))
 
-    expect(mocks.fetch).toHaveBeenCalledOnce()
-  })
-
-  it("refuses getOrder when a demotion takes adminGetOrder away", async () => {
-    mocks.getMemberRole.mockResolvedValue("member")
-
-    const err = await denial(
-      execute("getOrder", { id: "order-1" }, agentSession("getOrder", "adminGetOrder")),
-    )
-
-    expect(err?.status).toBe("FORBIDDEN")
-    expect(mocks.fetch).not.toHaveBeenCalled()
+    expect(sentClaims()?.capabilities).toEqual(["getOrder"])
   })
 
   it("refuses an agent whose user left the store", async () => {
     mocks.resolveOrgForAgent.mockResolvedValue(null)
 
-    const err = await denial(execute("listProducts"))
+    const err = await denial(execute("listProducts", undefined, agentSession("listProducts")))
 
     expect(err).toBeInstanceOf(APIError)
     expect(err?.status).toBe("FORBIDDEN")
@@ -131,7 +134,7 @@ describe("executing a capability through the plugin", () => {
     mocks.getMemberRole.mockResolvedValue("owner")
     mocks.getOrganizationLimits.mockResolvedValue({ agentAuthEnabled: false })
 
-    const err = await denial(execute("adminGetDashboard"))
+    const err = await denial(execute("adminGetDashboard", undefined, agentSession("adminGetDashboard")))
 
     expect(err).toBeInstanceOf(APIError)
     expect(err?.status).toBe("FORBIDDEN")

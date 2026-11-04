@@ -19,6 +19,7 @@ import { CLIENT_IP_HEADER } from "@prood/auth/client-ip"
 import { sharedAuthOptions, sharedEmailAndPassword } from "@prood/auth/shared-options"
 import { sendPasswordResetEmail } from "./password-reset-email"
 import { getAgentAuthOpenAPIOptions } from "./agent-config"
+import { recordPluginEvent } from "./agent-events"
 import { requiredEnv } from "@prood/types"
 import { getMailer } from "../mailer"
 import { billingPlugin, isPersonalBillingRequest } from "./billing"
@@ -47,6 +48,14 @@ function createAuth() {
       before: createAuthMiddleware(async (ctx) => {
         if (DASHBOARD_ONLY_PATHS.has(ctx.path)) {
           throw new APIError("FORBIDDEN", { message: "Approve agents in your dashboard." })
+        }
+        // An agent's metadata holds the store it was approved for, and only
+        // approval writes it. Letting the owner set it would move an agent to
+        // another store without that store's approval. Renaming still works.
+        if (ctx.path === "/agent/update" && ctx.body?.metadata !== undefined) {
+          throw new APIError("FORBIDDEN", {
+            message: "An agent's store is set when you approve it in your dashboard.",
+          })
         }
         if (isPersonalBillingRequest(ctx.path, ctx.body?.customerType ?? ctx.query?.customerType)) {
           throw new APIError("FORBIDDEN", { message: "Plans are bought for a store." })
@@ -120,6 +129,7 @@ function createAuth() {
         // The approval UI lives in the dashboard, not on the API origin.
         deviceAuthorizationPage: `${dashboardUrl}/device/capabilities`,
         trustProxy: process.env.TRUST_PROXY === "true",
+        onEvent: recordPluginEvent,
         ...getAgentAuthOpenAPIOptions(),
       }),
       ...(billing ? [billing] : []),

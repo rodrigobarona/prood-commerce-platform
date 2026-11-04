@@ -5,6 +5,7 @@ import { z } from "zod"
 import { admin, carts, catalog, orders } from "@/lib/commerce-service"
 import { checkout } from "@/lib/commerce-service"
 import { assertCapability } from "@/lib/agent-capability"
+import { recordAgentCall } from "@/lib/auth/agent-events"
 import { assertCanCreateProduct, assertCanPlaceOrder } from "@/lib/enforcement"
 import { getMcpCaller } from "@/lib/mcp/context"
 import { hasScope, scopeRefusal, type ApiScope } from "@/lib/scopes"
@@ -84,8 +85,18 @@ function enforceAgentCapabilities(server: McpServer) {
   server.registerTool = ((name: string, config: never, handler: (...args: never[]) => unknown) => {
     if (!canUse(name)) return undefined
     return registerTool(name, config, ((...args: never[]) => {
-      const { capabilities } = getMcpCaller()
-      if (capabilities) assertCapability(capabilities, name)
+      const caller = getMcpCaller()
+      if (caller.capabilities) {
+        // Agent tool calls go in the audit log, as their `/v1` calls do.
+        const recorded = !caller.proxied && caller.agentId
+        try {
+          assertCapability(caller.capabilities, name)
+        } catch (err) {
+          if (recorded) recordAgentCall(caller, name, err instanceof Error ? err.message : "Refused")
+          throw err
+        }
+        if (recorded) recordAgentCall(caller, name)
+      }
       return handler(...args)
     }) as never)
   }) as typeof server.registerTool

@@ -11,6 +11,7 @@ The API checks authentication methods in this order:
 
 | Priority | Method | Header / Cookie | Tenant source | Scopes |
 | --- | --- | --- | --- | --- |
+| 0 | Agent Auth proxy | `x-prood-agent-proxy: {token}` | Signed by Agent Auth's execute endpoint, valid for a minute | The one operation it names, from capability grants |
 | 1 | Agent JWT | `Authorization: Bearer {jwt}` | The store it was approved for, or the user's only store | Per operation, from capability grants |
 | 2 | API key | `x-api-key: {key}` | The organization that owns the key | Key metadata `scopes` |
 | 3 | Store host | `x-storefront-host: merchant.example.com` | Tenant domain / subdomain lookup | `storefront`, or the member's role scopes |
@@ -155,7 +156,7 @@ A key with the Admin scope on a Free store is refused on every call, whatever th
 
 ## Rate limits
 
-Each API key can make 600 requests a minute. Past that the API returns `429` with a `Retry-After` header saying how many seconds to wait.
+Each API key can make 600 requests a minute. Past that the API returns `429` with a `Retry-After` header saying how many seconds to wait. A store's AI agents share one allowance of the same size.
 
 ## Related pages
 

@@ -63,6 +63,15 @@ const APPROVAL: Record<string, StatusLook> = {
   expired: { label: "Expired", tone: "neutral" },
 }
 
+/** For a merchant, revoking is done, not something to act on. */
+const AGENT: Record<string, StatusLook> = {
+  active: { label: "Active", tone: "success" },
+  pending: { label: "Waiting for you", tone: "warning", needsAction: true },
+  expired: { label: "Expired", tone: "neutral" },
+  revoked: { label: "Revoked", tone: "neutral" },
+  rejected: { label: "Denied", tone: "neutral" },
+}
+
 /** The API types these as plain strings, so a value this file hasn't met still reads properly. */
 function lookup(looks: Record<string, StatusLook>, value: string): StatusLook {
   return looks[value] ?? { label: humanize(value), tone: "neutral" }
@@ -73,6 +82,7 @@ export const paymentStatus = (value: string) => lookup(PAYMENT, value)
 export const fulfillmentStatus = (value: string) => lookup(FULFILLMENT, value)
 export const productStatus = (value: string) => lookup(PRODUCT, value)
 export const approvalStatus = (value: string) => lookup(APPROVAL, value)
+export const agentStatus = (value: string) => lookup(AGENT, value)
 
 /**
  * One word for where an order stands, from its order, payment and fulfillment

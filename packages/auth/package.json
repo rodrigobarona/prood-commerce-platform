@@ -18,7 +18,9 @@
     "./rate-limit-storage": "./src/rate-limit-storage.ts",
     "./password-reset-panels": "./src/password-reset-panels.tsx",
     "./admin-role": "./src/admin-role.ts",
-    "./billing": "./src/billing.ts"
+    "./billing": "./src/billing.ts",
+    "./agent-capabilities": "./src/agent-capabilities.ts",
+    "./agent-events": "./src/agent-events.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

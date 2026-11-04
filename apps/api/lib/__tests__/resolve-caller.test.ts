@@ -10,7 +10,9 @@ const mocks = vi.hoisted(() => ({
   lookupTenantByHost: vi.fn(),
   readApiKey: vi.fn(),
   assertApiKeyRate: vi.fn(),
+  assertAgentRate: vi.fn(),
   countApiKeyRequest: vi.fn(),
+  recordAgentCall: vi.fn(),
 }))
 
 vi.mock("server-only", () => ({}))
@@ -26,8 +28,10 @@ vi.mock("@/lib/org-plan", () => ({
 vi.mock("@/lib/api-key-limit", () => ({
   readApiKey: mocks.readApiKey,
   assertApiKeyRate: mocks.assertApiKeyRate,
+  assertAgentRate: mocks.assertAgentRate,
   countApiKeyRequest: mocks.countApiKeyRequest,
 }))
+vi.mock("@/lib/auth/agent-events", () => ({ recordAgentCall: mocks.recordAgentCall }))
 vi.mock("@/lib/agent-org", () => ({ resolveOrgForAgent: mocks.resolveOrgForAgent }))
 vi.mock("@prood/commerce", () => ({ assertFeature: vi.fn() }))
 vi.mock("@prood/platform", () => ({ lookupTenantByHost: mocks.lookupTenantByHost }))
@@ -37,6 +41,8 @@ vi.mock("@prood/auth/membership", async (importOriginal) => ({
 }))
 
 import { requireCallerFromHeaders, resolveCallerFromHeaders } from "../resolve-caller"
+import { AGENT_PROXY_HEADER, signAgentProxyToken } from "../agent-proxy-token"
+import { REQUEST_TARGET_HEADER } from "../agent-capability"
 
 function denial(promise: Promise<unknown>) {
   return promise.then(
@@ -265,5 +271,155 @@ describe("agents", () => {
     mocks.getMemberRole.mockResolvedValue("member")
 
     expect((await denial(resolveCallerFromHeaders(bearer)))?.code).toBe("FORBIDDEN")
+  })
+})
+
+describe("calls from Agent Auth's execute endpoint", () => {
+  const claims = {
+    orgId: "org-1",
+    agentId: "agent-1",
+    userId: "user-1",
+    operation: "adminGetOrder",
+    capabilities: ["adminGetOrder", "getOrder"],
+  }
+  const call = (token: string, target: string) =>
+    new Headers({ [AGENT_PROXY_HEADER]: token, [REQUEST_TARGET_HEADER]: target })
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.stubEnv("BETTER_AUTH_SECRET", "test-secret")
+  })
+
+  it("trusts a signed token for the operation it names", async () => {
+    const caller = await requireCallerFromHeaders(
+      call(signAgentProxyToken(claims), "GET /v1/admin/orders/order-1"),
+      "admin",
+    )
+
+    expect(caller).toMatchObject({
+      orgId: "org-1",
+      via: "agent",
+      agentId: "agent-1",
+      capabilities: ["adminGetOrder", "getOrder"],
+    })
+    expect(mocks.getAgentSession).not.toHaveBeenCalled()
+    expect(mocks.recordAgentCall).not.toHaveBeenCalled()
+    expect(mocks.assertAgentRate).toHaveBeenCalledWith("org-1")
+  })
+
+  it("counts the call against the store's agent limit", async () => {
+    mocks.assertAgentRate.mockRejectedValueOnce(new CommerceError("limit", "RATE_LIMIT", 429))
+
+    const err = await denial(
+      resolveCallerFromHeaders(call(signAgentProxyToken(claims), "GET /v1/admin/orders/order-1")),
+    )
+
+    expect(err?.code).toBe("RATE_LIMIT")
+  })
+
+  it("refuses the token on any other operation", async () => {
+    const err = await denial(
+      resolveCallerFromHeaders(call(signAgentProxyToken(claims), "POST /v1/admin/orders/order-1/refund")),
+    )
+
+    expect(err?.code).toBe("UNAUTHORIZED")
+  })
+
+  it("refuses a token signed with another secret", async () => {
+    const token = signAgentProxyToken(claims)
+    vi.stubEnv("BETTER_AUTH_SECRET", "other-secret")
+
+    expect((await denial(resolveCallerFromHeaders(call(token, "GET /v1/admin/orders/order-1"))))?.code).toBe(
+      "UNAUTHORIZED",
+    )
+  })
+
+  it("refuses an expired token", async () => {
+    const token = signAgentProxyToken(claims, Date.now() - 120_000)
+
+    expect((await denial(resolveCallerFromHeaders(call(token, "GET /v1/admin/orders/order-1"))))?.code).toBe(
+      "UNAUTHORIZED",
+    )
+  })
+
+  it("refuses a token whose claims were edited", async () => {
+    const [, signature] = signAgentProxyToken(claims).split(".")
+    const forged = Buffer.from(JSON.stringify({ ...claims, orgId: "org-2", exp: Date.now() + 60_000 })).toString(
+      "base64url",
+    )
+
+    expect(
+      (await denial(resolveCallerFromHeaders(call(`${forged}.${signature}`, "GET /v1/admin/orders/order-1"))))?.code,
+    ).toBe("UNAUTHORIZED")
+  })
+})
+
+describe("agents calling /v1 with their own token", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mocks.resolveOrgForAgent.mockResolvedValue("org-1")
+  })
+
+  it("records the call for the audit log", async () => {
+    mocks.getAgentSession.mockResolvedValue({
+      user: { id: "user-1" },
+      agent: { id: "agent-1", capabilityGrants: [{ capability: "listProducts", status: "active" }] },
+    })
+    mocks.getMemberRole.mockResolvedValue("member")
+
+    await requireCallerFromHeaders(
+      new Headers({ authorization: "Bearer token", [REQUEST_TARGET_HEADER]: "GET /v1/products" }),
+      "storefront",
+    )
+
+    expect(mocks.recordAgentCall).toHaveBeenCalledWith(
+      expect.objectContaining({ agentId: "agent-1", actorId: "user-1", orgId: "org-1" }),
+      "listProducts",
+    )
+  })
+
+  it("records a call outside the agent's scope as failed", async () => {
+    mocks.getAgentSession.mockResolvedValue({
+      user: { id: "user-1" },
+      agent: { id: "agent-1", capabilityGrants: [{ capability: "listProducts", status: "active" }] },
+    })
+    mocks.getMemberRole.mockResolvedValue("member")
+
+    const err = await denial(
+      requireCallerFromHeaders(
+        new Headers({ authorization: "Bearer token", [REQUEST_TARGET_HEADER]: "GET /v1/admin/orders/order-1" }),
+        "admin",
+      ),
+    )
+
+    expect(err?.code).toBe("FORBIDDEN")
+    expect(mocks.recordAgentCall).toHaveBeenCalledTimes(1)
+    expect(mocks.recordAgentCall).toHaveBeenCalledWith(
+      expect.objectContaining({ agentId: "agent-1" }),
+      "adminGetOrder",
+      expect.any(String),
+    )
+  })
+
+  it("records a refused call as failed", async () => {
+    mocks.getAgentSession.mockResolvedValue({
+      user: { id: "user-1" },
+      agent: { id: "agent-1", capabilityGrants: [{ capability: "listProducts", status: "active" }] },
+    })
+    mocks.getMemberRole.mockResolvedValue("member")
+
+    const err = await denial(
+      requireCallerFromHeaders(
+        new Headers({ authorization: "Bearer token", [REQUEST_TARGET_HEADER]: "GET /v1/products/p-1" }),
+        "storefront",
+      ),
+    )
+
+    expect(err?.code).toBe("FORBIDDEN")
+    expect(mocks.recordAgentCall).toHaveBeenCalledWith(
+      expect.objectContaining({ agentId: "agent-1" }),
+      "getProduct",
+      expect.stringContaining("getProduct"),
+    )
   })
 })
