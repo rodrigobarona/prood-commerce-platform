@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { productMetaDescription, storeMetadata } from "../store-metadata"
+import { plainText, productMetaDescription, storeMetadata } from "../store-metadata"
 
 describe("storeMetadata", () => {
   it("uses the store's own name and description", () => {
@@ -31,5 +31,11 @@ describe("productMetaDescription", () => {
 
   it("says nothing when the product has no words", () => {
     expect(productMetaDescription({ shortDescription: null, description: null })).toBeUndefined()
+  })
+})
+
+describe("plainText", () => {
+  it("drops inline tags without splitting words, and keeps blocks apart", () => {
+    expect(plainText("<p>Hand-<b>thrown</b> <em>stoneware</em>.</p><p>Oven safe.</p>")).toBe("Hand-thrown stoneware. Oven safe.")
   })
 })

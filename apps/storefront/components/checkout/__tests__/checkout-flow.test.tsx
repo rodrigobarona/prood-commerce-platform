@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => ({
 }))
 
 vi.mock("@/components/providers/cart-provider", () => ({ useCart: () => mocks.cart }))
-vi.mock("@/app/(checkout)/checkout/actions", () => ({ startCheckout: mocks.startCheckout }))
+vi.mock("@/app/[host]/(checkout)/checkout/actions", () => ({ startCheckout: mocks.startCheckout }))
 vi.mock("../checkout-sidebar", () => ({ CheckoutSidebar: () => null }))
 vi.mock("../steps/contact-step", () => ({
   ContactStep: ({
@@ -137,7 +137,7 @@ describe("CheckoutFlow", () => {
       await act(async () => {
         fireEvent.click(screen.getByRole("button", { name: "Place order" }))
       })
-      expect(mocks.startCheckout.mock.lastCall?.[0].address.phone).toBe("912345678")
+      expect(mocks.startCheckout.mock.lastCall?.[0].phone).toBe("912345678")
     })
 
     it("tells the demo store's review apart", () => {

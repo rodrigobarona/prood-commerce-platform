@@ -1,27 +1,55 @@
 import 'server-only'
 import { revalidateTag } from 'next/cache'
+import { after } from 'next/server'
+import { requiredEnv, storeCacheTag, type StorefrontCacheTag } from '@prood/types'
 
-function scoped(tag: string, tenantId?: string): string {
-  return tenantId ? `${tag}-${tenantId}` : tag
+/** Where the storefront accepts cache invalidations. */
+const STOREFRONT_REVALIDATE_PATH = '/api/revalidate'
+
+/**
+ * Tell the storefront to drop its cached pages for these tags. The storefront
+ * is its own deployment with its own cache, so expiring a tag here never
+ * reaches it.
+ */
+export async function revalidateStorefront(
+  tenantId: string,
+  tags: readonly StorefrontCacheTag[],
+): Promise<void> {
+  const base = requiredEnv(process.env.NEXT_PUBLIC_STOREFRONT_URL, 'NEXT_PUBLIC_STOREFRONT_URL')
+  const secret = requiredEnv(process.env.STOREFRONT_REVALIDATE_SECRET, 'STOREFRONT_REVALIDATE_SECRET')
+  const res = await fetch(new URL(STOREFRONT_REVALIDATE_PATH, base), {
+    method: 'POST',
+    headers: { authorization: `Bearer ${secret}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ tenantId, tags }),
+    signal: AbortSignal.timeout(5000),
+  })
+  if (!res.ok) throw new Error(`Storefront revalidation answered ${res.status}`)
 }
 
-/** Background SWR invalidation for product list/detail caches. */
-export function revalidateProducts(tenantId?: string): void {
-  revalidateTag(scoped('products', tenantId), 'max')
+/**
+ * Expire at once rather than serve stale: the storefront refetches as soon as
+ * it is told, and must not be handed the old answer to cache again.
+ */
+function expire(tenantId: string, tags: readonly StorefrontCacheTag[]): void {
+  for (const tag of tags) revalidateTag(storeCacheTag(tag, tenantId), { expire: 0 })
+  after(() =>
+    revalidateStorefront(tenantId, tags).catch((err: unknown) => {
+      console.error(`[revalidate] storefront missed ${tags.join(', ')} for ${tenantId}`, err)
+    }),
+  )
 }
 
-/** Background SWR invalidation for category tree caches. */
-export function revalidateCategories(tenantId?: string): void {
-  revalidateTag(scoped('categories', tenantId), 'max')
+/** Products changed: their pages, lists and stock. */
+export function revalidateProducts(tenantId: string): void {
+  expire(tenantId, ['products'])
 }
 
-/** Drop cached store info at once, so a merchant sees their own edit. */
-export function revalidateStore(tenantId?: string): void {
-  revalidateTag(scoped('store', tenantId), { expire: 0 })
+/** Categories changed. Products carry their categories, so both go. */
+export function revalidateCatalog(tenantId: string): void {
+  expire(tenantId, ['products', 'categories'])
 }
 
-/** Invalidate both catalog tags (admin bulk updates, deploy hooks). */
-export function revalidateCatalog(tenantId?: string): void {
-  revalidateProducts(tenantId)
-  revalidateCategories(tenantId)
+/** Store details changed: name, branding, contact, or how it takes payment. */
+export function revalidateStore(tenantId: string): void {
+  expire(tenantId, ['store'])
 }

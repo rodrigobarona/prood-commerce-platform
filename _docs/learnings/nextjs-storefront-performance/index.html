@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fast multi-store storefronts with Next.js: what we learned</title>
+    <meta
+      name="description"
+      content="Best practices learned from vercel.shop and applied to the Prood storefront: per-store caching, cross-deployment revalidation, static shells, real 404s, JSON-LD, sitemaps, Markdown pages for agents, prefetch on intent, optimistic carts and validated Server Actions."
+    />
+    <style>
+      :root {
+        --ink: #16181d;
+        --muted: #5b616e;
+        --line: #e2e4e9;
+        --paper: #ffffff;
+        --soft: #f6f7f9;
+        --accent: #0b6bcb;
+        --good: #1a7f37;
+        --warn: #9a6700;
+        --bad: #cf222e;
+        --max: 900px;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--paper);
+        font: 17px/1.6 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      main, header.page, footer.page { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+      header.page { padding-top: 56px; padding-bottom: 8px; }
+      header.page p.kicker { color: var(--accent); font-weight: 600; letter-spacing: .02em; margin: 0 0 8px; }
+      h1 { font-size: 2.2rem; line-height: 1.2; margin: 0 0 16px; }
+      h2 { font-size: 1.5rem; margin: 56px 0 12px; padding-top: 16px; border-top: 1px solid var(--line); }
+      h3 { font-size: 1.1rem; margin: 28px 0 8px; }
+      p, li { max-width: 72ch; }
+      a { color: var(--accent); text-underline-offset: .2em; }
+      code { font: .88em/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--soft); padding: .1em .35em; border-radius: 4px; }
+      pre { background: #0f1115; color: #e6e8eb; padding: 16px 18px; border-radius: 8px; overflow-x: auto; font-size: .85rem; line-height: 1.5; }
+      pre code { background: none; padding: 0; color: inherit; }
+      table { border-collapse: collapse; width: 100%; margin: 12px 0 20px; font-size: .95rem; }
+      th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+      th { background: var(--soft); font-weight: 600; }
+      .summary { background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 18px 22px; margin: 24px 0; }
+      .summary ol { margin: 8px 0 0; padding-left: 22px; }
+      nav.toc { columns: 2; column-gap: 32px; font-size: .95rem; }
+      nav.toc ol { margin: 0; padding-left: 22px; }
+      dl.practice { display: grid; grid-template-columns: 9.5em 1fr; gap: 6px 16px; margin: 12px 0; }
+      dl.practice dt { font-weight: 600; color: var(--muted); }
+      dl.practice dd { margin: 0; }
+      .callout { border-left: 4px solid var(--warn); background: #fff8e6; padding: 10px 16px; margin: 16px 0; border-radius: 0 6px 6px 0; }
+      .callout.bad { border-color: var(--bad); background: #fff0f0; }
+      .callout.good { border-color: var(--good); background: #effaf1; }
+      .tag { display: inline-block; font-size: .75rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; background: var(--soft); border: 1px solid var(--line); color: var(--muted); vertical-align: middle; }
+      footer.page { color: var(--muted); font-size: .9rem; padding-top: 32px; padding-bottom: 64px; border-top: 1px solid var(--line); margin-top: 64px; }
+      @media (max-width: 640px) { nav.toc { columns: 1; } dl.practice { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <header class="page">
+      <p class="kicker">Learning guide · Prood Commerce Platform · November 2026</p>
+      <h1>Fast multi-store storefronts with Next.js: what we learned</h1>
+      <p>
+        We studied <a href="https://vercel.shop/">vercel.shop</a> and its open template
+        (<a href="https://template.vercel.shop/">template.vercel.shop</a>), Vercel's reference store built on Next.js and
+        Shopify. Then we applied what fits to the Prood storefront (<code>apps/storefront</code>), which serves
+        many stores from one deployment, one per host. This guide records each practice, why it matters, how we
+        applied it, and what tripped us up, so the next project can start where we finished.
+      </p>
+      <p>
+        <span class="tag">Stack</span> Next.js 16.4 with Cache Components and Partial Prefetching · React 19 ·
+        a separate commerce API · Turborepo monorepo.
+      </p>
+    </header>
+
+    <main>
+      <section class="summary" aria-labelledby="tldr">
+        <h2 id="tldr" style="border:0;margin:0;padding:0;font-size:1.15rem">The short version</h2>
+        <ol>
+          <li><strong>Give each store its own route tree, keyed by host</strong>, so pages are built and cached per store.</li>
+          <li><strong>Cache catalog reads with tags, and expire the tags when data changes.</strong> Don't wait for a timer.</li>
+          <li><strong>Expire across deployments</strong>: the service that changes data tells the storefront which tags to drop.</li>
+          <li><strong>Use static shells, not <code>loading.tsx</code></strong>: put Suspense inside the page so the header and footer show at once.</li>
+          <li><strong>Return real 404 status codes.</strong> A <code>notFound()</code> inside streamed content still answers <code>200</code>.</li>
+          <li><strong>Describe pages with JSON-LD</strong>, escaped so it can't break out of its script tag.</li>
+          <li><strong>Split the sitemap</strong> into an index plus files of a few hundred products each.</li>
+          <li><strong>Serve Markdown to agents</strong>: <code>.md</code> URLs, <code>Accept: text/markdown</code>, and <code>llms.txt</code>.</li>
+          <li><strong>Prefetch on intent</strong>: in a grid, upgrade a link's prefetch only when the shopper points at it.</li>
+          <li><strong>Make optimistic updates survive quick clicks</strong>: roll back to the last server answer, and apply only the newest response.</li>
+          <li><strong>Treat Server Actions as public endpoints</strong>: validate them with the same zod schema as the form.</li>
+          <li><strong>Keep the build independent of the database and API.</strong></li>
+        </ol>
+      </section>
+
+      <nav class="toc" aria-label="Contents">
+        <ol>
+          <li><a href="#per-store-tree">One route tree per store</a></li>
+          <li><a href="#tagged-cache">Tagged caches per store</a></li>
+          <li><a href="#revalidation">Expiring caches across deployments</a></li>
+          <li><a href="#static-shells">Static shells instead of loading.tsx</a></li>
+          <li><a href="#not-found">Real 404s and unknown stores</a></li>
+          <li><a href="#build">A build that needs nothing running</a></li>
+          <li><a href="#json-ld">Structured data (JSON-LD)</a></li>
+          <li><a href="#sitemap">Split sitemap and robots.txt</a></li>
+          <li><a href="#agents">Pages for agents: Markdown and llms.txt</a></li>
+          <li><a href="#prefetch">Prefetch on intent</a></li>
+          <li><a href="#optimistic">Optimistic cart that survives quick clicks</a></li>
+          <li><a href="#server-actions">Validated Server Actions</a></li>
+          <li><a href="#not-copied">What we chose not to copy</a></li>
+          <li><a href="#open">Open items and caveats</a></li>
+          <li><a href="#checklist">Checklist for the next project</a></li>
+          <li><a href="#results">Measured results</a></li>
+        </ol>
+      </nav>
+
+      <!-- 1 -->
+      <h2 id="per-store-tree">1. One route tree per store, keyed by host</h2>
+      <dl class="practice">
+        <dt>Rule</dt>
+        <dd>Put the whole app under a <code>[host]</code> root segment and let the proxy rewrite <code>/path</code> to <code>/{host}/path</code>.</dd>
+        <dt>Why</dt>
+        <dd>
+          Next.js caches a page by its URL. If every store shares <code>/products/mug</code>, nothing about the
+          store is in the cache key, so pages can't be cached safely. With the host in the path, each store's
+          pages are built and cached on their own, the same way vercel.shop caches per market.
+        </dd>
+        <dt>How we did it</dt>
+        <dd><code>apps/storefront/proxy.ts</code>, <code>app/[host]/layout.tsx</code>, <code>lib/store-host.ts</code>, <code>lib/tenant.ts</code></dd>
+      </dl>
+<pre><code>// proxy.ts: the store's route tree lives under its host
+url.pathname = `/${host}${pathname === "/" ? "" : pathname}`
+return NextResponse.rewrite(url)
+
+// any Server Component or "use cache" function
+import { host } from "next/root-params"
+const store = await getStore(await host())</code></pre>
+      <h3>Pitfalls</h3>
+      <ul>
+        <li>
+          <code>host()</code> from <code>next/root-params</code> works in Server Components and inside
+          <code>"use cache"</code>, but <strong>not in Route Handlers or Server Actions</strong>. Those read the
+          <code>Host</code> header instead (our <code>requestHost()</code>).
+        </li>
+        <li>Pass the host into cached functions as an argument. It then becomes part of the cache key, which makes leaking data between stores impossible by construction.</li>
+        <li>Let <code>/api/*</code> pass through the proxy untouched. Route Handlers read the host themselves.</li>
+        <li>Files that must stay at the root, like <code>favicon.ico</code> and <code>icon.svg</code>, need excluding from the proxy matcher.</li>
+      </ul>
+
+      <!-- 2 -->
+      <h2 id="tagged-cache">2. Tagged caches per store</h2>
+      <dl class="practice">
+        <dt>Rule</dt>
+        <dd>Every catalog read is a <code>"use cache"</code> function tagged <code>{kind}-{storeId}</code> (products, categories, store). Its time limit is long, because a tag expires it the moment data changes.</dd>
+        <dt>Why</dt>
+        <dd>
+          A short timer either serves stale prices or hammers the API. Tags give both: pages served from cache in
+          milliseconds, and fresh as soon as a merchant saves.
+        </dd>
+        <dt>How we did it</dt>
+        <dd><code>apps/storefront/lib/catalog.ts</code>, <code>packages/types/src/cache-tags.ts</code></dd>
+      </dl>
+<pre><code>export async function getProductBySlug(storeHost: string, slug: string) {
+  "use cache"
+  cacheTag(storeCacheTag("products", await tenantIdOrMarketing(storeHost)))
+  cacheLife({ stale: 300, revalidate: 3600, expire: 86_400 })
+  return unwrap(getCatalogApi(storeHost).GET("/products/by-slug/{slug}", …))
+}</code></pre>
+      <h3>Pitfalls</h3>
+      <ul>
+        <li><strong>Cached reads must not depend on cookies.</strong> We split the API client in two: a catalog client that sends only the store host, and a shopper client that forwards cookies and is never cached.</li>
+        <li><strong>Don't cache free-text search.</strong> The set of queries never ends, so the cache would only fill up. Listings, sorts, pages and categories are a small set per store, so cache those.</li>
+        <li>Share the tag names in one typed module (<code>STOREFRONT_CACHE_TAGS</code>) so the writer and the reader can't drift apart.</li>
+      </ul>
+
+      <!-- 3 -->
+      <h2 id="revalidation">3. Expiring caches across deployments</h2>
+      <dl class="practice">
+        <dt>Rule</dt>
+        <dd>
+          The service that changes data expires its own tags, then, after responding, POSTs them to the
+          storefront's <code>/api/revalidate</code>. That request carries a shared secret and a validated list of tags.
+        </dd>
+        <dt>Why</dt>
+        <dd>
+          <code>revalidateTag()</code> only affects the deployment that calls it. Our API and dashboard are
+          separate apps, so calling it there alone left the storefront serving stale pages.
+        </dd>
+        <dt>How we did it</dt>
+        <dd><code>packages/commerce/src/revalidate.ts</code>, <code>apps/storefront/app/api/revalidate/route.ts</code></dd>
+      </dl>
+<pre><code>// @prood/commerce
+for (const tag of tags) revalidateTag(storeCacheTag(tag, tenantId), { expire: 0 })
+after(() =&gt; revalidateStorefront(tenantId, tags).catch(console.error))
+
+// storefront /api/revalidate
+const body = z.object({ tenantId: z.string().min(1), tags: z.array(z.enum(STOREFRONT_CACHE_TAGS)).min(1) })
+// Bearer secret compared with timingSafeEqual; 401 or 400 otherwise</code></pre>
+      <h3>Pitfalls</h3>
+      <ul>
+        <li>Use <code>after()</code> so the merchant's save never waits on the storefront, and give the request a timeout.</li>
+        <li>Compare secrets with <code>timingSafeEqual</code>, and accept only known tags (a zod enum), so the endpoint can't be used to flush arbitrary caches.</li>
+        <li>
+          <strong>Audit every write path.</strong> Wiring this up exposed two bugs: category changes and inventory
+          changes never expired anything. Store settings that affect the storefront, such as payment
+          integrations, need expiring too.
+        </li>
+        <li>If the call fails, the cache's time limit is the safety net, so keep that limit at an hour or less.</li>
+      </ul>
+
+      <!-- 4 -->
+      <h2 id="static-shells">4. Static shells instead of loading.tsx</h2>
+      <dl class="practice">
+        <dt>Rule</dt>
+        <dd>Delete <code>loading.tsx</code> from catalog routes. Inside each page, wrap the data-dependent part in <code>&lt;Suspense&gt;</code> with a skeleton shaped like the content, and read <code>params</code> inside that boundary.</dd>
+        <dt>Why</dt>
+        <dd>
+          <code>loading.tsx</code> swaps out the whole page. A Suspense boundary inside the page keeps the
+          store's header, navigation and footer as a static shell that paints immediately, even for a product
+          that has never been built. That is what makes vercel.shop feel instant.
+        </dd>
+        <dt>How we did it</dt>
+        <dd><code>components/commerce/product-page.tsx</code>, <code>components/commerce/collection-page.tsx</code></dd>
+      </dl>
+<pre><code>export default function ProductDetailPage({ params }) {
+  return (
+    &lt;Suspense fallback={&lt;ProductPageSkeleton /&gt;}&gt;
+      &lt;ProductPageContent slug={params.then((p) =&gt; p.slug)} /&gt;
+    &lt;/Suspense&gt;
+  )
+}</code></pre>
+      <div class="callout">Passing <code>params</code> as a promise and awaiting it inside the boundary is the key detail. Awaiting it in the page body would make the whole page wait.</div>
+
+      <!-- 5 -->
+      <h2 id="not-found">5. Real 404s and unknown stores</h2>
+      <dl class="practice">
+        <dt>Rule</dt>
+        <dd>Decide "not found" before streaming starts. Do it in the proxy for known routes, with a global not-found page for unmatched paths, and by redirecting unknown hosts on every render path.</dd>
+        <dt>Why</dt>
+        <dd>Search engines trust the status code. A soft 404 (a 200 with "not found" text) wastes crawl budget and can get indexed.</dd>
+        <dt>How we did it</dt>
+        <dd><code>proxy.ts</code>, <code>lib/catalog-check.ts</code>, <code>app/global-not-found.tsx</code>, <code>lib/tenant.ts</code></dd>
+      </dl>
+      <h3>What we found</h3>
+      <ul>
+        <li><strong><code>notFound()</code> inside streamed Suspense content answers <code>200</code></strong>, adding only a <code>noindex</code> tag, because the status was sent with the shell. So the proxy checks document requests for missing products, categories and policy pages, and rewrites them to the store's not-found page.</li>
+        <li>With the root layout under <code>[host]</code>, paths that match no route get Next's bare 404. Turning on <code>experimental.globalNotFound</code> and adding <code>app/global-not-found.tsx</code> gives a styled, real 404.</li>
+        <li>
+          <strong>A redirect in the layout isn't enough.</strong> Layout and page render in parallel. When a host
+          had no store, the page's catalog read threw first and the response became a <code>500</code>. The fix is
+          to make every catalog read redirect unknown hosts the same way, so all render paths agree.
+        </li>
+      </ul>
+
+      <!-- 6 -->
+      <h2 id="build">6. A build that needs nothing running</h2>
+      <dl class="practice">
+        <dt>Rule</dt>
+        <dd>With Cache Components, <code>generateStaticParams</code> must return at least one value. For a multi-store app, return a placeholder host that renders as not found.</dd>
+        <dt>Why</dt>
+        <dd>CI builds without a database or API. If the placeholder is a real store, the build tries to fetch its data and fails, as ours did.</dd>
+        <dt>How we did it</dt>
+        <dd><code>BUILD_HOST = "build.invalid"</code> in <code>lib/store-host.ts</code>. The reserved <code>.invalid</code> domain can never resolve, and <code>tenantIdForHost()</code> calls <code>notFound()</code> for it before any lookup.</dd>
+      </dl>
+      <h3>Pitfalls</h3>
+      <ul>
+        <li>The Next docs suggest exactly this: "return a placeholder param … then handle it in your page with <code>notFound()</code>."</li>
+        <li>Next also prerenders a Route Handler at a path named <code>sitemap.xml</code>, using a stand-in host of <code>-</code>. Hosts without a dot can't be stores, so the lookup returns null for them without touching the database.</li>
+        <li>Test it: <code>COMMERCE_API_URL=http://127.0.0.1:9 DATABASE_URL=postgresql://u:p@127.0.0.1:9/x next build</code> must pass.</li>
+      </ul>
+
+      <!-- 7 -->
+      <h2 id="json-ld">7. Structured data (JSON-LD)</h2>
+      <dl class="practice">
+        <dt>Rule</dt>
+        <dd>Add schema.org JSON-LD to every catalog page: <code>Product</code> and <code>BreadcrumbList</code> on products, <code>CollectionPage</code> on categories, and <code>OnlineStore</code> plus <code>WebSite</code> with a <code>SearchAction</code> on the home page.</dd>
+        <dt>Why</dt>
+        <dd>Rich results in search, and answer engines that can read price and stock without guessing.</dd>
+        <dt>How we did it</dt>
+        <dd><code>lib/json-ld.ts</code>, <code>components/layout/json-ld.tsx</code></dd>
+      </dl>
+      <h3>Pitfalls</h3>
+      <ul>
+        <li><strong>Escape <code>&lt;</code> as <code>\u003c</code></strong>. A product named <code>&lt;/script&gt;…</code> could otherwise close the tag and run code.</li>
+        <li>Leave out fields the product doesn't have, rather than sending empty ones.</li>
+        <li>Merchant descriptions are HTML. When turning them into plain text, replace block tags with spaces and drop inline tags. Our first version turned <code>&lt;b&gt;</code> into a space and produced "stoneware ." A unit test caught it.</li>
+      </ul>
+
+      <!-- 8 -->
+      <h2 id="sitemap">8. Split sitemap and robots.txt</h2>
+      <dl class="practice">
+        <dt>Rule</dt>
+        <dd>Serve <code>/sitemap.xml</code> as an index that points at <code>pages.xml</code> and <code>products-N.xml</code> files of 500 products each, with images. Each file fetches only the API pages that exist.</dd>
+        <dt>Why</dt>
+        <dd>One giant sitemap means one giant request, and it breaks the 50,000-URL limit for big stores. Small files are cached and rebuilt independently.</dd>
+        <dt>How we did it</dt>
+        <dd><code>lib/sitemap.ts</code>, <code>app/[host]/sitemap.xml/route.ts</code>, <code>app/[host]/sitemap/[file]/route.ts</code>, <code>app/[host]/robots.txt/route.ts</code></dd>
+      </dl>
+      <div class="callout">Fetch the first page of a file, read <code>total</code>, then fetch only the remaining pages. Our first version always fetched 5 pages, even for a store with 30 products.</div>
+
+      <!-- 9 -->
+      <h2 id="agents">9. Pages for agents: Markdown and llms.txt</h2>
+      <dl class="practice">
+        <dt>Rule</dt>
+        <dd>Every catalog page has a Markdown version. Agents reach it by adding <code>.md</code> to the URL (<code>/index.md</code> for home) or by listing <code>text/markdown</code> first in <code>Accept</code>. <code>/llms.txt</code> lists where those pages are.</dd>
+        <dt>Why</dt>
+        <dd>AI shopping assistants read text, not layouts. Markdown is a fraction of the size and has no navigation noise.</dd>
+        <dt>How we did it</dt>
+        <dd><code>lib/markdown-route.ts</code>, <code>lib/markdown.ts</code>, <code>app/[host]/md/[[...path]]/route.ts</code>, <code>app/[host]/llms.txt/route.ts</code></dd>
+      </dl>
+      <h3>Pitfalls</h3>
+      <ul>
+        <li>Only serve Markdown when it is the <em>first</em> accepted type. Browsers send long Accept lists, and those must still get HTML.</li>
+        <li>Send <code>Vary: accept</code> so caches keep the two versions apart, <code>X-Robots-Tag: noindex</code> so search engines don't index duplicates, and a <code>Link: rel=canonical</code> header pointing at the HTML page.</li>
+        <li>Link HTML pages to their Markdown version with <code>&lt;link rel="alternate" type="text/markdown"&gt;</code>. Next's metadata API does this through <code>alternates.types</code>.</li>
+      </ul>
+
+      <!-- 10 -->
+      <h2 id="prefetch">10. Prefetch on intent</h2>
+      <dl class="practice">
+        <dt>Rule</dt>
+        <dd>In grids, links start with <code>prefetch="auto"</code> and switch to <code>prefetch={true}</code> on pointer enter, touch start or focus.</dd>
+        <dt>Why</dt>
+        <dd>With Partial Prefetching, <code>"auto"</code> prefetches the shared shell for free. <code>true</code> also fetches the product's own cached content, which is worth doing only once the shopper shows interest. Prefetching every card in a 24-product grid costs 24 requests.</dd>
+        <dt>How we did it</dt>
+        <dd><code>packages/ui/src/components/product-card.tsx</code>: one intent state per card, shared by its image link and its title link.</dd>
+      </dl>
+<pre><code>const [intent, setIntent] = useState(false)
+const prefetch = intent ? true : "auto"
+&lt;div onPointerEnter={showIntent} onTouchStart={showIntent} onFocus={showIntent}&gt;
+  &lt;Link href={url} prefetch={prefetch}&gt;…</code></pre>
+
+      <!-- 11 -->
+      <h2 id="optimistic">11. Optimistic cart that survives quick clicks</h2>
+      <dl class="practice">
+        <dt>Rule</dt>
+        <dd>Show quantity changes immediately. Keep a reference to the last cart the server confirmed, number each request, apply a response only if it's the newest, and on failure go back to the confirmed cart.</dd>
+        <dt>Why</dt>
+        <dd>The usual "snapshot, then roll back" breaks with two quick clicks: the second snapshot captures the first click's unconfirmed state, and responses that arrive out of order overwrite newer ones.</dd>
+        <dt>How we did it</dt>
+        <dd><code>apps/storefront/components/providers/cart-provider.tsx</code>: <code>confirmedRef</code>, <code>latestRef</code>, and a pending count, so the loading state stays on until every request has settled.</dd>
+      </dl>
+      <div class="callout">Use functional updates, <code>setCart((current) =&gt; …)</code>, so quick changes build on each other instead of on a stale closure.</div>
+
+      <!-- 12 -->
+      <h2 id="server-actions">12. Validated Server Actions</h2>
+      <dl class="practice">
+        <dt>Rule</dt>
+        <dd>Parse every Server Action's input with zod before doing anything. Reuse the form's own schema, so the server checks exactly what the form checked.</dd>
+        <dt>Why</dt>
+        <dd>A Server Action is a public POST endpoint. TypeScript types disappear at runtime, and anyone can call it with anything.</dd>
+        <dt>How we did it</dt>
+        <dd><code>app/[host]/(checkout)/checkout/actions.ts</code> reuses <code>addressSchema</code> and <code>contactSchema</code> from <code>components/checkout/schemas.ts</code>, including postal-code rules per country.</dd>
+      </dl>
+
+      <!-- 13 -->
+      <h2 id="not-copied">13. What we chose not to copy</h2>
+      <table>
+        <thead><tr><th>vercel.shop does</th><th>Why we didn't</th></tr></thead>
+        <tbody>
+          <tr><td>Shopify Storefront API and Hydrogen helpers</td><td>Prood is its own commerce platform with its own API.</td></tr>
+          <tr><td>A built-in shopping agent</td><td>Out of scope. We made the store readable to <em>any</em> agent instead (Markdown, llms.txt, JSON-LD).</td></tr>
+          <tr><td>No tests</td><td>Our storefront has 250+ unit tests, and they caught two real bugs while we did this work.</td></tr>
+          <tr><td>oxlint and the TypeScript 7 preview</td><td>Toolchain churn with no user-facing benefit for us yet.</td></tr>
+          <tr><td>Per-market routing (<code>[locale]</code>)</td><td>Our partition key is the store host. Locales can be added inside it later.</td></tr>
+        </tbody>
+      </table>
+
+      <!-- 14 -->
+      <h2 id="open">14. Open items and caveats</h2>
+      <ul>
+        <li><strong>Cart permalinks</strong> (<code>/cart/&lt;variant&gt;:&lt;qty&gt;</code>, to share a ready-made cart) aren't built yet.</li>
+        <li><strong>Universal Commerce Protocol</strong> (<code>/.well-known/ucp</code>): skipped until the spec settles.</li>
+        <li><strong>Canonical tags on listings:</strong> <code>/products</code> has no canonical, because its sort and page parameters make different pages. Category pages point at their own path.</li>
+        <li><strong>The home page has no skeleton.</strong> It is cached per store and fast after the first visit, but a store's very first visit waits for the data.</li>
+        <li><strong>Cold proxy lookups:</strong> the proxy's missing-page check has a 1.5-second timeout. A cold first lookup can exceed it, and that request then answers 200 instead of 404. Later requests are correct.</li>
+        <li><strong>prood.com (<code>apps/web</code>)</strong> can use the same practices: static shells, JSON-LD, sitemap, Markdown and llms.txt, and prefetch on intent. Per-store routing isn't needed there.</li>
+      </ul>
+
+      <!-- 15 -->
+      <h2 id="checklist">15. Checklist for the next project</h2>
+      <ol>
+        <li>Choose the cache partition key (host, locale, market) and make it the root segment, rewritten by the proxy.</li>
+        <li>Split data access into cached reads (no cookies, key passed as an argument, tagged) and per-user reads (never cached).</li>
+        <li>Define the cache tags in one typed module, shared by the writer and the reader.</li>
+        <li>For every write path, expire the tags locally and notify each other deployment through a secret-protected webhook. Test that each write path does it.</li>
+        <li>Replace <code>loading.tsx</code> with Suspense inside pages. Read <code>params</code> inside the boundary.</li>
+        <li>Make 404s real: check in the proxy, add a global not-found page, and redirect unknown keys on every render path.</li>
+        <li>Make <code>generateStaticParams</code> return a placeholder that renders as not found, and build with the database and API unreachable.</li>
+        <li>Add JSON-LD with <code>&lt;</code> escaped, plus a split sitemap and robots.txt.</li>
+        <li>Add Markdown versions and <code>llms.txt</code>, with <code>Vary</code>, <code>noindex</code> and a canonical link header.</li>
+        <li>Prefetch grids on intent (<code>"auto"</code>, then <code>true</code>).</li>
+        <li>Make optimistic UI race-safe, and validate Server Actions with the form's schema.</li>
+        <li>Measure first and repeat visits in a production build, not in dev.</li>
+      </ol>
+
+      <!-- 16 -->
+      <h2 id="results">16. Measured results</h2>
+      <p>Local production build (<code>next build</code>, then <code>next start</code>), demo store, timing with <code>curl</code>:</p>
+      <table>
+        <thead><tr><th>Request</th><th>First visit</th><th>Repeat visit</th></tr></thead>
+        <tbody>
+          <tr><td>Home page</td><td>0.46 s</td><td>0.005 s</td></tr>
+          <tr><td>Product page</td><td>0.39 s</td><td>0.018 s</td></tr>
+          <tr><td>Missing category (real 404)</td><td>0.12 s</td><td>0.003 s</td></tr>
+          <tr><td>Product sitemap file</td><td>4.3 s</td><td>0.003 s</td></tr>
+        </tbody>
+      </table>
+      <p>
+        After a merchant change, <code>POST /api/revalidate</code> returns 200 and the next visit makes exactly one
+        new API request. A wrong secret gets a 401. In dev mode the same product page took about 4.2 s on the first
+        visit and 0.12–0.19 s after that, so always measure in a production build.
+      </p>
+    </main>
+
+    <footer class="page">
+      <p>
+        Sources: <a href="https://vercel.shop/">vercel.shop</a>, <a href="https://template.vercel.shop/">template.vercel.shop</a>,
+        and the Next.js 16.4 docs bundled at <code>node_modules/next/dist/docs/</code> (prefetching, generateStaticParams,
+        root params, global-not-found, generateMetadata with Cache Components).
+        Code: <code>apps/storefront</code>, <code>packages/commerce/src/revalidate.ts</code>,
+        <code>packages/types/src/cache-tags.ts</code>, <code>packages/ui/src/components/product-card.tsx</code>.
+      </p>
+    </footer>
+  </body>
+</html>

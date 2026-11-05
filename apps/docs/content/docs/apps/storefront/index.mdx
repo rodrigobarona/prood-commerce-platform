@@ -73,6 +73,8 @@ See [Auth & tenant](/docs/apps/storefront/auth-tenant) for implementation detail
 | `CHECKOUT_URL` | Checkout app redirect target |
 | `CHECKOUT_API_SECRET` | Auth header for session creation |
 | `NEXT_PUBLIC_PLATFORM_DOMAIN` | Subdomain tenant resolution |
+| `NEXT_PUBLIC_STOREFRONT_URL` | Protocol and port for store origins (canonical URLs, sitemaps) |
+| `STOREFRONT_REVALIDATE_SECRET` | Shared with the API and dashboard to expire cached catalog pages |
 
 ## Next.js configuration
 
@@ -82,11 +84,12 @@ The storefront enables Cache Components:
 // next.config.ts
 export default {
   cacheComponents: true,
-  transpilePackages: ['@prood/ui', '@prood/types'],
+  partialPrefetching: true,
+  experimental: { globalNotFound: true },
 }
 ```
 
-Catalog pages use `'use cache'` with tenant-scoped tags from `@prood/commerce`. Cart, checkout, and account routes stay dynamic.
+Catalog pages use `'use cache'` with tenant-scoped tags (`storeCacheTag()` from `@prood/types`), expired by the API and dashboard through `/api/revalidate`. Cart, checkout, and account routes stay dynamic. See [Pages & routes](/docs/apps/storefront/pages-routes#caching).
 
 ## Related pages
 

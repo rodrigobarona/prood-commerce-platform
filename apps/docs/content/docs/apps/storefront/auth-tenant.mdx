@@ -47,7 +47,7 @@ Better Auth handler at `/api/auth/[...all]` handles sign-up, sign-in, sign-out, 
 
 ### How it works
 
-`lib/tenant.ts` → `resolveTenantId()`:
+`lib/tenant.ts` → `resolveTenantId()` (pages, from the `[host]` root param) and `resolveRequestTenantId()` (Route Handlers and Server Actions, from the `Host` header). Both use `tenantIdForHost()`, cached per host for five minutes:
 
 1. Custom domain lookup (`tenant_domain`, verified)
 2. Subdomain `{slug}.{NEXT_PUBLIC_PLATFORM_DOMAIN}` → organization by slug
@@ -65,7 +65,7 @@ There is no fallback tenant.
 
 ### Database lookup
 
-`lookupTenantByHost()` from `@prood/platform` (re-exported in `lib/tenant-db.ts`).
+`lookupTenantByHost()` from `@prood/platform`.
 
 ### Forwarding to API
 

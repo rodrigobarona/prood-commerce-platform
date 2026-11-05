@@ -5,6 +5,8 @@ description: Complete route map for the storefront application.
 
 The storefront uses Next.js App Router with server components for catalog pages and client components for interactive cart/search UI.
 
+Every store is served from one route tree under `app/[host]/`. `proxy.ts` rewrites `/{path}` to `/{host}{path}`, so each store's pages are built and cached separately, keyed by its host. Pages read the host with `host()` from `next/root-params`; Route Handlers and Server Actions, which have no root params, read the `Host` header with `requestHost()` from `lib/store-host.ts`.
+
 ## Page routes
 
 | Route | Type | Description |
@@ -21,11 +23,25 @@ The storefront uses Next.js App Router with server components for catalog pages 
 | `/account` | Server | Account overview — profile info, recent orders |
 | `/account/orders` | Server | Full order history (requires auth) |
 
+Catalog pages have no `loading.tsx`. Each page wraps its content in `<Suspense>` with a skeleton, so the store's header and footer form a static shell that's shown at once, even for a product that hasn't been built yet.
+
+### For search engines and agents
+
+| Route | Purpose |
+| --- | --- |
+| `/robots.txt` | Allows the catalog, disallows cart, checkout and account, points at the sitemap |
+| `/sitemap.xml` | Sitemap index: `pages.xml`, then one `products-N.xml` per 500 products |
+| `/sitemap/[file]` | One sitemap file, with product images |
+| `/llms.txt` | What the store is and where its Markdown pages are ([llmstxt.org](https://llmstxt.org)) |
+| `/index.md`, `/products.md`, `/products/[slug].md`, `/categories/[slug].md` | Markdown versions of the catalog pages |
+
+A catalog page is also served as Markdown when the request's first `Accept` type is `text/markdown`. HTML pages link to their Markdown version with `<link rel="alternate" type="text/markdown">` and carry schema.org JSON-LD: `Product` and `BreadcrumbList` on product pages, `CollectionPage` on categories, `OnlineStore` and `WebSite` (with a `SearchAction`) on the home page.
+
 ### Layout structure
 
 ```mermaid
 flowchart TB
-  APP[app/]
+  APP["app/[host]/"]
   LAYOUT[layout.tsx]
   HOME[page.tsx]
   PRODUCTS[products/]
@@ -68,6 +84,7 @@ Local BFF routes proxy to the Commerce API where browser UX requires them:
 | `/api/commerce/cart/items/[itemId]` | PATCH, DELETE | Update quantity or remove item |
 | `/api/commerce/search` | GET | Product search for client search palette |
 | `/api/commerce/countries` | GET | Country list for address forms |
+| `/api/revalidate` | POST | Expires a store's cached catalog (called by the API and dashboard) |
 
 ### Why BFF routes exist
 
@@ -105,30 +122,35 @@ Catalog reads do **not** need BFF routes — they are fetched server-side in Rea
 
 ## Data fetching
 
-Server components use fetchers from `lib/commerce-data.ts`:
+Catalog reads live in `lib/catalog.ts`. Each takes the store host explicitly and is a `"use cache"` function; `lib/commerce-data.ts` wraps them with `host()` for pages:
 
 ```ts
-// Example: product listing page
-import { getProducts, getCategories } from '@/lib/commerce-data'
+import { fetchProductList, fetchCategories } from '@/lib/commerce-data'
 
-export default async function ProductsPage({ searchParams }) {
-  const products = await getProducts({ query, sort, page })
-  const categories = await getCategories()
-  // ...
-}
+const [{ products }, categories] = await Promise.all([fetchProductList({ sort, page }), fetchCategories()])
 ```
 
-These fetchers wrap `@prood/api-client` and forward the request's host as `x-storefront-host` for tenant resolution.
+Catalog requests send only the store host (`x-storefront-host`), never cookies, so one cached answer serves every shopper. Cart, order and account reads use `getCommerceApi()`, which forwards the session cookie and is never cached.
 
 ## Caching
 
-Catalog pages benefit from Next.js Cache Components:
+| Data | Cache tag | Expired by |
+| --- | --- | --- |
+| Products (lists, product pages) | `products-{tenantId}` | Product, variant, inventory and category changes |
+| Categories | `categories-{tenantId}` | Category changes |
+| Store details | `store-{tenantId}` | Store settings and payment integration changes |
 
-- Product listings: cached per tenant, 600s SWR
-- Categories: cached per tenant, 600s SWR
-- Store info: cached per tenant, 3600s SWR
+Tags come from `storeCacheTag()` in `@prood/types`. When the API or dashboard changes a store, `@prood/commerce` expires the tags locally and then, after the response, POSTs them to the storefront's `/api/revalidate` with `STOREFRONT_REVALIDATE_SECRET`. The next visit rebuilds the page. If that call fails, entries still expire within an hour.
 
-Cart, checkout, and account pages are **never cached** — they depend on cookies and session state.
+Free-text search isn't cached: there's no end to the queries. Cart, checkout and account pages are **never cached**: they depend on cookies and session state.
+
+## Not found
+
+Unknown products, categories and policy pages get a real `404` status. `proxy.ts` checks document requests and rewrites misses to the store's not-found page. Paths that match no route at all use `app/global-not-found.tsx` (`experimental.globalNotFound`), because the root layout sits under `[host]`. Hosts with no store redirect to the marketing site.
+
+## Building
+
+With Cache Components, `generateStaticParams` in `app/[host]/layout.tsx` must name at least one host. It names `build.invalid`, a host that is no store's and renders as not found, so `next build` needs neither the database nor the API. Real stores are built on their first visit.
 
 ## Related pages
 

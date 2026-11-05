@@ -1,7 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { checkPaymentCredentials, isPaymentProviderId } from "@prood/commerce"
+import { checkPaymentCredentials, isPaymentProviderId, revalidateStore } from "@prood/commerce"
 import { ADMIN_ONLY_MESSAGE, canManageStore, requireStoreAdmin } from "@/lib/admin"
 import { listOrders } from "@/lib/admin-api"
 import {
@@ -65,6 +65,8 @@ export async function saveIntegrationAction(
   }
 
   await upsertIntegration(orgId, provider, merged, isEnabled)
+  // Whether the store takes orders, and how, is part of what the storefront caches.
+  revalidateStore(orgId)
   revalidatePath("/integrations")
   revalidatePath(`/integrations/${provider}`)
   const integrations = await listIntegrations(orgId)
@@ -99,6 +101,7 @@ export async function disconnectIntegrationAction(
   }
 
   await deleteIntegration(orgId, provider)
+  revalidateStore(orgId)
   revalidatePath("/integrations")
   revalidatePath(`/integrations/${provider}`)
   return {}

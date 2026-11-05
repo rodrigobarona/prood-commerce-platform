@@ -74,6 +74,7 @@ vi.mock("@prood/commerce", () => ({
   assertLimit: vi.fn(),
   checkPaymentCredentials: vi.fn(),
   isPaymentProviderId: () => true,
+  revalidateStore: vi.fn(),
 }))
 vi.mock("@prood/api-client", () => ({ isCommerceApiError: () => false }))
 

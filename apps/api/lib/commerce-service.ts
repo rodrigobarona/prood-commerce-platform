@@ -26,6 +26,7 @@ import {
   getTenantPaymentProvider,
   resolveCustomerId,
   listTenantPaymentProviders,
+  revalidateCatalog,
   revalidateProducts,
   revalidateStore,
 } from "@prood/commerce"
@@ -235,11 +236,7 @@ export const checkout = {
   },
   placeOrder: async (orgId: string, cartId: string, customerId?: string, contactEmail?: string) => {
     const order = await placeOrder(cartId, orgId, customerId, contactEmail)
-    try {
-      revalidateProducts(orgId)
-    } catch {
-      // Cache invalidation is best-effort; never block the order response
-    }
+    revalidateProducts(orgId)
     // Nothing to pay means no payment webhook will ever confirm it.
     if (order.totals.total.amount === 0) queueOrderEmail(orgId, order.id, "confirmed")
     return order
@@ -482,31 +479,31 @@ export const admin = {
     withTenant(orgId, async () => (await getAdmin()).getProduct(id)),
   createProduct: async (orgId: string, input: CreateProductInput) => {
     const product = await withTenant(orgId, async () => (await getAdmin()).createProduct(input))
-    try { revalidateProducts(orgId) } catch { /* best-effort */ }
+    revalidateProducts(orgId)
     return product
   },
   updateProduct: async (orgId: string, id: string, input: UpdateProductInput) => {
     const product = await withTenant(orgId, async () => (await getAdmin()).updateProduct(id, input))
-    try { revalidateProducts(orgId) } catch { /* best-effort */ }
+    revalidateProducts(orgId)
     return product
   },
   deleteProduct: async (orgId: string, id: string) => {
     await withTenant(orgId, async () => (await getAdmin()).deleteProduct(id))
-    try { revalidateProducts(orgId) } catch { /* best-effort */ }
+    revalidateProducts(orgId)
   },
   createCategory: async (orgId: string, input: CreateCategoryInput) => {
     const category = await withTenant(orgId, async () => (await getAdmin()).createCategory(input))
-    try { revalidateProducts(orgId) } catch { /* best-effort */ }
+    revalidateCatalog(orgId)
     return category
   },
   updateCategory: async (orgId: string, id: string, input: UpdateCategoryInput) => {
     const category = await withTenant(orgId, async () => (await getAdmin()).updateCategory(id, input))
-    try { revalidateProducts(orgId) } catch { /* best-effort */ }
+    revalidateCatalog(orgId)
     return category
   },
   deleteCategory: async (orgId: string, id: string) => {
     await withTenant(orgId, async () => (await getAdmin()).deleteCategory(id))
-    try { revalidateProducts(orgId) } catch { /* best-effort */ }
+    revalidateCatalog(orgId)
   },
   listOrders: (orgId: string, q: AdminListOrdersQuery) =>
     withTenant(orgId, async () =>
@@ -604,7 +601,7 @@ export const admin = {
     const settings = await withTenant(orgId, async () =>
       (await getAdmin()).updateStoreSettings(input),
     )
-    try { revalidateStore(orgId) } catch { /* best-effort */ }
+    revalidateStore(orgId)
     if (input.name) {
       // The store is already saved, so a stale sidebar mustn't fail the request.
       await renameOrganization(orgId, input.name).catch((err) => {
@@ -613,8 +610,11 @@ export const admin = {
     }
     return settings
   },
-  updateInventory: (orgId: string, input: UpdateInventoryInput) =>
-    withTenant(orgId, async () => (await getAdmin()).updateInventory(input)),
+  updateInventory: async (orgId: string, input: UpdateInventoryInput) => {
+    const result = await withTenant(orgId, async () => (await getAdmin()).updateInventory(input))
+    revalidateProducts(orgId)
+    return result
+  },
   dashboardStats: async (orgId: string) => {
     const [stats, payable] = await Promise.all([
       withTenant(orgId, async () => (await getAdmin()).getDashboardStats()),
