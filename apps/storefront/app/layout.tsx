@@ -6,6 +6,7 @@ import "@geoapify/geocoder-autocomplete/styles/minimal.css"
 import "@prood/ui/globals.css"
 import "@prood/ui/themes/neutral.css"
 import { cn } from "@prood/ui/lib/utils"
+import { Analytics } from "@vercel/analytics/next"
 import { AppProviders } from "@/components/providers/app-providers"
 import { fetchStoreInfo } from "@/lib/commerce-data"
 import { storeMetadata } from "@/lib/store-metadata"
@@ -54,6 +55,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <StoreProviders>{children}</StoreProviders>
         </Suspense>
+        <Analytics />
       </body>
     </html>
   )
