@@ -17,18 +17,19 @@
     "@prood/media": "workspace:*",
     "@prood/types": "workspace:*",
     "@prood/ui": "workspace:*",
+    "@vercel/speed-insights": "^2.1.0",
     "next": "catalog:",
     "next-themes": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:"
   },
   "devDependencies": {
+    "@prood/eslint-config": "workspace:^",
+    "@prood/typescript-config": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "@prood/eslint-config": "workspace:^",
-    "@prood/typescript-config": "workspace:*",
     "eslint": "catalog:",
     "tailwindcss": "catalog:",
     "typescript": "catalog:"
