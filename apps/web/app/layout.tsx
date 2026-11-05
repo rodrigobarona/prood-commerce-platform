@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next"
 import { Bricolage_Grotesque, Geist_Mono, Instrument_Sans } from "next/font/google"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 import "./globals.css"
 import { ThemeProvider } from "@prood/ui/components/theme-provider"
@@ -60,6 +61,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           </main>
           <SiteFooter />
         </ThemeProvider>
+        <SpeedInsights />
       </body>
     </html>
   )
