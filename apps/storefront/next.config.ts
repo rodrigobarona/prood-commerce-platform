@@ -5,6 +5,8 @@ import { mediaRemotePattern } from "@prood/media/remote-pattern"
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
+  // The root layout sits under `[host]`, so unmatched paths need their own 404 page.
+  experimental: { globalNotFound: true },
   transpilePackages: ["@prood/ui", "@prood/types", "@prood/media"],
   images: {
     // Product media lives in the R2 bucket, served at S3_PUBLIC_URL; brand

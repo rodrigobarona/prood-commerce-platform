@@ -3,7 +3,7 @@ import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { nextCookies } from "better-auth/next-js"
 import { autoLinkGuestCustomers, getStorefrontIdentity, lookupTenantByHost } from "@prood/platform"
-import { resolveTenantId } from "../tenant"
+import { resolveRequestTenantId } from "../tenant"
 import { authDb } from "./db"
 import * as schema from "@prood/auth/schema"
 import { sharedAuthOptions, sharedEmailAndPassword } from "@prood/auth/shared-options"
@@ -13,7 +13,7 @@ import { getMailer } from "../mailer"
 async function currentStore() {
   const storefrontUrl = process.env.NEXT_PUBLIC_STOREFRONT_URL
   if (!storefrontUrl) throw new Error("NEXT_PUBLIC_STOREFRONT_URL is required")
-  return getStorefrontIdentity(await resolveTenantId(), storefrontUrl)
+  return getStorefrontIdentity(await resolveRequestTenantId(), storefrontUrl)
 }
 
 /** Send a shopper email branded as the current store, after the response. */

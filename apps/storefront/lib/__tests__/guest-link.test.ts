@@ -13,7 +13,7 @@ vi.mock("@prood/platform", () => ({
   getStorefrontIdentity: async () => ({ name: "Store", origin: "https://store.test" }),
   lookupTenantByHost: async () => "org-1",
 }))
-vi.mock("../tenant", () => ({ resolveTenantId: async () => "org-1" }))
+vi.mock("../tenant", () => ({ resolveRequestTenantId: async () => "org-1" }))
 vi.mock("../auth/db", () => ({ authDb: {} }))
 vi.mock("../mailer", () => ({ getMailer: () => ({ send: mocks.send }) }))
 vi.mock("better-auth/adapters/drizzle", async () => {

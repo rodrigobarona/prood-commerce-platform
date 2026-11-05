@@ -8,7 +8,7 @@ import { Skeleton } from "@prood/ui/components/skeleton"
 import { formatPrice, localized } from "@prood/ui/lib/commerce"
 import { cn } from "@prood/ui/lib/utils"
 import { useCart } from "@/components/providers/cart-provider"
-import { startCheckout } from "@/app/(checkout)/checkout/actions"
+import { startCheckout } from "@/app/[host]/(checkout)/checkout/actions"
 import { clearDraft, readDraft, saveDraft, type CheckoutDraft } from "@/lib/checkout-draft"
 import { STORE_CLOSED_MESSAGE, canCheckOut } from "@/lib/store-status"
 import { CheckoutSidebar } from "./checkout-sidebar"
@@ -246,10 +246,10 @@ export function CheckoutFlow({
 
     const res = await startCheckout({
       email: data.contact.email,
+      phone: data.contact.phone || undefined,
       address: {
         firstName: data.address.firstName,
         lastName: data.address.lastName,
-        phone: data.contact.phone || undefined,
         street: data.address.street,
         street2: data.address.street2 || undefined,
         city: data.address.city,

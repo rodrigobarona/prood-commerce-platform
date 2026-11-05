@@ -5,7 +5,6 @@ import {
   useCallback,
   use,
   useEffect,
-  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -129,10 +128,14 @@ export function CartProvider({
 }) {
   const payment = paymentNote(paymentMethods)
   const [cart, setCart] = useState<Cart | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [pending, setPending] = useState(0)
   const [hydrating, setHydrating] = useState(true)
   const [open, setOpen] = useState(false)
-  const snapshotRef = useRef<Cart | null>(null)
+  // Quick clicks overlap: a failure goes back to what the server last said,
+  // and only the newest response may replace what the shopper sees.
+  const confirmedRef = useRef<Cart | null>(null)
+  const latestRef = useRef(0)
+  const loading = pending > 0
   const returnFocusRef = useRef<Element | null>(null)
 
   const refresh = useCallback(async () => {
@@ -140,6 +143,7 @@ export function CartProvider({
       const res = await fetch(API)
       if (res.ok) {
         const data = (await res.json()) as { cart: Cart | null }
+        confirmedRef.current = data.cart
         setCart(data.cart)
       }
     } catch {
@@ -155,7 +159,8 @@ export function CartProvider({
   }, [refresh])
 
   const mutate = useCallback(async (request: Promise<Response>) => {
-    setLoading(true)
+    const id = ++latestRef.current
+    setPending((count) => count + 1)
     try {
       const res = await request
       const data = (await res.json().catch(() => ({}))) as {
@@ -163,16 +168,15 @@ export function CartProvider({
         message?: string
       }
       if (!res.ok) throw new Error(data.message || "Something went wrong")
-      if (data.cart) setCart(data.cart)
+      if (data.cart) {
+        confirmedRef.current = data.cart
+        if (id === latestRef.current) setCart(data.cart)
+      }
+    } catch (err) {
+      if (id === latestRef.current) setCart(confirmedRef.current)
+      throw err
     } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  const rollback = useCallback(() => {
-    if (snapshotRef.current) {
-      setCart(snapshotRef.current)
-      snapshotRef.current = null
+      setPending((count) => count - 1)
     }
   }, [])
 
@@ -206,10 +210,7 @@ export function CartProvider({
 
   const updateItem = useCallback(
     async (itemId: string, quantity: number) => {
-      if (cart) {
-        snapshotRef.current = cart
-        setCart(applyOptimisticUpdate(cart, itemId, quantity))
-      }
+      setCart((current) => current && applyOptimisticUpdate(current, itemId, quantity))
       try {
         await mutate(
           fetch(`${API}/items/${itemId}`, {
@@ -218,43 +219,39 @@ export function CartProvider({
             body: JSON.stringify({ quantity }),
           }),
         )
-        snapshotRef.current = null
       } catch (err) {
-        rollback()
         toast.error((err as Error).message)
       }
     },
-    [cart, mutate, rollback],
+    [mutate],
   )
 
   const removeItem = useCallback(
     async (itemId: string) => {
-      if (cart) {
-        snapshotRef.current = cart
-        setCart(applyOptimisticRemove(cart, itemId))
-      }
+      setCart((current) => current && applyOptimisticRemove(current, itemId))
       try {
         await mutate(fetch(`${API}/items/${itemId}`, { method: "DELETE" }))
-        snapshotRef.current = null
       } catch (err) {
-        rollback()
         toast.error((err as Error).message)
       }
     },
-    [cart, mutate, rollback],
+    [mutate],
   )
 
-  const setShippingMethod = useMemo(
-    () =>
-      latestOnly((methodId: string) =>
+  const shippingQueueRef = useRef<((methodId: string) => Promise<void>) | null>(null)
+  const setShippingMethod = useCallback(
+    (methodId: string) => {
+      shippingQueueRef.current ??= latestOnly((id: string) =>
         mutate(
           fetch(`${API}/shipping-method`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ methodId }),
+            body: JSON.stringify({ methodId: id }),
           }),
         ),
-      ),
+      )
+      return shippingQueueRef.current(methodId)
+    },
     [mutate],
   )
 

@@ -717,6 +717,9 @@ importers:
       react-hook-form:
         specifier: ^7.91.0
         version: 7.91.0(@types/react@19.3.0)(react@19.3.1)
+      server-only:
+        specifier: 'catalog:'
+        version: 0.0.1
       sonner:
         specifier: 'catalog:'
         version: 2.0.8(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)

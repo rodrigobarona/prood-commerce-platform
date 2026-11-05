@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import { useState } from "react"
 import { PlusIcon } from "@phosphor-icons/react"
 import { canQuickAdd, type Product } from "@prood/types"
 import { Button } from "@prood/ui/components/button"
@@ -42,12 +43,24 @@ export function ProductCard({
   const name = localized(product.name, locale)
   const image = product.primaryImage
   const alternate = product.gallery.find((candidate) => candidate.url !== image?.url)
+  // A grid prefetching every product in view costs a request per card. Until
+  // the shopper points at, touches or tabs to this one, only the shared page
+  // shell is prefetched.
+  const [intent, setIntent] = useState(false)
+  const prefetch = intent ? true : "auto"
+  const showIntent = () => setIntent(true)
 
   return (
-    <div className={cn("group/card relative flex flex-col gap-3", className)}>
+    <div
+      className={cn("group/card relative flex flex-col gap-3", className)}
+      onPointerEnter={showIntent}
+      onTouchStart={showIntent}
+      onFocus={showIntent}
+    >
       <div className="relative">
         <Link
           href={url}
+          prefetch={prefetch}
           aria-label={name}
           className={cn(
             "bg-muted relative block overflow-hidden rounded-lg",
@@ -101,7 +114,7 @@ export function ProductCard({
       </div>
 
       <div className="flex flex-col gap-0.5 text-sm">
-        <Link href={url} className="line-clamp-2 underline-offset-4 hover:underline">
+        <Link href={url} prefetch={prefetch} className="line-clamp-2 underline-offset-4 hover:underline">
           {name}
         </Link>
         {showRating && product.rating ? (

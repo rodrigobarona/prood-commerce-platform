@@ -68,3 +68,50 @@ describe("the cart drawer", () => {
     expect(screen.getByText("This store isn't taking paid orders yet.")).toBeTruthy()
   })
 })
+
+function Quantity() {
+  const { cart, updateItem } = useCart()
+  return (
+    <>
+      <output>{cart?.items[0]?.quantity}</output>
+      <button onClick={() => void updateItem("i1", (cart?.items[0]?.quantity ?? 0) + 1)}>More</button>
+    </>
+  )
+}
+
+describe("changing a quantity", () => {
+  it("shows the new quantity before the store answers, and the store's answer after", async () => {
+    let answer!: (res: Response) => void
+    render(
+      <CartProvider canTakeOrders>
+        <Quantity />
+      </CartProvider>,
+    )
+    await act(async () => {})
+    vi.mocked(fetch).mockImplementation(() => new Promise((resolve) => (answer = resolve)))
+    fireEvent.click(screen.getByRole("button", { name: "More" }))
+    expect(screen.getByRole("status").textContent).toBe("2")
+    await act(async () => answer(new Response(JSON.stringify({ cart: { ...cart, items: [{ ...cart.items[0], quantity: 2 }] } }))))
+    expect(screen.getByRole("status").textContent).toBe("2")
+  })
+
+  it("lets only the newest of overlapping changes decide, and a failure fall back to the store's cart", async () => {
+    const answers: ((res: Response) => void)[] = []
+    render(
+      <CartProvider canTakeOrders>
+        <Quantity />
+      </CartProvider>,
+    )
+    await act(async () => {})
+    vi.mocked(fetch).mockImplementation(() => new Promise((resolve) => answers.push(resolve)))
+    fireEvent.click(screen.getByRole("button", { name: "More" }))
+    fireEvent.click(screen.getByRole("button", { name: "More" }))
+    expect(screen.getByRole("status").textContent).toBe("3")
+
+    await act(async () => answers[0]!(new Response(JSON.stringify({ message: "No." }), { status: 409 })))
+    expect(screen.getByRole("status").textContent).toBe("3")
+
+    await act(async () => answers[1]!(new Response(JSON.stringify({ message: "Only 1 left." }), { status: 409 })))
+    expect(screen.getByRole("status").textContent).toBe("1")
+  })
+})

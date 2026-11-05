@@ -1,47 +1,29 @@
 import "server-only"
-import { cache } from "react"
-import type {
-  Cart,
-  Category,
-  Order,
-  PaginatedResult,
-  Product,
-  SearchResult,
-  StorefrontStore,
-} from "@prood/types"
-import { isCommerceApiError, unwrap } from "@prood/api-client"
+import { host } from "next/root-params"
+import type { Cart, Category, Order, PaginatedResult, Product, SearchResult, StorefrontStore } from "@prood/types"
+import { unwrap } from "@prood/api-client"
+import { getCategories, getProductBySlug, getProducts, getStore, type ProductQuery } from "@/lib/catalog"
 import { getCommerceApi } from "@/lib/commerce-api"
 
-export async function fetchProductList(
-  query: Record<string, string | number | undefined> = {}
-): Promise<SearchResult> {
-  const api = await getCommerceApi()
-  return unwrap(api.GET("/products", { params: { query } }))
+// Catalog reads for the store being rendered, cached per store.
+
+export async function fetchProductList(query: ProductQuery = {}): Promise<SearchResult> {
+  return getProducts(await host(), query)
 }
 
 export async function fetchProductBySlug(slug: string): Promise<Product | null> {
-  const api = await getCommerceApi()
-  try {
-    return await unwrap(
-      api.GET("/products/by-slug/{slug}", { params: { path: { slug } } })
-    )
-  } catch (err) {
-    if (isCommerceApiError(err) && err.code === "NOT_FOUND") return null
-    throw err
-  }
+  return getProductBySlug(await host(), slug)
 }
 
-export async function fetchCategories(
-  query: Record<string, string | number | undefined> = {}
-): Promise<Category[]> {
-  const api = await getCommerceApi()
-  return unwrap(api.GET("/categories", { params: { query } }))
+export async function fetchCategories(): Promise<Category[]> {
+  return getCategories(await host())
 }
 
-export const fetchStoreInfo = cache(async function fetchStoreInfo(): Promise<StorefrontStore> {
-  const api = await getCommerceApi()
-  return unwrap(api.GET("/store"))
-})
+export async function fetchStoreInfo(): Promise<StorefrontStore> {
+  return getStore(await host())
+}
+
+// The shopper's own data, read at request time with their cookies.
 
 export async function fetchCart(id: string): Promise<Cart> {
   const api = await getCommerceApi()
