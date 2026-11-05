@@ -1,24 +1,16 @@
 import type { Category, Product, StoreInfo } from "@prood/types"
 import { localized } from "@prood/ui/lib/commerce"
+import { SCHEMA_CONTEXT, type JsonLdThing } from "@prood/ui/lib/json-ld"
 import { plainText } from "@/lib/store-metadata"
 
 // schema.org descriptions of store pages, for search engines and answer engines.
 
-type Thing = Record<string, unknown>
-
-const CONTEXT = "https://schema.org"
-
-/** Serialized for a `<script type="application/ld+json">`, which must not be able to close itself. */
-export function jsonLdScript(data: Thing | Thing[]): string {
-  return JSON.stringify(data).replace(/</g, "\\u003c")
-}
-
-export function productJsonLd(product: Product, origin: string): Thing {
+export function productJsonLd(product: Product, origin: string): JsonLdThing {
   const url = `${origin}/products/${product.slug}`
   const images = [product.primaryImage, ...product.gallery].flatMap((image) => (image ? [image.url] : []))
   const description = plainText(localized(product.description) || localized(product.shortDescription))
   return {
-    "@context": CONTEXT,
+    "@context": SCHEMA_CONTEXT,
     "@type": "Product",
     name: localized(product.name),
     url,
@@ -42,31 +34,17 @@ export function productJsonLd(product: Product, origin: string): Thing {
             url,
             price: product.price.amount.toFixed(2),
             priceCurrency: product.price.currency,
-            availability: `${CONTEXT}/${product.inStock ? "InStock" : "OutOfStock"}`,
+            availability: `${SCHEMA_CONTEXT}/${product.inStock ? "InStock" : "OutOfStock"}`,
           },
         }
       : {}),
   }
 }
 
-/** The trail from the catalog down to a page: `[name, path]` pairs. */
-export function breadcrumbJsonLd(trail: [string, string][], origin: string): Thing {
-  return {
-    "@context": CONTEXT,
-    "@type": "BreadcrumbList",
-    itemListElement: trail.map(([name, path], index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      name,
-      item: `${origin}${path}`,
-    })),
-  }
-}
-
-export function collectionJsonLd(category: Category, products: Product[], origin: string): Thing {
+export function collectionJsonLd(category: Category, products: Product[], origin: string): JsonLdThing {
   const description = category.description ? plainText(localized(category.description)) : ""
   return {
-    "@context": CONTEXT,
+    "@context": SCHEMA_CONTEXT,
     "@type": "CollectionPage",
     name: localized(category.name),
     url: `${origin}/categories/${category.slug}`,
@@ -84,12 +62,12 @@ export function collectionJsonLd(category: Category, products: Product[], origin
 }
 
 /** The store itself, and how to search it, for the home page. */
-export function storeJsonLd(store: Pick<StoreInfo, "name" | "description" | "logo" | "contactEmail">, origin: string): Thing[] {
+export function storeJsonLd(store: Pick<StoreInfo, "name" | "description" | "logo" | "contactEmail">, origin: string): JsonLdThing[] {
   const name = localized(store.name)
   const description = store.description ? plainText(localized(store.description)) : ""
   return [
     {
-      "@context": CONTEXT,
+      "@context": SCHEMA_CONTEXT,
       "@type": "OnlineStore",
       name,
       url: origin,
@@ -98,7 +76,7 @@ export function storeJsonLd(store: Pick<StoreInfo, "name" | "description" | "log
       ...(store.contactEmail ? { email: store.contactEmail } : {}),
     },
     {
-      "@context": CONTEXT,
+      "@context": SCHEMA_CONTEXT,
       "@type": "WebSite",
       name,
       url: origin,

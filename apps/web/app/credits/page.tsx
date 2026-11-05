@@ -1,12 +1,9 @@
 import { mediaCredits } from "@prood/media"
 import { Container, Eyebrow } from "@/components/marketing/section"
 import { pageMetadata } from "@/lib/metadata"
+import { pages } from "@/lib/pages"
 
-export const metadata = pageMetadata({
-  title: "Photo and film credits",
-  description: "The photographers and filmmakers whose work appears across Prood's sites and apps.",
-  path: "/credits",
-})
+export const metadata = pageMetadata(pages.credits)
 
 export default function CreditsPage() {
   return (

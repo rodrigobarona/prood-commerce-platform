@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { RootProvider } from 'fumadocs-ui/provider/next';
 import { Bricolage_Grotesque, Geist_Mono, Instrument_Sans } from 'next/font/google';
 import './global.css';
+import { docsOrigin } from '@/lib/shared';
 
 const fontSans = Instrument_Sans({ subsets: ['latin'], variable: '--font-family-sans' });
 const fontHeading = Bricolage_Grotesque({
@@ -11,8 +12,6 @@ const fontHeading = Bricolage_Grotesque({
 });
 const fontMono = Geist_Mono({ subsets: ['latin'], variable: '--font-family-mono' });
 
-const docsOrigin =
-  process.env.NEXT_PUBLIC_DOCS_URL?.replace(/\/$/, '') ?? 'http://localhost:3003';
 
 export const metadata: Metadata = {
   metadataBase: new URL(docsOrigin),

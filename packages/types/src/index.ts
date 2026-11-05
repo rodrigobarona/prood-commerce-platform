@@ -8,7 +8,7 @@ export type { Maybe, Id, LocalizedField, LocalizedString, PaginatedResult, Pagin
 export { DEFAULT_LOCALE, DEFAULT_LOCALES, LOCALE_META } from './locale.js'
 export { contains } from './like-pattern.js'
 export { FIXED_SHIPPING_RATES } from './shipping-rates.js'
-export { RESERVED_STORE_SLUGS, slugify } from './slug.js'
+export { MAX_STORE_SLUG_LENGTH, RESERVED_STORE_SLUGS, STORE_SLUG_PATTERN, slugify } from './slug.js'
 export type { SupportedLocale } from './locale.js'
 export { CommerceError, isCommerceError } from './common.js'
 export type { CommerceErrorBody, CommerceErrorResponse } from './http-errors.js'

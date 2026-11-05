@@ -1,7 +1,6 @@
 import type { MetadataRoute } from 'next';
+import { docsOrigin as origin } from '@/lib/shared';
 import { source } from '@/lib/source';
-
-const origin = process.env.NEXT_PUBLIC_DOCS_URL?.replace(/\/$/, '') ?? 'https://docs.prood.com';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [

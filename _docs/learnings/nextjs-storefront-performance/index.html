@@ -108,6 +108,7 @@
           <li><a href="#prefetch">Prefetch on intent</a></li>
           <li><a href="#optimistic">Optimistic cart that survives quick clicks</a></li>
           <li><a href="#server-actions">Validated Server Actions</a></li>
+          <li><a href="#other-apps">Across the other apps</a></li>
           <li><a href="#not-copied">What we chose not to copy</a></li>
           <li><a href="#open">Open items and caveats</a></li>
           <li><a href="#checklist">Checklist for the next project</a></li>
@@ -355,7 +356,73 @@ const prefetch = intent ? true : "auto"
       </dl>
 
       <!-- 13 -->
-      <h2 id="not-copied">13. What we chose not to copy</h2>
+      <h2 id="other-apps">13. Across the other apps</h2>
+      <p>
+        Most of these practices are about public pages. The rule of thumb: <strong>public pages get caching,
+        structured data and agent-readable text; signed-in apps get validation and noindex</strong>, because
+        their pages are different for every user and must never be cached for anyone else.
+      </p>
+      <table>
+        <thead><tr><th>App</th><th>Applied</th><th>Not applied, and why</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>prood.com</strong> (<code>apps/web</code>)</td>
+            <td>
+              One page registry (<code>lib/pages.ts</code>) feeds each page's metadata, the sitemap and
+              <code>/llms.txt</code>, so they can't drift apart. JSON-LD: <code>Organization</code> and
+              <code>WebSite</code> on the home page, <code>SoftwareApplication</code> with the Free offer on pricing,
+              and <code>FAQPage</code> wherever the FAQ component renders.
+            </td>
+            <td>Its pages are already fully static, so there's nothing to tag or revalidate. There are no Markdown copies: the pages are hand-built layouts, and <code>llms.txt</code> points agents to the docs, which have the depth.</td>
+          </tr>
+          <tr>
+            <td><strong>Docs</strong> (<code>apps/docs</code>)</td>
+            <td>
+              Already had Markdown pages, content negotiation and <code>llms.txt</code>. Added <code>TechArticle</code>
+              and <code>BreadcrumbList</code> JSON-LD, canonical and <code>text/markdown</code> alternate links on every
+              page, and <code>X-Robots-Tag: noindex</code>, a canonical <code>Link</code> header and <code>Vary: Accept</code>
+              on the Markdown copies. Three different fallback origins became one required <code>docsOrigin</code>.
+            </td>
+            <td>
+              <code>Vary: Accept</code> can't be added to prerendered HTML: Next writes its own <code>Vary</code>
+              under <code>next start</code>. On Vercel the proxy runs before the CDN cache, so each client still gets
+              the right version.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Dashboard</strong> (<code>apps/dashboard</code>)</td>
+            <td>
+              zod validation for the two Server Actions that bypass the API: the store address check (open to
+              anyone before sign-up) and saving payment credentials. Store slug rules
+              (<code>MAX_STORE_SLUG_LENGTH</code>, <code>STORE_SLUG_PATTERN</code>) moved to <code>@prood/types</code>.
+              Already expires the storefront cache when a merchant changes payment integrations.
+            </td>
+            <td>
+              The other actions forward to <code>apps/api</code>, which validates every body with zod. Repeating that
+              would be a second copy to keep in step. Its pages are per user and dynamic, so prefetching them
+              eagerly (<code>prefetch={true}</code>) would fetch nothing reusable.
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Checkout</strong> (<code>apps/checkout</code>)</td>
+            <td>Its pages are now <code>noindex</code>: each one is a single shopper's payment session.</td>
+            <td>Its Route Handlers already validate their bodies with zod.</td>
+          </tr>
+          <tr>
+            <td><strong>Admin</strong> (<code>apps/admin</code>)</td>
+            <td>Already <code>noindex</code>, already uses a Suspense shell with skeletons in its layout, and every action checks for an admin first.</td>
+            <td>Nothing public to describe or cache.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p>
+        Shared pieces live in <code>@prood/ui</code>: <code>JsonLd</code> (<code>components/json-ld</code>) and
+        <code>jsonLdScript</code>, <code>breadcrumbJsonLd</code> and <code>SCHEMA_CONTEXT</code>
+        (<code>lib/json-ld</code>). Every app escapes structured data the same way.
+      </p>
+
+      <!-- 14 -->
+      <h2 id="not-copied">14. What we chose not to copy</h2>
       <table>
         <thead><tr><th>vercel.shop does</th><th>Why we didn't</th></tr></thead>
         <tbody>
@@ -367,19 +434,18 @@ const prefetch = intent ? true : "auto"
         </tbody>
       </table>
 
-      <!-- 14 -->
-      <h2 id="open">14. Open items and caveats</h2>
+      <!-- 15 -->
+      <h2 id="open">15. Open items and caveats</h2>
       <ul>
         <li><strong>Cart permalinks</strong> (<code>/cart/&lt;variant&gt;:&lt;qty&gt;</code>, to share a ready-made cart) aren't built yet.</li>
         <li><strong>Universal Commerce Protocol</strong> (<code>/.well-known/ucp</code>): skipped until the spec settles.</li>
         <li><strong>Canonical tags on listings:</strong> <code>/products</code> has no canonical, because its sort and page parameters make different pages. Category pages point at their own path.</li>
         <li><strong>The home page has no skeleton.</strong> It is cached per store and fast after the first visit, but a store's very first visit waits for the data.</li>
         <li><strong>Cold proxy lookups:</strong> the proxy's missing-page check has a 1.5-second timeout. A cold first lookup can exceed it, and that request then answers 200 instead of 404. Later requests are correct.</li>
-        <li><strong>prood.com (<code>apps/web</code>)</strong> can use the same practices: static shells, JSON-LD, sitemap, Markdown and llms.txt, and prefetch on intent. Per-store routing isn't needed there.</li>
       </ul>
 
-      <!-- 15 -->
-      <h2 id="checklist">15. Checklist for the next project</h2>
+      <!-- 16 -->
+      <h2 id="checklist">16. Checklist for the next project</h2>
       <ol>
         <li>Choose the cache partition key (host, locale, market) and make it the root segment, rewritten by the proxy.</li>
         <li>Split data access into cached reads (no cookies, key passed as an argument, tagged) and per-user reads (never cached).</li>
@@ -392,11 +458,13 @@ const prefetch = intent ? true : "auto"
         <li>Add Markdown versions and <code>llms.txt</code>, with <code>Vary</code>, <code>noindex</code> and a canonical link header.</li>
         <li>Prefetch grids on intent (<code>"auto"</code>, then <code>true</code>).</li>
         <li>Make optimistic UI race-safe, and validate Server Actions with the form's schema.</li>
+        <li>Keep one registry of public pages, feeding metadata, the sitemap and <code>llms.txt</code>.</li>
+        <li>Signed-in apps: <code>noindex</code>, and zod on every Server Action that doesn't hand its input to a validating API.</li>
         <li>Measure first and repeat visits in a production build, not in dev.</li>
       </ol>
 
-      <!-- 16 -->
-      <h2 id="results">16. Measured results</h2>
+      <!-- 17 -->
+      <h2 id="results">17. Measured results</h2>
       <p>Local production build (<code>next build</code>, then <code>next start</code>), demo store, timing with <code>curl</code>:</p>
       <table>
         <thead><tr><th>Request</th><th>First visit</th><th>Repeat visit</th></tr></thead>

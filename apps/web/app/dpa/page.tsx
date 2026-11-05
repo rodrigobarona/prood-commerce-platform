@@ -1,12 +1,9 @@
 import { LegalPage } from "@/components/marketing/legal-page"
 import { pageMetadata } from "@/lib/metadata"
+import { pages } from "@/lib/pages"
 import { siteConfig } from "@/lib/site"
 
-export const metadata = pageMetadata({
-  title: "Data processing terms",
-  description: "How Prood processes personal data for merchants, under Article 28 of the GDPR.",
-  path: "/dpa",
-})
+export const metadata = pageMetadata(pages.dpa)
 
 const { legal } = siteConfig
 

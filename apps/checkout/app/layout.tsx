@@ -24,6 +24,8 @@ export const metadata: Metadata = {
     template: "%s · Checkout",
   },
   description: "Checkout powered by Prood.",
+  // Every page here is one shopper's payment session.
+  robots: { index: false, follow: false },
 }
 
 export default function RootLayout({

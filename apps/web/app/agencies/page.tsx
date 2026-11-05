@@ -4,14 +4,10 @@ import { ClosingCta } from "@/components/marketing/closing-cta"
 import { ClientLedger } from "@/components/marketing/samples"
 import { Eyebrow, PageHero, Photo, Section, SectionHeading, StockNote } from "@/components/marketing/section"
 import { pageMetadata } from "@/lib/metadata"
+import { pages } from "@/lib/pages"
 import { contactHref, docsPage, siteConfig } from "@/lib/site"
 
-export const metadata = pageMetadata({
-  title: "For agencies",
-  description:
-    "Checkout, admin and the Multibanco and MB WAY connections are already built. Each client store has its own data, payment accounts and domain, all from one login.",
-  path: "/agencies",
-})
+export const metadata = pageMetadata(pages.agencies)
 
 const isolation = [
   {

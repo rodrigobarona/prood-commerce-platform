@@ -9,21 +9,20 @@ import { StoreSpec } from "@/components/marketing/features"
 import { PricingPlans, PricingTable } from "@/components/marketing/pricing"
 import { ProviderPricing } from "@/components/marketing/payments"
 import { Container, PageHero, Section, SectionHeading } from "@/components/marketing/section"
+import { JsonLd } from "@prood/ui/components/json-ld"
+import { softwareJsonLd } from "@/lib/json-ld"
 import { pageMetadata } from "@/lib/metadata"
+import { pages } from "@/lib/pages"
 import { siteConfig } from "@/lib/site"
 
-export const metadata = pageMetadata({
-  title: "Pricing",
-  description:
-    "Free for 50 products and 100 orders a month, with your own domain. Paid plans for more orders, a bigger team and AI agents are coming.",
-  path: "/pricing",
-})
+export const metadata = pageMetadata(pages.pricing)
 
 export default function PricingPage() {
   const free = getMarketingTier("free")
 
   return (
     <>
+      <JsonLd data={softwareJsonLd()} />
       <PageHero
         eyebrow="Pricing"
         title={["Free while", "your store", "is small."]}

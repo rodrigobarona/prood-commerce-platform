@@ -4,14 +4,10 @@ import { ClosingCta } from "@/components/marketing/closing-cta"
 import { Makers } from "@/components/marketing/makers"
 import { Eyebrow, PageHero, Photo, Section, SectionHeading, StockNote } from "@/components/marketing/section"
 import { pageMetadata } from "@/lib/metadata"
+import { pages } from "@/lib/pages"
 import { docsPage, siteConfig } from "@/lib/site"
 
-export const metadata = pageMetadata({
-  title: "For merchants",
-  description:
-    "A storefront, checkout and orders, ready when you sign up. Take Multibanco, MB WAY and cards through your own payment account, on your own domain.",
-  path: "/merchants",
-})
+export const metadata = pageMetadata(pages.merchants)
 
 const included = [
   {
