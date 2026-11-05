@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Geist_Mono, Inter, Newsreader } from "next/font/google"
 import { Suspense, type CSSProperties } from "react"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 import "@geoapify/geocoder-autocomplete/styles/minimal.css"
 import "@prood/ui/globals.css"
@@ -54,6 +55,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <StoreProviders>{children}</StoreProviders>
         </Suspense>
+        <SpeedInsights />
       </body>
     </html>
   )

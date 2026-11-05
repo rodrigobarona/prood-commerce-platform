@@ -25,6 +25,7 @@
     "@prood/platform": "workspace:*",
     "@prood/types": "workspace:*",
     "@prood/ui": "workspace:*",
+    "@vercel/speed-insights": "^2.1.0",
     "better-auth": "catalog:",
     "drizzle-orm": "catalog:",
     "iso-3166": "^4.4.0",
@@ -41,15 +42,15 @@
     "@prood/eslint-config": "workspace:^",
     "@prood/typescript-config": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
+    "@testing-library/dom": "catalog:",
+    "@testing-library/react": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "eslint": "catalog:",
-    "typescript": "catalog:",
-    "vitest": "catalog:",
     "jsdom": "catalog:",
-    "@testing-library/dom": "catalog:",
-    "@testing-library/react": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=24"
