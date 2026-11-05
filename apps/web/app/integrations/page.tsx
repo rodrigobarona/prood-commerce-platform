@@ -10,14 +10,10 @@ import { Container, Eyebrow, Photo, Section } from "@/components/marketing/secti
 import { MoneyPath } from "@/components/marketing/money-path"
 import { paymentProviders } from "@/lib/payment-providers"
 import { pageMetadata } from "@/lib/metadata"
+import { pages } from "@/lib/pages"
 import { docsPage, siteConfig } from "@/lib/site"
 
-export const metadata = pageMetadata({
-  title: "Integrations",
-  description:
-    "Connect Stripe, Easypay or Ifthenpay with your own accounts, bring your own domain, and build on the REST API and MCP server.",
-  path: "/integrations",
-})
+export const metadata = pageMetadata(pages.integrations)
 
 const platform = [
   {

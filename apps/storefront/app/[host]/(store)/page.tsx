@@ -13,7 +13,7 @@ import { SectionHeader } from "@/components/commerce/section-header"
 import { StoreIntro } from "@/components/commerce/store-intro"
 import { StoreStory } from "@/components/commerce/store-story"
 import { Container } from "@/components/layout/container"
-import { JsonLd } from "@/components/layout/json-ld"
+import { JsonLd } from "@prood/ui/components/json-ld"
 import {
   fetchCategories,
   fetchProductList,

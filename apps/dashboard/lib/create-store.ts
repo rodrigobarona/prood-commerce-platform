@@ -1,7 +1,5 @@
-import { RESERVED_STORE_SLUGS, requiredEnv, slugify, storeOriginForSlug } from "@prood/types"
+import { MAX_STORE_SLUG_LENGTH, RESERVED_STORE_SLUGS, requiredEnv, slugify, storeOriginForSlug } from "@prood/types"
 import { authClient } from "@/lib/auth/client"
-
-const MAX_ADDRESS = 48
 
 const storefrontUrl = requiredEnv(process.env.NEXT_PUBLIC_STOREFRONT_URL, "NEXT_PUBLIC_STOREFRONT_URL")
 
@@ -21,7 +19,7 @@ export function cleanAddress(value: string): string {
     .replace(/[^a-z0-9-]+/g, "-")
     .replace(/-{2,}/g, "-")
     .replace(/^-+/, "")
-    .slice(0, MAX_ADDRESS)
+    .slice(0, MAX_STORE_SLUG_LENGTH)
 }
 
 export function storeHost(slug: string): string {

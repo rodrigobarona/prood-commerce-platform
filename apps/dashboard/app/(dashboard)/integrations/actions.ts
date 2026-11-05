@@ -1,6 +1,7 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
+import { z } from "zod"
 import { checkPaymentCredentials, isPaymentProviderId, revalidateStore } from "@prood/commerce"
 import { ADMIN_ONLY_MESSAGE, canManageStore, requireStoreAdmin } from "@/lib/admin"
 import { listOrders } from "@/lib/admin-api"
@@ -23,12 +24,19 @@ export type SaveIntegrationResult =
   | { ok: true; message: string }
   | { ok: false; error: string }
 
+const integrationInput = z.tuple([
+  z.string().max(40),
+  z.record(z.string().max(60), z.string().max(4000)),
+  z.boolean(),
+])
+
 // Returned, not thrown: Next.js hides thrown messages from the client in production.
 export async function saveIntegrationAction(
-  provider: string,
-  config: Record<string, string>,
-  enabled: boolean
+  ...args: [provider: string, config: Record<string, string>, enabled: boolean]
 ): Promise<SaveIntegrationResult> {
+  const parsed = integrationInput.safeParse(args)
+  if (!parsed.success) return { ok: false, error: "We couldn't read those details. Reload the page and try again." }
+  const [provider, config, enabled] = parsed.data
   const meta = getProvider(provider)
   if (!meta || !isPaymentProviderId(provider)) {
     return { ok: false, error: "We don't know that provider." }

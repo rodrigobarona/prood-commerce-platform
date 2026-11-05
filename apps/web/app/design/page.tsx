@@ -14,13 +14,9 @@ import { TileEdge, TileField } from "@prood/ui/components/tile"
 import { CheckoutSample, OrdersSample } from "@/components/marketing/samples"
 import { Container, Eyebrow, Photo } from "@/components/marketing/section"
 import { pageMetadata } from "@/lib/metadata"
+import { pages } from "@/lib/pages"
 
-export const metadata = pageMetadata({
-  title: "Design system",
-  description:
-    "The Prood design system: receipt paper, the roof tile and the people behind the counter. Color, type, components and photography across every Prood app.",
-  path: "/design",
-})
+export const metadata = pageMetadata(pages.design)
 
 const colors = [
   { name: "Ink", token: "ink", className: "bg-ink text-paper", note: "Text and the default action" },

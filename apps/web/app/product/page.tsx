@@ -9,14 +9,10 @@ import { Payments } from "@/components/marketing/payments"
 import { PageHero, Section, SectionHeading } from "@/components/marketing/section"
 import { WaysToRun } from "@/components/marketing/ways-to-run"
 import { pageMetadata } from "@/lib/metadata"
+import { pages } from "@/lib/pages"
 import { siteConfig } from "@/lib/site"
 
-export const metadata = pageMetadata({
-  title: "Product",
-  description:
-    "A hosted storefront, checkout, orders and an API. Nothing to deploy: run your store on your own domain and your own payment accounts.",
-  path: "/product",
-})
+export const metadata = pageMetadata(pages.product)
 
 const hosted = [
   { title: "Storefront", body: "Your catalog on a hosted store, on a prood.app address or your own domain." },

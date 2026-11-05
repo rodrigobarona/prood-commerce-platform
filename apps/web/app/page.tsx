@@ -12,16 +12,19 @@ import { PricingSummary } from "@/components/marketing/pricing"
 import { Section, SectionHeading } from "@/components/marketing/section"
 import { Statement } from "@/components/marketing/statement"
 import { WaysToRun } from "@/components/marketing/ways-to-run"
+import { JsonLd } from "@prood/ui/components/json-ld"
+import { siteJsonLd } from "@/lib/json-ld"
 import { pageMetadata } from "@/lib/metadata"
-import { siteConfig } from "@/lib/site"
+import { pages } from "@/lib/pages"
 
-export const metadata = pageMetadata({ description: siteConfig.description, path: "/" })
+export const metadata = pageMetadata(pages.home)
 
 export default function HomePage() {
   const [products, orders] = planSlipLines("free")
 
   return (
     <>
+      <JsonLd data={siteJsonLd()} />
       <Hero />
       <Statement />
       <Payments />

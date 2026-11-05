@@ -8,14 +8,10 @@ import { HungKey, KeyTag } from "@/components/marketing/key-tag"
 import { ApprovalSample, KeyLedger } from "@/components/marketing/samples"
 import { Container, Eyebrow, Section } from "@/components/marketing/section"
 import { pageMetadata } from "@/lib/metadata"
+import { pages } from "@/lib/pages"
 import { contactHref, docsPage, siteConfig } from "@/lib/site"
 
-export const metadata = pageMetadata({
-  title: "For developers and AI agents",
-  description:
-    "A REST API with more than 40 operations, an OpenAPI 3.1 spec, a TypeScript client, the prood CLI and an MCP server with 41 tools. With Agent Auth, an AI agent starts with nothing until you approve it for your store.",
-  path: "/developers",
-})
+export const metadata = pageMetadata(pages.developers)
 
 const surfaces = [
   {

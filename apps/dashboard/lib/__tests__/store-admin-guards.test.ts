@@ -180,6 +180,16 @@ describe("a store admin", () => {
     expect(mocks.writes.deleteIntegration).not.toHaveBeenCalled()
   })
 
+  it("refuses details the form couldn't have sent, before reading anything", async () => {
+    const refused = { ok: false, error: "We couldn't read those details. Reload the page and try again." }
+    const save = saveIntegrationAction as (...args: unknown[]) => Promise<unknown>
+
+    await expect(save("easypay", { accountId: 42 }, true)).resolves.toEqual(refused)
+    await expect(save("easypay", { accountId: "a" }, "yes")).resolves.toEqual(refused)
+    expect(mocks.getIntegration).not.toHaveBeenCalled()
+    expect(mocks.writes.upsertIntegration).not.toHaveBeenCalled()
+  })
+
   it("clears an emptied optional field and keeps an emptied secret", async () => {
     mocks.getIntegration.mockResolvedValue({
       config: { accountId: "a", apiKey: "stored", baseUrl: "https://api.test.easypay.pt" },

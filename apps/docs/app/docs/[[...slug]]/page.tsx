@@ -14,7 +14,10 @@ import { getMDXComponents } from '@/components/mdx';
 import { DocsTOCPopover } from '@/components/toc-popover';
 import type { Metadata } from 'next';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
-import { gitConfig } from '@/lib/shared';
+import { getBreadcrumbItems } from 'fumadocs-core/breadcrumb';
+import { JsonLd } from '@prood/ui/components/json-ld';
+import { breadcrumbJsonLd, SCHEMA_CONTEXT } from '@prood/ui/lib/json-ld';
+import { docsOrigin, gitConfig } from '@/lib/shared';
 
 /** Page titles and breadcrumbs sit on the marketing site's type scale. */
 const titleClass = 'font-medium text-[2.25rem] leading-tight tracking-[-0.012em] md:text-[2.75rem]';
@@ -56,6 +59,9 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
   const MDX = page.data.body;
   const markdownUrl = getPageMarkdownUrl(page).url;
   const eyebrow = topLevelEyebrow(page.url);
+  const trail = getBreadcrumbItems(page.url, source.getPageTree(), { includePage: true }).flatMap(
+    (item): [string, string][] => (typeof item.name === 'string' && item.url ? [[item.name, item.url]] : []),
+  );
 
   return (
     <DocsPage
@@ -65,6 +71,19 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
       tableOfContent={tocLandmark}
       slots={{ toc: tocSlots }}
     >
+      <JsonLd
+        data={[
+          {
+            '@context': SCHEMA_CONTEXT,
+            '@type': 'TechArticle',
+            headline: page.data.title,
+            ...(page.data.description ? { description: page.data.description } : {}),
+            url: `${docsOrigin}${page.url}`,
+            isPartOf: { '@type': 'WebSite', name: 'Prood docs', url: docsOrigin },
+          },
+          ...(trail.length > 1 ? [breadcrumbJsonLd(trail, docsOrigin)] : []),
+        ]}
+      />
       {eyebrow ? <p className="docs-breadcrumb text-fd-primary">{eyebrow}</p> : null}
       <DocsTitle className={titleClass}>{page.data.title}</DocsTitle>
       <DocsDescription className="mb-0">{page.data.description}</DocsDescription>
@@ -99,6 +118,7 @@ export async function generateMetadata(props: PageProps<'/docs/[[...slug]]'>): P
   return {
     title: page.data.title,
     description: page.data.description,
+    alternates: { canonical: page.url, types: { 'text/markdown': `${page.url}.md` } },
     openGraph: {
       images: getPageImage(page).url,
     },

@@ -1,8 +1,12 @@
 import { PlusIcon } from "@phosphor-icons/react/dist/ssr"
 
+import { JsonLd } from "@prood/ui/components/json-ld"
+import { faqJsonLd } from "@/lib/json-ld"
+
 export function Faq({ items }: { items: readonly { question: string; answer: string }[] }) {
   return (
     <div className="divide-y divide-border border-y border-border">
+      <JsonLd data={faqJsonLd(items)} />
       {items.map((item) => (
         <details key={item.question} className="group py-1">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-6 rounded-md py-4 text-lg font-medium [&::-webkit-details-marker]:hidden">

@@ -1,6 +1,7 @@
 import type { Product } from "@prood/types"
 import { describe, expect, it } from "vitest"
-import { breadcrumbJsonLd, jsonLdScript, productJsonLd, storeJsonLd } from "../json-ld"
+import { breadcrumbJsonLd, jsonLdScript } from "@prood/ui/lib/json-ld"
+import { productJsonLd, storeJsonLd } from "../json-ld"
 
 const origin = "https://loja.prood.test"
 

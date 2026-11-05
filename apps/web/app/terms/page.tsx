@@ -1,12 +1,9 @@
 import { LegalPage } from "@/components/marketing/legal-page"
 import { pageMetadata } from "@/lib/metadata"
+import { pages } from "@/lib/pages"
 import { siteConfig } from "@/lib/site"
 
-export const metadata = pageMetadata({
-  title: "Terms",
-  description: "The terms for using Prood, operated by Búzios e Tartarugas, Lda.",
-  path: "/terms",
-})
+export const metadata = pageMetadata(pages.terms)
 
 const { legal } = siteConfig
 
