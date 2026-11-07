@@ -24,7 +24,7 @@ const nextConfig: NextConfig = {
   redirects: async () => {
     const home = process.env.NEXT_PUBLIC_DASHBOARD_URL
     return home
-      ? [{ source: "/:path((?!dashboard(?:/|$)|_next/).*)", destination: `${home}/:path`, basePath: false as const, permanent: false }, { source: "/", destination: home, basePath: false as const, permanent: false }]
+      ? [{ source: "/:path((?!dashboard(?:[./]|$)|_next/).*)", destination: `${home}/:path`, basePath: false as const, permanent: false }, { source: "/", destination: home, basePath: false as const, permanent: false }]
       : []
   },
   headers: async () =>

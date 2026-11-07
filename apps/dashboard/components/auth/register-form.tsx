@@ -194,9 +194,6 @@ export function RegisterForm() {
             ) : null}
           </p>
         ) : null}
-        <Button type="submit" size="lg" variant={joiningStore ? "default" : "brand"} disabled={loading}>
-          {loading ? "Creating..." : joiningStore ? "Create account" : "Create account and store"}
-        </Button>
         <div className="flex items-start gap-3">
           <Checkbox
             id="accept-terms"
@@ -210,7 +207,7 @@ export function RegisterForm() {
             className="mt-0.5"
           />
           <div className="flex flex-col gap-1">
-            <Label htmlFor="accept-terms" className="text-xs leading-snug font-normal text-pretty text-muted-foreground">
+            <Label htmlFor="accept-terms" className="block text-sm leading-snug font-normal text-pretty text-muted-foreground">
               I accept the{" "}
               <a href={`${webUrl}/terms`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
                 terms of service
@@ -228,6 +225,9 @@ export function RegisterForm() {
             <FieldError id="accept-terms-error" message={termsError ?? undefined} />
           </div>
         </div>
+        <Button type="submit" size="lg" variant={joiningStore ? "default" : "brand"} disabled={loading}>
+          {loading ? "Creating..." : joiningStore ? "Create account" : "Create account and store"}
+        </Button>
         <p className="text-sm text-muted-foreground">
           Already have an account?{" "}
           <Link href={loginHref} className="text-foreground underline underline-offset-4">

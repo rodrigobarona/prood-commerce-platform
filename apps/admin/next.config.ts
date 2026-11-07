@@ -23,7 +23,7 @@ const nextConfig: NextConfig = {
   redirects: async () => {
     const home = process.env.NEXT_PUBLIC_ADMIN_URL
     return home
-      ? [{ source: "/:path((?!admin(?:/|$)|_next/).*)", destination: `${home}/:path`, basePath: false as const, permanent: false }, { source: "/", destination: home, basePath: false as const, permanent: false }]
+      ? [{ source: "/:path((?!admin(?:[./]|$)|_next/).*)", destination: `${home}/:path`, basePath: false as const, permanent: false }, { source: "/", destination: home, basePath: false as const, permanent: false }]
       : []
   },
   headers: async () => securityHeaders({ noindex: true }),
