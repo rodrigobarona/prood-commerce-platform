@@ -64,11 +64,16 @@ const nextConfig: NextConfig = {
       // Before this app's own routes, because `/` is one of them: a visitor with a session cookie gets
       // the dashboard's home instead of the marketing homepage. One rule per cookie name, since a
       // rule's `has` needs all of its entries.
-      beforeFiles: SESSION_COOKIES.map((key) => ({
-        source: "/",
-        has: [{ type: "cookie" as const, key }],
-        destination: `${dashboard}/`,
-      })),
+      // The home page's prefetch files (`/index.rsc`, `/index.segments/...`) go with it, or a signed-in
+      // browser prefetching "/" would be handed the marketing site's.
+      beforeFiles: SESSION_COOKIES.flatMap((key) => {
+        const has = [{ type: "cookie" as const, key }]
+        return [
+          { source: "/", has, destination: `${dashboard}/` },
+          { source: "/index.rsc", has, destination: `${dashboard}/index.rsc` },
+          { source: "/index.segments/:path*", has, destination: `${dashboard}/index.segments/:path*` },
+        ]
+      }),
       // After this app's own routes, so /api/c15t, /llms.txt and the marketing pages are never shadowed.
       afterFiles: [
         // A rule for the bare path and one for what follows it: "/x/:path*" sends "/x" to "/x/",
