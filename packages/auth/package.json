@@ -17,12 +17,15 @@
     "./shared-options": "./src/shared-options.ts",
     "./rate-limit-storage": "./src/rate-limit-storage.ts",
     "./password-reset-panels": "./src/password-reset-panels.tsx",
+    "./two-factor": "./src/two-factor.ts",
+    "./two-factor-panel": "./src/two-factor-panel.tsx",
     "./admin-role": "./src/admin-role.ts",
     "./billing": "./src/billing.ts",
     "./agent-capabilities": "./src/agent-capabilities.ts",
     "./agent-events": "./src/agent-events.ts",
     "./retention": "./src/retention.ts",
     "./data-export": "./src/data-export.ts",
+    "./admin-audit": "./src/admin-audit.ts",
     "./download": "./src/download.ts"
   },
   "scripts": {

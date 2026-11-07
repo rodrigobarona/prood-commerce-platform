@@ -56,8 +56,8 @@ Last reviewed: 2026-11-07. Counsel has not reviewed these yet. The activity name
 
 | Test | Assessment |
 |---|---|
-| Purpose | Showing sessions, stopping credential attacks and API abuse |
-| Necessity | A rate limit needs a per-client key, so the IP address is the key (`packages/auth/src/rate-limit-storage.ts`, in Redis, for seconds to a minute). Sessions keep IP address and user agent so the owner can recognise a session. When the address cannot be found, a hash of user agent and language stands in (`packages/auth/src/client-ip.ts`) |
+| Purpose | Showing sessions, stopping credential attacks and API abuse, and (for people who choose it) a second sign-in step |
+| Necessity | A rate limit needs a per-client key, so the IP address is the key (`packages/auth/src/rate-limit-storage.ts`, in Redis, for seconds to a minute). Sessions keep IP address and user agent so the owner can recognise a session. When the address cannot be found, a hash of user agent and language stands in (`packages/auth/src/client-ip.ts`). Two-factor stores an authenticator secret and backup codes, both encrypted, only for a person who turns it on (`two_factor`, `packages/auth/src/schema.ts`). Nothing else is added |
 | Balancing | Users benefit directly. Counters last at most a minute. Sessions are deleted once expired (ships with this change). The limiter fails open when Redis is down, so it never blocks a legitimate sign-in |
 | Outcome | Passes |
 
@@ -67,10 +67,10 @@ Last reviewed: 2026-11-07. Counsel has not reviewed these yet. The activity name
 
 | Test | Assessment |
 |---|---|
-| Purpose | Support, abuse handling, revoking sessions and agents, checking plans |
-| Necessity | The admin app reads users, sessions, organizations, domains, keys and agents across stores (`apps/admin/lib/admin-queries.ts`). Admin role is required (`assertAdmin`), and the last admin cannot be demoted (`packages/auth/src/admin-role.ts`) |
-| Balancing | Broad visibility is the risk. Access is limited to the owner and anyone the owner names. **No audit log records what an admin did**, and impersonation exists in the Better Auth admin plugin. `/dpa` Annex 2 says the audit log does not exist yet, so the text is honest, but the control is weak |
-| Outcome | Passes with a condition: record admin actions, or disable impersonation. Both are open ([open items](./open-items.md)) |
+| Purpose | Support, abuse handling, revoking sessions and agents, checking plans. And, for the audit log, holding staff accountable for what they change on other people's accounts |
+| Necessity | The admin app reads users, sessions, organizations, domains, keys and agents across stores (`apps/admin/lib/admin-queries.ts`). Admin role is required (`assertAdmin`), and the last admin cannot be demoted (`packages/auth/src/admin-role.ts`). The audit log holds the minimum that shows who did what: admin, action, target, time and IP address, with a short `metadata` (the new role or a ban reason) and never a password, token or message (`packages/auth/src/admin-audit.ts`, table `admin_audit_event`) |
+| Balancing | Broad visibility is the risk. Access is limited to the owner and anyone the owner names. Since 2026-11-07 an audit log records what an admin **changes**: a ban, an unban, a role change, signing one or all devices out, and revoking an agent (`apps/admin/app/(admin)/users/actions.ts`, `agents/actions.ts`), kept 730 days and shown to admins under **Audit log**. **What an admin reads is still not logged**: opening a user, a store's accounts or sessions leaves no record. Impersonation exists in the Better Auth admin plugin, the admin app has no screen for it, and it is not logged either (a session shows `impersonated_by` while it lasts). A person sees the actions taken on their own account in their account export. The log itself holds the admin's IP address, which is the admin's personal data: it is limited to what accountability needs, and the admin knows it is recorded. Two-factor is available to admins but not required, and a failed log write is only logged, so the log can have gaps |
+| Outcome | Passes with a condition, and the condition is only half met. Changes are recorded. Reads and impersonation are not, so log reads, or disable impersonation, or accept the risk in writing. Requiring two-factor for admins is a separate decision ([open items](./open-items.md) 12 and 15) |
 
 ---
 

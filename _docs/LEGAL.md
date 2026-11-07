@@ -74,10 +74,16 @@ else comes from the code.
    real numbers if you want to state them.
 3. **Retention and rights tools.** A daily job (`/internal/retention`, cron 03:30 UTC,
    `CRON_SECRET` on prood-api) deletes expired sessions, verification links, expired
-   invitations and agent events older than 24 months. Merchants and shoppers can download
-   and delete their accounts, and owners can download and delete a store. Still missing:
-   deleting one shopper's data from the dashboard, deleting R2 image files with a store,
-   two-factor and passkeys, an administrator audit log. The pages say so.
+   invitations, agent events older than 24 months and administrator audit events older
+   than 24 months. Merchants and shoppers can download and delete their accounts, and
+   owners can download and delete a store. Owners and admins can erase one shopper from
+   the dashboard (orders stay, or lose the shopper's contact details if the merchant
+   chooses). Merchants and Prood staff can turn on two-factor sign-in, and what Prood
+   administrators change on accounts is recorded and shown in the admin app. Image upload
+   isn't built, so no merchant file sits in R2 and deleting R2 files isn't needed yet: build
+   it with upload. Still missing: passkeys, and a log of what administrators read. Losing
+   both phone and backup codes is fixed by hand (`_docs/compliance/data-subject-requests.md`).
+   The pages say so.
 4. **Promises you make.** The pages commit Prood to: 30 days to export or delete on
    request, 48 hours to notify a breach, 30 days' notice for new sub-processors,
    60 days' notice for Free plan limit changes, 14 days to answer a disagreement,
@@ -92,7 +98,9 @@ else comes from the code.
 8. **Store privacy notices.** Merchants have no field for their own privacy notice,
    terms of sale or returns, and the real stores serve no policy pages. `/terms`
    makes that the merchant's job. A product fix would be better.
-9. **Two-factor and passkeys.** `/dpa` Annex 2 and `/security` say Prood doesn't offer
-   them. Update both if they ship.
+9. **Two-factor, passkeys and the audit log.** Two-factor with an authenticator app is
+   optional and built into the dashboard (Profile) and the admin sign-in. `/dpa` Annex 2 and
+   `/security` say Prood doesn't offer passkeys and doesn't log what administrators read.
+   Update both if either ships, or if two-factor becomes required for administrators.
 10. **Language.** The pages are in English only. `/terms` says so. Add Portuguese
     versions and a precedence clause if you want one.

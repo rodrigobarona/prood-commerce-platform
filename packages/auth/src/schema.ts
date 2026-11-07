@@ -28,6 +28,8 @@ export const user = pgTable("user", {
   banExpires: timestamp("ban_expires"),
   // The Stripe plugin requires this column. Prood bills stores, not people, so it stays empty.
   stripeCustomerId: text("stripe_customer_id"),
+  // Set by the two-factor plugin once a person has confirmed an authenticator app.
+  twoFactorEnabled: boolean("two_factor_enabled").default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 })
@@ -329,5 +331,49 @@ export const integrationConfig = pgTable(
       table.organizationId,
       table.provider
     ),
+  ]
+)
+
+/**
+ * An authenticator-app secret and the backup codes for one person, kept by the
+ * two-factor plugin. Like the other auth tables, it is read through the
+ * connecting role only.
+ */
+export const twoFactor = pgTable(
+  "two_factor",
+  {
+    id: text("id").primaryKey(),
+    secret: text("secret").notNull(),
+    backupCodes: text("backup_codes").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    verified: boolean("verified").default(true),
+    failedVerificationCount: integer("failed_verification_count").default(0),
+    lockedUntil: timestamp("locked_until"),
+  },
+  (table) => [index("two_factor_user_id_idx").on(table.userId), index("two_factor_secret_idx").on(table.secret)]
+)
+
+/**
+ * What a Prood administrator did to someone else's account: who, what, to whom,
+ * when. The actor and target are plain ids with no foreign key, so the record
+ * outlives both accounts. Metadata never holds passwords, tokens or message text.
+ */
+export const adminAuditEvent = pgTable(
+  "admin_audit_event",
+  {
+    id: text("id").primaryKey(),
+    actorId: text("actor_id").notNull(),
+    action: text("action").notNull(),
+    targetType: text("target_type"),
+    targetId: text("target_id"),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    ipAddress: text("ip_address"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("admin_audit_event_created_idx").on(table.createdAt),
+    index("admin_audit_event_actor_idx").on(table.actorId, table.createdAt),
   ]
 )

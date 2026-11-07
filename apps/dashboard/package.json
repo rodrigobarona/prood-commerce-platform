@@ -29,6 +29,7 @@
     "drizzle-orm": "catalog:",
     "next": "catalog:",
     "next-themes": "catalog:",
+    "qrcode.react": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "sonner": "catalog:",

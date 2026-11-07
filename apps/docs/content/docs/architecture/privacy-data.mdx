@@ -58,11 +58,12 @@ What exists today:
 - A merchant can download their account data (`/api/account/export`) and delete their account (Better Auth `deleteUser`, refused while they are the only owner of a store). A shopper can do the same on their store account page. Deleting an account calls `unlinkAuthUserFromCustomers`, so stores keep their orders and customers but nothing points at the deleted account.
 - An owner or admin can download all of a store's data as one JSON file (`/api/store/export`, a session-only route outside `/v1`) on every plan. An owner can delete a store: `beforeDeleteOrganization` refuses while a paid plan is live, then `deleteStoreData` removes every row with an `organization_id` in one transaction and fails if any is left.
 - Products, categories, API keys and agents can be deleted by the merchant.
+- An owner or admin can erase one shopper (`eraseCustomer` in `packages/platform/src/privacy/store-data.ts`, reached through the session-only `DELETE /api/store/customers/{id}` and the customer page in the dashboard). The profile, addresses, wishlist and carts go. Orders stay and point at nobody, or, with `scrubOrders`, lose the shopper's email, addresses and notes. Reviews carry only an author name and aren't linked to the shopper.
+- What a Prood administrator does to an account is written to `admin_audit_event` (`recordAdminAction` in `packages/auth/src/admin-audit.ts`) and shown in the admin app under Audit log. It is kept 730 days (`RETENTION_DAYS.adminAuditEvents`).
 
 What does **not** exist yet:
 
-- Deleting a single shopper's data from the dashboard. `adminDeleteCustomer` exists in the platform adapter, but no route, MCP tool or button calls it, so it is done by hand on request within 30 days.
-- Deleting image files from the R2 bucket when a store is deleted, and deleting dormant shopper accounts. Shopper accounts are linked to merchants' orders, so they are kept until the person deletes them.
+- Deleting image files from the R2 bucket when a store is deleted. Image upload isn't built, so no merchant file exists there today, and dormant shopper accounts aren't deleted: they are linked to merchants' orders, so they are kept until the person deletes them.
 
 Order address snapshots may be kept where the merchant has a legal basis, such as tax or fulfilment records. Prood acts as processor for merchant storefront data and does not decide those retention windows.
 

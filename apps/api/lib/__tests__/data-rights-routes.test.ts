@@ -6,17 +6,20 @@ const mocks = vi.hoisted(() => ({
   exportAccount: vi.fn(),
   requireCaller: vi.fn(),
   exportStore: vi.fn(),
+  erase: vi.fn(),
 }))
 
+vi.mock("server-only", () => ({}))
 vi.mock("@prood/auth/retention", () => ({ purgeExpiredAuthData: mocks.purge }))
 vi.mock("@/lib/auth", () => ({ getSession: mocks.getSession }))
 vi.mock("@prood/auth/data-export", () => ({ exportAccountData: mocks.exportAccount }))
 vi.mock("@/lib/auth-tenant", () => ({ requireCaller: mocks.requireCaller }))
-vi.mock("@prood/commerce/store-data", () => ({ exportStoreData: mocks.exportStore }))
+vi.mock("@prood/commerce/store-data", () => ({ exportStoreData: mocks.exportStore, eraseCustomer: mocks.erase }))
 
 import { GET as retention } from "../../app/internal/retention/route"
 import { GET as accountExport } from "../../app/api/account/export/route"
 import { GET as storeExport } from "../../app/api/store/export/route"
+import { DELETE as eraseCustomer } from "../../app/api/store/customers/[id]/route"
 
 afterEach(() => {
   vi.unstubAllEnvs()
@@ -82,5 +85,45 @@ describe("store export", () => {
     expect(mocks.requireCaller).toHaveBeenCalledWith("admin")
     expect(mocks.exportStore).toHaveBeenCalledWith("o1")
     expect(JSON.parse(await res.text())).toMatchObject({ products: [{ id: "p1" }] })
+  })
+})
+
+describe("erasing a customer", () => {
+  const call = (scrubOrders: unknown = false) =>
+    eraseCustomer(
+      new Request("https://api.prood.com/api/store/customers/c1", {
+        method: "DELETE",
+        body: JSON.stringify({ scrubOrders }),
+      }),
+      { params: Promise.resolve({ id: "c1" }) }
+    )
+
+  it("is not available to an API key or an agent", async () => {
+    mocks.requireCaller.mockResolvedValue({ orgId: "o1", via: "api-key" })
+    expect((await call()).status).toBe(403)
+    mocks.requireCaller.mockResolvedValue({ orgId: "o1", via: "agent" })
+    expect((await call()).status).toBe(403)
+    expect(mocks.erase).not.toHaveBeenCalled()
+  })
+
+  it("erases from the caller's own store, and passes the choice about orders on", async () => {
+    mocks.requireCaller.mockResolvedValue({ orgId: "o1", via: "session" })
+    mocks.erase.mockResolvedValue({ customer: true, ordersScrubbed: 2 })
+    const res = await call(true)
+    expect(mocks.requireCaller).toHaveBeenCalledWith("admin")
+    expect(mocks.erase).toHaveBeenCalledWith("o1", "c1", { scrubOrders: true })
+    expect(await res.json()).toEqual({ customer: true, ordersScrubbed: 2 })
+  })
+
+  it("says so when there is no such customer", async () => {
+    mocks.requireCaller.mockResolvedValue({ orgId: "o1", via: "session" })
+    mocks.erase.mockResolvedValue({ customer: false, ordersScrubbed: 0 })
+    expect((await call()).status).toBe(404)
+  })
+
+  it("wants an explicit answer about orders", async () => {
+    mocks.requireCaller.mockResolvedValue({ orgId: "o1", via: "session" })
+    expect((await call("yes")).status).toBe(422)
+    expect(mocks.erase).not.toHaveBeenCalled()
   })
 })

@@ -1,6 +1,6 @@
 import { eq, lt } from "drizzle-orm"
 import { authDb } from "./db"
-import { agentEvent, invitation, member, organization, session, verification } from "./schema"
+import { adminAuditEvent, agentEvent, invitation, member, organization, session, verification } from "./schema"
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -16,6 +16,8 @@ export const RETENTION_DAYS = {
   expiredInvitations: 30,
   /** What an AI agent did on a store: type, capability, status, never its data. 24 months. */
   agentEvents: 730,
+  /** What administrators did to accounts, 24 months. */
+  adminAuditEvents: 730,
 } as const
 
 const before = (now: Date, days: number) => new Date(now.getTime() - days * DAY_MS)
@@ -42,7 +44,13 @@ export async function purgeExpiredAuthData(now = new Date()): Promise<Record<str
     .where(lt(agentEvent.createdAt, before(now, RETENTION_DAYS.agentEvents)))
     .returning({ id: agentEvent.id })
 
+  const adminEvents = await authDb
+    .delete(adminAuditEvent)
+    .where(lt(adminAuditEvent.createdAt, before(now, RETENTION_DAYS.adminAuditEvents)))
+    .returning({ id: adminAuditEvent.id })
+
   return {
+    adminAuditEvents: adminEvents.length,
     sessions: sessions.length,
     verifications: verifications.length,
     invitations: invitations.length,

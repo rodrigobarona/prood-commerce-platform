@@ -77,7 +77,7 @@ const sections: readonly LegalSection[] = [
     id: "requests",
     body: [
       "8.1 If Prood receives a request from a data subject about Customer Data, it will pass the request to the Customer without undue delay and will not answer it, except to refer the person to the Customer.",
-      `8.2 Prood helps the Customer respond. Store settings downloads all of a store's data as one JSON file on every plan, and the dashboard lists and edits customers and orders. For a single shopper's data that those tools can't reach, the Customer can ask Prood by email to [${email}](mailto:${email}) to find, export, correct or delete it, and Prood will do it within 30 days.`,
+      `8.2 Prood helps the Customer respond. Store settings downloads all of a store's data as one JSON file on every plan, the dashboard lists and edits customers and orders, and an owner or admin can erase one shopper from a customer's page: the profile, saved addresses, wishlist and open carts go, and the orders stay in the store's records without a link to the shopper, or with the shopper's email, addresses and notes cleared from them too if the Customer chooses. For anything those tools can't reach, the Customer can ask Prood by email to [${email}](mailto:${email}) to find, export, correct or delete a shopper's data, and Prood will do it within 30 days.`,
     ],
   },
   {
@@ -171,12 +171,13 @@ const sections: readonly LegalSection[] = [
       "**Separation of stores.** Requests made on a store's behalf run under a database role that row-level security limits to that store's rows, and that cannot read the sign-in tables except for account identifiers and email addresses.",
       "**Secrets.** Passwords are stored as scrypt hashes. API keys are stored as hashes and shown once. Webhooks from payment providers are verified against the store's own secret, and internal tokens are compared in constant time.",
       "**Retention.** A daily job deletes expired sessions and verification links, team invitations 30 days after they expire, and agent activity records after 24 months.",
+      "**Two-factor.** Merchants and administrators can turn on two-factor sign-in with an authenticator app and one-time backup codes. It is optional, and an account that has it can only sign in from the dashboard.",
       "**Access control.** Three organization roles: owner, admin and member. Only owners and admins may use admin-level API keys and approve agents' admin capabilities, and only an owner changes the plan. Sessions last 7 days, are refreshed on use, and are cleared when a password is reset. Agent Auth agents start with public catalog reads only, and anything else needs a person's approval. Approving capabilities that change a store needs a sign-in from the last 10 minutes.",
       "**Application security.** Rate limits on sign-in and on the API (600 requests a minute per key), session cookies that are HTTP-only, SameSite=Lax and Secure in production, email verification for store accounts that claim past orders, validated input on API routes, and security headers on every app: HTTP Strict Transport Security, a Content-Security-Policy, and controls on framing, content type and referrers.",
-      "**Logging.** Agent activity is recorded with its type, capability, status and duration, never with the data it handled. There is no complete administrator audit log yet.",
+      "**Logging.** Agent activity is recorded with its type, capability, status and duration, never with the data it handled. What Prood administrators do to accounts (a ban, a role change, signing a device out, revoking an agent) is recorded with who did it, to whom, when and from which IP address, and kept for 24 months. Reads of data are not logged.",
       "**Availability.** The database provider offers point-in-time restore. Prood promises no recovery time. Hosting includes platform DDoS mitigation.",
       "**Staff.** Access to production systems is limited to the people who need it, who are bound by confidentiality. Platform administrators can see accounts and sessions across stores, which is why it is limited.",
-      "**Limits.** Prood holds no ISO 27001 or SOC 2 certification, has not yet commissioned an external penetration test, and does not yet offer two-factor authentication or passkeys. Its hosting and database providers hold their own certifications, listed on the [sub-processors page](/subprocessors).",
+      "**Limits.** Prood holds no ISO 27001 or SOC 2 certification, has not yet commissioned an external penetration test, and does not yet offer passkeys. Its hosting and database providers hold their own certifications, listed on the [sub-processors page](/subprocessors).",
     ],
   },
   {

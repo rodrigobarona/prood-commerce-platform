@@ -53,7 +53,8 @@ export {
   provisionOrganizationStore,
 } from './tenant/store-info.js'
 export { countProducts, countOrdersThisMonth } from './database/index.js'
-export { exportStoreData, deleteStoreData, unlinkAuthUserFromCustomers } from './privacy/store-data.js'
+export { exportStoreData, deleteStoreData, eraseCustomer, unlinkAuthUserFromCustomers } from './privacy/store-data.js'
+export type { CustomerErasure } from './privacy/store-data.js'
 export type { DrizzleDatabase } from './database/drizzle/client.js'
 
 // Drizzle schema (for raw queries)

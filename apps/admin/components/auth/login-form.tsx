@@ -53,11 +53,13 @@ export function AdminLoginForm() {
     setLoading(true)
     setError(null)
     try {
-      const { error: signInError } = await authClient.signIn.email({ email, password })
+      const { data, error: signInError } = await authClient.signIn.email({ email, password })
       if (signInError) {
         setError(signInErrorMessage(signInError))
         return
       }
+      // The client is already sending them to /two-factor. There is no session to open yet.
+      if (data && "twoFactorRedirect" in data) return
       router.push(redirect)
       router.refresh()
     } catch {

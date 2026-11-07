@@ -2,6 +2,7 @@ import type { Icon } from "@phosphor-icons/react"
 import {
   Devices,
   Gauge,
+  ClipboardText,
   Gear,
   Globe,
   Key,
@@ -37,6 +38,7 @@ export const navGroups: NavGroup[] = [
       { title: "Sessions", href: "/sessions", icon: Devices },
       { title: "API keys", href: "/api-keys", icon: Key },
       { title: "AI agents", href: "/agents", icon: Robot },
+      { title: "Audit log", href: "/audit", icon: ClipboardText },
     ],
   },
   {

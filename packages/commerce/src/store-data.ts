@@ -2,7 +2,9 @@ import 'server-only'
 import {
   deleteStoreData as deleteStoreDataPlatform,
   exportStoreData as exportStoreDataPlatform,
+  eraseCustomer as eraseCustomerPlatform,
   unlinkAuthUserFromCustomers as unlinkAuthUserFromCustomersPlatform,
+  type CustomerErasure,
 } from '@prood/platform'
 import { getCommerce } from './adapter'
 
@@ -22,4 +24,14 @@ export async function deleteStoreData(organizationId: string): Promise<Record<st
 export async function unlinkAuthUserFromCustomers(authUserId: string): Promise<number> {
   await getCommerce()
   return unlinkAuthUserFromCustomersPlatform(authUserId)
+}
+
+/** Erases one shopper from a store. Orders stay, unless `scrubOrders` clears the shopper's details from them too. */
+export async function eraseCustomer(
+  organizationId: string,
+  customerId: string,
+  options: { scrubOrders: boolean },
+): Promise<CustomerErasure> {
+  await getCommerce()
+  return eraseCustomerPlatform(organizationId, customerId, options)
 }

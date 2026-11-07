@@ -58,7 +58,7 @@ const sections: readonly LegalSection[] = [
             ],
             [
               "Creating a Prood account",
-              "Name, email address, password (stored as a hash), role, organization and team memberships, invitations (invitee's email, role, who invited them)",
+              "Name, email address, password (stored as a hash), role, organization and team memberships, invitations (invitee's email, role, who invited them), and an authenticator-app secret and backup codes if you turn on two-factor (stored encrypted)",
               "Providing Prood and signing you in. Contract, Art. 6(1)(b), if the account is yours. Otherwise legitimate interests, Art. 6(1)(f): giving your organization the accounts it asked for",
               "While the account is open. You can delete it yourself under Profile in the dashboard, and it goes at once. An invitation is valid for 48 hours and is deleted 30 days after it expires",
             ],
@@ -79,6 +79,12 @@ const sections: readonly LegalSection[] = [
               "The organization's name, the owner's email, billing address and tax number, plan and subscription dates. Card details stay with Stripe",
               "Charging for paid plans and issuing invoices. Contract, Art. 6(1)(b), and legal obligation, Art. 6(1)(c). Paid plans can't be bought yet, so this applies once they can",
               "Invoices and accounting records for 10 years, as Portuguese tax and accounting law requires",
+            ],
+            [
+              "What Prood administrators do to accounts",
+              "Who did it, what they did (a ban, a role change, signing a device out, revoking an agent), to which account, when, and their IP address",
+              "Accountability for staff access to accounts. Legitimate interests, Art. 6(1)(f)",
+              "24 months",
             ],
             [
               "Service email",
@@ -199,7 +205,7 @@ const sections: readonly LegalSection[] = [
     id: "rights",
     body: [
       "You can ask us for access to your data and a copy of it, to correct, delete or restrict it, or to receive it in a portable form. You can object to processing, and you can withdraw consent at any time, which does not affect earlier processing.",
-      "Most of this you can do yourself. In the dashboard, **Profile → Your data** downloads a copy of your account and deletes it, and **Store settings** downloads a store's data and deletes the store. Shoppers do the same on their account page in a store. Deleting an account removes your name, email address, sign-in methods, sessions and memberships at once. If you are the only owner of a store, you delete the store or add another owner first. Backups held by our database provider age out on its own schedule.",
+      "Most of this you can do yourself. In the dashboard, **Profile → Your data** downloads a copy of your account and deletes it, and **Store settings** downloads a store's data and deletes the store. Shoppers do the same on their account page in a store. A store's owner or admin can erase a single shopper from the customer's page in the dashboard. Deleting an account removes your name, email address, sign-in methods, sessions and memberships at once. If you are the only owner of a store, you delete the store or add another owner first. Backups held by our database provider age out on its own schedule.",
       `For anything else, write to [${email}](mailto:${email}). We reply within one month, may ask you to confirm your identity, and charge nothing unless a request is manifestly unfounded or excessive. If your data is in a store's orders, we pass your request to the store, which is its controller, and help it answer.`,
       "You may complain to the Portuguese supervisory authority, the [Comissão Nacional de Proteção de Dados](https://www.cnpd.pt), or to the authority where you live or work.",
     ],

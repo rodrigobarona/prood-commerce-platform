@@ -13,7 +13,9 @@ import { formatPrice } from "@prood/ui/lib/commerce"
 import { DashboardPage } from "@/components/layout/dashboard-page"
 import { DetailSkeleton, PageHeaderSkeleton } from "@/components/skeletons"
 import { Address } from "@/components/store/address"
+import { EraseCustomerSection } from "@/components/store/erase-customer-section"
 import { OrdersTable } from "@/components/store/orders-table"
+import { canManageStore } from "@/lib/admin"
 import { getCustomer, getStoreSettings, listOrders } from "@/lib/admin-api"
 import { formatDate, personName, formatNumber } from "@/lib/format"
 
@@ -59,6 +61,7 @@ async function CustomerDetail({
     listOrders({ customerId: id, perPage: RECENT_ORDERS }).catch((): { items: Order[] } | null => null),
   ])
   const timeZone = store?.timezone
+  const canErase = await canManageStore()
   const name = personName(customer)
 
   return (
@@ -118,6 +121,8 @@ async function CustomerDetail({
                 </p>
               )}
             </Panel>
+
+            {canErase ? <EraseCustomerSection customerId={customer.id} /> : null}
           </>
         }
         aside={

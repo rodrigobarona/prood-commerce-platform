@@ -54,6 +54,7 @@ const sections: readonly LegalSection[] = [
     body: {
       list: [
         "Stores have three roles: owner, admin and member. Only owners and admins can use admin-level API keys, change the store and approve agents, and only an owner changes the plan or deletes the store.",
+        "Merchants and administrators can turn on two-factor sign-in with an authenticator app, under Profile in the dashboard. It comes with ten one-time backup codes. If you lose both your phone and your codes, write to us and we reset it after checking it is you. Accounts with two-factor on can only sign in from the dashboard, never from a store.",
         "Sessions last 7 days from last use. Resetting a password signs every other session out.",
         "Sign-in, the API and agents are rate limited.",
         "AI agents start with public catalog reads only. Anything more needs a person's approval in the dashboard, and approving changes to a store needs a sign-in from the last 10 minutes.",
@@ -68,9 +69,9 @@ const sections: readonly LegalSection[] = [
       "We would rather tell you than leave you to assume:",
       {
         list: [
-          "no two-factor authentication or passkeys for Prood accounts yet;",
+          "no passkeys yet. Two-factor sign-in with an authenticator app is available but optional;",
           "no ISO 27001 or SOC 2 certification, and no external penetration test yet. Our hosting and database providers hold their own certifications, listed on the [sub-processors page](/subprocessors);",
-          "no complete audit log of what Prood administrators do;",
+          "no log of what Prood administrators read. What they change on accounts is recorded and kept for 24 months;",
           "no promised recovery time. Our database provider offers point-in-time restore.",
         ],
       },

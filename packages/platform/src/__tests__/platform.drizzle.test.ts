@@ -25,7 +25,7 @@ import { initDrizzle, closeDrizzle, getDb, withTenant } from '../database/drizzl
 import { seedDrizzle, DEMO_ORG_ID } from '../database/drizzle/seed.js'
 import { createPlatformAdapter } from '../adapter.js'
 import { createCustomer } from '../database/drizzle/queries/customers.js'
-import { deleteStoreData, exportStoreData, unlinkAuthUserFromCustomers } from '../privacy/store-data.js'
+import { deleteStoreData, eraseCustomer, exportStoreData, unlinkAuthUserFromCustomers } from '../privacy/store-data.js'
 import { platformTestSuite } from './platform.suite.js'
 
 const SERVER_URL = process.env.DATABASE_URL
@@ -281,6 +281,41 @@ describe('@prood/platform [drizzle]', () => {
       expect(await unlinkAuthUserFromCustomers('user-shared')).toBe(2)
       const { customers } = await exportStoreData(OTHER_ORG_ID)
       expect(customers).toEqual([expect.objectContaining({ email: 'b@example.com', authUserId: null })])
+    })
+
+    it('erases one shopper, and scrubs their orders only when asked', async () => {
+      const ORG = 'org_erasure'
+      const ids = await withTenant(ORG, async () => {
+        const keep = await createCustomer({ email: 'keep@example.com', firstName: 'Keep' })
+        const gone = await createCustomer({ email: 'gone@example.com', firstName: 'Gone' })
+        const goneScrubbed = await createCustomer({ email: 'scrub@example.com', firstName: 'Scrub' })
+        for (const [orderId, customerId, email] of [
+          ['ord-keep', keep, 'keep@example.com'],
+          ['ord-gone', gone, 'gone@example.com'],
+          ['ord-scrub', goneScrubbed, 'scrub@example.com'],
+        ] as const) {
+          await getDb().execute(sql`
+            insert into orders (id, order_number, customer_id, contact_email, shipping_address, note)
+            values (${orderId}, ${orderId}, ${customerId}, ${email}, '{"firstName":"X"}'::jsonb, 'call me')
+          `)
+        }
+        return { keep, gone, goneScrubbed }
+      })
+
+      expect(await eraseCustomer(ORG, ids.gone, { scrubOrders: false })).toEqual({ customer: true, ordersScrubbed: 0 })
+      expect(await eraseCustomer(ORG, ids.goneScrubbed, { scrubOrders: true })).toEqual({ customer: true, ordersScrubbed: 1 })
+      expect(await eraseCustomer(ORG, ids.gone, { scrubOrders: true })).toEqual({ customer: false, ordersScrubbed: 0 })
+
+      const data = await exportStoreData(ORG)
+      expect((data.customers as { id: string }[]).map((row) => row.id)).toEqual([ids.keep])
+      type OrderRow = { id: string; contactEmail: string | null; shippingAddress: unknown; note: string | null; customerId: string | null }
+      const orders = Object.fromEntries((data.orders as OrderRow[]).map((row) => [row.id, row]))
+      // Not scrubbed: the store's record stays, but points at nobody.
+      expect(orders['ord-gone']).toMatchObject({ contactEmail: 'gone@example.com', customerId: null, note: 'call me' })
+      // Scrubbed: nothing that identifies the shopper is left.
+      expect(orders['ord-scrub']).toMatchObject({ contactEmail: null, shippingAddress: null, note: null, customerId: null })
+      // Another shopper is untouched.
+      expect(orders['ord-keep']).toMatchObject({ contactEmail: 'keep@example.com', customerId: ids.keep })
     })
 
     it('deletes one store completely and leaves the others alone', async () => {

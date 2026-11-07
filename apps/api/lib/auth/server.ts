@@ -2,7 +2,7 @@ import { betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { nextCookies } from "better-auth/next-js"
 import { APIError, createAuthMiddleware } from "better-auth/api"
-import { admin, organization } from "better-auth/plugins"
+import { admin, organization, twoFactor } from "better-auth/plugins"
 import { agentAuth } from "@better-auth/agent-auth"
 import {
   resolveBetterAuthEnv,
@@ -144,6 +144,10 @@ function createAuth() {
       }),
       storeApiKey(),
       admin({ defaultRole: "user" }),
+      // Opt-in authenticator app plus backup codes, for merchants and Prood staff.
+      // Nothing changes for an account that hasn't turned it on. Without `otpOptions`
+      // there is no code by email, so a mailbox can't stand in for the app.
+      twoFactor({ issuer: "Prood" }),
       agentAuth({
         modes: ["delegated", "autonomous"],
         // The approval UI lives in the dashboard, not on the API origin.

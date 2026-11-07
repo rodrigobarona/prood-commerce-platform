@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 const mocks = vi.hoisted(() => ({
   autoLinkGuestCustomers: vi.fn(),
   send: vi.fn(),
+  twoFactorOn: vi.fn(),
 }))
 
 vi.mock("next/server", () => ({ after: (task: () => Promise<void>) => task() }))
@@ -13,6 +14,8 @@ vi.mock("@prood/platform", () => ({
   getStorefrontIdentity: async () => ({ name: "Store", origin: "https://store.test" }),
   lookupTenantByHost: async () => "org-1",
 }))
+vi.mock("@prood/auth/two-factor", () => ({ isTwoFactorEnabledForEmail: mocks.twoFactorOn }))
+vi.mock("@prood/auth/retention", () => ({ listSoleOwnedStores: vi.fn() }))
 vi.mock("../tenant", () => ({ resolveRequestTenantId: async () => "org-1" }))
 vi.mock("../auth/db", () => ({ authDb: {} }))
 vi.mock("../mailer", () => ({ getMailer: () => ({ send: mocks.send }) }))
@@ -50,6 +53,7 @@ describe("linking guest orders", () => {
     vi.stubEnv("NEXT_PUBLIC_PLATFORM_DOMAIN", "store.test")
     mocks.send.mockResolvedValue(undefined)
     mocks.autoLinkGuestCustomers.mockResolvedValue(1)
+    mocks.twoFactorOn.mockResolvedValue(false)
   })
 
   it("waits for the shopper to verify their email", async () => {
@@ -77,5 +81,17 @@ describe("linking guest orders", () => {
     expect(signIn.status).toBe(200)
     expect(mocks.autoLinkGuestCustomers).not.toHaveBeenCalled()
     consoleError.mockRestore()
+  })
+
+  it("refuses password sign-in for an account with two-factor on, so a store can't get around the dashboard's second step", async () => {
+    const email = "owner@example.com"
+    const user = { email, password: "correct-horse", name: "Owner" }
+    expect((await post("/sign-up/email", user)).status).toBe(200)
+
+    mocks.twoFactorOn.mockResolvedValue(true)
+    const signIn = await post("/sign-in/email", { email, password: user.password })
+
+    expect(signIn.status).toBe(403)
+    expect(signIn.headers.get("set-cookie")).toBeNull()
   })
 })

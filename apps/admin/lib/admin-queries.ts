@@ -753,3 +753,60 @@ export async function revokeAgent(id: string): Promise<void> {
     metadata: { by: "platform-admin" },
   })
 }
+
+export type AuditSort = "createdAt"
+
+export interface AuditRow {
+  id: string
+  action: string
+  actorId: string
+  actorName: string | null
+  actorEmail: string | null
+  targetType: string | null
+  targetId: string | null
+  metadata: Record<string, unknown> | null
+  ipAddress: string | null
+  createdAt: Date
+}
+
+/** What administrators did to accounts, newest first. The actor may have deleted their account since, so it is a left join. */
+export async function listAuditEvents(options: PageOptions & { dir: "asc" | "desc" }): Promise<ListPage<AuditRow>> {
+  await assertAdmin()
+  const where = options.q
+    ? or(
+        ilike(schema.adminAuditEvent.action, contains(options.q)),
+        ilike(schema.adminAuditEvent.targetId, contains(options.q)),
+        ilike(schema.user.email, contains(options.q)),
+        ilike(schema.user.name, contains(options.q))
+      )
+    : undefined
+  const order = options.dir === "asc" ? asc : desc
+
+  const [rows, totals] = await Promise.all([
+    db
+      .select({
+        id: schema.adminAuditEvent.id,
+        action: schema.adminAuditEvent.action,
+        actorId: schema.adminAuditEvent.actorId,
+        actorName: schema.user.name,
+        actorEmail: schema.user.email,
+        targetType: schema.adminAuditEvent.targetType,
+        targetId: schema.adminAuditEvent.targetId,
+        metadata: schema.adminAuditEvent.metadata,
+        ipAddress: schema.adminAuditEvent.ipAddress,
+        createdAt: schema.adminAuditEvent.createdAt,
+      })
+      .from(schema.adminAuditEvent)
+      .leftJoin(schema.user, eq(schema.adminAuditEvent.actorId, schema.user.id))
+      .where(where)
+      .orderBy(order(schema.adminAuditEvent.createdAt), desc(schema.adminAuditEvent.id))
+      .limit(options.limit)
+      .offset(options.offset),
+    db
+      .select({ value: count() })
+      .from(schema.adminAuditEvent)
+      .leftJoin(schema.user, eq(schema.adminAuditEvent.actorId, schema.user.id))
+      .where(where),
+  ])
+  return { rows, total: totals[0]?.value ?? 0 }
+}

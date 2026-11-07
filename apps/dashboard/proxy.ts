@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getSessionCookie } from "better-auth/cookies"
 
 // Public routes that don't require an authenticated merchant.
-const PUBLIC_PATHS = ["/login", "/register", "/forgot-password", "/reset-password"]
+const PUBLIC_PATHS = ["/login", "/register", "/forgot-password", "/reset-password", "/two-factor"]
 
 function isPublic(pathname: string): boolean {
   return PUBLIC_PATHS.some(

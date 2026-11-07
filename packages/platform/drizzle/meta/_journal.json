@@ -92,6 +92,13 @@
       "when": 1793754547564,
       "tag": "0012_agent_events",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1794049720308,
+      "tag": "0013_two_factor_audit",
+      "breakpoints": true
     }
   ]
 }

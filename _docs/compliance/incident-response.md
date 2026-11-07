@@ -57,7 +57,7 @@ Information may be given in phases (Art. 33(4), `/dpa` 9.2). Do not wait for a c
 
 | Secret | Where | Note |
 |---|---|---|
-| `BETTER_AUTH_SECRET` | `prood-api`, `prood-dashboard`, `prood-admin`, `prood-storefront` | Signs sessions and, through `apps/api/lib/agent-proxy-token.ts`, the token `/v1` trusts for agents. Rotating signs everyone out, and agent tokens already issued fail. Test on a preview first |
+| `BETTER_AUTH_SECRET` | `prood-api`, `prood-dashboard`, `prood-admin`, `prood-storefront` | Signs sessions and, through `apps/api/lib/agent-proxy-token.ts`, the token `/v1` trusts for agents. Rotating signs everyone out, and agent tokens already issued fail. It is also the key the two-factor plugin encrypts secrets and backup codes with (read from better-auth 1.7.14, not tested), so after a rotation every account with two-factor on needs a manual reset: see "Resetting two-factor by hand" in [data subject requests](./data-subject-requests.md). Test on a preview first |
 | `AUTH_PROXY_SECRET` | `prood-api`, `prood-dashboard`, `prood-admin`: same value | Without it every request to `/api/auth` fails in production (`_docs/PRODUCTION_READINESS.md`) |
 | `DATABASE_URL` | Every app that reads the database, Neon | Rotate the role password in Neon |
 | `INTEGRATION_ENCRYPTION_KEY` | Apps that save or read provider credentials | **Rotation is not supported.** The key is derived once with a fixed salt, and ciphertext carries only a format prefix (`packages/commerce/src/crypto.ts`). Replacing the key makes every stored credential unreadable. Have merchants re-enter their credentials, or add key versions first. Gap |
@@ -66,12 +66,12 @@ Information may be given in phases (Art. 33(4), `/dpa` 9.2). Do not wait for a c
 | `CRON_SECRET` | `prood-api` | Guards `/internal/retention` (ships with this change) |
 | `RESEND_API_KEY`, `RESEND_FROM_EMAIL` | `prood-api`, `prood-storefront` | The key may be shared with Eleva (unverified): rotating it affects that project too |
 | `BILLING_STRIPE_SECRET_KEY`, `BILLING_STRIPE_WEBHOOK_SECRET` | `prood-api` | Test mode today |
-| `S3_*` (R2 key) | Apps that upload images | Scoped key, on Eleva's account per the owner's notes |
+| `S3_*` (R2 key) | No app uploads images today (`getStorage` in `packages/commerce/src/storage.ts` has no caller, checked 2026-11-07) | Scoped key, on Eleva's account per the owner's notes. Rotate it anyway if it leaked |
 | `VERCEL_TOKEN` | Dashboard | Used for custom domains. Broad scope: rotate first if the dashboard is breached |
 | Payment-provider credentials | Merchants' own accounts, stored in `integration_config` | Merchants revoke them at the provider. Tell them |
 | Merchant API keys | Dashboard, or delete the `apikey` row | Tell the merchant |
 
-**Suspending a merchant.** There is no suspended state for a store. To stop access, revoke its API keys, revoke its members' sessions and agents in the admin app (`apps/admin/lib/admin-queries.ts`, `revokeAgent`; `apps/admin/app/(admin)/users/actions.ts`, `revokeAllUserSessions`), and ban the users (`banUser` in the same file, which sets `user.banned`). The admin app has no delete-user or delete-store action. Or delete the store (owner action, ships with this change). Deleting removes data, so use it only where `/terms` allows, after an export, and email the owners the same day.
+**Suspending a merchant.** There is no suspended state for a store. To stop access, revoke its API keys, revoke its members' sessions and agents in the admin app (`apps/admin/lib/admin-queries.ts`, `revokeAgent`; `apps/admin/app/(admin)/users/actions.ts`, `revokeAllUserSessions`), and ban the users (`banUser` in the same file, which sets `user.banned`). Each of these admin actions is written to the audit log (`admin_audit_event`, shown under **Audit log** in the admin app, kept 730 days), so note the time and read the log back afterwards. The log shows changes, not reads. The admin app has no delete-user or delete-store action. Or delete the store (owner action, ships with this change). Deleting removes data, so use it only where `/terms` allows, after an export, and email the owners the same day.
 
 **Other tools.** Vercel Firewall rules, or taking a route offline.
 

@@ -84,6 +84,8 @@ catalog:
   shadcn: ^4.23.0
   shiki: ^4.5.0
   sonner: ^2.0.8
+  # Draws the authenticator-app QR code (SVG, no dependencies, no install scripts).
+  qrcode.react: 4.2.0
 
   # Cookie consent (c15t, hosted on INTH)
   c15t: ^3.2.2

@@ -7,7 +7,7 @@
 // later is covered without touching this file. Runs inside `withTenant()`, so
 // row-level security keeps each call to one store.
 
-import { eq, getTableColumns, getTableName, is, sql } from 'drizzle-orm'
+import { eq, getTableColumns, getTableName, inArray, is, sql } from 'drizzle-orm'
 import { PgTable } from 'drizzle-orm/pg-core'
 import { getDb, withTenant } from '../database/drizzle/client.js'
 import * as schema from '../database/drizzle/schema/index.js'
@@ -85,4 +85,60 @@ export async function unlinkAuthUserFromCustomers(authUserId: string): Promise<n
     .where(eq(schema.customers.authUserId, authUserId))
     .returning({ id: schema.customers.id })
   return rows.length
+}
+
+export interface CustomerErasure {
+  /** Customer rows removed: the profile, its saved addresses, wishlists and carts. */
+  customer: boolean
+  /** Orders whose contact details, addresses and notes were cleared. */
+  ordersScrubbed: number
+}
+
+/**
+ * Erases one shopper from one store (GDPR Art. 17, for the store as controller).
+ * The profile, saved addresses, wishlists and open carts go. Orders are the
+ * store's accounting records, so by default they stay as they are, only no longer
+ * pointing at the shopper. With `scrubOrders` the shopper's email, delivery and
+ * billing addresses and notes are cleared from them too, and the totals, items
+ * and dates stay. All of it happens in one transaction, or none of it does.
+ */
+export async function eraseCustomer(
+  organizationId: string,
+  customerId: string,
+  { scrubOrders }: { scrubOrders: boolean },
+): Promise<CustomerErasure> {
+  return withTenant(organizationId, async () => {
+    const db = getDb()
+    const [customer] = await db
+      .select({ id: schema.customers.id })
+      .from(schema.customers)
+      .where(eq(schema.customers.id, customerId))
+    if (!customer) return { customer: false, ordersScrubbed: 0 }
+
+    let ordersScrubbed = 0
+    if (scrubOrders) {
+      const orders = await db
+        .select({ id: schema.orders.id })
+        .from(schema.orders)
+        .where(eq(schema.orders.customerId, customerId))
+      const orderIds = orders.map((order) => order.id)
+      if (orderIds.length > 0) {
+        await db
+          .update(schema.orders)
+          .set({ contactEmail: null, shippingAddress: null, billingAddress: null, note: null, updatedAt: new Date() })
+          .where(inArray(schema.orders.id, orderIds))
+        await db.update(schema.orderHistory).set({ note: null }).where(inArray(schema.orderHistory.orderId, orderIds))
+        await db
+          .update(schema.returns)
+          .set({ customerNote: null, merchantNote: null })
+          .where(inArray(schema.returns.orderId, orderIds))
+      }
+      ordersScrubbed = orderIds.length
+    }
+
+    // Carts and wishlists go with the shopper. Addresses cascade from the customer row.
+    await db.delete(schema.carts).where(eq(schema.carts.customerId, customerId))
+    await db.delete(schema.customers).where(eq(schema.customers.id, customerId))
+    return { customer: true, ordersScrubbed }
+  })
 }

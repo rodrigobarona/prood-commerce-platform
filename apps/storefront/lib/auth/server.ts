@@ -1,6 +1,6 @@
 import { after } from "next/server"
 import { betterAuth } from "better-auth"
-import { APIError } from "better-auth/api"
+import { APIError, createAuthMiddleware } from "better-auth/api"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { nextCookies } from "better-auth/next-js"
 import {
@@ -11,6 +11,7 @@ import {
 } from "@prood/platform"
 import { resolveRequestTenantId } from "../tenant"
 import { authDb } from "./db"
+import { refuseTwoFactorPasswordSignIn } from "./two-factor-guard"
 import { listSoleOwnedStores } from "@prood/auth/retention"
 import * as schema from "@prood/auth/schema"
 import { sharedAuthOptions, sharedEmailAndPassword } from "@prood/auth/shared-options"
@@ -86,6 +87,11 @@ function createAuth() {
           await unlinkAuthUserFromCustomers(user.id)
         },
       },
+    },
+    hooks: {
+      before: createAuthMiddleware(async (ctx) => {
+        await refuseTwoFactorPasswordSignIn(ctx)
+      }),
     },
     databaseHooks: {
       user: {
