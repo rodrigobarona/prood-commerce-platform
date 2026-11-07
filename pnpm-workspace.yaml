@@ -85,6 +85,10 @@ catalog:
   shiki: ^4.5.0
   sonner: ^2.0.8
 
+  # Cookie consent (c15t, hosted on INTH)
+  c15t: ^3.2.2
+  "@c15t/integrations": ^3.2.2
+
   # Next.js utilities
   server-only: ^0.0.1
 

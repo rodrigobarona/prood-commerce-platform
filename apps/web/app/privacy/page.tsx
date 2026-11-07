@@ -30,7 +30,7 @@ const sections = [
   },
   {
     title: "Who else handles it",
-    body: "Vercel for hosting, Neon for the database, Upstash for rate limits and checkout sessions, Cloudflare for images, and Resend for email. Your store also uses the payment provider you connect, and its checkout uses Geoapify for address suggestions. Where data can leave the EEA, we rely on the EU-US Data Privacy Framework or Standard Contractual Clauses.",
+    body: "Vercel for hosting, Neon for the database, Upstash for rate limits and checkout sessions, Cloudflare for images, and Resend for email, and Vercel for visit statistics if you allow them. Your store also uses the payment provider you connect, and its checkout uses Geoapify for address suggestions. Where data can leave the EEA, we rely on the EU-US Data Privacy Framework or Standard Contractual Clauses.",
   },
   {
     title: "How long we keep it",
@@ -38,7 +38,11 @@ const sections = [
   },
   {
     title: "Cookies",
-    body: "We use the cookies needed to sign you in, keep a cart working and remember your dashboard layout. Stripe's checkout can set its own fraud-prevention cookies. Stores also keep saved items and checkout details in the shopper's browser. We don't use tracking or advertising cookies.",
+    body: "We use the cookies needed to sign you in, keep a cart working and remember your dashboard layout. Stripe's checkout can set its own fraud-prevention cookies. Stores also keep saved items and checkout details in the shopper's browser. We don't use advertising cookies.",
+  },
+  {
+    title: "Visit statistics and your choice",
+    body: "On prood.com and on stores hosted on prood.app, Vercel Web Analytics counts page views, referring sites, and the country, browser and device type of visitors. It sets no cookie and is never used for advertising. It loads only if you allow it in the banner shown on your first visit, and the site works the same if you don't. We keep your choice, a random session ID and basic technical details as proof of consent, in Frankfurt, with INTH, the consent platform we use. You can change your choice at any time with Cookie settings in the footer, and we ask again after 12 months.",
   },
   {
     title: "Your rights",
@@ -58,7 +62,7 @@ export default function PrivacyPage() {
   return (
     <LegalPage
       title="Privacy policy"
-      summary="How Búzios e Tartarugas, Lda. handles personal data for Prood. Last updated 2 November 2026."
+      summary="How Búzios e Tartarugas, Lda. handles personal data for Prood. Last updated 7 November 2026."
       sections={sections}
       related={[
         { label: "Terms of service", href: "/terms" },

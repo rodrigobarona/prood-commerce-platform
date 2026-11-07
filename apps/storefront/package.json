@@ -13,6 +13,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@c15t/integrations": "catalog:",
     "@geoapify/geocoder-autocomplete": "^3.1.0",
     "@geoapify/react-geocoder-autocomplete": "^3.1.0",
     "@hookform/resolvers": "^6.0.2",
@@ -20,12 +21,14 @@
     "@phosphor-icons/react": "catalog:",
     "@prood/api-client": "workspace:*",
     "@prood/auth": "workspace:*",
+    "@prood/consent": "workspace:*",
     "@prood/media": "workspace:*",
     "@prood/notification-resend": "workspace:*",
     "@prood/platform": "workspace:*",
     "@prood/types": "workspace:*",
     "@prood/ui": "workspace:*",
     "better-auth": "catalog:",
+    "c15t": "catalog:",
     "drizzle-orm": "catalog:",
     "iso-3166": "^4.4.0",
     "next": "catalog:",

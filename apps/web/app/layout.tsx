@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next"
 import { Bricolage_Grotesque, Geist_Mono, Instrument_Sans } from "next/font/google"
 
 import "./globals.css"
+import { ConsentShell } from "@prood/consent/shell"
 import { ThemeProvider } from "@prood/ui/components/theme-provider"
 import { cn } from "@prood/ui/lib/utils"
 import { SiteFooter } from "@/components/site-footer"
@@ -47,19 +48,21 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       )}
     >
       <body className="flex min-h-svh flex-col">
-        <ThemeProvider>
-          <a
-            href="#content"
-            className="sr-only z-[60] rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
-          >
-            Skip to content
-          </a>
-          <SiteHeader />
-          <main id="content" className="flex-1">
-            {children}
-          </main>
-          <SiteFooter />
-        </ThemeProvider>
+        <ConsentShell scope="marketing" privacyHref="/privacy">
+          <ThemeProvider>
+            <a
+              href="#content"
+              className="sr-only z-[60] rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+            >
+              Skip to content
+            </a>
+            <SiteHeader />
+            <main id="content" className="flex-1">
+              {children}
+            </main>
+            <SiteFooter />
+          </ThemeProvider>
+        </ConsentShell>
       </body>
     </html>
   )

@@ -3,6 +3,13 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 
 const mocks = vi.hoisted(() => ({ fetchStoreInfo: vi.fn() }))
 
+vi.mock("c15t/next", () => ({
+  ConsentDialogLink: ({ children, className }: { children: React.ReactNode; className?: string }) => (
+    <button type="button" className={className}>
+      {children}
+    </button>
+  ),
+}))
 vi.mock("@/components/layout/policy-links", () => ({ PolicyLinks: () => null }))
 vi.mock("next/cache", () => ({ cacheLife: vi.fn() }))
 vi.mock("@/lib/commerce-data", () => ({ fetchStoreInfo: mocks.fetchStoreInfo }))
@@ -28,6 +35,12 @@ describe("Footer", () => {
       "mailto:ola@lojadaana.pt",
     )
     expect(screen.getByText(/Loja da Ana\. All rights reserved\./)).toBeTruthy()
+  })
+
+  it("lets shoppers reopen their cookie choices", async () => {
+    mocks.fetchStoreInfo.mockResolvedValue(store)
+    render(await Footer())
+    expect(screen.getByRole("button", { name: "Cookie settings" })).toBeTruthy()
   })
 
   it("says store, not shop", async () => {

@@ -4,6 +4,7 @@ import { Suspense } from "react"
 import "@geoapify/geocoder-autocomplete/styles/minimal.css"
 import "@prood/ui/globals.css"
 import "@prood/ui/themes/neutral.css"
+import { ConsentShell } from "@prood/consent/shell"
 import { host } from "next/root-params"
 import { AppProviders } from "@/components/providers/app-providers"
 import { fetchStoreInfo } from "@/lib/commerce-data"
@@ -55,9 +56,12 @@ export default async function RootLayout({
         suppressHydrationWarning
         className="flex min-h-svh flex-col has-data-sticky-bar:pb-24 lg:has-data-sticky-bar:pb-0"
       >
-        <Suspense fallback={null}>
-          <StoreProviders>{children}</StoreProviders>
-        </Suspense>
+        {/* The banner names Prood, not the store, and links to Prood's own privacy notice. */}
+        <ConsentShell scope="store" privacyHref="https://prood.com/privacy">
+          <Suspense fallback={null}>
+            <StoreProviders>{children}</StoreProviders>
+          </Suspense>
+        </ConsentShell>
       </body>
     </html>
   )

@@ -1,3 +1,4 @@
+import { ConsentDialogLink } from "c15t/next"
 import Link from "next/link"
 
 import { Wordmark } from "@prood/ui/components/logo"
@@ -75,7 +76,10 @@ export function SiteFooter() {
 
           <div className="mt-10 flex flex-wrap items-center justify-between gap-4 text-sm text-muted-foreground">
             <p>© 2026 Prood. Operated by {siteConfig.legal.name}</p>
-            <ThemeToggle />
+            <div className="flex items-center gap-6">
+              <ConsentDialogLink className="transition-colors hover:text-foreground">Cookie settings</ConsentDialogLink>
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </div>

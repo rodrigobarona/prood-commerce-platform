@@ -1,0 +1,31 @@
+{
+  "name": "@prood/consent",
+  "version": "0.0.0",
+  "description": "Cookie consent for prood.com and the stores on prood.app: c15t on INTH, shared copy, theme and proxy rules",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./route": "./src/route.ts",
+    "./shell": "./src/shell.tsx",
+    "./messages": "./src/messages.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "c15t": "catalog:",
+    "react": "catalog:"
+  },
+  "peerDependencies": {
+    "next": ">=16"
+  },
+  "devDependencies": {
+    "@prood/typescript-config": "workspace:*",
+    "@types/react": "catalog:",
+    "next": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

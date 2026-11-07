@@ -12,11 +12,14 @@
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@c15t/integrations": "catalog:",
     "@phosphor-icons/react": "catalog:",
     "@prood/billing": "workspace:*",
+    "@prood/consent": "workspace:*",
     "@prood/media": "workspace:*",
     "@prood/types": "workspace:*",
     "@prood/ui": "workspace:*",
+    "c15t": "catalog:",
     "next": "catalog:",
     "next-themes": "catalog:",
     "react": "catalog:",

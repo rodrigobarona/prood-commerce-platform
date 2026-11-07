@@ -1,3 +1,4 @@
+import { ConsentDialogLink } from "c15t/next"
 import Link from "next/link"
 import { cacheLife } from "next/cache"
 import { localized, paymentNote } from "@prood/ui/lib/commerce"
@@ -87,6 +88,9 @@ export async function Footer() {
             <Suspense fallback={null}>
               <PolicyLinks />
             </Suspense>
+            <ConsentDialogLink className="hover:text-foreground inline-flex min-h-6 items-center transition-colors">
+              Cookie settings
+            </ConsentDialogLink>
           </div>
           <ThemeToggle />
         </Container>
