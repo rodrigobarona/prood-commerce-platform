@@ -36,6 +36,8 @@ const columns = [
       { label: "Privacy", href: "/privacy" },
       { label: "Terms", href: "/terms" },
       { label: "Data processing", href: "/dpa" },
+      { label: "Sub-processors", href: "/subprocessors" },
+      { label: "Legal notice", href: "/legal" },
     ],
   },
 ] as const

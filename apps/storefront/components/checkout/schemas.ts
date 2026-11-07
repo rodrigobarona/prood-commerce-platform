@@ -12,7 +12,6 @@ const PORTUGUESE_POSTAL_CODE = /^\d{4}-\d{3}$/
 export const contactSchema = z.object({
   email: z.string().email("Enter your whole email address, like ana@casalume.example."),
   phone: z.string().optional(),
-  marketingOptIn: z.boolean().optional(),
 })
 
 export const addressSchema = z

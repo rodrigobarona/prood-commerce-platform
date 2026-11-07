@@ -98,4 +98,18 @@ export const pages = {
     priority: 0.3,
     section: "Legal",
   },
+  subprocessors: {
+    title: "Sub-processors",
+    description: "The companies that process personal data for Prood, where, and under which safeguards.",
+    path: "/subprocessors",
+    priority: 0.3,
+    section: "Legal",
+  },
+  legal: {
+    title: "Legal notice",
+    description: "Who runs Prood: company details, registry and how to reach us.",
+    path: "/legal",
+    priority: 0.3,
+    section: "Legal",
+  },
 } as const satisfies Record<string, SitePage>

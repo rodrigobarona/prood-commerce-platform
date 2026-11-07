@@ -1,60 +1,76 @@
 ---
 title: Privacy and data minimization
-description: Where PII lives, commerce UUID identity, and GDPR-oriented design rules.
+description: Where personal data lives, who controls it, how long it stays, and what can be deleted today.
 ---
 
-Prood separates **authentication** (Better Auth) from **commerce** (tenant-scoped Postgres). Buyer email and credentials never duplicate across layers—commerce references buyers by internal UUID only.
+Prood separates **authentication** (Better Auth) from **commerce** (tenant-scoped Postgres). Commerce rows reference buyers by an internal UUID, but they also hold the contact details a store needs to fulfil an order.
+
+The public policies are the source of truth for what Prood promises: [privacy policy](https://prood.com/privacy), [data processing terms](https://prood.com/dpa) and [sub-processors](https://prood.com/subprocessors). This page is the engineering view of the same facts.
+
+## Roles
+
+- **Prood is the controller** of platform accounts, shopper sign-in accounts, session security, visit statistics and the privacy choice.
+- **The merchant is the controller** of its shoppers' orders, addresses and contact details. Prood is its processor.
 
 ## Data zones
 
-| Zone | Stored data | Access |
-| --- | --- | --- |
-| **Better Auth** (`user`, `session`, …) | Email, password hash, name | Auth layer only |
-| **`customers`** | Internal `id` (UUID), optional `auth_user_id` FK, optional profile fields | Tenant RLS; no duplicated email |
-| **Order snapshots** (`orders.shipping_address`, `billing_address`) | Name, address, phone for fulfillment | Merchant fulfillment; retention policy applies |
-| **Payment providers** | Processor-required charge data | Third-party; documented in privacy policy |
+| Zone | Stored data | Who controls it | Access |
+| --- | --- | --- | --- |
+| **Better Auth** (`user`, `account`, `session`, `verification`) | Name, email, password hash, session IP address and user agent | Prood | Auth layer only. The app database role can read only `id` and `email` of `user` |
+| **`customers`**, **`customer_addresses`** | Email, first and last name, phone, `auth_user_id` (null for guests), saved addresses | Merchant | Tenant RLS |
+| **`orders`**, **`carts`**, **`returns`**, **`reviews`** | Contact email, shipping and billing address snapshots, payment references, tracking, notes, review author name | Merchant | Tenant RLS |
+| **Checkout sessions** (Upstash Redis) | Contact email, name, phone, addresses, amount, payment session | Merchant | Server only. 24 hours, or 7 days once a payment such as Multibanco has started |
+| **Rate limits** (Upstash Redis) | Client IP address with the request path, per API key counters | Prood | Server only. Lasts the rate-limit window |
+| **`agent_event`** | Event type, agent, capability, status, duration. Never arguments or results | Prood | Organization members |
+| **Payment providers** | Whatever the merchant's own Stripe, Easypay or Ifthenpay account needs | Merchant's provider | Third party, under the merchant's own contract |
+
+Shopper accounts are **platform-wide**. One email address is one `user`, whichever store the shopper signed up on. Each store sees only its own `customers` and `orders` rows. After a shopper verifies their email, `autoLinkGuestCustomers` links guest `customers` rows with that email, in any store, to the account.
 
 ## Commerce identifier rule
 
 ```text
 customers.id           = internal UUID (commerce-owned)
 customers.auth_user_id = FK → Better Auth user.id (nullable for guests)
-orders.customer_id     = customers.id (never auth user.id, never email)
+orders.customer_id     = customers.id (never auth user.id)
 carts.customer_id      = customers.id
 ```
 
-APIs, checkout Redis sessions, payment metadata, webhooks, and Agent Auth tools use **`customerId`** and **`orderId`** only. Resolve to PII at **display boundaries** (merchant customer detail, buyer account page, transactional email send).
+Orders, carts, payment metadata, webhooks and Agent Auth tools identify a buyer by **`customerId`** and **`orderId`**. Better Auth `user.id` must not appear on orders, carts, checkout sessions, webhooks or public API responses.
 
-## What must not propagate
-
-- Better Auth `user.id` on orders, carts, Redis checkout sessions, webhooks, logs, or public API responses
-- Buyer **email** in checkout session Redis payloads, payment metadata, or agent tool schemas when `customerId` suffices
-- Cross-merchant profile tables — removed in greenfield schema
+Contact details travel where they are needed: the checkout session holds the buyer's email, name and phone until the order is placed, and the payment provider receives what it needs to take the payment.
 
 ## Guest checkout
 
-1. Create a `customers` row with internal UUID only (`auth_user_id` null).
-2. Fulfillment PII lives in the **order address snapshot**, not on `customers.email`.
-3. On register/login, link the guest row: set `auth_user_id` once; keep using `customers.id` everywhere.
-
-## Logged-in buyers
-
-`ensureCustomerForAuthUser()` maps Better Auth session → `customers.id` inside the tenant. Orders and carts always reference that UUID.
+1. Create a `customers` row with the contact details from checkout (`auth_user_id` null).
+2. Fulfilment details live in the **order address snapshot** as well as on the customer.
+3. On register or login, link the guest row: set `auth_user_id` once, and keep using `customers.id` everywhere.
 
 ## Merchant visibility
 
-The dashboard lists customers with email joined from Better Auth at read time (`admin-customers` query). Email is not stored on the commerce `customers` row.
+The dashboard lists customers from the tenant's `customers` rows. A merchant never sees another store's customers or the shopper's account.
 
-## Erasure (GDPR)
+## Retention and erasure
 
-- Delete/anonymize Better Auth `user` → null `customers.auth_user_id`.
-- Order address snapshots may be retained where legal basis requires (tax/fulfillment); anonymize where possible.
-- Document retention windows in your merchant privacy policy; Prood acts as processor for merchant storefront data.
+What exists today:
+
+- Redis checkout sessions and rate-limit keys expire on their own, as the table says.
+- Better Auth sessions expire after 7 days. Expired session and verification rows are not purged by a job, only when they are looked up.
+- Products, categories, API keys and agents can be deleted by the merchant.
+- `adminDeleteCustomer` hard-deletes a `customers` row and its addresses and wishlists, and nulls `customer_id` on carts and orders. Order snapshots and `contact_email` stay. No API route, MCP tool or dashboard button calls it.
+
+What does **not** exist yet:
+
+- Self-service account deletion, data export or store export, for merchants or shoppers.
+- A scheduled clean-up of expired sessions, verification rows or old agent events.
+
+Until they are built, the public terms say requests are handled by hand: merchants and shoppers write to hello@prood.com, and Prood acts within 30 days. When a clean-up or a self-service tool ships, update the retention rows in the privacy policy and `_docs/LEGAL.md` in the same change.
+
+Order address snapshots may be kept where the merchant has a legal basis, such as tax or fulfilment records. Prood acts as processor for merchant storefront data and does not decide those retention windows.
 
 ## Related
 
 <Cards>
   <Card title="Auth & tenant" href="/docs/apps/storefront/auth-tenant" description="Storefront auth and tenant resolution." />
-  <Card title="Checkout flow" href="/docs/architecture/checkout-flow" description="Payment session metadata (UUIDs only)." />
+  <Card title="Checkout flow" href="/docs/architecture/checkout-flow" description="Payment session metadata." />
   <Card title="Multi-tenant platform" href="/docs/architecture/multi-tenant" description="RLS and organization isolation." />
 </Cards>

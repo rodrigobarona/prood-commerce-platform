@@ -17,6 +17,9 @@ export const siteConfig = {
     registeredName: "BÚZIOS E TARTARUGAS - LDA",
     vat: "515001708",
     address: "Rua Gil Vicente 2, 2775-198 Parede, Portugal",
+    registry: "Conservatória do Registo Comercial de Cascais",
+    /** Shown on /terms, /privacy, /dpa and /subprocessors. Change it with the text, never alone. */
+    updated: "7 November 2026",
   },
   /** Registrable domain for merchant stores; kept apart from prood.com on purpose. */
   storeDomain: "prood.app",

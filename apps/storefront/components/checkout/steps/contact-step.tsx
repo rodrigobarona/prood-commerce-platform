@@ -4,7 +4,6 @@ import { useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { CommerceButton } from "@prood/ui/components/commerce-button"
-import { Checkbox } from "@prood/ui/components/checkbox"
 import { Input } from "@prood/ui/components/input"
 import {
   Field,
@@ -32,7 +31,6 @@ export function ContactStep({ defaultValues, geoCountry, onChange, onSubmit }: C
     defaultValues: {
       email: "",
       phone: "",
-      marketingOptIn: false,
       ...defaultValues,
     },
   })
@@ -95,24 +93,6 @@ export function ContactStep({ defaultValues, geoCountry, onChange, onSubmit }: C
             {fieldState.invalid && (
               <FieldError id={`${field.name}-error`} errors={[fieldState.error]} />
             )}
-          </Field>
-        )}
-      />
-
-      <Controller
-        name="marketingOptIn"
-        control={form.control}
-        render={({ field }) => (
-          <Field orientation="horizontal">
-            <Checkbox
-              id={field.name}
-              checked={field.value}
-              onCheckedChange={field.onChange}
-              className="border-input bg-card"
-            />
-            <FieldLabel htmlFor={field.name} className="font-normal">
-              Email me with news and offers
-            </FieldLabel>
           </Field>
         )}
       />
