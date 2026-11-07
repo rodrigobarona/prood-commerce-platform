@@ -18,6 +18,14 @@ const nextConfig: NextConfig = {
       ...(process.env.S3_PUBLIC_URL ? [new URL(`${process.env.S3_PUBLIC_URL.replace(/\/$/, "")}/**`)] : []),
     ],
   },
+  // The gateway only ever asks this project for paths under admin, so an address without it means
+  // someone opened the project's own *.vercel.app address: send them to the real one.
+  redirects: async () => {
+    const home = process.env.NEXT_PUBLIC_ADMIN_URL
+    return home
+      ? [{ source: "/:path((?!admin(?:/|$)|_next/).*)", destination: `${home}/:path`, basePath: false as const, permanent: false }, { source: "/", destination: home, basePath: false as const, permanent: false }]
+      : []
+  },
   headers: async () => securityHeaders({ noindex: true }),
 }
 

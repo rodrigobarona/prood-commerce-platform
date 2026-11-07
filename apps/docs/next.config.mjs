@@ -16,6 +16,12 @@ const config = {
   images: {
     remotePatterns: [mediaRemotePattern],
   },
+  // The gateway only asks this project for /docs, /api/search and its assets, so the project's own
+  // root address means someone opened its *.vercel.app address: send them to the real docs.
+  redirects: async () => {
+    const home = process.env.NEXT_PUBLIC_DOCS_URL;
+    return home ? [{ source: '/', destination: `${home.replace(/\/$/, '')}/docs`, permanent: false }] : [];
+  },
   headers: async () =>
     securityHeaders({
       // The API playground calls /v1 from the browser. In production the API shares this

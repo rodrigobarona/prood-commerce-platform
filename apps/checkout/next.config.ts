@@ -26,6 +26,14 @@ const nextConfig: NextConfig = {
   },
   // Stripe.js and the Elements frames. The Permissions-Policy hands `payment` to
   // Stripe's frame so wallets (Apple Pay, Google Pay) can open.
+  // The gateway only ever asks this project for paths under pay, so an address without it means
+  // someone opened the project's own *.vercel.app address: send them to the real one.
+  redirects: async () => {
+    const home = process.env.CHECKOUT_URL
+    return home
+      ? [{ source: "/:path((?!pay(?:/|$)|_next/).*)", destination: `${home}/:path`, basePath: false as const, permanent: false }, { source: "/", destination: home, basePath: false as const, permanent: false }]
+      : []
+  },
   headers: async () =>
     securityHeaders({
       scriptSrc: ["https://js.stripe.com"],
