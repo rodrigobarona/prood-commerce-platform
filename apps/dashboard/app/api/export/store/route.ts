@@ -1,9 +1,9 @@
 import { headers } from "next/headers"
-import { getCommerceApiBaseUrl } from "@/lib/commerce-api"
+import { getCommerceApiOrigin } from "@/lib/commerce-api"
 
 /** Passes the signed-in merchant's download through from the API, which checks who is asking. */
 export async function GET() {
-  const upstream = await fetch(`${getCommerceApiBaseUrl()}/api/store/export`, {
+  const upstream = await fetch(`${getCommerceApiOrigin()}/api/store/export`, {
     headers: { cookie: (await headers()).get("cookie") ?? "" },
     cache: "no-store",
   })

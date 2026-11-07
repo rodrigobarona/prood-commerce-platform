@@ -20,6 +20,13 @@ export function signInErrorMessage(error: AuthError): string {
   return "We couldn't sign you in. Something went wrong on our side. Try again in a moment."
 }
 
+/** A passkey that didn't sign anyone in: the person closed the prompt, or it didn't match. */
+export function passkeySignInErrorMessage(error: AuthError): string {
+  if (error.status === 429 || error.code === "BANNED_USER") return signInErrorMessage(error)
+  if (error.status >= 500) return signInErrorMessage(error)
+  return "We couldn't sign you in with a passkey. Try again, or use your password."
+}
+
 export function isExistingAccount(error: AuthError): boolean {
   return EXISTING_ACCOUNT.has(error.code ?? "")
 }

@@ -1,9 +1,9 @@
-// Same-origin auth endpoints, forwarded to the apps/api auth issuer.
+// Same-origin auth endpoints, forwarded to the apps/api auth issuer. The admin never trusts a device.
 export {
-  proxyAuthRequest as GET,
-  proxyAuthRequest as POST,
-  proxyAuthRequest as PATCH,
-  proxyAuthRequest as PUT,
-  proxyAuthRequest as DELETE,
-  proxyAuthRequest as OPTIONS,
+  proxyAdminAuthRequest as GET,
+  proxyAdminAuthRequest as POST,
+  proxyAdminAuthRequest as PATCH,
+  proxyAdminAuthRequest as PUT,
+  proxyAdminAuthRequest as DELETE,
+  proxyAdminAuthRequest as OPTIONS,
 } from "@prood/auth/proxy"

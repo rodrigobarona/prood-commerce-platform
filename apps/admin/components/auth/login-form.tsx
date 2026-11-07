@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { safeRedirectPath } from "@prood/types"
@@ -29,7 +29,14 @@ function signInErrorMessage(error: { code?: string; status: number }): string {
   }
 }
 
-export function AdminLoginForm() {
+/** The same for a passkey that didn't sign anyone in: the person closed the prompt, or it didn't match. */
+function passkeyErrorMessage(error: { code?: string; status: number }): string {
+  if (error.status === 429 || error.code === "BANNED_USER" || error.status >= 500) return signInErrorMessage(error)
+  return "We couldn't sign you in with a passkey. Try again, or use your password."
+}
+
+/** `passkeys` is true when the API has passkeys configured. Otherwise sign-in is the password form alone. */
+export function AdminLoginForm({ passkeys }: { passkeys: boolean }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = safeRedirectPath(searchParams.get("redirect"))
@@ -39,6 +46,41 @@ export function AdminLoginForm() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({})
+
+  // Browsers offer saved passkeys from the email field. One that isn't supported, or that
+  // the person ignores, ends with an error we don't show. Choosing the button aborts this request.
+  useEffect(() => {
+    if (!passkeys) return
+    void authClient.signIn.passkey({
+      autoFill: true,
+      fetchOptions: {
+        onSuccess() {
+          router.push(redirect)
+          router.refresh()
+        },
+      },
+    })
+  }, [passkeys, redirect, router])
+
+  async function handlePasskey() {
+    setLoading(true)
+    setError(null)
+    try {
+      const { error: passkeyError } = await authClient.signIn.passkey({
+        fetchOptions: {
+          onSuccess() {
+            router.push(redirect)
+            router.refresh()
+          },
+        },
+      })
+      if (passkeyError) setError(passkeyErrorMessage({ code: "code" in passkeyError ? passkeyError.code : undefined, status: passkeyError.status }))
+    } catch {
+      setError("We couldn't sign you in. The request didn't finish. Try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -81,7 +123,7 @@ export function AdminLoginForm() {
           <Input
             id="email"
             type="email"
-            autoComplete="email"
+            autoComplete={passkeys ? "username webauthn" : "email"}
             required
             aria-invalid={fieldErrors.email ? true : undefined}
             aria-describedby={fieldErrors.email ? "email-error" : undefined}
@@ -120,6 +162,11 @@ export function AdminLoginForm() {
         <Button type="submit" size="lg" disabled={loading}>
           {loading ? "Signing in…" : "Sign in"}
         </Button>
+        {passkeys ? (
+          <Button type="button" variant="outline" size="lg" disabled={loading} onClick={handlePasskey}>
+            Sign in with a passkey
+          </Button>
+        ) : null}
       </form>
     </div>
   )

@@ -22,9 +22,9 @@ const sections: readonly LegalSection[] = [
     id: "summary",
     body: {
       list: [
-        "We collect what we need to run Prood, and we never sell personal data.",
-        "Our application and database run in Frankfurt. Some providers we rely on are in the United States, and [outside the EEA](#transfers) says which and why.",
-        "We set only the cookies Prood needs to work. Visit statistics load only if you allow them, and set no cookie.",
+        "We collect what we need to run Prood, and we do not sell personal data.",
+        "Our application and database are set up to run in Frankfurt. Some providers we rely on are in the United States, and [outside the EEA](#transfers) says which and why.",
+        "We set only the cookies Prood needs to work, or that remember a choice you made. Visit statistics load only if you allow them, and set no cookie.",
         "We don't build profiles and make no decisions about you by automated means alone.",
         `You can exercise your rights by writing to [${email}](mailto:${email}).`,
       ],
@@ -42,7 +42,7 @@ const sections: readonly LegalSection[] = [
               "Visiting prood.com, a store or any Prood app",
               "IP address, browser details, address requested, time",
               "Delivering pages, preventing abuse, fixing faults. Legitimate interests, Art. 6(1)(f): a secure, working service",
-              "Technical logs are kept by our hosting provider for a limited time, and used only to investigate faults and attacks",
+              "Technical logs are kept by our hosting provider for a short period it sets, and we use them only to investigate faults and attacks",
             ],
             [
               "Visit statistics, only if you allow them",
@@ -54,7 +54,7 @@ const sections: readonly LegalSection[] = [
               "Your privacy choice",
               "Your choice, a random session ID, and the IP address, language and browser details of the request",
               "Showing the banner and proving what you chose, with INTH. Legitimate interests, Art. 6(1)(f), and our duty to show consent was given (Art. 7(1))",
-              "The choice is kept in your browser for 12 months, and asked again after that. The record is kept for as long as we may need to prove it, and deleted on request",
+              "The choice is kept in your browser for 12 months, and we ask again after that. The record is kept for as long as we may need to prove what you chose, which we review every year, and is deleted on request",
             ],
             [
               "Creating a Prood account",
@@ -70,7 +70,7 @@ const sections: readonly LegalSection[] = [
             ],
             [
               "API keys and AI agents",
-              "Key name, prefix and last use (the key itself is stored as a hash), agent name, what an agent did (type, capability, status, duration) but never the data it sent or received",
+              "Key name, prefix and last use (the key itself is stored as a hash), agent name, what an agent did (type, capability, status, duration) but not the content it sent or received",
               "Running the API, showing activity and keeping stores safe. Contract, Art. 6(1)(b), and legitimate interests, Art. 6(1)(f)",
               "Agent activity is deleted after 24 months. The rest stays while the organization exists",
             ],
@@ -81,8 +81,20 @@ const sections: readonly LegalSection[] = [
               "Invoices and accounting records for 10 years, as Portuguese tax and accounting law requires",
             ],
             [
+              "Linking your past guest orders to your account",
+              "Your verified email address, and the references of orders placed with it as a guest in any store",
+              "Showing you your orders in one place after you create an account and verify your email address. Contract, Art. 6(1)(b), at your request. We use the order references only for this",
+              "While the account is open",
+            ],
+            [
+              "Address suggestions at checkout",
+              "The address text you type, and your IP address, sent from your browser to Geoapify",
+              "Helping you fill in your address. This is done for the store you are buying from, which is the controller, under our data processing terms. It is listed here so you can see where your IP address goes",
+              "Geoapify's own retention. We don't keep it",
+            ],
+            [
               "What Prood administrators do to accounts",
-              "Who did it, what they did (a ban, a role change, signing a device out, revoking an agent), to which account, when, and their IP address",
+              "Who did it, what they did in the admin console (a ban, a role change, signing a device out, resetting two-factor, revoking an agent), to which account, when, and their IP address. Changes made by calling the sign-in API directly, and impersonation, are not recorded yet",
               "Accountability for staff access to accounts. Legitimate interests, Art. 6(1)(f)",
               "24 months",
             ],
@@ -125,7 +137,7 @@ const sections: readonly LegalSection[] = [
         ],
       },
       "On your account page in a store you can download the sign-in details we hold about you and delete your account. Deleting it removes your sign-in, your sessions and the link to your orders. The stores keep the orders you placed, because they need them for their own records, and a request about those goes to the store.",
-      "At checkout, details you type are held for the order for 24 hours, or up to 7 days while a payment reference such as Multibanco is waiting to be paid. Address suggestions come from Geoapify, which receives the address text you type. Card and bank details go to the payment provider the store has connected (Stripe, Easypay or Ifthenpay), and not to us. That provider is the store's own, with its own notice and terms, and receives your name, contact details and the amount.",
+      "At checkout, details you type are held for the order for 24 hours, or up to 7 days while a payment reference such as Multibanco is waiting to be paid. Address suggestions come from Geoapify, which receives the address text you type and your IP address. Card and bank details go to the payment provider the store has connected (Stripe, Easypay or Ifthenpay), and not to us. That provider is the store's own, with its own notice and terms, and receives your name, contact details and the amount.",
       "Stores don't send marketing email through Prood. Shopper emails from Prood are about an order or an account, such as confirmations, shipping and password resets. They come from Prood's sender address and carry the store's name.",
     ],
   },
@@ -152,7 +164,7 @@ const sections: readonly LegalSection[] = [
             ["Resend", "Processor", "Sends service email", "Email addresses, names, message content"],
             ["Geoapify", "Processor", "Address suggestions at checkout", "The address text you type, and your IP address"],
             ["INTH", "Processor", "Privacy banner and consent records, Frankfurt", "Your choice, session ID, IP address, language, browser details"],
-            ["Stripe", "Processor, and an independent controller for its own legal duties", "Collects Prood's own plan fees, once paid plans exist", "The organization's name, owner's email, billing address, tax number"],
+            ["Stripe", "Independent controller (payment processing)", "Collects Prood's own plan fees, once paid plans exist", "The organization's name, owner's email, billing address, tax number"],
             ["A store's own payment provider (Stripe, Easypay, Ifthenpay)", "The store's own provider", "Takes the shopper's payment for the store", "Name, contact details, amount, and the payment details the shopper enters with them"],
           ],
         },
@@ -168,7 +180,7 @@ const sections: readonly LegalSection[] = [
       {
         list: [
           "Vercel's network delivers pages from the location nearest you, worldwide, and Vercel may process logs in the United States.",
-          "Neon, Upstash, Cloudflare and Resend are US companies. Their staff outside the EEA may have access for support and security, and Resend stores message data and logs in the United States.",
+          "Databricks and Neon, Upstash, Cloudflare and Resend are US companies. Their staff outside the EEA may have access for support and security, and Resend stores message data and logs in the United States.",
           "Stripe, Easypay and Ifthenpay process payments under their own terms and locations.",
         ],
       },
@@ -179,25 +191,27 @@ const sections: readonly LegalSection[] = [
     title: "Cookies and similar storage",
     id: "cookies",
     body: [
-      "Prood sets only the cookies it needs to work, or that remember a choice you made. These need no consent under Art. 5 of Portuguese Law 41/2004. The only thing that does need it, visit statistics, is off until you allow it in the banner shown on your first visit. You can change your choice at any time with **Cookie settings** in the footer of prood.com and of every store. We don't use advertising cookies.",
+      "Prood sets the cookies it needs to work, or that remember a choice you made. These need no consent under Art. 5 of Portuguese Law 41/2004. The only thing that does need it, visit statistics, is off until you allow it in the banner shown on your first visit. You can change your choice at any time with **Cookie settings** in the footer of prood.com and of every store. We don't use advertising cookies.",
       {
         table: {
           head: ["Name", "Where", "Purpose", "Lasts"],
           rows: [
             [
               "`__Secure-better-auth.session_token`",
-              "Sign-in on dashboard.prood.com, admin.prood.com and api.prood.com, and on a store if a shopper signs in",
-              "Keeps you signed in. Called `better-auth.session_token` outside production",
+              "When you sign in to the dashboard, admin console or API. It can also be sent to other prood.com sites, and is set on a store if a shopper signs in",
+              "Keeps you signed in",
               "7 days from last use",
             ],
+            ["`better-auth.two_factor`", "Dashboard and admin, during the second sign-in step", "Holds your sign-in between your password and your code", "10 minutes"],
+            ["`better-auth.trust_device`", "Dashboard only, and only if you tick “Trust this device”", "Skips the code on this browser", "30 days"],
             ["`commerce_cart_id`", "Stores", "Keeps your cart", "30 days"],
-            ["`sidebar_state`", "Dashboard and admin", "Remembers whether the side menu is open", "7 days"],
+            ["`sidebar_state`", "Dashboard and admin", "Remembers whether the side menu is open, because you chose it", "7 days"],
             ["`c15t`", "prood.com and stores", "Remembers your privacy choice", "12 months"],
           ],
         },
       },
-      "Your browser's own storage holds a few more things that never reach our servers by themselves: `theme` (light or dark), `saved-for-later` (items you set aside in a store) and `prood-checkout` (details you typed during checkout, cleared when the tab closes), plus a few `c15t` entries for your privacy choice.",
-      "Stripe's checkout, when a store uses Stripe, may set its own cookies for fraud prevention, under Stripe's own notice. Vercel Web Analytics sets no cookie.",
+      "Your browser's own storage holds a few more things that never reach our servers by themselves: `theme` (light or dark), `saved-for-later` (items you set aside in a store) and `prood-checkout` (details you typed during checkout, cleared when the tab closes), plus a few `c15t` entries for your privacy choice. They hold what you chose or typed, to make the site work as you left it.",
+      "When a store uses Stripe, Stripe's checkout may set its own cookies for fraud prevention, under Stripe's own notice. Vercel Web Analytics sets no cookie.",
     ],
   },
   {
@@ -205,7 +219,7 @@ const sections: readonly LegalSection[] = [
     id: "rights",
     body: [
       "You can ask us for access to your data and a copy of it, to correct, delete or restrict it, or to receive it in a portable form. You can object to processing, and you can withdraw consent at any time, which does not affect earlier processing.",
-      "Most of this you can do yourself. In the dashboard, **Profile → Your data** downloads a copy of your account and deletes it, and **Store settings** downloads a store's data and deletes the store. Shoppers do the same on their account page in a store. A store's owner or admin can erase a single shopper from the customer's page in the dashboard. Deleting an account removes your name, email address, sign-in methods, sessions and memberships at once. If you are the only owner of a store, you delete the store or add another owner first. Backups held by our database provider age out on its own schedule.",
+      "Most of this you can do yourself. In the dashboard, **Profile → Your data** downloads a copy of your account and deletes it, and **Store settings** downloads a store's data and deletes the store. Shoppers do the same on their account page in a store. A store's owner or admin can erase a single shopper from the customer's page in the dashboard. A review written under a shopper's name stays until the store removes it. Deleting an account removes your name, email address, sign-in methods, sessions and memberships at once. Activity records that carry only an internal account number, such as what an AI agent did or what an administrator did to the account, stay for 24 months. If you are the only owner of a store, you delete the store or add another owner first. Backups held by our database provider age out on its own schedule.",
       `For anything else, write to [${email}](mailto:${email}). We reply within one month, may ask you to confirm your identity, and charge nothing unless a request is manifestly unfounded or excessive. If your data is in a store's orders, we pass your request to the store, which is its controller, and help it answer.`,
       "You may complain to the Portuguese supervisory authority, the [Comissão Nacional de Proteção de Dados](https://www.cnpd.pt), or to the authority where you live or work.",
     ],
@@ -214,7 +228,7 @@ const sections: readonly LegalSection[] = [
     title: "Other things you should know",
     id: "other",
     body: [
-      "To create an account we need your name and email address. Nothing else is required to use our website. Prood is for businesses and is not aimed at children, but a store's shoppers can be anyone the store sells to.",
+      "You don't have to give us any data to read this website. To create an account we need your name and email address, and without them we can't create it. Prood is for businesses. Stores sell to the public, and a store's own notice governs what it does with the data of children.",
       "We make no decisions about you by automated means alone, and we do not build profiles.",
     ],
   },
@@ -222,7 +236,7 @@ const sections: readonly LegalSection[] = [
     title: "Changes",
     id: "changes",
     body: [
-      "If we change this notice in a way that matters, we will update the date at the top and email account holders before the change applies. Earlier versions are available on request.",
+      "If we change this notice in a way that matters, we will update the date at the top of this page, and email account holders before the change applies. Earlier versions are available on request.",
     ],
   },
 ]

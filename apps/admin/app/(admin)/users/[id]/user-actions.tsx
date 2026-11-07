@@ -18,6 +18,7 @@ import {
 } from "@prood/ui/components/select"
 import {
   banUser,
+  resetUserTwoFactor,
   revokeAllUserSessions,
   setUserRole,
   unbanUser,
@@ -167,5 +168,29 @@ export function UserDangerZone({ user }: UserActionsProps) {
         </div>
       }
     />
+  )
+}
+
+/** For someone who lost their phone and their backup codes. The owner checks who they are first. */
+export function UserTwoFactorReset({ user }: { user: { id: string; name: string } }) {
+  const run = useRunAction()
+
+  return (
+    <Panel
+      title="Two-factor sign-in"
+      description="This person has two-factor turned on. Reset it only after you have checked it is really them, for example by a reply from their own address plus something only they would know."
+      footer={
+        <ConfirmAction
+          label="Reset two-factor"
+          variant="outline"
+          title={`Reset two-factor for ${user.name}?`}
+          description="It removes their authenticator app and backup codes and signs them out everywhere. They sign in with their password and can turn it on again. This is recorded in the audit log."
+          confirmLabel="Reset two-factor"
+          onConfirm={() => run(() => resetUserTwoFactor(user.id), "Two-factor reset.", "We couldn't reset it.")}
+        />
+      }
+    >
+      <p className="text-sm text-muted-foreground">Tell them it was reset, so they can set it up again.</p>
+    </Panel>
   )
 }

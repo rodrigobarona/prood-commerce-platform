@@ -18,6 +18,7 @@
     "./rate-limit-storage": "./src/rate-limit-storage.ts",
     "./password-reset-panels": "./src/password-reset-panels.tsx",
     "./two-factor": "./src/two-factor.ts",
+    "./passkey-config": "./src/passkey-config.ts",
     "./two-factor-panel": "./src/two-factor-panel.tsx",
     "./admin-role": "./src/admin-role.ts",
     "./billing": "./src/billing.ts",
@@ -29,7 +30,8 @@
     "./download": "./src/download.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@better-auth/api-key": "catalog:",
@@ -53,6 +55,8 @@
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
   }
 }

@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm"
 import { authDb } from "./db"
-import { account, adminAuditEvent, agent, invitation, member, organization, session, user } from "./schema"
+import { account, adminAuditEvent, agent, invitation, member, organization, passkey, session, user } from "./schema"
 
 /**
  * Everything the sign-in system holds about one person: Art. 15 and Art. 20
@@ -26,7 +26,7 @@ export async function exportAccountData(userId: string) {
     .where(eq(user.id, userId))
   if (!profile) return null
 
-  const [signInMethods, sessions, memberships, invitationsSent, invitationsToYou, agents, adminActionsOnYou] = await Promise.all([
+  const [signInMethods, sessions, memberships, invitationsSent, invitationsToYou, agents, passkeys, adminActionsOnYou] = await Promise.all([
     authDb
       .select({ provider: account.providerId, createdAt: account.createdAt })
       .from(account)
@@ -81,6 +81,16 @@ export async function exportAccountData(userId: string) {
       })
       .from(agent)
       .where(eq(agent.userId, userId)),
+    // Which devices can sign in. The public key and credential ID are never exported.
+    authDb
+      .select({
+        name: passkey.name,
+        deviceType: passkey.deviceType,
+        backedUp: passkey.backedUp,
+        createdAt: passkey.createdAt,
+      })
+      .from(passkey)
+      .where(eq(passkey.userId, userId)),
     // What a Prood administrator did to this account (a ban, a role change, signing a device out).
     authDb
       .select({ action: adminAuditEvent.action, createdAt: adminAuditEvent.createdAt })
@@ -88,5 +98,5 @@ export async function exportAccountData(userId: string) {
       .where(eq(adminAuditEvent.targetId, userId)),
   ])
 
-  return { profile, signInMethods, sessions, memberships, invitationsSent, invitationsToYou, agents, adminActionsOnYou }
+  return { profile, signInMethods, sessions, memberships, invitationsSent, invitationsToYou, agents, passkeys, adminActionsOnYou }
 }

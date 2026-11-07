@@ -30,6 +30,10 @@ export const user = pgTable("user", {
   stripeCustomerId: text("stripe_customer_id"),
   // Set by the two-factor plugin once a person has confirmed an authenticator app.
   twoFactorEnabled: boolean("two_factor_enabled").default(false),
+  // The terms a merchant accepted when they signed up (see LEGAL_VERSION), and when. Shoppers
+  // on a store don't accept the merchant terms, so for them both stay empty.
+  termsVersion: text("terms_version"),
+  termsAcceptedAt: timestamp("terms_accepted_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 })
@@ -376,4 +380,28 @@ export const adminAuditEvent = pgTable(
     index("admin_audit_event_created_idx").on(table.createdAt),
     index("admin_audit_event_actor_idx").on(table.actorId, table.createdAt),
   ]
+)
+
+/**
+ * A passkey (WebAuthn credential) one person registered. Like the other auth
+ * tables, it is read through the connecting role only.
+ */
+export const passkey = pgTable(
+  "passkey",
+  {
+    id: text("id").primaryKey(),
+    name: text("name"),
+    publicKey: text("public_key").notNull(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    credentialID: text("credential_id").notNull(),
+    counter: integer("counter").notNull(),
+    deviceType: text("device_type").notNull(),
+    backedUp: boolean("backed_up").notNull(),
+    transports: text("transports"),
+    createdAt: timestamp("created_at"),
+    aaguid: text("aaguid"),
+  },
+  (table) => [index("passkey_user_id_idx").on(table.userId), index("passkey_credential_id_idx").on(table.credentialID)]
 )

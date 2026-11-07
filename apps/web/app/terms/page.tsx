@@ -20,10 +20,10 @@ const sections: readonly LegalSection[] = [
     title: "The contract",
     id: "contract",
     body: [
-      "These terms and our [data processing terms](/dpa) form the contract between us and the organization you create or join in Prood (the “Customer”). It starts when someone creates an account for the organization, or uses Prood for it, after being shown these terms. That person confirms that they are allowed to bind the organization.",
+      "These terms and our [data processing terms](/dpa) form the contract between us and the organization you create or join in Prood (the “Customer”). It starts when someone creates an account for the organization and ticks the box that says they accept these terms and the data processing terms, on the sign-up form that links to them. That person confirms that they are allowed to bind the organization. We record which version they accepted and when.",
       "Prood is for professional use. The Customer confirms that it acts for business purposes and is not a consumer.",
       "Shoppers who buy from a store are not our customers. They buy from the store's owner, on that owner's terms. We are not a party to those sales.",
-      "These documents stay available on this site to read, save and print. Earlier versions are available on request.",
+      "“Customer Data” means the content and data the Customer puts into Prood or collects through its store, including its shoppers' personal data. These documents stay available on this site to read, save and print. Earlier versions are available on request.",
     ],
   },
   {
@@ -31,7 +31,7 @@ const sections: readonly LegalSection[] = [
     id: "service",
     body: [
       "Prood is a commerce platform: storefronts on `{store}.prood.app` or on the Customer's own domain, a merchant dashboard, hosted checkout, a REST API, an MCP server and Agent Auth for AI agents.",
-      "Prood is in an early stage. Features and limits may change, and there is no service-level commitment. What is not built yet is listed on the [pricing](/pricing) and [merchants](/merchants) pages, and we don't promise it until it is. The service runs on the infrastructure and with the subcontractors listed on our [sub-processors page](/subprocessors), which forms part of this contract.",
+      "Prood is in an early stage. Features and limits may change, and there is no service-level commitment. What is not built yet is listed on the [merchants](/merchants) page, and we don't promise it until it is. The service runs on the infrastructure and with the sub-processors listed on our [sub-processors page](/subprocessors), which forms part of this contract.",
       "Prood does not rank, list or promote stores in a marketplace or search of its own, so no ranking rules apply.",
     ],
   },
@@ -66,7 +66,7 @@ const sections: readonly LegalSection[] = [
     title: "Payments",
     id: "payments",
     body: [
-      "Shoppers pay through the Customer's own Stripe, Easypay or Ifthenpay account. The Customer's contract with that provider is its own, and so are the provider's fees and rules. Prood doesn't hold, receive or transfer the Customer's money, and is not a payment institution.",
+      "Shoppers pay through the Customer's own Stripe, Easypay or Ifthenpay account. The Customer's contract with that provider is its own, and so are the provider's fees and rules. Prood doesn't hold, receive or transfer the Customer's money. Prood does not provide payment services: the payment provider does.",
       "The Customer gives us its provider credentials so that Prood can create payments, receive the provider's confirmations and show order status. We store them encrypted. The Customer must revoke them at the provider if it ends the contract or suspects misuse, and is responsible for what its provider account does. Prood is not responsible for a payment provider's service, availability, fees or decisions.",
     ],
   },
@@ -74,9 +74,10 @@ const sections: readonly LegalSection[] = [
     title: "Plans, fees and taxes",
     id: "fees",
     body: [
-      "Prood charges by plan, not by sale. Every store is on the Free plan today. It includes one store, 50 products, 100 orders a month, one team seat and one custom domain. At the limit, new products or orders are refused until the Customer is under it again or, for orders, until the next month.",
-      "Paid plans can't be bought yet. When they can, their prices will be shown in euros on the [pricing](/pricing) page, excluding VAT. Fees apply only if the Customer expressly chooses and accepts a paid plan. Staying on Free, or not answering, is never acceptance of fees. We will give at least 60 days' notice before we change a limit of the Free plan in a way that matters, and the Customer may leave without charge during that time.",
-      "Once paid plans exist: they renew monthly until cancelled, cancellation takes effect at the end of the paid period, and we issue an invoice for every payment as Portuguese law requires. Paid plans are billed through Stripe. Fees already paid for a period are not refunded, unless the law says otherwise.",
+      "Prood charges by plan, not by sale. Every store is on the Free plan today. It includes one store, 50 products, 100 orders a month, one team seat and one custom domain. At the limit, new products can't be added, and shoppers' new orders are refused until the next month.",
+      "The Admin API, Agent Auth and write access to the API belong to paid plans, and are refused on Free. Paid plans can't be bought yet, so those features are not available yet.",
+      "When paid plans can be bought, their prices will be shown in euros on the [pricing](/pricing) page, excluding VAT. We add Portuguese VAT unless an EU business customer gives us a valid VAT number, and we issue an invoice for every payment as Portuguese law requires. Fees apply only if the Customer expressly chooses and accepts a paid plan. Staying on Free, or not answering, is never acceptance of fees.",
+      "Paid plans renew monthly until cancelled, and cancelling takes effect at the end of the paid period. Paid plans are billed through Stripe. A period that has been paid for is not refunded, unless the law says otherwise. We will give at least 60 days' notice before we raise a price or change a limit in a way that matters, and the Customer may leave without charge before the change applies.",
     ],
   },
   {
@@ -107,16 +108,18 @@ const sections: readonly LegalSection[] = [
     id: "acceptable-use",
     body: [
       "Don't use Prood to sell or publish anything illegal, counterfeit, or that infringes someone's rights; to deceive shoppers; to send spam; to break into other people's systems or data; to test the security of Prood or others without permission; to overload or harm the service or other stores; or to resell access to Prood without our agreement.",
-      "To tell us about illegal content on a store hosted by Prood, write to [" + email + "](mailto:" + email + ") with the address of the page, why you think it is illegal and your name and email. That address is also our point of contact for authorities and for recipients of the service under Regulation (EU) 2022/2065 (the Digital Services Act). We read reports and may remove content or suspend a store, and we tell the Customer why unless the law forbids it.",
+      `To report illegal content on a store hosted by Prood, write to [${email}](mailto:${email}) with: the exact address of the page; why you think the content is illegal; your name and email address; and a statement that you believe in good faith that your report is accurate and complete. We confirm that we received it, look at it, and tell you what we decided. If we remove content or suspend a store, we tell the Customer why, at the latest when it takes effect, and how to complain or ask us to reconsider, unless the law forbids it. We may also act on our own judgement or on an authority's order.`,
+      "That address is also our point of contact for authorities and for users of the service under Regulation (EU) 2022/2065 (the Digital Services Act). You can write to us in English or Portuguese.",
     ],
   },
   {
     title: "Suspension and termination",
     id: "termination",
     body: [
-      "We may suspend or close a store, or an account, if it breaks these terms or the law, puts the service or others at risk, or if we are required to. Where we can, we give notice and a chance to fix the problem first, and we state the reason. We may end the contract for any other reason with at least 30 days' notice.",
+      "We may suspend or close a store, or an account, if it breaks these terms or the law, puts the service or others at risk, or if we are required to. Where we can, we give notice and a chance to fix the problem first. We always give a statement of reasons, at the latest when the suspension or closing takes effect, unless the law forbids it.",
+      "We may also end the contract without a fault by the Customer, with at least 30 days' notice and a statement of reasons.",
       "The Customer may stop using Prood at any time and may close its account by email. It may end the contract without notice if we change these terms in a way it doesn't accept, or in the cases these documents give.",
-      "If you disagree with a decision of ours, write to us. We answer within 14 days. We are willing to take a dispute to mediation, and will name the mediators here when we have agreed on them.",
+      "If you disagree with a decision of ours, write to us and say why. We answer within 14 days. If we can't settle it, we will take the dispute to mediation if you ask, with a mediator we agree on together.",
     ],
   },
   {
@@ -126,9 +129,10 @@ const sections: readonly LegalSection[] = [
       "Under Regulation (EU) 2023/2854 (the Data Act) the Customer may switch to another provider, or to its own systems, or delete its data. Prood does not charge for this. This is how it works:",
       {
         list: [
-          "**Notice.** We ask for no notice period. Closing is effective when you say so, and you pay nothing to leave.",
-          "**What you can take.** Download it yourself at any time, on any plan, under Store settings: one JSON file with your settings, products, categories, customers and addresses, orders with their items and history, returns and reviews. It leaves out payment provider credentials, which stay with you, and image files, which are public and which we remove on request. On a paid plan the Admin API also returns the data. If you need another format or help, email us and we answer within 30 days.",
-          "**Deletion.** An owner can delete the store under Store settings, and everything the store owns in our database is removed at once. Download your data first, because it can't be undone. If you ask us to close it by email, we keep the data for at least 30 days after the contract ends for you to retrieve, unless you ask us to delete it at once, and then delete it unless the law requires us to keep it. Copies in the backups of our database provider are overwritten on its own schedule.",
+          "**Notice.** We ask for no notice period. Closing is effective when you say so, and you pay nothing to leave. Fees for a paid period that has already begun are not refunded.",
+          "**What you can take.** Download it yourself at any time, on any plan, under Store settings: one JSON file with your settings, products, categories, customers and addresses, orders with their items and history, returns and reviews. It leaves out payment provider credentials, which stay with you, and image files, which are public and which we remove on request. On a paid plan the Admin API also returns the data. If you need anything not listed here, or another format, email us and we answer within 30 days.",
+          "**Deletion.** An owner can delete the store under Store settings, and everything the store owns in our database is removed at once. Download your data first, because it can't be undone.",
+          "**However the contract ends.** Whether you close it, we do, or it ends in any other way, you have at least 30 days from the end to ask for your data, unless you ask us to delete it at once. After that period we delete all of the Customer Data within 30 days, unless the law requires us to keep it. Copies in the backups of our database provider are overwritten on its own schedule.",
           "**If we can't.** Where a transition by request isn't possible in 30 days, we say so within 14 working days, with reasons and a date of up to seven months, and we keep the service running until then.",
           "**Addresses.** A `prood.app` address stops working when the store closes. A custom domain stays yours, and you point it elsewhere.",
         ],
@@ -144,10 +148,10 @@ const sections: readonly LegalSection[] = [
     ],
   },
   {
-    title: "Subcontractors",
+    title: "Sub-processors",
     id: "subcontractors",
     body: [
-      "We use the subcontractors named on our [sub-processors page](/subprocessors). The [data processing terms](/dpa) describe how we add or replace them, and the Customer's right to object.",
+      "We use the sub-processors named on our [sub-processors page](/subprocessors). The [data processing terms](/dpa) describe how we add or replace them, and the Customer's right to object.",
     ],
   },
   {
@@ -176,9 +180,9 @@ const sections: readonly LegalSection[] = [
           "anything else the law does not allow to be excluded or limited.",
         ],
       },
-      "Subject to that, we are not liable under this contract for loss of profit, loss of sales or business, or indirect or consequential loss. Our total liability under the contract is limited to €100 for all claims arising in any 12-month period. If the Customer pays us fees, the limit is the higher of €100 and the fees it paid us in those 12 months.",
-      "These limits also apply to the [data processing terms](/dpa), as their clause 13.1 explains. They do not affect the rights of data subjects under Article 82 of the GDPR.",
-      "The Customer is responsible for claims by third parties, including shoppers and authorities, that arise from its store, its Customer Data or its breach of these terms, except to the extent that we caused them.",
+      "Subject to that, we are not liable under this contract for loss of profit, loss of sales or business, or indirect or consequential loss. Our total liability under the contract for all claims arising from events in any 12-month period is limited to the higher of €1,000 and the fees the Customer paid us in the 12 months before the event. For a breach of the [data processing terms](/dpa) it is limited to the higher of €5,000 and twice those fees.",
+      "These limits do not affect the rights of data subjects under Article 82 of the GDPR.",
+      "The Customer is responsible for claims by third parties, including shoppers and authorities, to the extent they arise from the Customer's store, its Customer Data or its sales, or from its breach of these terms, except to the extent that we caused them. That responsibility is subject to the same exceptions as the first list above.",
     ],
   },
   {
@@ -206,8 +210,8 @@ const sections: readonly LegalSection[] = [
     title: "Law and courts",
     id: "law",
     body: [
-      "Portuguese law governs these terms and the contract. Disputes go exclusively to the courts of the Cascais judicial area (Comarca de Lisboa Oeste), unless mandatory rules on jurisdiction say otherwise.",
-      "Complaints can go to us at the address above, and to the electronic complaints book at [livroreclamacoes.pt](https://www.livroreclamacoes.pt).",
+      "Portuguese law governs these terms and the contract. Disputes go exclusively to the court of the judicial district of Lisboa Oeste (Cascais), unless mandatory rules on jurisdiction say otherwise.",
+      `Complaints can go to us at [${email}](mailto:${email}).`,
     ],
   },
 ]
@@ -216,7 +220,7 @@ export default function TermsPage() {
   return (
     <LegalPage
       title="Terms of service"
-      summary={`The contract between you and ${legal.name} for using Prood. It also covers how to use this website. Last updated ${legal.updated}.`}
+      summary={`The contract between you and ${legal.name} for using Prood. Last updated ${legal.updated}.`}
       sections={sections}
       related={[
         { label: "Privacy policy", href: "/privacy" },

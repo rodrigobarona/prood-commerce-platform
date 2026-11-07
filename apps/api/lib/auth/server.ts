@@ -4,6 +4,7 @@ import { nextCookies } from "better-auth/next-js"
 import { APIError, createAuthMiddleware } from "better-auth/api"
 import { admin, organization, twoFactor } from "better-auth/plugins"
 import { agentAuth } from "@better-auth/agent-auth"
+import { passkey } from "@better-auth/passkey"
 import {
   resolveBetterAuthEnv,
   resolveBetterAuthTrustedOrigins,
@@ -11,6 +12,7 @@ import {
 } from "@prood/auth/server"
 import { storeAccess } from "@prood/auth/access"
 import { authDb } from "@prood/auth/db"
+import { resolvePasskeyConfig } from "@prood/auth/passkey-config"
 import * as schema from "@prood/auth/schema"
 import { autoLinkGuestCustomers } from "@prood/platform"
 import { unlinkAuthUserFromCustomers } from "@prood/commerce/store-data"
@@ -22,7 +24,7 @@ import { sharedAuthOptions, sharedEmailAndPassword } from "@prood/auth/shared-op
 import { sendPasswordResetEmail } from "./password-reset-email"
 import { getAgentAuthOpenAPIOptions } from "./agent-config"
 import { recordPluginEvent } from "./agent-events"
-import { requiredEnv } from "@prood/types"
+import { LEGAL_VERSION, requiredEnv } from "@prood/types"
 import { getMailer } from "../mailer"
 import { billingPlugin, isPersonalBillingRequest } from "./billing"
 
@@ -43,6 +45,8 @@ function createAuth() {
   const dashboardUrl = requiredEnv(process.env.NEXT_PUBLIC_DASHBOARD_URL, "NEXT_PUBLIC_DASHBOARD_URL")
   const shared = sharedAuthOptions(CLIENT_IP_HEADER)
   const billing = billingPlugin()
+  // Off unless PASSKEY_RP_ID and PASSKEY_ORIGINS are both set: no route, no table access.
+  const passkeys = resolvePasskeyConfig()
 
   return betterAuth({
     database: drizzleAdapter(authDb, { provider: "pg", schema }),
@@ -63,11 +67,22 @@ function createAuth() {
           throw new APIError("FORBIDDEN", { message: "Plans are bought for a store." })
         }
         await guardRoleChange(ctx)
+        // Everyone who signs up here runs a store or joins one, so they accept the merchant
+        // terms. The sign-up form sends the version it showed; the account keeps it.
+        if (ctx.path === "/sign-up/email" && ctx.body?.termsVersion !== LEGAL_VERSION) {
+          throw new APIError("BAD_REQUEST", {
+            message: "Accept the terms of service and the data processing terms to create an account.",
+          })
+        }
       }),
     },
     // A person can delete their own account. Better Auth asks for the password, or for a
     // sign-in from the last day. Sessions, sign-in methods and memberships go with it.
     user: {
+      additionalFields: {
+        termsVersion: { type: "string", required: false, input: true },
+        termsAcceptedAt: { type: "date", required: false, input: false },
+      },
       deleteUser: {
         enabled: true,
         beforeDelete: async (user) => {
@@ -80,6 +95,15 @@ function createAuth() {
         },
         afterDelete: async (user) => {
           await unlinkAuthUserFromCustomers(user.id)
+        },
+      },
+    },
+    databaseHooks: {
+      user: {
+        create: {
+          before: async (user) => ({
+            data: { ...user, ...(user.termsVersion ? { termsAcceptedAt: new Date() } : {}) },
+          }),
         },
       },
     },
@@ -148,6 +172,10 @@ function createAuth() {
       // Nothing changes for an account that hasn't turned it on. Without `otpOptions`
       // there is no code by email, so a mailbox can't stand in for the app.
       twoFactor({ issuer: "Prood" }),
+      // Optional sign-in without a password. A passkey is already two factors, so signing
+      // in with one skips the authenticator-app challenge. Merchants and staff only: stores
+      // keep their own shopper sign-in.
+      ...(passkeys ? [passkey({ rpName: "Prood", ...passkeys })] : []),
       agentAuth({
         modes: ["delegated", "autonomous"],
         // The approval UI lives in the dashboard, not on the API origin.

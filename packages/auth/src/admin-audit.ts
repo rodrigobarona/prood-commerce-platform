@@ -7,6 +7,7 @@ export const ADMIN_ACTIONS = [
   "user.unban",
   "user.set_role",
   "user.revoke_sessions",
+  "user.reset_two_factor",
   "session.revoke",
   "agent.revoke",
 ] as const

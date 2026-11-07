@@ -9,13 +9,13 @@ Providers that handle personal data outside the EEA, the safeguard Prood states 
 | Provider | Role | Data | Location | Safeguard stated publicly | Notes |
 |---|---|---|---|---|---|
 | Vercel Inc. (USA) | Processor | All traffic, logs, visit statistics if allowed | Functions in Frankfurt (`fra1`: set in the Vercel project, not in the repo, so unverified from the code). Global delivery network. Logs may be processed in the USA | DPF and SCCs | DPF listing status and the SCC module for Prood's own data as controller: unverified. States SOC 2 Type 2, ISO 27001:2022 |
-| Databricks, Inc. and Neon, LLC (USA) | Processor | All stored platform data | Frankfurt (AWS `eu-central-1`) | SCCs | Which SCC module applies depends on the DPA actually accepted: **unverified whether one has been accepted**. DPA 7.2 says Module Three is in place |
+| Databricks, Inc. and Neon, LLC (USA) | Processor | All stored platform data | Frankfurt (AWS `eu-central-1`) | SCCs | Which SCC module applies depends on the DPA actually accepted: **unverified whether one has been accepted**. `/dpa` 7.2 no longer says a module was signed: it says Prood relies on the clauses in the sub-processor's own terms |
 | Upstash, Inc. (USA) | Processor | Checkout sessions (24 hours, or 7 days once a payment has started), rate-limit counters with IP addresses | Frankfurt (`prood-redis`) | SCCs | SOC 2 Type II stated. Whether a DPA has been signed: unverified |
-| Cloudflare, Inc. (USA) | Processor | Public images and their addresses | R2 bucket `prood-public`, EU jurisdiction. Delivered from a global network | DPF and SCCs | Per the owner's notes the bucket sits on Eleva's Cloudflare account, so Cloudflare's contract may be with Eleva and not with Búzios e Tartarugas: confirm who the processor's customer is. Not verifiable from the repo |
+| Cloudflare, Inc. (USA) | Processor | Public images and their addresses | R2 bucket `prood-public`, EU jurisdiction. Delivered from a global network | DPF and SCCs | Per the owner's notes the bucket sits on Eleva's Cloudflare account, so Cloudflare's contract may be with Eleva and not with Búzios e Tartarugas: confirm who the processor's customer is. The owner's notes also name a Worker on `rbarona.workers.dev` (`prood-media`): confirm whether it belongs to Prood or to Eleva. Not verifiable from the repo |
 | Plus Five Five, Inc., trading as Resend (USA) | Processor | Service email: addresses, names, message content | Message data and logs stored in the USA | SCCs | DPF status unverified, so public texts cite SCCs only. Delivery log period unverified |
 | Geoapify (Keptagon s.r.o.), Czech Republic | Processor | Address text typed at checkout, and the shopper's IP address, sent from the browser | EU | None needed | A DPA with Geoapify is still needed under Art. 28: unverified |
 | INTH | Processor | Choice, session ID, IP address, language, browser details | Frankfurt | Not needed for storage. Support access from outside the EEA covered by its terms | Unverified: INTH's legal entity and where its support staff sit. Retention period unverified |
-| Stripe Payments Europe, Ltd. (Ireland) | Likely a separate controller for payment data. `/privacy` calls it a processor: see [open items](./open-items.md) | Prood's own plan fees: organization name, owner's email, billing address, tax number | EU and USA | DPF and SCCs | Test mode only today. Applies once paid plans open |
+| Stripe Payments Europe, Ltd. (Ireland) | Independent controller for payment processing, as `/privacy` now states (counsel to confirm: see [open items](./open-items.md)) | Prood's own plan fees: organization name, owner's email, billing address, tax number | EU and USA | DPF and SCCs | Test mode only today. Applies once paid plans open |
 | A store's own Stripe, Easypay or Ifthenpay account | The merchant's own provider, not a Prood sub-processor | Name, contact details, amount, and payment details the shopper enters | Provider's own | Provider's own terms | Prood passes the data on the merchant's instruction. Easypay and Ifthenpay are Portuguese providers (location unverified) |
 | TOConline | Not live | Invoice data for Prood's own fees | Portugal (unverified) | None expected | Add here and to `/privacy` and `/subprocessors` when billing goes live (`_docs/LEGAL.md`) |
 
@@ -56,9 +56,10 @@ Changing a sub-processor needs 30 days' notice to merchants and 14 days for them
 
 ## Open
 
-- Whether DPAs have been accepted with every provider above, and which SCC module each uses (`/dpa` 7.2 says Module Three is in place).
+- Whether DPAs have been accepted with every provider above, and which SCC module each uses (`/dpa` 7.2 no longer claims Module Three, but the public safeguards column still rests on this).
 - Whether Vercel's own security-incident notices have been read.
-- The Cloudflare account holder: the R2 bucket sits on Eleva's account.
+- The Cloudflare account holder: the R2 bucket sits on Eleva's account, and so may the `rbarona.workers.dev` Worker.
+- Each provider's legal entity and whether it is on the Data Privacy Framework list: the public texts name them, nobody has checked.
 - Sub-processor lists of each provider (`/dpa` 6.5 links them from `/subprocessors`): nobody has checked they are current.
 
 See [open items](./open-items.md).

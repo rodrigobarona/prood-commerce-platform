@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
 import { demoteAdmin } from "@prood/auth/admin-role"
 import { recordAdminAction, type AdminAuditInput } from "@prood/auth/admin-audit"
+import { resetTwoFactor } from "@prood/auth/two-factor"
 import { getSessionToken } from "@/lib/admin-queries"
 import { assertAdmin, getAuth } from "@/lib/auth"
 
@@ -89,4 +90,18 @@ export async function revokeSession(sessionId: string, userId: string) {
   await audit(admin.user.id, { action: "session.revoke", targetType: "user", targetId: userId, metadata: { sessionId } })
   revalidatePath("/sessions")
   revalidatePath(`/users/${userId}`)
+}
+
+/**
+ * Lets someone back in who has lost both their phone and their backup codes. Only after the
+ * owner has checked who is asking (see _docs/compliance/data-subject-requests.md). An admin can't
+ * do it to themselves: a stolen admin session must not be able to remove its own second step.
+ */
+export async function resetUserTwoFactor(userId: string) {
+  const admin = await assertNotSelf(userId)
+  await resetTwoFactor(userId)
+  await audit(admin.user.id, { action: "user.reset_two_factor", targetType: "user", targetId: userId })
+  revalidatePath("/users")
+  revalidatePath(`/users/${userId}`)
+  revalidatePath("/sessions")
 }

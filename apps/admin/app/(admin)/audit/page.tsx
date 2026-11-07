@@ -28,6 +28,7 @@ const LABELS: Record<string, string> = {
   "user.unban": "Unbanned a user",
   "user.set_role": "Changed a user's role",
   "user.revoke_sessions": "Signed a user out everywhere",
+  "user.reset_two_factor": "Reset a user's two-factor",
   "session.revoke": "Signed one device out",
   "agent.revoke": "Revoked an AI agent",
 }

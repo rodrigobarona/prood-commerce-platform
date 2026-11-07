@@ -24,7 +24,7 @@ import {
 import { assertAdmin } from "@/lib/auth"
 import { describeUserAgent, humanize, plural, shortIp } from "@/lib/format"
 import { emailStatus, userStatus } from "@/lib/status"
-import { UserDangerZone, UserRoleForm } from "./user-actions"
+import { UserDangerZone, UserRoleForm, UserTwoFactorReset } from "./user-actions"
 
 const WIDE = "hidden @2xl:table-cell"
 /** The latest few on the page; the rest are a link away. */
@@ -82,6 +82,7 @@ export default async function UserDetailPage({
                 {user.banned && user.banReason ? (
                   <Fact label="Ban reason">{user.banReason}</Fact>
                 ) : null}
+                <Fact label="Two-factor">{user.twoFactorEnabled ? "On" : "Off"}</Fact>
                 <Fact label="Email">
                   <Status look={emailStatus(user.emailVerified)} />
                 </Fact>
@@ -94,6 +95,7 @@ export default async function UserDetailPage({
               </FactList>
             </Panel>
             {self ? null : <UserRoleForm user={user} />}
+            {self || !user.twoFactorEnabled ? null : <UserTwoFactorReset user={user} />}
           </>
         }
         main={

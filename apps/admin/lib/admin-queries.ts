@@ -282,9 +282,12 @@ export async function getUserCounts(): Promise<Record<"all" | UserFilter, number
   }
 }
 
+/** One user, with the detail only their own page shows. */
+export type UserDetail = UserRow & { twoFactorEnabled: boolean | null }
+
 export const getUserById = cache(async function getUserById(
   id: string
-): Promise<UserRow | null> {
+): Promise<UserDetail | null> {
   await assertAdmin()
   const rows = await db
     .select({
@@ -292,6 +295,7 @@ export const getUserById = cache(async function getUserById(
       name: schema.user.name,
       email: schema.user.email,
       emailVerified: schema.user.emailVerified,
+      twoFactorEnabled: schema.user.twoFactorEnabled,
       image: schema.user.image,
       role: schema.user.role,
       banned: schema.user.banned,

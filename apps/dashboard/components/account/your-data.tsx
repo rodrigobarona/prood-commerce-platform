@@ -30,7 +30,7 @@ export function YourData() {
       <Panel>
         <h2 className="font-sans text-base font-medium">Your data</h2>
         <p className="mt-1 max-w-prose text-sm text-muted-foreground">
-          A JSON file with your profile, sign-in methods, sessions, stores and agents. It leaves out your password and
+          A JSON file with your profile, sign-in methods, passkeys, sessions, stores and agents. It leaves out your password and
           keys. Your store&apos;s own data is on the store settings page.
         </p>
         <Button asChild variant="outline" className="mt-4">

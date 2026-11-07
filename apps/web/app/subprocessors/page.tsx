@@ -12,7 +12,7 @@ const sections: readonly LegalSection[] = [
     title: "Sub-processors for Customer Data",
     id: "customer-data",
     body: [
-      "These are the companies that process personal data for Prood's customers, and the list the [data processing terms](/dpa) refer to. Customers' owners get 30 days' notice by email before a change, and may object as the agreement explains.",
+      "These are the companies that process personal data for Prood's customers, and the list the [data processing terms](/dpa) refer to. Customers' owners get 30 days' notice by email before a change, and may object as the agreement explains. Certifications and locations are as the providers state them. Neon and Vercel run on Amazon Web Services infrastructure.",
       {
         table: {
           head: ["Company", "Service", "Where", "Transfer safeguard", "Certifications they state"],
@@ -65,10 +65,10 @@ const sections: readonly LegalSection[] = [
     ],
   },
   {
-    title: "Providers for Prood's own data",
+    title: "Other providers, for Prood's own data",
     id: "own-data",
     body: [
-      "We use these for data we control ourselves, as our [privacy policy](/privacy) explains. They do not process Customer Data.",
+      "We use these for data we control ourselves, as our [privacy policy](/privacy) explains. They do not process Customer Data, so they are not sub-processors under the data processing terms.",
       {
         table: {
           head: ["Company", "Service", "Where", "Transfer safeguard"],

@@ -13,6 +13,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@better-auth/passkey": "catalog:",
     "@better-auth/stripe": "catalog:",
     "@neondatabase/serverless": "catalog:",
     "@phosphor-icons/react": "catalog:",

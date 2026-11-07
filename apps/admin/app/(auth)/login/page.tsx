@@ -4,12 +4,13 @@ import { AccessDenied } from "@/components/auth/access-denied"
 import { AdminLoginForm } from "@/components/auth/login-form"
 import { LoginSkeleton } from "@/components/admin/skeletons"
 import { getSession } from "@/lib/auth"
+import { isPasskeyEnabled } from "@prood/auth/passkey-config"
 
 export const metadata = { title: "Sign in" }
 
 async function LoginGate() {
   const session = await getSession()
-  if (!session) return <AdminLoginForm />
+  if (!session) return <AdminLoginForm passkeys={isPasskeyEnabled()} />
   if (session.user.role === "admin") redirect("/")
   return <AccessDenied email={session.user.email} />
 }

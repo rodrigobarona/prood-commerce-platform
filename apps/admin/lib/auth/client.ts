@@ -1,5 +1,6 @@
 import { createAuthClient } from "better-auth/react"
 import { requiredEnv } from "@prood/types"
+import { passkeyClient } from "@better-auth/passkey/client"
 import { adminClient, organizationClient, twoFactorClient } from "better-auth/client/plugins"
 
 /** Same-origin /api/auth (proxied to apps/api); the env URL is only for SSR. */
@@ -13,6 +14,8 @@ export const authClient = createAuthClient({
   plugins: [
     adminClient(),
     organizationClient(),
+    // The routes only exist when the API has passkeys configured. The UI checks the same switch.
+    passkeyClient(),
     // A password sign-in for an account with two-factor on ends in a challenge, not a session.
     twoFactorClient({
       onTwoFactorRedirect() {

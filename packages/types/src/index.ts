@@ -7,6 +7,7 @@
 export type { Maybe, Id, LocalizedField, LocalizedString, PaginatedResult, PaginationParams, Price, DiscountablePrice, Image, DeepPartial, CommerceErrorCode, TaxStrategy } from './common.js'
 export { DEFAULT_LOCALE, DEFAULT_LOCALES, LOCALE_META } from './locale.js'
 export { contains } from './like-pattern.js'
+export { LEGAL_VERSION } from './legal.js'
 export { FIXED_SHIPPING_RATES } from './shipping-rates.js'
 export { MAX_STORE_SLUG_LENGTH, RESERVED_STORE_SLUGS, STORE_SLUG_PATTERN, slugify } from './slug.js'
 export type { SupportedLocale } from './locale.js'

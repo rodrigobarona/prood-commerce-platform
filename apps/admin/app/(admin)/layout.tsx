@@ -7,6 +7,7 @@ import { SkipLink } from "@prood/ui/components/skip-link"
 import { PageSkeleton, SidebarSkeleton } from "@/components/admin/skeletons"
 import { AdminHeader } from "@/components/layout/admin-header"
 import { AdminSidebar } from "@/components/layout/admin-sidebar"
+import { isTwoFactorEnabled } from "@prood/auth/two-factor"
 import { assertAdmin } from "@/lib/auth"
 
 function ShellContent({ children }: { children: ReactNode }) {
@@ -17,8 +18,26 @@ function ShellContent({ children }: { children: ReactNode }) {
   )
 }
 
+/** This console can see every account, so an admin without a second sign-in step is told to add one. */
+function TwoFactorNotice() {
+  const profile = `${(process.env.NEXT_PUBLIC_DASHBOARD_URL ?? "").replace(/\/$/, "")}/account`
+  return (
+    <p
+      role="status"
+      className="mb-6 rounded-lg border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-pretty"
+    >
+      Your admin account has no two-factor sign-in. This console can see every account on Prood, so turn it on under{" "}
+      <a href={profile} className="font-medium underline underline-offset-4">
+        Profile in the dashboard
+      </a>
+      .
+    </p>
+  )
+}
+
 async function AdminShell({ children }: { children: ReactNode }) {
   const session = await assertAdmin()
+  const twoFactor = await isTwoFactorEnabled(session.user.id)
 
   return (
     <SidebarProvider>
@@ -32,7 +51,10 @@ async function AdminShell({ children }: { children: ReactNode }) {
       />
       <SidebarInset className="min-w-0">
         <AdminHeader />
-        <ShellContent>{children}</ShellContent>
+        <ShellContent>
+          {twoFactor ? null : <TwoFactorNotice />}
+          {children}
+        </ShellContent>
       </SidebarInset>
     </SidebarProvider>
   )

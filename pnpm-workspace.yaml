@@ -46,6 +46,7 @@ catalog:
   # Auth
   better-auth: ^1.7.14
   "@better-auth/api-key": 1.7.14
+  "@better-auth/passkey": 1.7.14
   # Draft protocol with breaking changes between releases: keep this exact, and
   # see "Stability" in apps/docs/content/docs/apps/api/agent-auth.mdx before upgrading.
   "@better-auth/agent-auth": 0.6.2

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { headers } from "next/headers"
 import { ADMIN_ONLY_MESSAGE, canManageStore } from "@/lib/admin"
-import { getCommerceApiBaseUrl } from "@/lib/commerce-api"
+import { getCommerceApiOrigin } from "@/lib/commerce-api"
 
 /**
  * Erases one shopper from the store. The API route checks who is asking again, and refuses
@@ -15,7 +15,7 @@ export async function eraseCustomerAction(
   scrubOrders: boolean
 ): Promise<{ error?: string }> {
   if (!(await canManageStore())) return { error: ADMIN_ONLY_MESSAGE }
-  const res = await fetch(`${getCommerceApiBaseUrl()}/api/store/customers/${encodeURIComponent(customerId)}`, {
+  const res = await fetch(`${getCommerceApiOrigin()}/api/store/customers/${encodeURIComponent(customerId)}`, {
     method: "DELETE",
     headers: { cookie: (await headers()).get("cookie") ?? "", "content-type": "application/json" },
     body: JSON.stringify({ scrubOrders }),

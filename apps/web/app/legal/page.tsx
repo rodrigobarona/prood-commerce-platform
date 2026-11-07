@@ -35,7 +35,7 @@ const sections: readonly LegalSection[] = [
     id: "contact",
     body: [
       `For support, legal and contract matters, privacy and data rights, reports of illegal content and security issues, write to [${email}](mailto:${email}). It is also our point of contact for authorities and for users of the service under Regulation (EU) 2022/2065.`,
-      "Supervisory authority for data protection: the [Comissão Nacional de Proteção de Dados](https://www.cnpd.pt). Complaints book: [livroreclamacoes.pt](https://www.livroreclamacoes.pt).",
+      "You can write to us in English or Portuguese. Supervisory authority for data protection: the [Comissão Nacional de Proteção de Dados](https://www.cnpd.pt).",
     ],
   },
   {

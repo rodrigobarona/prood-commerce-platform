@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 import { Button } from "@prood/ui/components/button"
+import { Checkbox } from "@prood/ui/components/checkbox"
 import { Input } from "@prood/ui/components/input"
 import { Label } from "@prood/ui/components/label"
 import { PageHeader } from "@prood/ui/components/page-header"
@@ -15,7 +16,7 @@ import { authClient } from "@/lib/auth/client"
 import { isExistingAccount, signUpErrorMessage } from "@/lib/auth/messages"
 import { signUpErrors, type SignUpErrors } from "@/lib/auth/sign-up-errors"
 import { addressFromName, createStore } from "@/lib/create-store"
-import { requiredEnv, safeRedirectPath } from "@prood/types"
+import { LEGAL_VERSION, requiredEnv, safeRedirectPath } from "@prood/types"
 
 const webUrl = requiredEnv(process.env.NEXT_PUBLIC_WEB_URL, "NEXT_PUBLIC_WEB_URL")
 
@@ -43,6 +44,8 @@ export function RegisterForm() {
   const [error, setError] = useState<string | null>(null)
   const [accountExists, setAccountExists] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
+  const [termsError, setTermsError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<SignUpErrors>({})
 
   const loginHref = redirect === "/" ? "/login" : `/login?redirect=${encodeURIComponent(redirect)}`
@@ -56,13 +59,25 @@ export function RegisterForm() {
       document.getElementById(firstInvalid)?.focus()
       return
     }
+    if (!acceptedTerms) {
+      setTermsError("Tick the box to accept the terms, so we can create your account.")
+      document.getElementById("accept-terms")?.focus()
+      return
+    }
+    setTermsError(null)
 
     setLoading(true)
     setError(null)
     setAccountExists(false)
 
     try {
-      const { error: signUpError } = await authClient.signUp.email({ name, email, password })
+      // `termsVersion` is a field of the API's user model; the client's types don't know it.
+      const { error: signUpError } = await authClient.signUp.email({
+        name,
+        email,
+        password,
+        termsVersion: LEGAL_VERSION,
+      } as Parameters<typeof authClient.signUp.email>[0])
       if (signUpError) {
         setLoading(false)
         setError(signUpErrorMessage(signUpError))
@@ -182,21 +197,37 @@ export function RegisterForm() {
         <Button type="submit" size="lg" variant={joiningStore ? "default" : "brand"} disabled={loading}>
           {loading ? "Creating..." : joiningStore ? "Create account" : "Create account and store"}
         </Button>
-        <p className="text-xs text-pretty text-muted-foreground">
-          By creating an account you agree to the{" "}
-          <a href={`${webUrl}/terms`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
-            terms of service
-          </a>{" "}
-          and{" "}
-          <a href={`${webUrl}/dpa`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
-            data processing terms
-          </a>
-          . Read how we handle your data in the{" "}
-          <a href={`${webUrl}/privacy`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
-            privacy policy
-          </a>
-          .
-        </p>
+        <div className="flex items-start gap-3">
+          <Checkbox
+            id="accept-terms"
+            checked={acceptedTerms}
+            onCheckedChange={(value) => {
+              setAcceptedTerms(value === true)
+              if (value === true) setTermsError(null)
+            }}
+            aria-invalid={termsError ? true : undefined}
+            aria-describedby={termsError ? "accept-terms-error" : undefined}
+            className="mt-0.5"
+          />
+          <div className="flex flex-col gap-1">
+            <Label htmlFor="accept-terms" className="text-xs leading-snug font-normal text-pretty text-muted-foreground">
+              I accept the{" "}
+              <a href={`${webUrl}/terms`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+                terms of service
+              </a>{" "}
+              and the{" "}
+              <a href={`${webUrl}/dpa`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+                data processing terms
+              </a>
+              , on behalf of my business, and I have read the{" "}
+              <a href={`${webUrl}/privacy`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+                privacy policy
+              </a>
+              .
+            </Label>
+            <FieldError id="accept-terms-error" message={termsError ?? undefined} />
+          </div>
+        </div>
         <p className="text-sm text-muted-foreground">
           Already have an account?{" "}
           <Link href={loginHref} className="text-foreground underline underline-offset-4">

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@prood/ui/components/button"
@@ -11,7 +11,7 @@ import { PageHeader } from "@prood/ui/components/page-header"
 import { PasswordInput } from "@prood/ui/components/password-input"
 import { emailError } from "@prood/ui/lib/auth-fields"
 import { authClient } from "@/lib/auth/client"
-import { signInErrorMessage } from "@/lib/auth/messages"
+import { passkeySignInErrorMessage, signInErrorMessage } from "@/lib/auth/messages"
 import { safeRedirectPath } from "@prood/types"
 
 const CONTACT = "hello@prood.com"
@@ -31,7 +31,8 @@ function EmailLink({ text }: { text: string }) {
   )
 }
 
-export function LoginForm() {
+/** `passkeys` is true when the API has passkeys configured. Otherwise sign-in is the password form alone. */
+export function LoginForm({ passkeys }: { passkeys: boolean }) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = safeRedirectPath(searchParams.get("redirect"))
@@ -41,6 +42,41 @@ export function LoginForm() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({})
+
+  // Browsers offer saved passkeys from the email field. One that isn't supported, or that
+  // the person ignores, ends with an error we don't show. Choosing the button aborts this request.
+  useEffect(() => {
+    if (!passkeys) return
+    void authClient.signIn.passkey({
+      autoFill: true,
+      fetchOptions: {
+        onSuccess() {
+          router.push(redirect)
+          router.refresh()
+        },
+      },
+    })
+  }, [passkeys, redirect, router])
+
+  async function handlePasskey() {
+    setLoading(true)
+    setError(null)
+    try {
+      const { error: passkeyError } = await authClient.signIn.passkey({
+        fetchOptions: {
+          onSuccess() {
+            router.push(redirect)
+            router.refresh()
+          },
+        },
+      })
+      if (passkeyError) setError(passkeySignInErrorMessage({ code: "code" in passkeyError ? passkeyError.code : undefined, status: passkeyError.status }))
+    } catch {
+      setError("We couldn't sign you in. The request didn't finish. Try again.")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -81,7 +117,7 @@ export function LoginForm() {
             id="email"
             type="email"
             required
-            autoComplete="email"
+            autoComplete={passkeys ? "username webauthn" : "email"}
             aria-invalid={fieldErrors.email ? true : undefined}
             aria-describedby={fieldErrors.email ? "email-error" : undefined}
             value={email}
@@ -119,6 +155,11 @@ export function LoginForm() {
         <Button type="submit" size="lg" disabled={loading}>
           {loading ? "Signing in..." : "Sign in"}
         </Button>
+        {passkeys ? (
+          <Button type="button" variant="outline" size="lg" disabled={loading} onClick={handlePasskey}>
+            Sign in with a passkey
+          </Button>
+        ) : null}
         <p className="text-sm text-muted-foreground">
           New to Prood?{" "}
           <Link

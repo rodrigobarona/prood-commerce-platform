@@ -15,6 +15,7 @@
   "dependencies": {
     "@better-auth/agent-auth": "catalog:",
     "@better-auth/api-key": "catalog:",
+    "@better-auth/passkey": "catalog:",
     "@better-auth/stripe": "catalog:",
     "@modelcontextprotocol/server": "catalog:",
     "@neondatabase/serverless": "catalog:",
