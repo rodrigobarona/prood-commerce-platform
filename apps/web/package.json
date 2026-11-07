@@ -17,6 +17,7 @@
     "@prood/billing": "workspace:*",
     "@prood/consent": "workspace:*",
     "@prood/media": "workspace:*",
+    "@prood/security-headers": "workspace:*",
     "@prood/types": "workspace:*",
     "@prood/ui": "workspace:*",
     "c15t": "catalog:",

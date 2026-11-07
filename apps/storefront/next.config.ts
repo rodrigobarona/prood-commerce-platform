@@ -2,6 +2,7 @@ import { withConsentManifest } from "c15t/next/build"
 import type { NextConfig } from "next"
 
 import { mediaRemotePattern } from "@prood/media/remote-pattern"
+import { securityHeaders } from "@prood/security-headers"
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
@@ -17,6 +18,14 @@ const nextConfig: NextConfig = {
       ...(process.env.S3_PUBLIC_URL ? [new URL(`${process.env.S3_PUBLIC_URL.replace(/\/$/, "")}/**`)] : []),
     ],
   },
+  // 'self' is whichever store host answered, so no host is named here.
+  headers: async () =>
+    securityHeaders({
+      // Web Analytics, once the shopper allows `measurement`.
+      scriptSrc: ["https://va.vercel-scripts.com"],
+      // Address autocomplete in the checkout.
+      connectSrc: ["https://api.geoapify.com"],
+    }),
 }
 
 // Bundles the INTH policy (see c15t.config.ts) into the build. If INTH

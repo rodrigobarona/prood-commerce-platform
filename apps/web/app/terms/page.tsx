@@ -98,7 +98,7 @@ const sections: readonly LegalSection[] = [
     id: "api",
     body: [
       "API keys belong to the organization that created them and must be kept secret. Requests are limited to 600 a minute per key, and AI agents share one limit of 600 a minute per store. Don't get around a limit.",
-      "Agent Auth lets an AI agent act on a store only after a person with the right role approves it, and what it may do is what that person approved. The Customer is responsible for every agent it approves, as if its own member had acted. Some capabilities need a recent sign-in to approve, and the Customer must not weaken that check.",
+      "Agent Auth lets an AI agent act on a store. Beyond reading the public catalog, it can do only what a person with the right role approved. The Customer is responsible for every agent it approves, as if its own member had acted. Some capabilities need a recent sign-in to approve, and the Customer must not weaken that check.",
       "The Admin API, Agent Auth and write access belong to paid plans and are refused on Free.",
     ],
   },
@@ -123,14 +123,13 @@ const sections: readonly LegalSection[] = [
     title: "Leaving, switching and your data",
     id: "switching",
     body: [
-      "Under Regulation (EU) 2023/2854 (the Data Act) the Customer may switch to another provider, or to its own systems, or delete its data. Prood does not charge for this. This is how it works while self-service tools do not yet exist:",
+      "Under Regulation (EU) 2023/2854 (the Data Act) the Customer may switch to another provider, or to its own systems, or delete its data. Prood does not charge for this. This is how it works:",
       {
         list: [
-          "**Notice.** Email us. We ask for no notice period. Closing is effective when you say so, and you pay nothing to leave.",
-          "**What you can take.** Your products and categories, orders and order history, customers and their addresses, store settings and the images you uploaded. We give them as CSV or JSON files. On a paid plan the Admin API also returns them. We don't export payment provider credentials, which stay with you.",
-          "**When.** We complete the export within 30 days of your request. If that isn't possible, we say so within 14 working days, with reasons and a date of up to seven months, and we keep the service running until then.",
-          "**Retrieval.** After the contract ends, you have at least 30 days to ask for your data, unless you ask us to delete it at once.",
-          "**Deletion.** Then we delete the Customer Data, unless the law requires us to keep it. Copies in the backups of our database provider are overwritten on its own schedule.",
+          "**Notice.** We ask for no notice period. Closing is effective when you say so, and you pay nothing to leave.",
+          "**What you can take.** Download it yourself at any time, on any plan, under Store settings: one JSON file with your settings, products, categories, customers and addresses, orders with their items and history, returns and reviews. It leaves out payment provider credentials, which stay with you, and image files, which are public and which we remove on request. On a paid plan the Admin API also returns the data. If you need another format or help, email us and we answer within 30 days.",
+          "**Deletion.** An owner can delete the store under Store settings, and everything the store owns in our database is removed at once. Download your data first, because it can't be undone. If you ask us to close it by email, we keep the data for at least 30 days after the contract ends for you to retrieve, unless you ask us to delete it at once, and then delete it unless the law requires us to keep it. Copies in the backups of our database provider are overwritten on its own schedule.",
+          "**If we can't.** Where a transition by request isn't possible in 30 days, we say so within 14 working days, with reasons and a date of up to seven months, and we keep the service running until then.",
           "**Addresses.** A `prood.app` address stops working when the store closes. A custom domain stays yours, and you point it elsewhere.",
         ],
       },

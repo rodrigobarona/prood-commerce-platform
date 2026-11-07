@@ -1,8 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-const mocks = vi.hoisted(() => ({ limits: vi.fn(), seats: vi.fn() }))
+const mocks = vi.hoisted(() => ({ limits: vi.fn(), seats: vi.fn(), livePlan: vi.fn(), deleteData: vi.fn(), deleteKeys: vi.fn() }))
 
 vi.mock("server-only", () => ({}))
+vi.mock("@prood/auth/db", () => ({
+  authDb: {
+    select: () => ({ from: () => ({ where: () => ({ limit: mocks.livePlan }) }) }),
+    delete: () => ({ where: mocks.deleteKeys }),
+  },
+}))
+vi.mock("@prood/commerce/store-data", () => ({ deleteStoreData: mocks.deleteData }))
 vi.mock("@prood/commerce/tenant-store", () => ({ provisionOrganizationStore: vi.fn() }))
 vi.mock("@/lib/org-plan", () => ({ getOrganizationLimits: mocks.limits }))
 vi.mock("@prood/auth/membership", () => ({ countTeamSeats: mocks.seats }))
@@ -68,5 +75,22 @@ describe("seats", () => {
 
     mocks.limits.mockResolvedValue({ maxTeamSeats: null })
     await expect(membershipLimit(null, { id: "org-1" })).resolves.toBe(100)
+  })
+})
+
+describe("deleting a store", () => {
+  it("deletes everything the store owns first", async () => {
+    mocks.livePlan.mockResolvedValue([])
+    await organizationHooks.beforeDeleteOrganization({ organization: { id: "org-1" } })
+    expect(mocks.deleteData).toHaveBeenCalledWith("org-1")
+    expect(mocks.deleteKeys).toHaveBeenCalled()
+  })
+
+  it("keeps a store that still has a live plan, so it isn't billed after it is gone", async () => {
+    mocks.livePlan.mockResolvedValue([{ id: "sub-1" }])
+    await expect(organizationHooks.beforeDeleteOrganization({ organization: { id: "org-1" } })).rejects.toThrow(
+      "Cancel this store's plan"
+    )
+    expect(mocks.deleteData).not.toHaveBeenCalled()
   })
 })

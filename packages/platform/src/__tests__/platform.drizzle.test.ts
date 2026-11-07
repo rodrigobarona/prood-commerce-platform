@@ -25,6 +25,7 @@ import { initDrizzle, closeDrizzle, getDb, withTenant } from '../database/drizzl
 import { seedDrizzle, DEMO_ORG_ID } from '../database/drizzle/seed.js'
 import { createPlatformAdapter } from '../adapter.js'
 import { createCustomer } from '../database/drizzle/queries/customers.js'
+import { deleteStoreData, exportStoreData, unlinkAuthUserFromCustomers } from '../privacy/store-data.js'
 import { platformTestSuite } from './platform.suite.js'
 
 const SERVER_URL = process.env.DATABASE_URL
@@ -251,6 +252,45 @@ describe('@prood/platform [drizzle]', () => {
           adapter.addToCart(another.id, { productId: 'prod-2', quantity: 1 }),
         ).rejects.toMatchObject({ code: 'NOT_FOUND' })
       })
+    })
+  })
+
+  describe('store data', () => {
+    const OTHER_ORG_ID = 'org_store_data_other'
+
+    beforeAll(async () => {
+      await cleanDatabase()
+      await seedDrizzle()
+      await withTenant(DEMO_ORG_ID, () => createCustomer({ authUserId: 'user-shared', email: 'a@example.com' }))
+      await withTenant(OTHER_ORG_ID, async () => {
+        await createCustomer({ authUserId: 'user-shared', email: 'b@example.com' })
+        await getDb().execute(sql`
+          insert into products (id, name, slug, status) values ('prod-other-2', '{"en":"Other"}', 'other-2', 'active')
+        `)
+      })
+    })
+
+    it('exports every table of one store and nothing of another', async () => {
+      const data = await exportStoreData(DEMO_ORG_ID)
+      expect(Object.keys(data)).toEqual(expect.arrayContaining(['products', 'orders', 'customers', 'store_info']))
+      expect((data.products as { id: string }[]).map((row) => row.id)).not.toContain('prod-other-2')
+      expect((data.customers as { email: string }[]).map((row) => row.email)).toEqual(['a@example.com'])
+    })
+
+    it('unlinks an account from its customers in every store, and keeps the customers', async () => {
+      expect(await unlinkAuthUserFromCustomers('user-shared')).toBe(2)
+      const { customers } = await exportStoreData(OTHER_ORG_ID)
+      expect(customers).toEqual([expect.objectContaining({ email: 'b@example.com', authUserId: null })])
+    })
+
+    it('deletes one store completely and leaves the others alone', async () => {
+      const removed = await deleteStoreData(DEMO_ORG_ID)
+      expect(removed.products).toBeGreaterThan(0)
+      const gone = await exportStoreData(DEMO_ORG_ID)
+      expect(Object.values(gone).flat()).toHaveLength(0)
+      const kept = await exportStoreData(OTHER_ORG_ID)
+      expect((kept.products as { id: string }[]).map((row) => row.id)).toEqual(['prod-other-2'])
+      expect(kept.customers).toHaveLength(1)
     })
   })
 

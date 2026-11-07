@@ -1,7 +1,11 @@
+import { deleteStoreData } from "@prood/commerce/store-data"
 import { provisionOrganizationStore } from "@prood/commerce/tenant-store"
+import { authDb } from "@prood/auth/db"
+import { apikey, subscription } from "@prood/auth/schema"
 import { countTeamSeats } from "@prood/auth/membership"
 import { RESERVED_STORE_SLUGS } from "@prood/types"
 import { APIError } from "better-auth/api"
+import { and, eq, inArray } from "drizzle-orm"
 import { getOrganizationLimits } from "@/lib/org-plan"
 
 /** Better Auth stops membership here whatever the plan, so "unlimited" means this. */
@@ -33,6 +37,23 @@ export async function membershipLimit(_user: unknown, organization: { id: string
   return (await getOrganizationLimits(organization.id)).maxTeamSeats ?? MAX_MEMBERS
 }
 
+/** A store with a live plan keeps being billed after it is gone, so the plan is cancelled first. */
+async function assertNoLivePlan(organizationId: string): Promise<void> {
+  const [live] = await authDb
+    .select({ id: subscription.id })
+    .from(subscription)
+    .where(
+      and(
+        eq(subscription.referenceId, organizationId),
+        inArray(subscription.status, ["active", "trialing", "past_due"]),
+      ),
+    )
+    .limit(1)
+  if (live) {
+    throw new APIError("BAD_REQUEST", { message: "Cancel this store's plan before deleting it." })
+  }
+}
+
 /** Commerce bootstrap when a Better Auth organization (merchant store) is created. */
 export const organizationHooks = {
   beforeCreateOrganization: async ({ organization }: { organization: { slug?: string } }) => {
@@ -45,6 +66,13 @@ export const organizationHooks = {
   },
   beforeCreateInvitation: async ({ organization }: { organization: { id: string } }) => {
     await assertSeatAvailable(organization.id)
+  },
+  // Everything the store owns goes first, in one transaction. If it can't all go, nothing does and the store stays.
+  beforeDeleteOrganization: async ({ organization }: { organization: { id: string } }) => {
+    await assertNoLivePlan(organization.id)
+    await deleteStoreData(organization.id)
+    // Hashed keys that pointed at the store would otherwise outlive it.
+    await authDb.delete(apikey).where(eq(apikey.referenceId, organization.id))
   },
   afterCreateOrganization: async ({
     organization,

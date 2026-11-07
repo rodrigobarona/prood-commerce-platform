@@ -77,7 +77,7 @@ const sections: readonly LegalSection[] = [
     id: "requests",
     body: [
       "8.1 If Prood receives a request from a data subject about Customer Data, it will pass the request to the Customer without undue delay and will not answer it, except to refer the person to the Customer.",
-      `8.2 Prood helps the Customer respond. Self-service export and deletion tools are not built yet, so the Customer can ask Prood to find, export, correct or delete a shopper's data by email to [${email}](mailto:${email}), and Prood will do it within 30 days. Where the Customer's plan includes it, the Admin API also reads this data.`,
+      `8.2 Prood helps the Customer respond. Store settings downloads all of a store's data as one JSON file on every plan, and the dashboard lists and edits customers and orders. For a single shopper's data that those tools can't reach, the Customer can ask Prood by email to [${email}](mailto:${email}) to find, export, correct or delete it, and Prood will do it within 30 days.`,
     ],
   },
   {
@@ -100,7 +100,7 @@ const sections: readonly LegalSection[] = [
     title: "Deleting or returning data",
     id: "deletion",
     body: [
-      "11.1 During the contract the Customer can delete products, categories, API keys and agents itself. For the rest, such as orders and customers, it asks Prood as clause 8.2 describes.",
+      "11.1 During the contract the Customer can download a store's data as one JSON file (without payment provider credentials and image files, which Prood removes on request) and delete products, categories, API keys and agents itself. An owner can also delete the whole store, which removes everything the store owns in Prood's database at once. Checkout sessions expire within the periods in Annex 1. A store with a live paid plan must cancel the plan first.",
       "11.2 When the contract ends, the retrieval period in the terms of service applies. Prood then deletes Customer Data, unless Union or Member State law requires it to keep the data. Copies in the backups of Prood's database provider are overwritten on its own schedule.",
       "11.3 Prood deletes the records listed in Annex 1 when their retention period ends.",
     ],
@@ -167,11 +167,12 @@ const sections: readonly LegalSection[] = [
     annex: true,
     body: [
       "**Location and hosting.** Application functions run in the Frankfurt region. The database, checkout sessions and public images are stored in the EU. Pages are delivered through a global network, as Annex 3 describes.",
-      "**Encryption.** Traffic uses HTTPS. The database provider encrypts data at rest. Payment provider credentials are additionally encrypted in the database with AES-256-GCM.",
-      "**Separation of stores.** Each store's data is kept apart in the database by row-level security, using an application database role that cannot read the sign-in tables.",
+      "**Encryption.** Traffic uses HTTPS. The database provider encrypts data at rest. Payment provider credentials are additionally encrypted with AES-256-GCM when they are saved.",
+      "**Separation of stores.** Requests made on a store's behalf run under a database role that row-level security limits to that store's rows, and that cannot read the sign-in tables except for account identifiers and email addresses.",
       "**Secrets.** Passwords are stored as scrypt hashes. API keys are stored as hashes and shown once. Webhooks from payment providers are verified against the store's own secret, and internal tokens are compared in constant time.",
+      "**Retention.** A daily job deletes expired sessions and verification links, team invitations 30 days after they expire, and agent activity records after 24 months.",
       "**Access control.** Three organization roles: owner, admin and member. Only owners and admins may use admin-level API keys and approve agents' admin capabilities, and only an owner changes the plan. Sessions last 7 days, are refreshed on use, and are cleared when a password is reset. Agent Auth agents start with public catalog reads only, and anything else needs a person's approval. Approving capabilities that change a store needs a sign-in from the last 10 minutes.",
-      "**Application security.** Rate limits on sign-in and on the API (600 requests a minute per key), session cookies that are HTTP-only, SameSite=Lax and Secure in production, email verification for store accounts that claim past orders, and validated input on API routes.",
+      "**Application security.** Rate limits on sign-in and on the API (600 requests a minute per key), session cookies that are HTTP-only, SameSite=Lax and Secure in production, email verification for store accounts that claim past orders, validated input on API routes, and security headers on every app: HTTP Strict Transport Security, a Content-Security-Policy, and controls on framing, content type and referrers.",
       "**Logging.** Agent activity is recorded with its type, capability, status and duration, never with the data it handled. There is no complete administrator audit log yet.",
       "**Availability.** The database provider offers point-in-time restore. Prood promises no recovery time. Hosting includes platform DDoS mitigation.",
       "**Staff.** Access to production systems is limited to the people who need it, who are bound by confidentiality. Platform administrators can see accounts and sessions across stores, which is why it is limited.",

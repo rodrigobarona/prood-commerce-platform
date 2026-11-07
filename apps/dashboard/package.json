@@ -21,6 +21,7 @@
     "@prood/billing": "workspace:*",
     "@prood/commerce": "workspace:*",
     "@prood/media": "workspace:*",
+    "@prood/security-headers": "workspace:*",
     "@prood/types": "workspace:*",
     "@prood/ui": "workspace:*",
     "@vercel/sdk": "catalog:",

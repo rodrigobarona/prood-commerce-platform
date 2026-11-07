@@ -1,6 +1,7 @@
 import type { NextConfig } from "next"
 
 import { mediaRemotePattern } from "@prood/media/remote-pattern"
+import { securityHeaders } from "@prood/security-headers"
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
@@ -14,6 +15,7 @@ const nextConfig: NextConfig = {
       ...(process.env.S3_PUBLIC_URL ? [new URL(`${process.env.S3_PUBLIC_URL.replace(/\/$/, "")}/**`)] : []),
     ],
   },
+  headers: async () => securityHeaders({ noindex: true }),
 }
 
 export default nextConfig

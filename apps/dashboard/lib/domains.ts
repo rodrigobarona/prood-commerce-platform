@@ -124,3 +124,13 @@ export async function setDomainDnsRecords(
     .set({ dnsRecords })
     .where(and(eq(tenantDomain.id, id), eq(tenantDomain.organizationId, orgId)))
 }
+
+/** Whether any store has this domain. */
+export async function isDomainClaimed(domain: string): Promise<boolean> {
+  const [row] = await authDb
+    .select({ id: tenantDomain.id })
+    .from(tenantDomain)
+    .where(eq(tenantDomain.domain, domain.toLowerCase().trim()))
+    .limit(1)
+  return Boolean(row)
+}

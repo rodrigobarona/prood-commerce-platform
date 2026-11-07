@@ -105,6 +105,13 @@ export const pages = {
     priority: 0.3,
     section: "Legal",
   },
+  security: {
+    title: "Security",
+    description: "How Prood protects data, what it doesn't do yet, and how to report a vulnerability.",
+    path: "/security",
+    priority: 0.3,
+    section: "Legal",
+  },
   legal: {
     title: "Legal notice",
     description: "Who runs Prood: company details, registry and how to reach us.",

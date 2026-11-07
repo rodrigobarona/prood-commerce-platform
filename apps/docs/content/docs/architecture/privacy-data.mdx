@@ -54,16 +54,15 @@ The dashboard lists customers from the tenant's `customers` rows. A merchant nev
 What exists today:
 
 - Redis checkout sessions and rate-limit keys expire on their own, as the table says.
-- Better Auth sessions expire after 7 days. Expired session and verification rows are not purged by a job, only when they are looked up.
+- A daily cron (`/internal/retention` on apps/api, 03:30 UTC, guarded by `CRON_SECRET`) runs `purgeExpiredAuthData` in `packages/auth/src/retention.ts`. It deletes expired sessions and verification rows, team invitations 30 days after they expire, and `agent_event` rows after 730 days. The constants are in `RETENTION_DAYS`: change them together with the privacy policy and `_docs/compliance/retention-schedule.md`.
+- A merchant can download their account data (`/api/account/export`) and delete their account (Better Auth `deleteUser`, refused while they are the only owner of a store). A shopper can do the same on their store account page. Deleting an account calls `unlinkAuthUserFromCustomers`, so stores keep their orders and customers but nothing points at the deleted account.
+- An owner or admin can download all of a store's data as one JSON file (`/api/store/export`, a session-only route outside `/v1`) on every plan. An owner can delete a store: `beforeDeleteOrganization` refuses while a paid plan is live, then `deleteStoreData` removes every row with an `organization_id` in one transaction and fails if any is left.
 - Products, categories, API keys and agents can be deleted by the merchant.
-- `adminDeleteCustomer` hard-deletes a `customers` row and its addresses and wishlists, and nulls `customer_id` on carts and orders. Order snapshots and `contact_email` stay. No API route, MCP tool or dashboard button calls it.
 
 What does **not** exist yet:
 
-- Self-service account deletion, data export or store export, for merchants or shoppers.
-- A scheduled clean-up of expired sessions, verification rows or old agent events.
-
-Until they are built, the public terms say requests are handled by hand: merchants and shoppers write to hello@prood.com, and Prood acts within 30 days. When a clean-up or a self-service tool ships, update the retention rows in the privacy policy and `_docs/LEGAL.md` in the same change.
+- Deleting a single shopper's data from the dashboard. `adminDeleteCustomer` exists in the platform adapter, but no route, MCP tool or button calls it, so it is done by hand on request within 30 days.
+- Deleting image files from the R2 bucket when a store is deleted, and deleting dormant shopper accounts. Shopper accounts are linked to merchants' orders, so they are kept until the person deletes them.
 
 Order address snapshots may be kept where the merchant has a legal basis, such as tax or fulfilment records. Prood acts as processor for merchant storefront data and does not decide those retention windows.
 

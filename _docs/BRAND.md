@@ -25,7 +25,7 @@ cards with no plugin to install first.
 **Category:** say "hosted commerce" or "API-first commerce". Don't say "open
 source" or "open commerce": the engine isn't open source, and Shopware claims
 "open commerce infrastructure". "Keys" means accounts and access, never that a
-store can be taken elsewhere: there's no export or owner transfer yet.
+store can be taken elsewhere: its data can be downloaded from its settings, but there's no owner transfer yet.
 
 **Europe:** Prood is built for Europe, and that's a real difference from rivals
 that bill in dollars. Say "priced in euros" and "hosted in Frankfurt", or "your
@@ -115,7 +115,7 @@ Only what ships, and only as far as it goes. Today that's:
   "Running several client stores? Email us." Paid plans can't be bought yet. The
   Agency plan stays in the plan slips and the pricing table as listed in `plans.ts`,
   next to the not-billed notice and with no store count. `/agencies` doesn't sell
-  it. There's no export and no owner transfer: never say a client can take a store
+  it. There's no owner transfer (the data can be downloaded): never say a client can take a store
   over, or that a client "owns" one.
 - **Limits:** live today. 50 products and 100 orders a month on Free, plus seats
   and domains. Order 101 is refused until the next month.

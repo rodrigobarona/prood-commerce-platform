@@ -188,6 +188,10 @@ export function RegisterForm() {
             terms of service
           </a>{" "}
           and{" "}
+          <a href={`${webUrl}/dpa`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+            data processing terms
+          </a>
+          . Read how we handle your data in the{" "}
           <a href={`${webUrl}/privacy`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
             privacy policy
           </a>

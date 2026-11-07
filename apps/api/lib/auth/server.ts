@@ -13,6 +13,8 @@ import { storeAccess } from "@prood/auth/access"
 import { authDb } from "@prood/auth/db"
 import * as schema from "@prood/auth/schema"
 import { autoLinkGuestCustomers } from "@prood/platform"
+import { unlinkAuthUserFromCustomers } from "@prood/commerce/store-data"
+import { listSoleOwnedStores } from "@prood/auth/retention"
 import { membershipLimit, organizationHooks } from "./organization-hooks"
 import { guardRoleChange } from "./role-guard"
 import { CLIENT_IP_HEADER } from "@prood/auth/client-ip"
@@ -62,6 +64,24 @@ function createAuth() {
         }
         await guardRoleChange(ctx)
       }),
+    },
+    // A person can delete their own account. Better Auth asks for the password, or for a
+    // sign-in from the last day. Sessions, sign-in methods and memberships go with it.
+    user: {
+      deleteUser: {
+        enabled: true,
+        beforeDelete: async (user) => {
+          const stores = await listSoleOwnedStores(user.id)
+          if (stores.length > 0) {
+            throw new APIError("BAD_REQUEST", {
+              message: `You are the only owner of ${stores.map((s) => s.name).join(", ")}. Delete the store or add another owner first.`,
+            })
+          }
+        },
+        afterDelete: async (user) => {
+          await unlinkAuthUserFromCustomers(user.id)
+        },
+      },
     },
     emailAndPassword: {
       ...sharedEmailAndPassword,

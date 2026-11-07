@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import type { Order } from "@prood/types"
 import { OrderCard } from "@prood/ui/components/order-card"
 import { Skeleton } from "@prood/ui/components/skeleton"
+import { YourData } from "@/components/account/your-data"
 import { SignOutButton } from "@/components/auth/sign-out-button"
 import { Container } from "@/components/layout/container"
 import { getCurrentUser } from "@/lib/auth"
@@ -70,6 +71,8 @@ async function AccountContent() {
           </p>
         )}
       </section>
+
+      <YourData />
     </>
   )
 }

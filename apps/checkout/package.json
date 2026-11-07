@@ -16,6 +16,7 @@
     "@phosphor-icons/react": "catalog:",
     "@prood/checkout-host": "workspace:*",
     "@prood/media": "workspace:*",
+    "@prood/security-headers": "workspace:*",
     "@prood/types": "workspace:*",
     "@prood/ui": "workspace:*",
     "@stripe/react-stripe-js": "catalog:",

@@ -8,9 +8,12 @@ import { PageHeader } from "@prood/ui/components/page-header"
 import { Panel } from "@prood/ui/components/panel"
 import { DashboardFormPage } from "@/components/layout/dashboard-page"
 import { SettingsForm } from "@/components/store/settings-form"
+import { StoreData } from "@/components/store/store-data"
 import { FormPageSkeleton } from "@/components/skeletons"
 import { fieldText } from "@/lib/localized-field"
+import { isStoreOwnerRole } from "@prood/auth/membership"
 import { getStoreSettings } from "@/lib/admin-api"
+import { getActiveMemberRole, getActiveOrganizationId } from "@/lib/auth"
 import { shippingNote } from "@/lib/shipping"
 import { getStoreUrl } from "@/lib/store-link"
 import type { SettingsFormValues } from "@/lib/store-settings"
@@ -58,6 +61,7 @@ async function SettingsFormLoader() {
   }
 
   const storeUrl = await getStoreUrl().catch(() => null)
+  const [storeId, role] = await Promise.all([getActiveOrganizationId(), getActiveMemberRole()])
 
   return (
     <>
@@ -91,6 +95,9 @@ async function SettingsFormLoader() {
         source={{ name: settings.name, description: settings.description }}
         currencyLocked={settings.currencyLocked}
       />
+      {storeId ? (
+        <StoreData storeId={storeId} storeName={fieldText(settings.name)} canDelete={isStoreOwnerRole(role)} />
+      ) : null}
     </>
   )
 }

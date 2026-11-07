@@ -23,6 +23,7 @@
     "@prood/commerce": "workspace:*",
     "@prood/notification-resend": "workspace:*",
     "@prood/platform": "workspace:*",
+    "@prood/security-headers": "workspace:*",
     "@prood/types": "workspace:*",
     "better-auth": "catalog:",
     "drizzle-orm": "catalog:",

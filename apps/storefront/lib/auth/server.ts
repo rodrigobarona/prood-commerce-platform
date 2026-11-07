@@ -1,10 +1,17 @@
 import { after } from "next/server"
 import { betterAuth } from "better-auth"
+import { APIError } from "better-auth/api"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { nextCookies } from "better-auth/next-js"
-import { autoLinkGuestCustomers, getStorefrontIdentity, lookupTenantByHost } from "@prood/platform"
+import {
+  autoLinkGuestCustomers,
+  getStorefrontIdentity,
+  lookupTenantByHost,
+  unlinkAuthUserFromCustomers,
+} from "@prood/platform"
 import { resolveRequestTenantId } from "../tenant"
 import { authDb } from "./db"
+import { listSoleOwnedStores } from "@prood/auth/retention"
 import * as schema from "@prood/auth/schema"
 import { sharedAuthOptions, sharedEmailAndPassword } from "@prood/auth/shared-options"
 import { getMailer } from "../mailer"
@@ -59,6 +66,26 @@ function createAuth() {
       if (!origin || !platformDomain || !URL.canParse(origin)) return []
       const { hostname } = new URL(origin)
       return (await lookupTenantByHost(hostname, platformDomain)) ? [origin] : []
+    },
+    // A shopper can delete their own account: Better Auth asks for the password, or for a
+    // sign-in from the last day. Orders and contact details stay with each store, which is
+    // their controller, and stop pointing at the account.
+    user: {
+      deleteUser: {
+        enabled: true,
+        // The same account can run a store, and a store with no owner can't be managed.
+        beforeDelete: async (user) => {
+          const stores = await listSoleOwnedStores(user.id)
+          if (stores.length > 0) {
+            throw new APIError("BAD_REQUEST", {
+              message: `You are the only owner of ${stores.map((s) => s.name).join(", ")}. Delete the store or add another owner in your dashboard first.`,
+            })
+          }
+        },
+        afterDelete: async (user) => {
+          await unlinkAuthUserFromCustomers(user.id)
+        },
+      },
     },
     databaseHooks: {
       user: {

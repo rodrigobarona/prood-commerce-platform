@@ -1,0 +1,73 @@
+# Records of processing
+
+Records under Article 30 GDPR for Búzios e Tartarugas, Lda. ("Prood"), Rua Gil Vicente 2, 2775-198 Parede, Portugal, NIPC 515001708. Contact: hello@prood.com. No data protection officer and no EU representative are appointed (see [DPO assessment](./dpia-and-dpo-assessment.md)).
+
+**Why we keep these records.** Art. 30(5) exempts organisations with fewer than 250 people, but not where processing is more than occasional. Prood's processing is continuous, so we do not rely on the exemption.
+
+Last reviewed: 2026-11-07. Counsel has not reviewed this yet. Rows marked **Ships with this change** are in the uncommitted working tree on 2026-11-07, not released: see the [README](./README.md).
+
+---
+
+## Art. 30(1): Prood as controller
+
+Retention details are in the [retention schedule](./retention-schedule.md). Transfers are in the [transfer register](./transfer-register.md). Security measures are in [security measures](./security-measures.md) and apply to every row. Tables are in `packages/auth/src/schema.ts` unless said otherwise. The "Public text" column says where `/privacy` describes the same activity.
+
+| Activity | Purpose | Data subjects | Data | Legal basis | Recipients | Retention |
+|---|---|---|---|---|---|---|
+| Delivering the sites | Serving pages, preventing abuse, fixing faults | Visitors to prood.com, stores, dashboard, API | IP address, browser details, address requested, time | Art. 6(1)(f) | Vercel | Provider's log period. **Unverified**: no number is known |
+| Visit statistics | Counting visits to prood.com and to stores | Visitors who allow `measurement` | Pages, referrer, country, browser and device type. Vercel states no cookie and no IP kept | Art. 6(1)(a), Art. 5 of Lei 41/2004 | Vercel (Web Analytics) | Totals at Vercel. **Unverified**: period. Loaded only after consent: `apps/web/c15t.config.ts`, `apps/storefront/c15t.config.ts` |
+| Privacy choice | Showing the banner, proving what was chosen | Visitors to prood.com and stores | The choice, a random session ID, IP address, language, browser details | Art. 6(1)(f), Art. 7(1) | INTH (Frankfurt). The browser talks to our own `/api/c15t`, which forwards the choice (`packages/consent/src/route.ts`) | Browser: 12 months. INTH record: **unverified** |
+| Merchant accounts | Providing the platform, signing in | Merchant owners, admins and members | `user` (name, email, role, ban fields, image), `account` (scrypt password hash), `member` (organization, role), `organization` (store name, slug, plan) | Art. 6(1)(b) if the account is for the person, otherwise Art. 6(1)(f): the Customer is the contract party | Neon, Vercel | While the account exists. Sign-in rows: see [retention](./retention-schedule.md) |
+| Invitations | Letting an organization add a colleague | Invitees | `invitation` (invitee email, role, inviter, expiry). Email sent through Resend | Art. 6(1)(f). Prood is controller: the invitee has no contract with us | Neon, Resend | Valid 48 hours (library default, unverified in code). Deleted 30 days after expiry: **ships with this change** |
+| Session and account security | Showing sessions, stopping attacks | Merchants and shoppers who sign in | `session` (IP address, user agent, expiry, active organization, impersonation marker), `verification` (email-verification and reset tokens). Rate-limit counters in Redis, keyed on IP address and path (`packages/auth/src/rate-limit-storage.ts`). API-key counters (`apps/api/lib/api-key-limit.ts`) | Art. 6(1)(f) | Neon, Upstash, Vercel | Session: 7 days, refreshed after 1 day (library defaults). Counters: seconds to a minute. Expired rows deleted at expiry: **ships with this change** |
+| API keys and AI agents | Running the API, MCP and Agent Auth, showing activity | Merchant members who create keys or approve agents | `apikey` (name, prefix, hash, last use), `agent`, `agentHost`, `agentCapabilityGrant`, `approvalRequest` (login hint, binding message), `agent_event` (type, agent, actor ID, capability, status, duration, never arguments or results) | Art. 6(1)(b) and Art. 6(1)(f) | Neon | While the organization exists. `agent_event`: 24 months, **ships with this change** |
+| Platform administration | Support, abuse handling, billing checks | Anyone with an account | The admin app (`apps/admin/lib/admin-queries.ts`) lists users, sessions, organizations, domains, keys and agents across stores, and can revoke sessions and agents. The Better Auth admin plugin also provides impersonation (`admin()` in `apps/api/lib/auth/server.ts`; `session.impersonatedBy`) | Art. 6(1)(f) | None | Same as the underlying rows. There is no audit log of admin actions (see [security measures](./security-measures.md)) |
+| Plans and billing | Charging for paid plans, invoicing | Merchant owners | Organization name, owner's email, billing address, tax number, plan and subscription dates (`organization`, `subscription`). Card details stay with Stripe. Billing runs in Stripe test mode and only platform admins can subscribe (`_docs/PRODUCTION_READINESS.md`). TOConline invoicing is not wired | Art. 6(1)(b), Art. 6(1)(c) | Stripe, later TOConline | Invoices and accounting records 10 years (published). Applies once paid plans open |
+| Shopper sign-in accounts | Letting a shopper see orders and check out faster | Shoppers who register on a store | The same `user`, `account`, `session` and `verification` tables as merchants: one `user` per email, platform-wide. `customers.auth_user_id` links the account to each store's customer row. After email verification, `autoLinkGuestCustomers` (`@prood/platform`) links guest customer rows with that email in every store | Art. 6(1)(b) with the shopper. Sessions: Art. 6(1)(f) | Neon, Resend | While the account exists. Never deleted automatically: shopper accounts are linked to merchants' orders, so they stay until the person deletes them, reviewed yearly. Self-service deletion: **ships with this change** |
+| Service email | Confirmations, password resets, invitations, order emails | Merchants, invitees, shoppers | Email, name, message content. A failed shopper email is logged with the address (`apps/storefront/lib/auth/server.ts`) | Same basis as the account or order | Resend | Provider's delivery log period: **unverified** |
+| Correspondence | Answering people, handling requests | Anyone who writes to hello@prood.com | Address, message, attachments | Art. 6(1)(f) or (b). Rights requests: Art. 6(1)(c) | The mailbox provider: **unverified who hosts hello@prood.com** | Up to 2 years |
+| Rights-request log | Showing how each request was handled | People who make a request | Requester, right, dates, a copy of the request, outcome | Art. 6(1)(c), Art. 5(2) | None. Held outside production: location **unverified** | 3 years after closing |
+| Breach register | Art. 33(5) record of incidents | People named in an incident | Facts, effects, remedial action | Art. 6(1)(c) | None. Location **unverified** | 5 years (proposal, counsel to confirm) |
+
+Special categories: none intended, and DPA clause 3 forbids them. Children: Prood is for businesses. A store's shoppers can be anyone the store sells to, so a child's data can reach a store (the merchant's concern as controller).
+
+---
+
+## Art. 30(2): Prood as processor
+
+Prood is the processor of shopper data held for merchants (`_docs/LEGAL.md`, `/dpa` clause 1.1).
+
+| Item | Record |
+|---|---|
+| Controllers | Each merchant organization (`organization` table). Contact: its owners' emails in `member` and `user` |
+| Representatives and DPOs of controllers | Not collected. Asked for when a merchant raises an issue |
+| Categories of processing | Storing, organising, retrieving, transmitting, displaying and deleting merchant data: hosting a store, taking orders, running checkout, sending order emails, serving the dashboard, REST API, MCP server and approved agents |
+| Data subjects | Shoppers, guests, prospective shoppers, reviewers, anyone the merchant enters as a contact |
+| Data | See the table below. Defined in `packages/platform/src/database/drizzle/schema/*.ts` |
+| Transfers | `/dpa` Annex 3 and the [transfer register](./transfer-register.md) |
+| Security | `/dpa` Annex 2 and [security measures](./security-measures.md) |
+| Sub-processors | Vercel, Databricks and Neon, Upstash, Cloudflare, Resend, Geoapify (`/subprocessors`). A store's own Stripe, Easypay or Ifthenpay account is the merchant's own provider |
+
+| Data held for merchants | Where | Retention |
+|---|---|---|
+| Customers: email, first and last name, phone, `auth_user_id` (`customers`). Saved addresses (`customer_addresses`) | Neon, tenant row-level security | Until the merchant deletes it or the store is deleted |
+| Orders: contact email, shipping and billing address snapshots, payment references (Multibanco entity and reference), tracking, notes, history (`orders`, `order_items`, `order_history`) | Neon | Same. The order snapshot also stays after a shopper deletes their sign-in account |
+| Carts, wishlists, returns (customer note, reason), reviews with the author's name (`carts`, `wishlists`, `returns`, `reviews`) | Neon | Same |
+| Store contact details (`store_info`: email, phone, address). These are the merchant's business details | Neon | Same |
+| Checkout sessions: contact info, addresses, amount, payment session (`packages/checkout-host/src/session-store.ts`) | Upstash Redis, Frankfurt | 24 hours, or 7 days once a payment such as Multibanco has started |
+| Provider credentials per store (`integration_config`), encrypted with AES-256-GCM (`packages/commerce/src/crypto.ts`) | Neon | Until the merchant removes them or deletes the store |
+| Public images (products, logo) | Cloudflare R2, EU jurisdiction, bucket `prood-public` | Not deleted when a store is deleted. `/terms` says they are removed on request, by hand: see [retention](./retention-schedule.md) |
+| Address text typed at checkout | Sent from the shopper's browser to Geoapify (`NEXT_PUBLIC_GEOAPIFY_API_KEY`, `apps/storefront/components/checkout/address-autocomplete.tsx`) | Geoapify's own period: **unverified** |
+| Order and account emails sent in the store's name | Resend | Provider's delivery log period: **unverified** |
+
+### Where the two roles meet
+
+- A shopper's sign-in account is Prood's data, but the `customers` and `orders` rows it links to are the merchant's. Deleting the account does not delete them: Prood tells the shopper to ask the store (see [data subject requests](./data-subject-requests.md)).
+- A person can be both a merchant and a shopper under the same `user` row. Deleting the account from a store page deletes the merchant login as well. The change blocks it only while the person is the sole owner of a store (`beforeDelete` in `apps/storefront/lib/auth/server.ts`). A merchant who is not a sole owner can lose their dashboard login from a store page, and the page text does not say so: see [open items](./open-items.md).
+- `agent_event.actor_id` and `agent_id` carry no foreign key, so they outlive the user and agent they describe, until the 24-month rule removes them. The ID no longer resolves to a person in Prood's systems, but the merchant may connect it from its own records.
+
+---
+
+## Review
+
+Review this record yearly, and whenever a provider, purpose or data category changes. Check it against the schema files named above whenever a migration adds a table.

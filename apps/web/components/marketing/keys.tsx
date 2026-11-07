@@ -42,7 +42,7 @@ export function Keys() {
           </h2>
         </div>
         <p className="max-w-md text-lead text-muted-foreground lg:pb-1">
-          Your domain and payment accounts stay yours if you leave. Store export isn&apos;t built yet.
+          Your domain and payment accounts stay yours if you leave, and you can download your store&apos;s data whenever you like.
         </p>
       </div>
       <div className="surface-ink relative mt-12 overflow-hidden rounded-3xl pb-10 md:mt-16 md:pb-16">

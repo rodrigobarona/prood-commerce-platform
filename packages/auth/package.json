@@ -20,7 +20,10 @@
     "./admin-role": "./src/admin-role.ts",
     "./billing": "./src/billing.ts",
     "./agent-capabilities": "./src/agent-capabilities.ts",
-    "./agent-events": "./src/agent-events.ts"
+    "./agent-events": "./src/agent-events.ts",
+    "./retention": "./src/retention.ts",
+    "./data-export": "./src/data-export.ts",
+    "./download": "./src/download.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

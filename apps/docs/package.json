@@ -17,6 +17,7 @@
   "dependencies": {
     "@phosphor-icons/react": "catalog:",
     "@prood/media": "workspace:*",
+    "@prood/security-headers": "workspace:*",
     "@prood/ui": "workspace:*",
     "beautiful-mermaid": "^1.1.3",
     "fumadocs-core": "catalog:",

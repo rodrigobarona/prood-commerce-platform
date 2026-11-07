@@ -4,6 +4,7 @@ import { Panel } from "@prood/ui/components/panel"
 import { DashboardFormPage } from "@/components/layout/dashboard-page"
 import { ChangePasswordForm } from "@/components/account/change-password-form"
 import { ProfileForm } from "@/components/account/profile-form"
+import { YourData } from "@/components/account/your-data"
 import { FormPageSkeleton } from "@/components/skeletons"
 import { getCurrentUser } from "@/lib/auth"
 
@@ -36,6 +37,7 @@ async function AccountContent() {
     <>
       <ProfileForm initial={{ name: user.name, email: user.email }} />
       <ChangePasswordForm />
+      <YourData />
     </>
   )
 }

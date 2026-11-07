@@ -25,6 +25,7 @@
     "@prood/media": "workspace:*",
     "@prood/notification-resend": "workspace:*",
     "@prood/platform": "workspace:*",
+    "@prood/security-headers": "workspace:*",
     "@prood/types": "workspace:*",
     "@prood/ui": "workspace:*",
     "better-auth": "catalog:",

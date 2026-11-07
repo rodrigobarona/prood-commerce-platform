@@ -26,6 +26,11 @@ export function isStoreAdminRole(role: string | null): boolean {
     .some((name) => ["owner", "admin"].includes(name.trim()))
 }
 
+/** Only owners can delete a store. Better Auth joins multiple roles with commas. */
+export function isStoreOwnerRole(role: string | null): boolean {
+  return (role ?? "").split(",").some((name) => name.trim() === "owner")
+}
+
 /** People on the store, plus invitations still open: each one takes a seat when accepted. */
 export async function countTeamSeats(organizationId: string): Promise<number> {
   const [[members], [invited]] = await Promise.all([

@@ -47,6 +47,7 @@ const sections: readonly LegalSection[] = [
         "[Privacy policy](/privacy), including cookies",
         "[Data processing terms](/dpa)",
         "[Sub-processors](/subprocessors)",
+        "[Security](/security)",
       ],
     },
   },

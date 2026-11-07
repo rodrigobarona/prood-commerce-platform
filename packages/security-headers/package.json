@@ -1,0 +1,21 @@
+{
+  "name": "@prood/security-headers",
+  "version": "0.0.0",
+  "description": "HTTP security headers and the Content-Security-Policy every Prood app sends, as a Next.js headers() array",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@prood/typescript-config": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

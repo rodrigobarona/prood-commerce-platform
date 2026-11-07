@@ -262,6 +262,9 @@ importers:
       '@prood/media':
         specifier: workspace:*
         version: link:../../packages/media
+      '@prood/security-headers':
+        specifier: workspace:*
+        version: link:../../packages/security-headers
       '@prood/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -350,6 +353,9 @@ importers:
       '@prood/platform':
         specifier: workspace:*
         version: link:../../packages/platform
+      '@prood/security-headers':
+        specifier: workspace:*
+        version: link:../../packages/security-headers
       '@prood/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -420,6 +426,9 @@ importers:
       '@prood/media':
         specifier: workspace:*
         version: link:../../packages/media
+      '@prood/security-headers':
+        specifier: workspace:*
+        version: link:../../packages/security-headers
       '@prood/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -514,6 +523,9 @@ importers:
       '@prood/media':
         specifier: workspace:*
         version: link:../../packages/media
+      '@prood/security-headers':
+        specifier: workspace:*
+        version: link:../../packages/security-headers
       '@prood/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -584,6 +596,9 @@ importers:
       '@prood/media':
         specifier: workspace:*
         version: link:../../packages/media
+      '@prood/security-headers':
+        specifier: workspace:*
+        version: link:../../packages/security-headers
       '@prood/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -696,6 +711,9 @@ importers:
       '@prood/platform':
         specifier: workspace:*
         version: link:../../packages/platform
+      '@prood/security-headers':
+        specifier: workspace:*
+        version: link:../../packages/security-headers
       '@prood/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -796,6 +814,9 @@ importers:
       '@prood/media':
         specifier: workspace:*
         version: link:../../packages/media
+      '@prood/security-headers':
+        specifier: workspace:*
+        version: link:../../packages/security-headers
       '@prood/types':
         specifier: workspace:*
         version: link:../../packages/types
@@ -1278,6 +1299,24 @@ importers:
       drizzle-kit:
         specifier: 'catalog:'
         version: 0.31.11
+      typescript:
+        specifier: 'catalog:'
+        version: 6.0.3
+      vite:
+        specifier: 'catalog:'
+        version: 8.3.5(@types/node@24.12.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
+      vitest:
+        specifier: 'catalog:'
+        version: 5.0.5(@types/node@24.12.4)(jsdom@30.1.3(@noble/hashes@2.2.0))(vite@8.3.5(@types/node@24.12.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+
+  packages/security-headers:
+    devDependencies:
+      '@prood/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.12.4
       typescript:
         specifier: 'catalog:'
         version: 6.0.3

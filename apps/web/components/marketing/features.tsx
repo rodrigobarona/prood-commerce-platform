@@ -6,7 +6,7 @@ const notBuiltYet = [
     body: "Fixed for now: Standard 15.00 in your currency (5 to 7 days), Express 35.00 (1 to 2 days). Your store shows these to shoppers. Setting your own rates is coming later.",
   },
   { title: "Tax", body: "Prices are what you enter. Prood doesn't calculate VAT or issue invoices yet." },
-  { title: "Photo upload, coupons, store export", body: "Coming later." },
+  { title: "Photo upload and coupons", body: "Coming later." },
   { title: "Your store's returns, terms and privacy pages", body: "Coming later." },
 ] as const
 

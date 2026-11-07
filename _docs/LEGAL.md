@@ -1,7 +1,8 @@
 # Prood legal facts
 
-The single source for facts quoted in `/terms`, `/privacy`, `/dpa`, `/subprocessors`
-and `/legal` (all in `apps/web/app`). When one changes, update those pages and
+The single source for facts quoted in `/terms`, `/privacy`, `/dpa`, `/subprocessors`,
+`/security` and `/legal` (all in `apps/web/app`). The internal records behind them are in
+`_docs/compliance/`: start with its README and `open-items.md`. When one changes, update those pages and
 `legal.updated` in `apps/web/lib/site.ts`, which sets the date shown on each.
 
 The pages were finished on 7 November 2026 from the code and from the EUlabel
@@ -71,10 +72,12 @@ else comes from the code.
    log retention, the INTH consent record retention and the Neon backup window are
    described as "a limited time" or "the provider's own schedule". Replace with the
    real numbers if you want to state them.
-3. **No automated clean-up.** Nothing deletes expired sessions, verification rows or
-   old `agent_event` rows, and there is no self-service export or deletion. The
-   pages say so and promise manual handling within 30 days. Build the clean-up and
-   the tools, then update `/privacy`, `/dpa` and `docs/architecture/privacy-data.mdx`.
+3. **Retention and rights tools.** A daily job (`/internal/retention`, cron 03:30 UTC,
+   `CRON_SECRET` on prood-api) deletes expired sessions, verification links, expired
+   invitations and agent events older than 24 months. Merchants and shoppers can download
+   and delete their accounts, and owners can download and delete a store. Still missing:
+   deleting one shopper's data from the dashboard, deleting R2 image files with a store,
+   two-factor and passkeys, an administrator audit log. The pages say so.
 4. **Promises you make.** The pages commit Prood to: 30 days to export or delete on
    request, 48 hours to notify a breach, 30 days' notice for new sub-processors,
    60 days' notice for Free plan limit changes, 14 days to answer a disagreement,
@@ -89,7 +92,7 @@ else comes from the code.
 8. **Store privacy notices.** Merchants have no field for their own privacy notice,
    terms of sale or returns, and the real stores serve no policy pages. `/terms`
    makes that the merchant's job. A product fix would be better.
-9. **Two-factor and passkeys.** `/dpa` Annex 2 says Prood doesn't offer them. Update
-   it if they ship.
+9. **Two-factor and passkeys.** `/dpa` Annex 2 and `/security` say Prood doesn't offer
+   them. Update both if they ship.
 10. **Language.** The pages are in English only. `/terms` says so. Add Portuguese
     versions and a precedence clause if you want one.

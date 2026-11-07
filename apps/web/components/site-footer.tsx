@@ -37,6 +37,7 @@ const columns = [
       { label: "Terms", href: "/terms" },
       { label: "Data processing", href: "/dpa" },
       { label: "Sub-processors", href: "/subprocessors" },
+      { label: "Security", href: "/security" },
       { label: "Legal notice", href: "/legal" },
     ],
   },
