@@ -1,7 +1,7 @@
 /**
  * Origins allowed to call the platform auth issuer (apps/api): the origin of each Prood app URL
- * in env, plus this deployment's own Vercel URL. Several of them carry a path (the dashboard is
- * https://prood.com/dashboard), which is not part of an origin, so on the shared domain they all
+ * in env, plus this deployment's own Vercel URL. Some of them carry a path (the admin console is
+ * https://prood.com/admin), which is not part of an origin, so on the shared domain they all
  * collapse to https://prood.com. NEXT_PUBLIC_AUTH_URL is left out on purpose: it is the API
  * project's internal address, reached by the apps' auth proxy, and no browser calls from it.
  */

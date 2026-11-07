@@ -2,9 +2,9 @@ import "server-only"
 import { requiredEnv } from "@prood/types"
 import { forwardClientIp } from "./client-ip"
 
-// Dashboard and admin have no auth handler of their own: their same-origin
-// /dashboard/api/auth/* and /admin/api/auth/* routes forward to apps/api (the
-// issuer) and rewrite Set-Cookie so sessions bind to the calling host.
+// The admin console has no auth handler of its own: its same-origin /admin/api/auth/* route forwards
+// to apps/api (the issuer) and rewrites Set-Cookie so sessions bind to the calling host. The
+// dashboard needs none: /api/auth/* on prood.com already goes to apps/api through the gateway.
 
 const HOP_BY_HOP_HEADERS = new Set([
   "connection",
@@ -57,7 +57,7 @@ function upstreamHeaders(request: Request): Headers {
 
 /**
  * Forward an /api/auth/* request to apps/api and return its response. Under a base path
- * (/dashboard/api/auth/*) Next.js hands route handlers the path without it, so `request.url`
+ * (/admin/api/auth/*) Next.js hands route handlers the path without it, so `request.url`
  * already reads /api/auth/*, which is what the issuer serves.
  */
 export async function proxyAuthRequest(request: Request): Promise<Response> {

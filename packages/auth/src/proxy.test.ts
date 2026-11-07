@@ -31,7 +31,7 @@ const request = (url: string) =>
   })
 
 // Under a base path, Next.js gives route handlers a request whose URL has the base path taken off:
-// /dashboard/api/auth/* arrives as /api/auth/*. The issuer serves /api/auth/*, so the path goes as it is.
+// /admin/api/auth/* arrives as /api/auth/*. The issuer serves /api/auth/*, so the path goes as it is.
 describe("the auth proxy", () => {
   it("forwards the path and the query to the issuer's own origin", async () => {
     await proxyAuthRequest(request("https://prood.com/api/auth/two-factor/verify-totp?x=1"))

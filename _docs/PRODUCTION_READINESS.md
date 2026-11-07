@@ -16,7 +16,7 @@ Audited the pnpm/Turborepo monorepo across all runtime apps and related packages
 - Auth: `apps/api` issues merchant/auth sessions; `apps/storefront` owns customer auth per storefront origin; `apps/admin` validates shared sessions directly and requires the admin role.
 - Checkout: `apps/checkout` stores sessions in Upstash Redis and forwards payment events to the Commerce API.
 - Docs: Fumadocs under `apps/docs`, with OpenAPI synced at build time.
-- Domain: prood.com is one domain. `apps/web` is the gateway and rewrites `/dashboard`, `/admin`, `/pay`, `/docs`, `/v1`, `/mcp`, `/api/auth` and `/.well-known/agent-configuration` to each app's own Vercel project (see "How prood.com is wired" in the README). Merchant stores stay on `{store}.prood.app`.
+- Domain: prood.com is one domain. `apps/web` is the gateway and rewrites the dashboard's paths (`/` for a signed-in visitor, `/login`, `/orders`...), `/admin`, `/pay`, `/docs`, `/v1`, `/mcp`, `/api/auth` and `/.well-known/agent-configuration` to each app's own Vercel project (see "How prood.com is wired" in the README). Merchant stores stay on `{store}.prood.app`.
 
 ## Fixes Applied
 
@@ -74,7 +74,7 @@ Update (2026-11-02). Before a deploy that changes auth or infrastructure:
   fails on Vercel without them.
 - Every project that sets public URLs uses the one-domain values: `NEXT_PUBLIC_WEB_URL`,
   `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_DOCS_URL`, `API_PUBLIC_URL` and `BETTER_AUTH_URL`
-  are `https://prood.com`; `NEXT_PUBLIC_DASHBOARD_URL` is `https://prood.com/dashboard`;
+  are `https://prood.com`; `NEXT_PUBLIC_DASHBOARD_URL` is `https://prood.com`;
   `NEXT_PUBLIC_ADMIN_URL` is `https://prood.com/admin`; `CHECKOUT_URL` is
   `https://prood.com/pay`. `AUTH_COOKIE_DOMAIN` is unset.
 - `PASSKEY_RP_ID=prood.com` and `PASSKEY_ORIGINS=https://prood.com` are on `prood-api`,

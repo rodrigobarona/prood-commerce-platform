@@ -60,7 +60,7 @@ pnpm dev
 [How prood.com is wired](#how-proodcom-is-wired)). Open the gateway at
 <http://localhost:3001>, not the apps' own ports, so the dashboard, admin,
 checkout, docs and API share one origin: the dashboard is then
-<http://localhost:3001/dashboard>, the admin console
+<http://localhost:3001> once you are signed in (<http://localhost:3001/login> before), the admin console
 <http://localhost:3001/admin>, the docs <http://localhost:3001/docs> and the
 hosted checkout <http://localhost:3001/pay>. `pnpm db:migrate`
 applies the versioned migrations in `packages/platform/drizzle` (commerce and
@@ -103,8 +103,8 @@ Vercel project that serves it, so the address bar never leaves prood.com.
 
 | Path on prood.com | App | Notes |
 | --- | --- | --- |
-| `/` and the other marketing pages | `apps/web` | The gateway itself |
-| `/dashboard` | `apps/dashboard` | Merchant dashboard, `basePath: "/dashboard"` |
+| `/` signed out, and the other marketing pages | `apps/web` | The gateway itself. `/home` is the homepage for a signed-in visitor |
+| `/` signed in, `/login`, `/register`, `/orders`, `/products`... | `apps/dashboard` | Merchant dashboard at the root. `DASHBOARD_SEGMENTS` in `apps/web/lib/zones.ts` lists its paths, and assets load from `/_dashboard/_next` |
 | `/admin` | `apps/admin` | Platform ops, `admin` role only, `basePath: "/admin"` |
 | `/pay` | `apps/checkout` | Hosted checkout and payment webhooks, `basePath: "/pay"` |
 | `/docs` | `apps/docs` | Documentation; its assets load from `/_docs/_next` |
@@ -118,6 +118,11 @@ Vercel project that serves it, so the address bar never leaves prood.com.
   `DOCS_ORIGIN`, `CHECKOUT_ORIGIN` and `API_ORIGIN`, set on the prood-web
   project only. A deployed `apps/web` build fails if one is missing; locally
   they default to the apps' ports.
+- **`/` for two apps.** The gateway checks for Better Auth's session cookie.
+  With one, `/` goes to the dashboard; without, it is the marketing homepage.
+  The cookie is a hint, not proof: the dashboard checks the session itself.
+  No marketing page may use a name in `DASHBOARD_SEGMENTS`
+  (`apps/web/lib/__tests__/zones.test.ts` fails if one does).
 - **One origin.** The session cookie belongs to prood.com, so a session started
   at the dashboard is also valid at the admin console and the API. An
   administrator should turn on two-factor or a passkey (see
@@ -126,8 +131,8 @@ Vercel project that serves it, so the address bar never leaves prood.com.
   a browser treats everything on one domain as related. Keeping stores on
   prood.app stops store content from sharing cookies or storage with the
   dashboard, admin console and API sign-in.
-- **Adding a zone.** Give the new app a `basePath` (as the dashboard, admin and
-  checkout do) or an `assetPrefix` (as the docs do) so its files cannot collide
+- **Adding a zone.** Give the new app a `basePath` (as the admin and checkout do) or an
+  `assetPrefix` (as the dashboard and the docs do) so its files cannot collide
   with another app's `/_next`. Add a `*_ORIGIN` variable and its two rewrites
   (the bare path and `/path/:path*`) to `apps/web/next.config.ts`, add the path
   to the `PROXIED` pattern there so the gateway's security headers stay off the

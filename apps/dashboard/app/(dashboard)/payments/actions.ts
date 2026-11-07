@@ -75,8 +75,8 @@ export async function saveIntegrationAction(
   await upsertIntegration(orgId, provider, merged, isEnabled)
   // Whether the store takes orders, and how, is part of what the storefront caches.
   revalidateStore(orgId)
-  revalidatePath("/integrations")
-  revalidatePath(`/integrations/${provider}`)
+  revalidatePath("/payments")
+  revalidatePath(`/payments/${provider}`)
   const integrations = await listIntegrations(orgId)
   const enabledIds = [...integrations].filter(([, state]) => state.enabled).map(([id]) => id)
   const displacedMeta = providerDisplaced(provider, enabledIds)
@@ -110,7 +110,7 @@ export async function disconnectIntegrationAction(
 
   await deleteIntegration(orgId, provider)
   revalidateStore(orgId)
-  revalidatePath("/integrations")
-  revalidatePath(`/integrations/${provider}`)
+  revalidatePath("/payments")
+  revalidatePath(`/payments/${provider}`)
   return {}
 }

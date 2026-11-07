@@ -20,7 +20,7 @@ import { integrationStatus } from "@/lib/status"
 import {
   disconnectIntegrationAction,
   saveIntegrationAction,
-} from "@/app/(dashboard)/integrations/actions"
+} from "@/app/(dashboard)/payments/actions"
 
 /** A saved secret is never sent to the browser, so it shows as dots until it's replaced. */
 function SavedSecret({
@@ -151,7 +151,7 @@ export function ProviderConfigForm({
         setValues(initialValues)
         setSaves((count) => count + 1)
         toast.success(result.message)
-        router.push("/integrations")
+        router.push("/payments")
         router.refresh()
       } catch {
         toast.error(`We couldn't save ${provider.name}. Nothing changed. Try again.`)
@@ -167,7 +167,7 @@ export function ProviderConfigForm({
         return false
       }
       toast.success(`${provider.name} disconnected.`)
-      router.push("/integrations")
+      router.push("/payments")
       router.refresh()
       return true
     } catch {

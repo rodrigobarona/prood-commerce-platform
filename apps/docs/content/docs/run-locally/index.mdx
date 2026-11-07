@@ -16,7 +16,7 @@ This section is for people working on Prood's source. It walks you through insta
 Optional for full checkout flows:
 
 - **Upstash Redis** — checkout session storage
-- **Stripe** (or Easypay / Ifthenpay) — a test account. Keys are entered per store in the dashboard, under Integrations
+- **Stripe** (or Easypay / Ifthenpay) — a test account. Keys are entered per store in the dashboard, under Payments
 
 ## Quick install
 
@@ -37,7 +37,7 @@ After `pnpm dev`, Turbo starts all apps. Open the **gateway** at [http://localho
 | --- | --- |
 | [http://localhost:3000](http://localhost:3000) | Storefront (a store is `{slug}.localhost:3000`) |
 | [http://localhost:3001](http://localhost:3001) | Marketing |
-| [http://localhost:3001/dashboard](http://localhost:3001/dashboard) | Dashboard |
+| [http://localhost:3001/login](http://localhost:3001/login) | Dashboard (it is the root, [http://localhost:3001](http://localhost:3001), once you are signed in)  |
 | [http://localhost:3001/admin](http://localhost:3001/admin) | Admin |
 | [http://localhost:3001/docs](http://localhost:3001/docs) | Docs |
 | [http://localhost:3001/pay](http://localhost:3001/pay) | Checkout |
@@ -51,7 +51,7 @@ Each app also listens on its own port (3002 dashboard, 3003 docs, 3004 checkout,
 | --- | --- | --- |
 | `storefront` | 3000 | Customer-facing store: catalog, cart, checkout redirect, account |
 | `web` | 3001 | Marketing site and the gateway (prood.com) |
-| `dashboard` | 3002 | Merchant admin: products, orders, integrations, domains, team |
+| `dashboard` | 3002 | Merchant admin: products, orders, payments, domains, team |
 | `docs` | 3003 | This documentation site (Fumadocs + OpenAPI) |
 | `checkout` | 3004 | Hosted payment app: Stripe, Easypay, Ifthenpay |
 | `api` | 3005 | Commerce REST API (`/v1/*`), MCP server, Agent Auth |
@@ -66,7 +66,7 @@ The storefront resolves the demo store from its host: open [http://prood-demo.lo
 
 ## Shared environment
 
-All apps read from a **single root** `.env.local`. Run `pnpm env:link` to generate `apps/*/.env.local` from it. The script copies the root file and writes the local one-domain URLs into each app (`NEXT_PUBLIC_DASHBOARD_URL=http://localhost:3001/dashboard`, `CHECKOUT_URL=http://localhost:3001/pay`, the passkey settings for `localhost`, and so on), so it overrides any URL variable in the root file. Run it again after you change the root file.
+All apps read from a **single root** `.env.local`. Run `pnpm env:link` to generate `apps/*/.env.local` from it. The script copies the root file and writes the local one-domain URLs into each app (`NEXT_PUBLIC_DASHBOARD_URL=http://localhost:3001`, `CHECKOUT_URL=http://localhost:3001/pay`, the passkey settings for `localhost`, and so on), so it overrides any URL variable in the root file. Run it again after you change the root file.
 
 ## Documentation map
 
@@ -78,6 +78,6 @@ All apps read from a **single root** `.env.local`. Run `pnpm env:link` to genera
 
 ## Default demo credentials
 
-After seeding, the platform creates an admin user if `ADMIN_EMAIL` and `ADMIN_PASSWORD` are set in `.env.local`. Use these to sign in to the dashboard at `http://localhost:3001/dashboard`.
+After seeding, the platform creates an admin user if `ADMIN_EMAIL` and `ADMIN_PASSWORD` are set in `.env.local`. Use these to sign in to the dashboard at `http://localhost:3001/login`.
 
 The seeded catalog belongs to the `org_demo` organization. The storefront serves it at `prood-demo.localhost:3000` (the `{slug}.{NEXT_PUBLIC_PLATFORM_DOMAIN}` host).

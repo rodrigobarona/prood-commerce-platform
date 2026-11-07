@@ -95,7 +95,7 @@ pnpm db:migrate           # runs migrateDrizzle -> applyTenantIsolation + seed
 pnpm --filter dashboard db:push
 
 # 4. Run
-pnpm dev                  # storefront :3000; open the gateway at :3001 (dashboard at :3001/dashboard)
+pnpm dev                  # storefront :3000; open the gateway at :3001 (dashboard at :3001, signed in, or :3001/login)
 ```
 
 `applyTenantIsolation()` (in `packages/platform/.../drizzle/migrate.ts`) adds an

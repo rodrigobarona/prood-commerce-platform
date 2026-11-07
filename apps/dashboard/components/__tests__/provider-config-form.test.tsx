@@ -2,13 +2,13 @@ import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it, vi } from "vitest"
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }) }))
-vi.mock("@/app/(dashboard)/integrations/actions", () => ({
+vi.mock("@/app/(dashboard)/payments/actions", () => ({
   disconnectIntegrationAction: vi.fn(),
   saveIntegrationAction: vi.fn(),
 }))
 
 import { getProvider } from "@/lib/providers"
-import { ProviderConfigForm } from "../integrations/provider-config-form"
+import { ProviderConfigForm } from "../payments/provider-config-form"
 
 const stripe = getProvider("stripe")
 if (!stripe) throw new Error("no stripe provider")

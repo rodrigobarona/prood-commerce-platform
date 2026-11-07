@@ -84,7 +84,7 @@ The platform follows a layered architecture with clear separation of concerns:
 ```
 Public-Facing                    Merchant Tools               Platform Core
 ─────────────────                ──────────────               ─────────────
-prood.com (Marketing)            prood.com/dashboard          prood.com/v1, /mcp, /api/auth
+prood.com (Marketing, signed out)  prood.com (Dashboard, signed in)  prood.com/v1, /mcp, /api/auth
 *.prood.app (Storefronts)        prood.com/pay                prood.com/admin
 prood.com/docs (Docs)
 
@@ -137,7 +137,7 @@ single Neon Postgres database.
 | -------------- | ----- | ----------------------------------------- | ----------------------------- |
 | `storefront`   | :3000 | `https://{slug}.prood.app`                | Tenant storefront             |
 | `web`          | :3001 | `https://prood.com`                       | Marketing site and gateway    |
-| `dashboard`    | :3002 | `https://prood.com/dashboard`             | Merchant dashboard            |
+| `dashboard`    | :3002 | `https://prood.com`                        | Merchant dashboard            |
 | `docs`         | :3003 | `https://prood.com/docs`                  | Documentation                 |
 | `checkout`     | :3004 | `https://prood.com/pay`                   | Hosted checkout               |
 | `api`          | :3005 | `https://prood.com/v1`, `/mcp`, `/api/auth` | Commerce API, auth, MCP     |
@@ -259,7 +259,7 @@ Next.js 16, React 19, `@prood/ui` (shadcn/Radix), `react-hook-form` + Zod,
 ### 2. Dashboard — Merchant Dashboard
 
 **Location:** `apps/dashboard`
-**Production URL:** `https://prood.com/dashboard`
+**Production URL:** `https://prood.com` (signed in; `https://prood.com/login` before)
 
 Full merchant administration panel. Store owners sign in, create/select
 organizations (stores), and manage every aspect of their commerce operations.
@@ -527,7 +527,7 @@ The app is built with `basePath: "/pay"`, so the routes below are relative to
 
 Public marketing and landing site. Explains the product, pricing, integrations,
 agency workflow, and AI capabilities. Drives sign-ups to
-`prood.com/dashboard/register`.
+`prood.com/register`.
 
 #### Pages
 
@@ -1108,7 +1108,7 @@ data access.
 | ------------------------- | ----------- | ------------------------------------ |
 | `{slug}.prood.app`        | Storefront  | `organization.slug` lookup           |
 | `shop.client.com`         | Storefront  | `tenant_domain` table (verified)     |
-| `prood.com/dashboard`     | Dashboard   | `session.activeOrganizationId`       |
+| `prood.com` (signed in)   | Dashboard   | `session.activeOrganizationId`       |
 | `prood.com/v1`            | API         | `x-storefront-host` header or session |
 | `prood.com/pay`           | Checkout    | `tenantId` on session                |
 
@@ -1123,11 +1123,11 @@ data access.
 
 ### Merchant Onboarding Flow
 
-1. Register at `prood.com/dashboard/register` → creates user + first org
+1. Register at `prood.com/register` → creates user + first org
 2. Organization ID becomes tenant key for all commerce data
 3. Storefront automatically available at `{slug}.prood.app`
 4. Add custom domain in Dashboard → Vercel SDK + DNS verification
-5. Configure payment provider credentials in Integrations
+5. Configure payment provider credentials in Payments
 6. Add products, set up store settings, invite team members
 7. Store is live
 

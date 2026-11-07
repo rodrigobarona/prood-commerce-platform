@@ -9,10 +9,12 @@ Prood deploys as **separate Vercel projects** sharing a single Neon Postgres dat
 
 prood.com is one domain with a path per app. `apps/web` owns it: its own pages are the marketing site, and rewrites in `apps/web/next.config.ts` send every other path to the Vercel project that serves it, so the address bar never leaves prood.com.
 
+The dashboard is the root of the domain. Signed in, `prood.com` is your store's overview, and `/orders`, `/products`, `/customers` and the rest sit right under it. Signed out, `prood.com` is the marketing homepage. A signed-in visitor reaches the homepage at `/home`, from the dashboard's account menu.
+
 | Address | App | Vercel project |
 | --- | --- | --- |
-| `prood.com` | Marketing (`apps/web`), and the gateway for the paths below | `prood-web` |
-| `prood.com/dashboard` | Merchant dashboard | `prood-dashboard` |
+| `prood.com` | Marketing (`apps/web`) when signed out, and the gateway for the paths below | `prood-web` |
+| `prood.com` when signed in, and `/login`, `/register`, `/orders`, `/products`, `/customers`, `/payments`, `/domains`, `/team`, `/billing`, `/settings`, `/account` and a few more | Merchant dashboard | `prood-dashboard` |
 | `prood.com/admin` | Platform admin | `prood-admin` |
 | `prood.com/pay` | Hosted checkout, and the payment webhooks at `/pay/api/webhooks/{provider}/{orgId}` | `prood-checkout` |
 | `prood.com/docs` | Documentation | `prood-docs` |
@@ -32,7 +34,7 @@ Set `NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app` for storefront subdomain resolution 
 
 | Variable | Value | Receives |
 | --- | --- | --- |
-| `DASHBOARD_ORIGIN` | `https://<dashboard project>.vercel.app` | `/dashboard` |
+| `DASHBOARD_ORIGIN` | `https://<dashboard project>.vercel.app` | `/` for a signed-in visitor, the paths in `DASHBOARD_SEGMENTS` (`apps/web/lib/zones.ts`), `/api/export`, `/_dashboard/_next` |
 | `ADMIN_ORIGIN` | `https://<admin project>.vercel.app` | `/admin` |
 | `DOCS_ORIGIN` | `https://<docs project>.vercel.app` | `/docs`, `/docs.md`, `/_docs/_next`, `/api/search` |
 | `CHECKOUT_ORIGIN` | `https://<checkout project>.vercel.app` | `/pay` |
@@ -40,14 +42,18 @@ Set `NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app` for storefront subdomain resolution 
 
 Use the origin only, with no path. A build on Vercel fails when one is missing, because a localhost fallback in production would break that whole part of the site silently. Locally they default to the apps' own ports.
 
-The apps know their place on the domain too. The dashboard, admin console and checkout are built with `basePath` set to `/dashboard`, `/admin` and `/pay`, and the docs load their scripts and styles from `/_docs/_next`, so none of them collides with another app's files.
+The apps know their place on the domain too. The admin console and checkout are built with `basePath` set to `/admin` and `/pay`. The dashboard and the docs load their scripts and styles from `/_dashboard/_next` and `/_docs/_next`. None of them collides with another app's files.
 
-The gateway also redirects the short addresses `/login`, `/register` and `/signup` to the dashboard.
+The gateway decides `/` by looking for Better Auth's session cookie, which is `__Secure-better-auth.session_token` on https. It is a hint, not proof: the dashboard still checks the session, and sends a stale cookie to `/login`. The homepage is always at `/home`.
+
+Dashboard pages share the first path segment with nothing in `apps/web`, and a test (`apps/web/lib/__tests__/zones.test.ts`) fails if a marketing page takes one of the names in `DASHBOARD_SEGMENTS`. That is why the dashboard's payment providers page is `/payments`: `/integrations` is a marketing page.
+
+The gateway also redirects the short address `/signup` to `/register`, and the old `/dashboard/...` addresses to the same path without `/dashboard`, so links in old emails still work.
 
 ### Adding another app to prood.com
 
 1. Give the new app a `basePath`, or an `assetPrefix` if it must serve a path it doesn't own, so its files can't collide with another app's `/_next`.
-2. In `apps/web/next.config.ts`, add a `*_ORIGIN` variable and two rewrites, one for the bare path and one for `/path/:path*`.
+2. In `apps/web/next.config.ts`, add a `*_ORIGIN` variable and two rewrites, one for the bare path and one for `/path/:path*`. (More dashboard pages only need a name in `DASHBOARD_SEGMENTS`.)
 3. Add the path to the `PROXIED` pattern in the same file. The gateway's security headers apply to its own pages only, because each app sends its own Content-Security-Policy.
 4. Add the variable to `globalEnv` in `turbo.json`.
 5. Set the variable on the `prood-web` project, then redeploy it.
@@ -58,7 +64,7 @@ The gateway also redirects the short addresses `/login`, `/register` and `/signu
 flowchart TB
   subgraph vercel [Vercel projects]
     SF[storefront<br/>*.prood.app]
-    DB[dashboard<br/>prood.com/dashboard]
+    DB[dashboard<br/>prood.com]
     CHK[checkout<br/>prood.com/pay]
     API[api<br/>prood.com/v1]
     ADMIN[admin<br/>prood.com/admin]
@@ -127,7 +133,7 @@ BETTER_AUTH_URL=https://prood.com
 KV_REST_API_URL=https://...
 KV_REST_API_TOKEN=...
 NEXT_PUBLIC_WEB_URL=https://prood.com
-NEXT_PUBLIC_DASHBOARD_URL=https://prood.com/dashboard
+NEXT_PUBLIC_DASHBOARD_URL=https://prood.com
 NEXT_PUBLIC_ADMIN_URL=https://prood.com/admin
 NEXT_PUBLIC_DOCS_URL=https://prood.com
 API_PUBLIC_URL=https://prood.com
@@ -194,7 +200,7 @@ CHECKOUT_URL=https://prood.com/pay
 COMMERCE_API_URL=https://<api project>.vercel.app/v1
 ```
 
-Payment credentials aren't environment variables. Each store enters its own under Integrations in the dashboard, and there is no platform fallback.
+Payment credentials aren't environment variables. Each store enters its own under Payments in the dashboard, and there is no platform fallback.
 
 `CHECKOUT_URL` is the public base including its path. The storefront, the dashboard and the checkout all build their links from it, so it is `https://prood.com/pay`, not `https://prood.com`.
 
@@ -216,7 +222,7 @@ BETTER_AUTH_SECRET=<same as API>
 AUTH_PROXY_SECRET=<same as API>
 BETTER_AUTH_URL=https://prood.com
 NEXT_PUBLIC_AUTH_URL=https://<api project>.vercel.app
-NEXT_PUBLIC_DASHBOARD_URL=https://prood.com/dashboard
+NEXT_PUBLIC_DASHBOARD_URL=https://prood.com
 NEXT_PUBLIC_API_URL=https://prood.com
 NEXT_PUBLIC_DOCS_URL=https://prood.com
 CHECKOUT_URL=https://prood.com/pay
@@ -229,7 +235,7 @@ VERCEL_TEAM_ID=<team ID>
 NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app
 ```
 
-Dashboard auth (sign-in, sign-up, organization ops) is issued by **apps/api** but proxied through the dashboard at `/dashboard/api/auth/*`. The proxy runs on the server and reaches the API project at `NEXT_PUBLIC_AUTH_URL`, which is that project's own `*.vercel.app` address, not prood.com. The two `*.vercel.app` addresses (`COMMERCE_API_URL` and `NEXT_PUBLIC_AUTH_URL`) are only for server-to-server calls; a browser never uses them.
+Dashboard auth (sign-in, sign-up, organization ops) is issued by **apps/api**. The browser calls `/api/auth/*` on prood.com, and the gateway sends it to the API project, so the session cookie belongs to prood.com. The admin console reaches the API through its own proxy at `/admin/api/auth/*`, which uses `NEXT_PUBLIC_AUTH_URL`, that project's own `*.vercel.app` address. The two `*.vercel.app` addresses (`COMMERCE_API_URL` and `NEXT_PUBLIC_AUTH_URL`) are only for server-to-server calls; a browser never uses them.
 
 ## Step 6 — Deploy the platform admin
 
@@ -267,13 +273,13 @@ The admin console is on the same origin as the dashboard, so a session started a
 # Docs
 NEXT_PUBLIC_WEB_URL=https://prood.com
 NEXT_PUBLIC_DOCS_URL=https://prood.com
-NEXT_PUBLIC_DASHBOARD_URL=https://prood.com/dashboard
+NEXT_PUBLIC_DASHBOARD_URL=https://prood.com
 NEXT_PUBLIC_API_URL=https://prood.com
 
 # Web
 NEXT_PUBLIC_WEB_URL=https://prood.com
 NEXT_PUBLIC_DOCS_URL=https://prood.com
-NEXT_PUBLIC_DASHBOARD_URL=https://prood.com/dashboard
+NEXT_PUBLIC_DASHBOARD_URL=https://prood.com
 NEXT_PUBLIC_API_URL=https://prood.com
 DASHBOARD_ORIGIN=https://<dashboard project>.vercel.app
 ADMIN_ORIGIN=https://<admin project>.vercel.app
@@ -297,7 +303,8 @@ Traffic to the old subdomains (`dashboard.prood.com`, `api.prood.com`, `checkout
 
 | Address | Expect |
 | --- | --- |
-| `https://prood.com/dashboard/login` | The dashboard sign-in page |
+| `https://prood.com/login` | The dashboard sign-in page |
+| `https://prood.com/` | The marketing homepage when signed out, the dashboard when signed in |
 | `https://prood.com/admin/login` | The admin sign-in page |
 | `https://prood.com/docs` | These docs |
 | `https://prood.com/pay/c/x` | The checkout app's page for an unknown session, not the marketing site |
@@ -315,7 +322,7 @@ Locally the gateway is `apps/web` on port 3001, and it stands in for prood.com. 
 | Address | App |
 | --- | --- |
 | `http://localhost:3001` | Marketing |
-| `http://localhost:3001/dashboard` | Dashboard |
+| `http://localhost:3001/login` | Dashboard (`http://localhost:3001` once signed in) |
 | `http://localhost:3001/admin` | Admin |
 | `http://localhost:3001/docs` | Docs |
 | `http://localhost:3001/pay` | Checkout |

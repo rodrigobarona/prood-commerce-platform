@@ -7,7 +7,7 @@ import { BackLink } from "@prood/ui/components/page-layout"
 import { PageHeader } from "@prood/ui/components/page-header"
 import { Panel } from "@prood/ui/components/panel"
 import { DashboardPage } from "@/components/layout/dashboard-page"
-import { ProviderConfigForm } from "@/components/integrations/provider-config-form"
+import { ProviderConfigForm } from "@/components/payments/provider-config-form"
 import { DetailSkeleton, PageHeaderSkeleton } from "@/components/skeletons"
 import { paymentWebhookUrl } from "@prood/commerce"
 import { canManageStore } from "@/lib/admin"
@@ -79,7 +79,7 @@ async function IntegrationConfigContent({
   return (
     <>
       <PageHeader
-        back={<BackLink href="/integrations">Integrations</BackLink>}
+        back={<BackLink href="/payments">Payments</BackLink>}
         title={meta.name}
         description={meta.description}
         actions={

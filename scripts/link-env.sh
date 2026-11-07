@@ -34,7 +34,7 @@ write_app_env() {
     echo
     echo "# One origin: everything the browser sees is the gateway on $GATEWAY."
     echo "NEXT_PUBLIC_WEB_URL=\"$GATEWAY\""
-    echo "NEXT_PUBLIC_DASHBOARD_URL=\"$GATEWAY/dashboard\""
+    echo "NEXT_PUBLIC_DASHBOARD_URL=\"$GATEWAY\""
     echo "NEXT_PUBLIC_ADMIN_URL=\"$GATEWAY/admin\""
     echo "NEXT_PUBLIC_API_URL=\"$GATEWAY\""
     echo "NEXT_PUBLIC_DOCS_URL=\"$GATEWAY\""

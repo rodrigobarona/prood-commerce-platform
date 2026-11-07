@@ -3,15 +3,18 @@ import type { NextConfig } from "next"
 
 import { MEDIA_URL, mediaRemotePattern } from "@prood/media/remote-pattern"
 import { originOf, securityHeaders } from "@prood/security-headers"
+import { DASHBOARD_SEGMENTS, SESSION_COOKIES } from "./lib/zones"
 
 /**
  * prood.com is one domain. This app owns it and is the gateway: the pages here are the marketing
  * site, and the rewrites below send everything else to the Vercel project that serves it, so the
  * address bar never leaves prood.com.
  *
- *   /dashboard/*  dashboard      /pay/*   hosted checkout     /v1/*  REST API
- *   /admin/*      admin          /docs/*  documentation       /mcp   MCP server
- *   /api/auth/*   sign-in API    /.well-known/agent-configuration   Agent Auth discovery
+ *   /                  the dashboard when signed in, the marketing homepage when not (`/home` is the
+ *                      marketing homepage for a signed-in visitor)
+ *   /orders, /login... the dashboard, for everyone (DASHBOARD_SEGMENTS in lib/zones.ts)
+ *   /admin/*  admin    /pay/*  hosted checkout    /v1/*  REST API       /docs/*  documentation
+ *   /api/auth/*  sign-in API    /mcp  MCP server    /.well-known/agent-configuration  Agent Auth discovery
  *
  * Merchant stores are not here: they live on `{store}.prood.app`, a separate domain by design.
  */
@@ -36,12 +39,18 @@ const api = zoneOrigin("API_ORIGIN", "http://localhost:3005")
 const admin = zoneOrigin("ADMIN_ORIGIN", "http://localhost:3006")
 
 /**
- * The gateway merges the headers of `/(.*)` into the responses it proxies, and every zone sends its
- * own Content-Security-Policy (the dashboard needs the image bucket, checkout needs Stripe). Two
+ * The gateway merges the headers of its own rules into the responses it proxies, and every zone sends
+ * its own Content-Security-Policy (the dashboard needs the image bucket, checkout needs Stripe). Two
  * policies on one response both apply, so this app's headers are limited to its own pages.
  */
-const PROXIED = "(?:dashboard|admin|pay|docs|_docs|v1|mcp)(?:/|$)|api/(?:auth|search)(?:/|$)|\\.well-known/agent-configuration$"
-const OWN_PAGES = `/((?!${PROXIED}).*)`
+const PROXIED = [
+  `(?:${DASHBOARD_SEGMENTS.join("|")}|admin|pay|docs|_dashboard|_docs|v1|mcp)(?:/|$)`,
+  "api/(?:auth|search|export)(?:/|$)",
+  "\\.well-known/agent-configuration$",
+].join("|")
+/** Every page except `/` and the proxied ones. */
+const OWN_PAGES = `/((?!${PROXIED}).+)`
+const signedIn = SESSION_COOKIES.map((key) => ({ type: "cookie" as const, key }))
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
@@ -52,12 +61,26 @@ const nextConfig: NextConfig = {
   },
   async rewrites() {
     return {
+      // Before this app's own routes, because `/` is one of them: a visitor with a session cookie gets
+      // the dashboard's home instead of the marketing homepage. One rule per cookie name, since a
+      // rule's `has` needs all of its entries.
+      beforeFiles: SESSION_COOKIES.map((key) => ({
+        source: "/",
+        has: [{ type: "cookie" as const, key }],
+        destination: `${dashboard}/`,
+      })),
       // After this app's own routes, so /api/c15t, /llms.txt and the marketing pages are never shadowed.
       afterFiles: [
         // A rule for the bare path and one for what follows it: "/x/:path*" sends "/x" to "/x/",
         // which a zone redirects back to "/x".
-        { source: "/dashboard", destination: `${dashboard}/dashboard` },
-        { source: "/dashboard/:path*", destination: `${dashboard}/dashboard/:path*` },
+        ...DASHBOARD_SEGMENTS.flatMap((segment) => [
+          { source: `/${segment}`, destination: `${dashboard}/${segment}` },
+          { source: `/${segment}/:path*`, destination: `${dashboard}/${segment}/:path*` },
+        ]),
+        { source: "/api/export/:path*", destination: `${dashboard}/api/export/:path*` },
+        // The dashboard's scripts, styles and images are asked for under /_dashboard (its assetPrefix),
+        // so they can't collide with this app's own /_next files.
+        { source: "/_dashboard/_next/:path*", destination: `${dashboard}/_next/:path*` },
         { source: "/admin", destination: `${admin}/admin` },
         { source: "/admin/:path*", destination: `${admin}/admin/:path*` },
         { source: "/pay", destination: `${checkout}/pay` },
@@ -82,19 +105,28 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      // The short addresses people type.
-      { source: "/login", destination: "/dashboard/login", permanent: false },
-      { source: "/register", destination: "/dashboard/register", permanent: false },
-      { source: "/signup", destination: "/dashboard/register", permanent: false },
+      // The short address people type.
+      { source: "/signup", destination: "/register", permanent: false },
+      // The dashboard used to live under /dashboard. Links in old emails and bookmarks still work.
+      { source: "/dashboard", destination: "/", permanent: false },
+      { source: "/dashboard/integrations/:path*", destination: "/payments/:path*", permanent: false },
+      { source: "/dashboard/integrations", destination: "/payments", permanent: false },
+      { source: "/dashboard/:path*", destination: "/:path*", permanent: false },
     ]
   },
-  headers: async () =>
-    securityHeaders({
+  headers: async () => {
+    const rules = securityHeaders({
       // Web Analytics, once the visitor allows `measurement`; its events post to /_vercel/insights.
       scriptSrc: ["https://va.vercel-scripts.com"],
       // The hero film plays straight from the media Worker.
       mediaSrc: [originOf(MEDIA_URL)],
-    }).map((rule) => ({ ...rule, source: OWN_PAGES })),
+    })
+    return [
+      // The homepage only without a session cookie: with one, `/` is the dashboard, which sends its own.
+      ...rules.map((rule) => ({ ...rule, source: "/", missing: signedIn })),
+      ...rules.map((rule) => ({ ...rule, source: OWN_PAGES })),
+    ]
+  },
 }
 
 // Bundles the INTH policy (see c15t.config.ts) into the build. If INTH

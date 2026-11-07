@@ -45,7 +45,7 @@ export function setupChecklist(progress: SetupProgress, storeUrl: string | null)
       description: "Your store can't take orders until one is connected. Payouts go straight to your account.",
       done: progress.canTakeOrders,
       action: "Connect a provider",
-      href: "/integrations",
+      href: "/payments",
     },
     {
       id: "contact-email",
@@ -59,7 +59,7 @@ export function setupChecklist(progress: SetupProgress, storeUrl: string | null)
       id: "test-order",
       title: "Place a test order",
       description: canBuy
-        ? "Buy something from your store and pay for it, then check it shows as paid in Orders. Your provider's page in Integrations says how to test it."
+        ? "Buy something from your store and pay for it, then check it shows as paid in Orders. Your provider's page in Payments says how to test it."
         : "Publish a product and connect a payment provider first.",
       done: progress.paidOrders > 0,
       action: "Open your store",

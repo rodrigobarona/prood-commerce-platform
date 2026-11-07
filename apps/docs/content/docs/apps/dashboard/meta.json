@@ -1,5 +1,5 @@
 {
   "title": "Dashboard",
   "icon": "Gauge",
-  "pages": ["index", "products", "orders", "integrations", "domains", "team"]
+  "pages": ["index", "products", "orders", "payments", "domains", "team"]
 }

@@ -10,7 +10,7 @@ Prood runs as a **white-label, multi-tenant commerce platform**: one deployment 
 | URL | App | Tenant resolution |
 | --- | --- | --- |
 | `prood.com` | Marketing (`apps/web`, the gateway for the paths below) | N/A |
-| `prood.com/dashboard` | Merchant admin | Session `activeOrganizationId` |
+| `prood.com` (signed in), `/login`, `/orders`... | Merchant dashboard | Session `activeOrganizationId` |
 | `prood.com/admin` | Platform admin | `admin` role |
 | `prood.com/v1`, `/mcp`, `/api/auth` | Commerce API | Session / API key / forwarded `x-storefront-host` |
 | `prood.com/pay` | Hosted checkout (`/pay/c/{sessionId}`) | `tenantId` on checkout session |
@@ -174,7 +174,7 @@ Merchants can have **two different kinds** of custom domain:
 | Type | Default | Custom (paid tiers vary) | Routes to | Purpose |
 | --- | --- | --- | --- | --- |
 | **Store domain** | `{slug}.prood.app` | e.g. `loja.casalume.example` | Storefront | Customer-facing catalog and cart |
-| **Admin domain (white-label)** | `prood.com/dashboard` | e.g. `admin.casalume.example` | Dashboard | Team-facing admin (DatoCMS-style) |
+| **Admin domain (white-label)** | `prood.com` | e.g. `admin.casalume.example` | Dashboard | Team-facing admin (DatoCMS-style) |
 
 ### Store custom domain (partially implemented)
 
@@ -187,7 +187,7 @@ Merchants can have **two different kinds** of custom domain:
 
 Similar to DatoCMS `dashboard.datocms.com` vs `admin.casalume.example`:
 
-- Default admin URL for all merchants: **`prood.com/dashboard`**
+- Default admin URL for all merchants: **`prood.com`**, signed in
 - Scale / Agency (planned): optional **`admin.casalume.example`** with DNS verification
 - Routes to `apps/dashboard`, not the storefront
 - Requires a separate Vercel project attachment, dashboard host → org lookup, and Better Auth trusted origins per custom admin host
@@ -199,7 +199,7 @@ Store and admin custom domains are **independent** — a merchant might use `sho
 
 <Cards>
   <Card title="Dashboard domains" href="/docs/apps/dashboard/domains" description="Custom domain setup and Vercel integration." />
-  <Card title="Dashboard integrations" href="/docs/apps/dashboard/integrations" description="Per-tenant payment and service credentials." />
+  <Card title="Dashboard payments" href="/docs/apps/dashboard/payments" description="Per-tenant payment and service credentials." />
   <Card title="API authentication" href="/docs/apps/api/authentication" description="How the API resolves tenant from callers." />
   <Card title="Merchant onboarding" href="/docs/guides/merchant-onboarding" description="Step-by-step new merchant setup." />
 </Cards>

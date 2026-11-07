@@ -68,7 +68,7 @@ describe("setupChecklist", () => {
   it("follows the store's payment connection, so losing it reopens the step", () => {
     expect(item({ ...fresh, canTakeOrders: true }, "payment").done).toBe(true)
     expect(item({ ...fresh, paidOrders: 3 }, "payment").done).toBe(false)
-    expect(item(fresh, "payment").href).toBe("/integrations")
+    expect(item(fresh, "payment").href).toBe("/payments")
   })
 
   it("asks for a contact email, so customers have a way to reach the store", () => {

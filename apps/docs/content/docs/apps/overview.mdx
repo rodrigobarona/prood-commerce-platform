@@ -10,7 +10,7 @@ Prood ships seven deployable Next.js applications, each with a distinct role in 
 | App | Port | Deploy target | Database | Primary packages |
 | --- | --- | --- | --- | --- |
 | **storefront** | 3000 | Vercel (per-tenant domains) | Auth + tenant lookup | `@prood/api-client`, `@prood/ui`, `@prood/types` |
-| **dashboard** | 3002 | Vercel (`prood.com/dashboard`) | Auth + integrations + domains | `@prood/api-client`, `@prood/commerce`, `@prood/ui` |
+| **dashboard** | 3002 | Vercel (`prood.com`, signed in) | Auth + payments + domains | `@prood/api-client`, `@prood/commerce`, `@prood/ui` |
 | **checkout** | 3004 | Vercel (`prood.com/pay`) | None (Redis only) | `@prood/checkout-host`, `@prood/ui` |
 | **api** | 3005 | Vercel (`prood.com/v1`, `/mcp`, `/api/auth`) | Full commerce + auth | `@prood/commerce`, `@prood/types` |
 | **admin** | 3006 | Vercel (`prood.com/admin`) | Auth/session/admin tables | `@prood/auth`, `@prood/ui` |
@@ -63,7 +63,7 @@ Customer accounts on the storefront are separate from merchant accounts on the d
 | --- | --- | --- |
 | Storefront | Catalog, cart, orders | `@prood/api-client` → API (server components + BFF) |
 | Dashboard | Products, orders, customers, stats | `@prood/api-client` → API `/v1/admin/*` |
-| Dashboard | Integrations, domains | Direct `@prood/commerce` + Drizzle (not via API) |
+| Dashboard | Payments, domains | Direct `@prood/commerce` + Drizzle (not via API) |
 | Checkout | Order status | Webhook forward → API |
 | Admin | Users, orgs, sessions, API keys, agents | Direct shared auth/admin tables |
 | API | Everything | `@prood/commerce` → `@prood/platform` |
@@ -75,7 +75,7 @@ In production, each app is a **separate Vercel project** sharing the same Neon d
 | Project | Custom domains | Notes |
 | --- | --- | --- |
 | Storefront | Per-merchant domains + subdomains | Tenant resolved from Host |
-| Dashboard | Single admin URL (e.g. `prood.com/dashboard`) | Org switching in session |
+| Dashboard | Single admin URL (`prood.com`, signed in) | Org switching in session |
 | Checkout | Single checkout URL (e.g. `prood.com/pay`) | Shared across all tenants |
 | API | Single API URL (e.g. `prood.com/v1`) | All callers hit one origin |
 | Admin | Restricted admin URL (e.g. `prood.com/admin`) | Platform operations only |
@@ -87,7 +87,7 @@ See [Deployment guide](/docs/guides/deployment) for the full checklist.
 
 <Cards>
   <Card title="Storefront" href="/docs/apps/storefront" description="Customer-facing catalog, cart, checkout redirect, and account." />
-  <Card title="Dashboard" href="/docs/apps/dashboard" description="Merchant admin — products, orders, integrations, domains." />
+  <Card title="Dashboard" href="/docs/apps/dashboard" description="Merchant admin — products, orders, payments, domains." />
   <Card title="Checkout" href="/docs/apps/checkout" description="Hosted payment app with Redis sessions." />
   <Card title="Commerce API" href="/docs/apps/api" description="REST API, MCP, Agent Auth, and webhooks." />
 </Cards>

@@ -433,7 +433,7 @@ Motion explains, it doesn't decorate.
 ## 10. Domains
 
 Marketing at `prood.com`. Platform services on the same domain, by path:
-`prood.com/dashboard`, `/admin`, `/pay`, `/docs` and `/v1`. Merchant stores on
+`prood.com` itself (the dashboard once signed in), `/admin`, `/pay`, `/docs` and `/v1`. Merchant stores on
 `{slug}.prood.app` or the merchant's own domain; the separate registrable domain
 keeps tenant content and cookies away from Prood's own services. Canonical URLs
 for the marketing site always use `https://prood.com`.

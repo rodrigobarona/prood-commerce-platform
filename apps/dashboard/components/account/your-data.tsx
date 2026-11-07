@@ -8,7 +8,6 @@ import { Input } from "@prood/ui/components/input"
 import { Label } from "@prood/ui/components/label"
 import { Panel } from "@prood/ui/components/panel"
 import { authClient } from "@/lib/auth/client"
-import { withBase } from "@/lib/base-path"
 
 /** A merchant's own rights over their account: a copy of it, and deleting it. */
 export function YourData() {
@@ -22,7 +21,7 @@ export function YourData() {
       setError(failure.message ?? "We couldn't delete your account. Check your password and try again.")
       return false
     }
-    window.location.assign(withBase("/login"))
+    window.location.assign("/login")
     return true
   }
 
@@ -35,7 +34,7 @@ export function YourData() {
           keys. Your store&apos;s own data is on the store settings page.
         </p>
         <Button asChild variant="outline" className="mt-4">
-          <a href={withBase("/api/export/account")} download>
+          <a href={"/api/export/account"} download>
             Download my data
           </a>
         </Button>

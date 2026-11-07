@@ -12,7 +12,6 @@ import {
 import { Button } from "@prood/ui/components/button";
 import { cn } from "@prood/ui/lib/utils";
 import { authClient } from "@/lib/auth/client";
-import { withBase } from "@/lib/base-path";
 
 type Props = {
   organizationId: string;
@@ -24,7 +23,7 @@ type Props = {
 };
 
 function billingUrl(query = ""): string {
-  return `${window.location.origin}${withBase("/billing")}${query}`;
+  return `${window.location.origin}${"/billing"}${query}`;
 }
 
 /** Starts Stripe Checkout for a paid plan, or opens Stripe's billing page once subscribed. */

@@ -1,16 +1,21 @@
 import type { NextConfig } from "next"
 
-import { BASE_PATH } from "./lib/base-path"
 import { mediaRemotePattern } from "@prood/media/remote-pattern"
 import { originOf, securityHeaders } from "@prood/security-headers"
 
+/**
+ * The dashboard is the root of prood.com once you're signed in: `/`, `/orders`, `/products`... The
+ * gateway in apps/web sends those paths here (its next.config.ts has the list). Its scripts, styles
+ * and images are asked for under `/_dashboard`, so they can't collide with the marketing site's own
+ * /_next files, which the same domain serves.
+ */
 const nextConfig: NextConfig = {
-  // The gateway on prood.com sends this prefix here; see lib/base-path.ts.
-  basePath: BASE_PATH,
+  assetPrefix: "/_dashboard",
   cacheComponents: true,
   partialPrefetching: true,
   transpilePackages: ["@prood/ui", "@prood/commerce", "@prood/media"],
   images: {
+    path: "/_dashboard/_next/image",
     // Product media lives in the R2 bucket, served at S3_PUBLIC_URL; brand
     // photography comes from @prood/media.
     remotePatterns: [
@@ -18,14 +23,6 @@ const nextConfig: NextConfig = {
       mediaRemotePattern,
       ...(process.env.S3_PUBLIC_URL ? [new URL(`${process.env.S3_PUBLIC_URL.replace(/\/$/, "")}/**`)] : []),
     ],
-  },
-  // The gateway only ever asks this project for paths under dashboard, so an address without it means
-  // someone opened the project's own *.vercel.app address: send them to the real one.
-  redirects: async () => {
-    const home = process.env.NEXT_PUBLIC_DASHBOARD_URL
-    return home
-      ? [{ source: "/:path((?!dashboard(?:[./]|$)|_next/).*)", destination: `${home}/:path`, basePath: false as const, permanent: false }, { source: "/", destination: home, basePath: false as const, permanent: false }]
-      : []
   },
   headers: async () =>
     securityHeaders({

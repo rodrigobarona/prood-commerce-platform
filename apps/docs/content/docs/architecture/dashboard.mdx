@@ -36,7 +36,7 @@ Most data operations go through the Commerce API. Integration credentials and do
 | Products | `/products`, `/products/new`, `/products/[id]/edit` | `components/store/product-form.tsx`. Writes go to `/v1/admin/products` |
 | Customers | `/customers`, `/customers/[id]` | |
 | Domains | `/domains` | `app/(dashboard)/domains/actions.ts`, `lib/vercel.ts` |
-| Integrations | `/integrations`, `/integrations/[provider]` | Form built from `lib/providers.ts` |
+| Payments | `/payments`, `/payments/[provider]` | Form built from `lib/providers.ts` |
 | API keys | `/settings/api-keys` | Store owners and admins only |
 | Team | `/team` | Better Auth organization plugin |
 | Store settings | `/settings` | |

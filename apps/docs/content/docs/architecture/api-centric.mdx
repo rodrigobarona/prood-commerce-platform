@@ -61,7 +61,7 @@ Not every storefront request goes directly to the API. Local BFF routes exist wh
 | `/api/commerce/countries` | Static-ish data for address forms; avoids exposing API URL to client |
 | `/api/auth/[...all]` (storefront only) | Better Auth handler must run on the storefront origin (`*.prood.app` / custom domains) |
 
-**Dashboard** does not run Better Auth handlers directly. Browser auth calls go to a same-origin BFF at `/dashboard/api/auth/*`, which proxies to **apps/api** from the server, so the session cookie is set for prood.com whichever Vercel project answered. The dashboard, the admin console and the API share that one origin, so one session is valid at all three. `AUTH_COOKIE_DOMAIN` stays unset.
+**Dashboard** does not run Better Auth handlers directly. Browser auth calls go to `/api/auth/*` on prood.com, which the gateway sends to **apps/api**, so the session cookie is set for prood.com whichever Vercel project answered. The dashboard, the admin console and the API share that one origin, so one session is valid at all three. `AUTH_COOKIE_DOMAIN` stays unset.
 
 Everything else (products, categories, store info, orders) is fetched **server-side** in React Server Components via `@prood/api-client`.
 

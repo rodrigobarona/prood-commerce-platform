@@ -17,7 +17,7 @@ const orders: { id: string; customer: string; total: string; status: { label: st
 /** The orders screen with sample data, simplified by hand: one line per order, and one status to act on. */
 export function OrdersSample({ className }: { className?: string }) {
   return (
-    <BrowserFrame url="prood.com/dashboard/orders" className={className}>
+    <BrowserFrame url="prood.com/orders" className={className}>
       <div className="p-5">
         <div className="flex items-baseline justify-between gap-4">
           <p className="font-heading text-lg font-medium tracking-[-0.01em]">Orders</p>
@@ -181,13 +181,13 @@ const connections: { name: string; methods: string; status: string; tone: Status
   { name: "Ifthenpay", methods: "Multibanco, MB WAY, Card", status: "Not connected", tone: "neutral" },
 ]
 
-/** The dashboard's integrations list, for one store, with sample data. */
+/** The dashboard's payments list, for one store, with sample data. */
 export function IntegrationsSample({ className }: { className?: string }) {
   return (
-    <BrowserFrame url="prood.com/dashboard/integrations" className={className}>
+    <BrowserFrame url="prood.com/payments" className={className}>
       <div className="p-5">
         <div className="flex items-baseline justify-between gap-4">
-          <p className="font-heading text-lg font-medium tracking-[-0.01em]">Integrations</p>
+          <p className="font-heading text-lg font-medium tracking-[-0.01em]">Payments</p>
           <p className="text-xs text-muted-foreground">Sample data</p>
         </div>
         <ul className="mt-4 divide-y divide-border rounded-xl border border-border">

@@ -21,7 +21,7 @@ export type PaymentProviderConfig = Record<string, string>
 function required(config: PaymentProviderConfig, key: string, provider: string): string {
   const value = config[key]
   if (!value) {
-    throw new CommerceError(`${provider} is missing "${key}". Reconnect it in Integrations.`, 'VALIDATION', 422)
+    throw new CommerceError(`${provider} is missing "${key}". Reconnect it in Payments.`, 'VALIDATION', 422)
   }
   return value
 }

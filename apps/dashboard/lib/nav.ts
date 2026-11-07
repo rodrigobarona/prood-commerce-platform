@@ -38,7 +38,7 @@ export const navGroups: NavGroup[] = [
     label: "Connections",
     items: [
       { title: "Domains", href: "/domains", icon: Globe },
-      { title: "Integrations", href: "/integrations", icon: PuzzlePiece },
+      { title: "Payments", href: "/payments", icon: PuzzlePiece },
       { title: "API keys", href: "/settings/api-keys", icon: Key },
     ],
   },

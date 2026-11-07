@@ -23,7 +23,6 @@ export function proxy(request: NextRequest) {
   const serverAction = request.headers.has("next-action")
 
   if (!sessionCookie && !publicRoute && !serverAction) {
-    // `nextUrl.pathname` has the base path stripped; cloning keeps it, so the redirect stays under /dashboard.
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = "/login"
     loginUrl.search = ""
@@ -40,6 +39,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Under a base path the second pattern needs something after the slash, so the home page (/dashboard) is listed on its own.
-  matcher: ["/", "/((?!api|_next/static|_next/image|favicon.ico|icon.svg|apple-icon).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|icon.svg|apple-icon).*)"],
 }

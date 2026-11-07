@@ -83,7 +83,7 @@ import { listOrgApiKeys } from "../api-keys"
 import {
   disconnectIntegrationAction,
   saveIntegrationAction,
-} from "@/app/(dashboard)/integrations/actions"
+} from "@/app/(dashboard)/payments/actions"
 import {
   cancelOrderAction,
   fulfillOrderAction,

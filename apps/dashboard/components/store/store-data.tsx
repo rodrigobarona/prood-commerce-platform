@@ -8,7 +8,6 @@ import { Input } from "@prood/ui/components/input"
 import { Label } from "@prood/ui/components/label"
 import { Panel } from "@prood/ui/components/panel"
 import { authClient } from "@/lib/auth/client"
-import { withBase } from "@/lib/base-path"
 import { listStoreDomainsAction, removeDeletedStoreDomainsAction } from "@/app/(dashboard)/settings/actions"
 
 /** Taking a store's data with you, and deleting the store. The export is open to owners and admins, the deletion to owners. */
@@ -37,7 +36,7 @@ export function StoreData({
       return false
     }
     await removeDeletedStoreDomainsAction(domains)
-    window.location.assign(withBase("/"))
+    window.location.assign("/")
     return true
   }
 
@@ -48,7 +47,7 @@ export function StoreData({
         description="One JSON file with your settings, products, categories, customers and addresses, orders with their items and history, returns and reviews. It leaves out your payment provider credentials. Use it to move to another platform or to answer a request from a customer."
       >
         <Button asChild variant="outline">
-          <a href={withBase("/api/export/store")} download>
+          <a href={"/api/export/store"} download>
             Download store data
           </a>
         </Button>

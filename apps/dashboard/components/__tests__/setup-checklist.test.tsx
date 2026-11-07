@@ -17,7 +17,7 @@ describe("SetupChecklist", () => {
     const html = renderToStaticMarkup(<SetupChecklist items={setupChecklist(fresh, STORE_URL)} />)
     expect(html).toContain("0 of 4 done")
     expect(html).toContain('href="/products/new"')
-    expect(html).toContain('href="/integrations"')
+    expect(html).toContain('href="/payments"')
     expect(html).toContain('href="/settings"')
   })
 
@@ -39,7 +39,7 @@ describe("SetupChecklist", () => {
     const items = setupChecklist({ ...fresh, canTakeOrders: true }, STORE_URL)
     const html = renderToStaticMarkup(<SetupChecklist items={items} />)
     expect(html).toContain("1 of 4 done")
-    expect(html).not.toContain('href="/integrations"')
+    expect(html).not.toContain('href="/payments"')
   })
 
   it("disappears once the store is ready", () => {

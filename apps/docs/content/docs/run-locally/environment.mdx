@@ -7,13 +7,13 @@ Prood uses a **single root** `.env.local` file for local development. Run `pnpm 
 
 ## One domain
 
-Production is one domain, `https://prood.com`, with a path per app: `/dashboard`, `/admin`, `/pay`, `/docs`, and `/v1`, `/mcp`, `/api/auth` and `/.well-known/agent-configuration` for the API. `apps/web` is the gateway that rewrites those paths to each app's own Vercel project (see [Deployment](/docs/guides/deployment)). Merchant stores stay on `{store}.prood.app`.
+Production is one domain, `https://prood.com`, with a path per app: the dashboard at the root once you are signed in (and at `/login`, `/orders`, `/products` and its other pages), `/admin`, `/pay`, `/docs`, and `/v1`, `/mcp`, `/api/auth` and `/.well-known/agent-configuration` for the API. `apps/web` is the gateway that rewrites those paths to each app's own Vercel project (see [Deployment](/docs/guides/deployment)). Merchant stores stay on `{store}.prood.app`.
 
 Locally, run every app and open the gateway at `http://localhost:3001`, so the apps share one origin. The apps listen on 3002 (dashboard), 3003 (docs), 3004 (checkout), 3005 (api) and 3006 (admin).
 
 Two kinds of address appear below:
 
-- **Public URLs**: what a browser sees. They point at the gateway: `https://prood.com` in production and `http://localhost:3001` locally, with `/dashboard`, `/admin` or `/pay` on the end where noted.
+- **Public URLs**: what a browser sees. They point at the gateway: `https://prood.com` in production and `http://localhost:3001` locally, with `/admin` or `/pay` on the end where noted.
 - **Internal URLs**: server-to-server calls (`NEXT_PUBLIC_AUTH_URL`, `COMMERCE_API_URL`). They point straight at the API app: its `*.vercel.app` address in production, `http://localhost:3005` locally.
 
 ## Database
@@ -53,7 +53,7 @@ Files uploaded through `uploadForTenant()` are namespaced per tenant: `org/<orgI
 | `BETTER_AUTH_URL` | Yes | API, dashboard, admin | Public origin of the auth issuer, which is the gateway: `https://prood.com` (locally `http://localhost:3001`). Do not set it on the storefront, which infers its origin per store. |
 | `NEXT_PUBLIC_AUTH_URL` | Yes | Dashboard, admin | Internal origin their server-side auth proxies forward sign-in/sign-up/org ops to: the API project's own address, `http://localhost:3005` locally. No browser calls it. |
 | `NEXT_PUBLIC_WEB_URL` | Yes | API, dashboard, docs, web | The marketing site and gateway: `https://prood.com` (locally `http://localhost:3001`). |
-| `NEXT_PUBLIC_DASHBOARD_URL` | Yes | API, dashboard, docs, web | Merchant dashboard URL, **with its path**: `https://prood.com/dashboard` (locally `http://localhost:3001/dashboard`). |
+| `NEXT_PUBLIC_DASHBOARD_URL` | Yes | API, dashboard, docs, web | Merchant dashboard URL, which is the bare origin: `https://prood.com` (locally `http://localhost:3001`). The dashboard sits at the root of the domain. |
 | `NEXT_PUBLIC_ADMIN_URL` | Yes | API, admin | Platform admin URL, with its path: `https://prood.com/admin` (locally `http://localhost:3001/admin`). |
 | `NEXT_PUBLIC_API_URL` | Yes | Dashboard, docs, web | Public origin of the REST API, which the gateway serves: `https://prood.com` (locally `http://localhost:3001`). |
 | `NEXT_PUBLIC_STOREFRONT_URL` | Yes | API, dashboard, storefront | Storefront **apex**, e.g. `https://prood.app`. Stores are its subdomains, so never a single store's host. |
@@ -69,7 +69,7 @@ Set on the `prood-web` project only. Each is the origin of an app's own Vercel p
 
 | Variable | Required | Receives | Local default |
 | --- | --- | --- | --- |
-| `DASHBOARD_ORIGIN` | On Vercel | `/dashboard` | `http://localhost:3002` |
+| `DASHBOARD_ORIGIN` | On Vercel | `/` when signed in, `/login`, `/orders` and the other dashboard paths | `http://localhost:3002` |
 | `ADMIN_ORIGIN` | On Vercel | `/admin` | `http://localhost:3006` |
 | `DOCS_ORIGIN` | On Vercel | `/docs`, `/api/search` | `http://localhost:3003` |
 | `CHECKOUT_ORIGIN` | On Vercel | `/pay` | `http://localhost:3004` |
@@ -84,7 +84,7 @@ Set on the `prood-web` project only. Each is the origin of an app's own Vercel p
 
 ## Payments
 
-There are no payment environment variables. Each store connects its own account in the dashboard, under Integrations, and the credentials are stored encrypted in `integration_config`. See [Payment integration](/docs/guides/payment-integration).
+There are no payment environment variables. Each store connects its own account in the dashboard, under Payments, and the credentials are stored encrypted in `integration_config`. See [Payment integration](/docs/guides/payment-integration).
 
 ## Checkout app
 

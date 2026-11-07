@@ -15,7 +15,7 @@ import {
 } from "@/lib/providers"
 import { integrationStatus } from "@/lib/status"
 
-export const metadata = { title: "Integrations" }
+export const metadata = { title: "Payments" }
 
 const TYPE_ORDER: ProviderType[] = ["payment", "notification", "analytics"]
 
@@ -23,7 +23,7 @@ export default function IntegrationsPage() {
   return (
     <DashboardPage>
       <PageHeader
-        title="Integrations"
+        title="Payments"
         description="Connect your own payment accounts. Payouts go straight from the provider to you, and Prood takes no cut."
       />
 
@@ -65,7 +65,7 @@ async function IntegrationsList() {
               {providers.map((provider) => (
                 <li key={provider.id}>
                   <Link
-                    href={`/integrations/${provider.id}`}
+                    href={`/payments/${provider.id}`}
                     className="flex items-center gap-4 px-5 py-4 transition-colors duration-120 hover:bg-muted/50"
                   >
                     <div className="flex min-w-0 flex-1 flex-col gap-0.5">

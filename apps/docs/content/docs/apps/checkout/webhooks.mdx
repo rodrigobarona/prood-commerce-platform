@@ -44,7 +44,7 @@ sequenceDiagram
 
 ## Per-tenant verification
 
-Each store connects its own provider in the dashboard (Integrations page). The verification flow:
+Each store connects its own provider in the dashboard (Payments page). The verification flow:
 
 1. Load the store's `integration_config` for the provider
 2. Decrypt its credentials
@@ -69,7 +69,7 @@ export async function verifyPaymentWebhook(tenantId, providerId, payload, signat
 1. In Stripe Dashboard → Webhooks → Add endpoint
 2. URL: `https://prood.com/pay/api/webhooks/stripe/{orgId}`
 3. Events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`, `charge.refunded`
-4. Copy signing secret → dashboard Integrations → Stripe → webhook secret
+4. Copy signing secret → dashboard Payments → Stripe → webhook secret
 
 Or run `./scripts/stripe-webhook-setup.sh` to configure via CLI.
 

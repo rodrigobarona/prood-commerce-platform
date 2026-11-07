@@ -7,7 +7,7 @@ This guide takes you from a new account to a live store with payments. Allow abo
 
 ## Step 1: Create your store
 
-1. Go to [prood.com/dashboard/register](https://prood.com/dashboard/register).
+1. Go to [prood.com/register](https://prood.com/register).
 2. Enter your name, your store name, your **Store address**, your email and a password. The address follows your store name until you edit it.
 3. Choose **Create account and store**.
 
@@ -41,7 +41,7 @@ Shipping is fixed for now: Standard 15.00 in your currency (5 to 7 days), Expres
 
 ## Step 4: Connect a payment account
 
-Go to **Integrations**, under **Connections**, and choose a provider. Have the credentials ready:
+Go to **Payments**, under **Connections**, and choose a provider. Have the credentials ready:
 
 | Provider | What to enter | Where to find it |
 | --- | --- | --- |
@@ -53,7 +53,7 @@ Each store's checkout runs on one provider, and Stripe comes first if it's conne
 
 ## Step 5: Set up the webhook
 
-Orders are only marked as paid when your provider tells your store a payment arrived. Each provider's page in **Integrations** shows your store's webhook URL. Add it in your provider's account, following [Webhook setup](/docs/guides/webhook-setup).
+Orders are only marked as paid when your provider tells your store a payment arrived. Each provider's page in **Payments** shows your store's webhook URL. Add it in your provider's account, following [Webhook setup](/docs/guides/webhook-setup).
 
 ## Step 6: Add a domain
 
@@ -99,7 +99,7 @@ Use your provider's test keys, then:
 
 ## Step 9: Go live
 
-1. Replace your test keys with live keys in **Integrations**.
+1. Replace your test keys with live keys in **Payments**.
 2. Add your webhook URL to your provider's live settings, and paste the live signing secret if you use Stripe.
 3. Check your domain opens with HTTPS.
 4. Watch your first real orders under **Orders**.

@@ -19,7 +19,7 @@ For Apple Pay and Google Pay, enable them in Stripe and register `prood.com` the
 
 ## Connect it
 
-Go to **Integrations**, under **Connections** in the dashboard, and choose your provider. Each store connects its own account, so credentials are never shared between stores. They're stored separately and encrypted at rest with AES-256-GCM.
+Go to **Payments**, under **Connections** in the dashboard, and choose your provider. Each store connects its own account, so credentials are never shared between stores. They're stored separately and encrypted at rest with AES-256-GCM.
 
 ### Stripe
 
@@ -75,7 +75,7 @@ Orders are only marked as paid when your provider calls your store's webhook URL
 
 ## Change provider
 
-Connect the new provider in **Integrations** and add its webhook. To move off Stripe, switch off **Turned on** on its page: while Stripe is connected and on, checkout uses Stripe. Your old provider still reports on payments it took before you turned it off.
+Connect the new provider in **Payments** and add its webhook. To move off Stripe, switch off **Turned on** on its page: while Stripe is connected and on, checkout uses Stripe. Your old provider still reports on payments it took before you turned it off.
 
 ## Troubleshooting
 
@@ -85,12 +85,12 @@ Connect the new provider in **Integrations** and add its webhook. To move off St
 | "These keys come from different modes" | Use two test keys or two live keys |
 | Orders stay **Unpaid** after payment | The webhook URL in your provider's account, and for Stripe the signing secret and events |
 | A Multibanco reference doesn't show | Check the keys for the payment method you chose |
-| "This store has no payment provider connected yet" | Connect one under **Integrations** and make sure it's turned on |
+| "This store has no payment provider connected yet" | Connect one under **Payments** and make sure it's turned on |
 
 ## Related pages
 
 <Cards>
   <Card title="Webhook setup" href="/docs/guides/webhook-setup" description="Add your webhook URL." />
-  <Card title="Integrations in the dashboard" href="/docs/apps/dashboard/integrations" description="Connect, turn off and reconnect providers." />
+  <Card title="Payments in the dashboard" href="/docs/apps/dashboard/payments" description="Connect, turn off and reconnect providers." />
   <Card title="Orders" href="/docs/apps/dashboard/orders" description="Fulfill, cancel and refund." />
 </Cards>
