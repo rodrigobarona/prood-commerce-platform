@@ -12,7 +12,7 @@ export default function OpengraphImage() {
       label="Dashboard"
       title="Run your store from one place."
       description="Products, orders, customers, payments, domains and team."
-      host="dashboard.prood.com"
+      host="prood.com/dashboard"
     />,
     size
   )

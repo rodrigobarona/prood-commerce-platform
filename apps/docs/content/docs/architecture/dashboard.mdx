@@ -70,7 +70,7 @@ Roles are checked by the API on every request. Owners and admins get `admin`, `s
 | `DATABASE_URL` | Auth, `integration_config` and `tenant_domain` tables |
 | `COMMERCE_API_URL` | Admin API client base URL |
 | `BETTER_AUTH_SECRET` | Session validation on SSR (same secret as API) |
-| `NEXT_PUBLIC_AUTH_URL` | Browser auth client → `apps/api` (default `http://localhost:3005`) |
+| `NEXT_PUBLIC_AUTH_URL` | Internal origin the dashboard's server-side auth proxy forwards to: `apps/api` (default `http://localhost:3005`) |
 | `INTEGRATION_ENCRYPTION_KEY` | Encrypts provider credentials at rest |
 | `CHECKOUT_URL` | Builds the webhook URL shown on a provider's page |
 | `VERCEL_TOKEN`, `STOREFRONT_VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID` | Custom domain provisioning |

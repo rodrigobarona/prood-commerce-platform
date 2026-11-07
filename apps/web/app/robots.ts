@@ -5,7 +5,7 @@ import { siteConfig } from "@/lib/site"
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: { userAgent: "*", allow: "/" },
-    sitemap: `${siteConfig.url}/sitemap.xml`,
+    sitemap: [`${siteConfig.url}/sitemap.xml`, `${siteConfig.url}/docs/sitemap.xml`],
     host: siteConfig.url,
   }
 }

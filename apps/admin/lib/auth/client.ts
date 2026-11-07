@@ -1,12 +1,19 @@
 import { createAuthClient } from "better-auth/react"
 import { requiredEnv } from "@prood/types"
+import { withBase } from "@/lib/base-path"
 import { passkeyClient } from "@better-auth/passkey/client"
 import { adminClient, organizationClient, twoFactorClient } from "better-auth/client/plugins"
 
-/** Same-origin /api/auth (proxied to apps/api); the env URL is only for SSR. */
+/**
+ * This app's own /api/auth route (proxied to apps/api), which lives under the base path. Better
+ * Auth takes a base URL with a path as it is. The env URL only serves server rendering.
+ */
 function authClientBaseUrl(): string {
-  if (typeof window !== "undefined") return window.location.origin
-  return requiredEnv(process.env.NEXT_PUBLIC_ADMIN_URL, "NEXT_PUBLIC_ADMIN_URL")
+  const origin =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : new URL(requiredEnv(process.env.NEXT_PUBLIC_ADMIN_URL, "NEXT_PUBLIC_ADMIN_URL")).origin
+  return `${origin}${withBase("/api/auth")}`
 }
 
 export const authClient = createAuthClient({
@@ -19,7 +26,7 @@ export const authClient = createAuthClient({
     // A password sign-in for an account with two-factor on ends in a challenge, not a session.
     twoFactorClient({
       onTwoFactorRedirect() {
-        window.location.assign(`/two-factor${window.location.search}`)
+        window.location.assign(withBase(`/two-factor${window.location.search}`))
       },
     }),
   ],

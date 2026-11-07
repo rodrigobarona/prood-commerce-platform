@@ -8,6 +8,7 @@ import { PageSkeleton, SidebarSkeleton } from "@/components/admin/skeletons"
 import { AdminHeader } from "@/components/layout/admin-header"
 import { AdminSidebar } from "@/components/layout/admin-sidebar"
 import { isTwoFactorEnabled } from "@prood/auth/two-factor"
+import { requiredEnv } from "@prood/types"
 import { assertAdmin } from "@/lib/auth"
 
 function ShellContent({ children }: { children: ReactNode }) {
@@ -20,7 +21,8 @@ function ShellContent({ children }: { children: ReactNode }) {
 
 /** This console can see every account, so an admin without a second sign-in step is told to add one. */
 function TwoFactorNotice() {
-  const profile = `${(process.env.NEXT_PUBLIC_DASHBOARD_URL ?? "").replace(/\/$/, "")}/account`
+  // The dashboard is another app on the same domain, so this is a plain link: NEXT_PUBLIC_DASHBOARD_URL carries its path.
+  const profile = `${requiredEnv(process.env.NEXT_PUBLIC_DASHBOARD_URL, "NEXT_PUBLIC_DASHBOARD_URL").replace(/\/$/, "")}/account`
   return (
     <p
       role="status"

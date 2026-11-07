@@ -56,7 +56,13 @@ pnpm dev
 ```
 
 `pnpm env:link` generates ignored `apps/*/.env.local` files from the root
-`.env.local`, with local `BETTER_AUTH_URL` overrides per app. `pnpm db:migrate`
+`.env.local` and writes the one-domain local URLs into each (see
+[How prood.com is wired](#how-proodcom-is-wired)). Open the gateway at
+<http://localhost:3001>, not the apps' own ports, so the dashboard, admin,
+checkout, docs and API share one origin: the dashboard is then
+<http://localhost:3001/dashboard>, the admin console
+<http://localhost:3001/admin>, the docs <http://localhost:3001/docs> and the
+hosted checkout <http://localhost:3001/pay>. `pnpm db:migrate`
 applies the versioned migrations in `packages/platform/drizzle` (commerce and
 Better Auth tables, the `prood_app` role and the RLS policies) and is a no-op
 when the database is up to date. `pnpm db:seed` seeds the demo store
@@ -89,24 +95,68 @@ bypasses RLS. `prood_app` has no access to auth-owned tables at all; they are
 read through the connecting role, so always filter those by organization. Code outside `withTenant()` (migrations, seed, tenant resolution
 from the host, Better Auth) runs as the connecting role.
 
+## How prood.com is wired
+
+prood.com is one domain. `apps/web` owns it: its own pages are the marketing
+site, and rewrites in `apps/web/next.config.ts` send every other path to the
+Vercel project that serves it, so the address bar never leaves prood.com.
+
+| Path on prood.com | App | Notes |
+| --- | --- | --- |
+| `/` and the other marketing pages | `apps/web` | The gateway itself |
+| `/dashboard` | `apps/dashboard` | Merchant dashboard, `basePath: "/dashboard"` |
+| `/admin` | `apps/admin` | Platform ops, `admin` role only, `basePath: "/admin"` |
+| `/pay` | `apps/checkout` | Hosted checkout and payment webhooks, `basePath: "/pay"` |
+| `/docs` | `apps/docs` | Documentation; its assets load from `/_docs/_next` |
+| `/v1/*`, `/mcp` | `apps/api` | REST API and MCP server |
+| `/api/auth/*` | `apps/api` | Sign-in API |
+| `/.well-known/agent-configuration` | `apps/api` | Agent Auth discovery |
+| `{store}.prood.app` | `apps/storefront` | Merchant stores, not on prood.com |
+
+- **Zones.** Each app is its own Vercel project with its own `*.vercel.app`
+  address. The gateway reaches it through `DASHBOARD_ORIGIN`, `ADMIN_ORIGIN`,
+  `DOCS_ORIGIN`, `CHECKOUT_ORIGIN` and `API_ORIGIN`, set on the prood-web
+  project only. A deployed `apps/web` build fails if one is missing; locally
+  they default to the apps' ports.
+- **One origin.** The session cookie belongs to prood.com, so a session started
+  at the dashboard is also valid at the admin console and the API. An
+  administrator should turn on two-factor or a passkey (see
+  `_docs/compliance/open-items.md`).
+- **Why stores are on another domain.** Merchants publish their own pages, and
+  a browser treats everything on one domain as related. Keeping stores on
+  prood.app stops store content from sharing cookies or storage with the
+  dashboard, admin console and API sign-in.
+- **Adding a zone.** Give the new app a `basePath` (as the dashboard, admin and
+  checkout do) or an `assetPrefix` (as the docs do) so its files cannot collide
+  with another app's `/_next`. Add a `*_ORIGIN` variable and its two rewrites
+  (the bare path and `/path/:path*`) to `apps/web/next.config.ts`, add the path
+  to the `PROXIED` pattern there so the gateway's security headers stay off the
+  zone's responses, add the variable to `globalEnv` in `turbo.json`, and set it
+  on the prood-web Vercel project.
+
 ## Deployment
 
-Deploy each app as a separate Vercel project sharing the same Neon database:
+Deploy each app as a separate Vercel project sharing the same Neon database.
+The prood-web project holds the prood.com domain; the other projects are
+reached through it and need no domain of their own, except the storefront,
+which serves `*.prood.app` and its merchants' custom domains.
 
-| App | Production URL | Notes |
+| App | Public address | Notes |
 | --- | --- | --- |
-| `apps/web` | `https://prood.com` | Marketing site |
-| `apps/dashboard` | `https://dashboard.prood.com` | Merchant dashboard |
-| `apps/api` | `https://api.prood.com` | Auth issuer, REST API, MCP |
-| `apps/checkout` | `https://checkout.prood.com` | Hosted checkout + payment webhooks |
-| `apps/docs` | `https://docs.prood.com` | Documentation |
+| `apps/web` | `https://prood.com` | Marketing site and gateway |
+| `apps/dashboard` | `https://prood.com/dashboard` | Merchant dashboard |
+| `apps/api` | `https://prood.com/v1`, `/mcp`, `/api/auth` | Auth issuer, REST API, MCP |
+| `apps/checkout` | `https://prood.com/pay` | Hosted checkout + payment webhooks |
+| `apps/docs` | `https://prood.com/docs` | Documentation |
 | `apps/storefront` | `https://{slug}.prood.app` | Wildcard tenant storefront |
-| `apps/admin` | `https://admin.prood.com` | Platform ops, `admin` role only |
+| `apps/admin` | `https://prood.com/admin` | Platform ops, `admin` role only |
 
 Production must provide strong values for `BETTER_AUTH_SECRET`,
 `CHECKOUT_API_SECRET`, and `INTEGRATION_ENCRYPTION_KEY`; verified sender
 configuration for `RESEND_FROM_EMAIL`; Upstash Redis for checkout sessions; and
-`STOREFRONT_VERCEL_PROJECT_ID` for dashboard domain automation.
+`STOREFRONT_VERCEL_PROJECT_ID` for dashboard domain automation. The URL
+variables, the gateway's `*_ORIGIN` variables and the passkey settings are
+listed per project in the deployment guide (`apps/docs/content/docs/guides/deployment.mdx`).
 
 ## CI
 

@@ -6,6 +6,7 @@ import "@prood/ui/globals.css"
 import "@prood/ui/themes/prood.css"
 import { cn } from "@prood/ui/lib/utils"
 import { AppProviders } from "@prood/ui/components/app-providers"
+import { withBase } from "@/lib/base-path"
 
 const fontSans = Instrument_Sans({ subsets: ["latin"], variable: "--font-family-sans" })
 const fontHeading = Bricolage_Grotesque({
@@ -16,13 +17,21 @@ const fontHeading = Bricolage_Grotesque({
 const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-family-mono" })
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_DASHBOARD_URL ?? "http://localhost:3002"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_DASHBOARD_URL ?? "http://localhost:3001/dashboard"),
   title: {
     default: "Prood Dashboard",
     template: "%s · Prood Dashboard",
   },
   description: "Run your Prood store: products, orders, customers, payments, domains and team.",
   robots: { index: false, follow: false },
+  // Next.js links a generated apple-icon without the base path, so the icons are listed here (see app/apple-icon/route.tsx).
+  icons: {
+    icon: [
+      { url: withBase("/favicon.ico"), sizes: "48x48", type: "image/x-icon" },
+      { url: withBase("/icon.svg"), sizes: "any", type: "image/svg+xml" },
+    ],
+    apple: { url: withBase("/apple-icon"), type: "image/png", sizes: "180x180" },
+  },
 }
 
 export default function RootLayout({

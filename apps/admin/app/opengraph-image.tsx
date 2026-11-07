@@ -8,7 +8,7 @@ export const contentType = "image/png"
 
 export default function OpengraphImage() {
   return new ImageResponse(
-    <OgImage label="Admin" title="Platform operations." host="admin.prood.com" />,
+    <OgImage label="Admin" title="Platform operations." host="prood.com/admin" />,
     size
   )
 }

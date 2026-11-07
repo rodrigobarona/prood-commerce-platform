@@ -1,12 +1,14 @@
-/** Canonical origins; each environment can point these at its own deployment. */
-const marketingUrl = (process.env.NEXT_PUBLIC_WEB_URL ?? 'https://prood.com').replace(/\/$/, '');
-const dashboardUrl = (process.env.NEXT_PUBLIC_DASHBOARD_URL ?? 'https://dashboard.prood.com').replace(
-  /\/$/,
-  '',
-);
+import { publicUrl } from './shared';
+
+/** Where the rest of Prood lives; each environment points these at its own deployment. */
+const marketingUrl = publicUrl(process.env.NEXT_PUBLIC_WEB_URL, 'NEXT_PUBLIC_WEB_URL');
+const dashboardUrl = publicUrl(process.env.NEXT_PUBLIC_DASHBOARD_URL, 'NEXT_PUBLIC_DASHBOARD_URL');
+const apiUrl = publicUrl(process.env.NEXT_PUBLIC_API_URL, 'NEXT_PUBLIC_API_URL');
 
 export const site = {
   marketingUrl,
+  /** The API's origin; `/v1`, `/mcp` and `/.well-known/agent-configuration` hang off it. */
+  apiUrl,
   registerUrl: `${dashboardUrl}/register`,
   email: 'hello@prood.com',
 } as const;

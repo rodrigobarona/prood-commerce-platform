@@ -84,7 +84,7 @@ Ifthenpay uses an anti-phishing key to verify webhook authenticity. The provider
 The integration form shows the callback URL for your store. Send it to Ifthenpay with your anti-phishing key:
 
 ```
-https://checkout.example.com/api/webhooks/ifthenpay/{orgId}?key=[ANTI_PHISHING_KEY]&orderId=[ORDER_ID]&amount=[AMOUNT]&requestId=[REQUEST_ID]
+https://prood.com/pay/api/webhooks/ifthenpay/{orgId}?key=[ANTI_PHISHING_KEY]&orderId=[ORDER_ID]&amount=[AMOUNT]&requestId=[REQUEST_ID]
 ```
 
 Order ids are encoded to fit Ifthenpay's 25-character limit and decoded when the callback arrives.

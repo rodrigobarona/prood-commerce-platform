@@ -144,6 +144,14 @@ describe("the confirmation page", () => {
       await act(async () => {})
     }
 
+    it("calls the app and links back to the payment under /pay", async () => {
+      await openState("failed", true)
+      const fetched = vi.mocked(fetch).mock.calls.map(([url]) => String(url))
+      expect(fetched).toContain("/pay/api/sessions/s1")
+      expect(fetched).toContain("/pay/api/sessions/s1/confirm")
+      expect(screen.getByRole("link", { name: "Try again" }).getAttribute("href")).toBe("/pay/c/s1")
+    })
+
     it("shows the order and the amount on a failed payment", async () => {
       await openState("failed", true)
       expect(screen.getByText("Payment not completed")).toBeTruthy()

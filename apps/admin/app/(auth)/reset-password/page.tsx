@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import { LoginSkeleton } from "@/components/admin/skeletons"
-import { ResetPasswordPanel } from "@prood/auth/password-reset-panels"
+import { ResetPasswordPanel } from "@/components/auth/auth-panels"
 
 export const metadata = { title: "Choose a new password" }
 

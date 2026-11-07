@@ -7,7 +7,7 @@ Three steps to your first API call on a hosted Prood store. Nothing to install.
 
 ## 1. Create a store
 
-[Register on the dashboard](https://dashboard.prood.com/register). Every plan includes a prood.app address and an API key for the public storefront API.
+[Register on the dashboard](https://prood.com/dashboard/register). Every plan includes a prood.app address and an API key for the public storefront API.
 
 ## 2. Make an API key
 
@@ -26,7 +26,7 @@ Put the key in your shell, then send it in the `x-api-key` header:
 export PROOD_API_KEY=pkAbC123...
 
 # Check a key with Storefront
-curl https://api.prood.com/v1/me \
+curl https://prood.com/v1/me \
   -H "x-api-key: $PROOD_API_KEY"
 ```
 
@@ -40,7 +40,7 @@ curl https://api.prood.com/v1/me \
 
 ```bash
 # List the store's products
-curl https://api.prood.com/v1/products \
+curl https://prood.com/v1/products \
   -H "x-api-key: $PROOD_API_KEY"
 ```
 

@@ -65,7 +65,7 @@ const routes = [
     links: [
       { label: 'Agent Auth', href: '/docs/apps/api/agent-auth' },
       { label: 'MCP server', href: '/docs/apps/api/mcp' },
-      { label: 'Read llms.txt', href: '/llms.txt', plain: true },
+      { label: 'Read llms.txt', href: '/docs/llms.txt', plain: true },
     ],
   },
 ] as const;
@@ -258,14 +258,14 @@ export default function HomePage() {
             className="min-w-0"
             lines={[
               { text: '# Check the key', tone: 'comment' },
-              { text: 'curl https://api.prood.com/v1/me \\', tone: 'command' },
+              { text: `curl ${site.apiUrl}/v1/me \\`, tone: 'command' },
               { text: '  -H "x-api-key: $PROOD_API_KEY"', tone: 'command' },
               { text: '{ "organizationId": "org_abc123",', tone: 'output' },
               { text: '  "scopes": ["storefront"],', tone: 'output' },
               { text: '  "via": "api-key" }', tone: 'output' },
               { text: '' },
               { text: "# List the store's products", tone: 'comment' },
-              { text: 'curl https://api.prood.com/v1/products \\', tone: 'command' },
+              { text: `curl ${site.apiUrl}/v1/products \\`, tone: 'command' },
               { text: ' -H "x-api-key: $PROOD_API_KEY"', tone: 'command' },
             ]}
           />

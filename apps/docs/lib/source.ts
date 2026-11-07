@@ -2,7 +2,7 @@ import { docs } from 'collections/server';
 import { loader } from 'fumadocs-core/source';
 import { phosphorIconsPlugin } from '@/lib/phosphor-icons';
 import { openapiPlugin } from 'fumadocs-openapi/server';
-import { docsContentRoute, docsImageRoute, docsRoute } from './shared';
+import { docsImageRoute, docsOrigin, docsRoute } from './shared';
 import { openapi } from './openapi';
 
 // See https://fumadocs.dev/docs/headless/source-api for more info
@@ -29,12 +29,15 @@ export function getPageImage(page: (typeof source)['$inferPage']) {
   };
 }
 
+/**
+ * `segments` are the content route's own params. `url` is what readers and agents
+ * request: the page's address plus `.md`, which proxy.ts rewrites to that route, so
+ * it stays under /docs and reaches this app through the gateway's /docs rewrite.
+ */
 export function getPageMarkdownUrl(page: (typeof source)['$inferPage']) {
-  const segments = [...page.slugs, 'content.md'];
-
   return {
-    segments,
-    url: `${docsContentRoute}/${segments.join('/')}`,
+    segments: [...page.slugs, 'content.md'],
+    url: `${page.url}.md`,
   };
 }
 
@@ -45,7 +48,7 @@ export async function getLLMText(page: (typeof source)['$inferPage']) {
 
   const processed = await page.data.getText('processed');
 
-  return `# ${page.data.title} (${page.url})
+  return `# ${page.data.title} (${docsOrigin}${page.url})
 
 ${processed}`;
 }

@@ -16,6 +16,7 @@ Audited the pnpm/Turborepo monorepo across all runtime apps and related packages
 - Auth: `apps/api` issues merchant/auth sessions; `apps/storefront` owns customer auth per storefront origin; `apps/admin` validates shared sessions directly and requires the admin role.
 - Checkout: `apps/checkout` stores sessions in Upstash Redis and forwards payment events to the Commerce API.
 - Docs: Fumadocs under `apps/docs`, with OpenAPI synced at build time.
+- Domain: prood.com is one domain. `apps/web` is the gateway and rewrites `/dashboard`, `/admin`, `/pay`, `/docs`, `/v1`, `/mcp`, `/api/auth` and `/.well-known/agent-configuration` to each app's own Vercel project (see "How prood.com is wired" in the README). Merchant stores stay on `{store}.prood.app`.
 
 ## Fixes Applied
 
@@ -62,12 +63,22 @@ pnpm verify
 - CI platform database tests require a `CI_DATABASE_URL` secret.
 - Marketing/CMS content is still static/MDX; Sanity/Payload integration is not implemented.
 - Resend production deliverability requires a verified sender domain and DNS records.
-- Payment webhooks must be configured per provider and pointed at `apps/checkout`.
+- Payment webhooks must be configured per provider and pointed at the hosted checkout: `https://prood.com/pay/api/webhooks/{provider}/{orgId}`.
 
 ## Release checklist
 
 Update (2026-11-02). Before a deploy that changes auth or infrastructure:
 
+- `prood-web` has `DASHBOARD_ORIGIN`, `ADMIN_ORIGIN`, `DOCS_ORIGIN`, `CHECKOUT_ORIGIN`
+  and `API_ORIGIN`, each the `*.vercel.app` origin of that app's project. The build
+  fails on Vercel without them.
+- Every project that sets public URLs uses the one-domain values: `NEXT_PUBLIC_WEB_URL`,
+  `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_DOCS_URL`, `API_PUBLIC_URL` and `BETTER_AUTH_URL`
+  are `https://prood.com`; `NEXT_PUBLIC_DASHBOARD_URL` is `https://prood.com/dashboard`;
+  `NEXT_PUBLIC_ADMIN_URL` is `https://prood.com/admin`; `CHECKOUT_URL` is
+  `https://prood.com/pay`. `AUTH_COOKIE_DOMAIN` is unset.
+- `PASSKEY_RP_ID=prood.com` and `PASSKEY_ORIGINS=https://prood.com` are on `prood-api`,
+  `prood-dashboard` and `prood-admin`.
 - `AUTH_PROXY_SECRET` has the same value on `prood-api`, `prood-dashboard` and
   `prood-admin`. Without it every request to `/api/auth` fails in production.
 - `KV_REST_API_URL` and `KV_REST_API_TOKEN` are on `prood-api` and
@@ -82,7 +93,7 @@ Update (2026-11-02). Before a deploy that changes auth or infrastructure:
 
 Update (2026-11-03). Stores buy Prood plans through `@better-auth/stripe` on
 `apps/api`, with the organization as the Stripe customer. Webhooks arrive at
-`/api/auth/stripe/webhook`. For each one, the API asks Stripe which subscription
+`https://prood.com/api/auth/stripe/webhook`. For each one, the API asks Stripe which subscription
 is still collecting and writes it onto `organization.planId` (`setOrganizationPlan`
 in `@prood/auth/billing`). If that fails, the webhook fails and Stripe retries.
 

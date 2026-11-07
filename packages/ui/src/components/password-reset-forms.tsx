@@ -216,12 +216,16 @@ export function ResetPasswordForm({
 }
 
 /** The forgot and reset screens, wired to an app's auth client. */
-export function passwordResetPanels(client: PasswordResetClient) {
+export function passwordResetPanels(
+  client: PasswordResetClient,
+  /** Where the reset screen is in this app, base path included: the link in the email lands there. */
+  resetPasswordPath: string,
+) {
   /** The reset link goes through the API, so it needs this app's full address to come back to. */
   async function requestReset(email: string): Promise<string | null> {
     const { error } = await client.requestPasswordReset({
       email,
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${window.location.origin}${resetPasswordPath}`,
     })
     if (!error) return null
     return error.status === 429 ? TOO_MANY : REQUEST_FAILED

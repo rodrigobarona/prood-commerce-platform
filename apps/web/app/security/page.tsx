@@ -55,8 +55,8 @@ const sections: readonly LegalSection[] = [
       list: [
         "Stores have three roles: owner, admin and member. Only owners and admins can use admin-level API keys, change the store and approve agents, and only an owner changes the plan or deletes the store.",
         "Merchants and administrators can turn on two-factor sign-in with an authenticator app, under Profile in the dashboard. It comes with ten one-time backup codes. If you lose both your phone and your codes, write to us and we reset it after checking it is you. Accounts with two-factor on can only sign in from the dashboard, never from a store.",
-        "An administrator who has turned on two-factor is asked for the code when signing in to Prood's admin console, which ignores a browser trusted at the dashboard. Two-factor is not yet required for administrators.",
-        "Passkeys are built, and are switched on once Prood's apps run on prood.com addresses, because browsers tie a passkey to a domain we don't control on the current hosting addresses. A passkey signs you in without a password and counts as a second step.",
+        "An administrator who has turned on two-factor is asked for the code when signing in to Prood's admin console. Two-factor is not yet required for administrators. The dashboard and the admin console share one sign-in on prood.com, so a session started at the dashboard also opens the admin console. That is why an administrator should turn on two-factor or a passkey.",
+        "Passkeys are available, and optional. A passkey signs you in without a password and counts as a second step.",
         "Sessions last 7 days from last use. Resetting a password signs every other session out.",
         "Sign-in, the API and agents are rate limited. If the limiter is unavailable, requests are let through.",
         "AI agents start with public catalog reads only. Anything more needs a person's approval in the dashboard, and approving changes to a store needs a sign-in from the last 10 minutes.",

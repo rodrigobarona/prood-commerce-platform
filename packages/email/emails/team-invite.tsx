@@ -49,7 +49,7 @@ export function TeamInviteEmail({
 TeamInviteEmail.PreviewProps = {
   companyName: 'Prood',
   inviterName: 'Alex',
-  inviteUrl: 'https://dashboard.prood.com/invite/abc123',
+  inviteUrl: 'https://prood.com/dashboard/invite/abc123',
   role: 'admin',
 } satisfies TeamInviteEmailProps
 

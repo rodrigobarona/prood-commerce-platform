@@ -70,7 +70,7 @@ Returns API metadata:
   "version": "v1",
   "adapter": "platform",
   "openapi": "/v1/openapi.json",
-  "docs": "https://docs.prood.com/docs/api",
+  "docs": "https://prood.com/docs/api",
   "agentConfiguration": "/.well-known/agent-configuration",
   "auth": "/api/auth",
   "mcp": "/mcp"
@@ -82,8 +82,8 @@ Returns API metadata:
 | Variable | Purpose |
 | --- | --- |
 | `DATABASE_URL` | Commerce + auth database |
-| `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` | Auth (default `http://localhost:3005`) |
-| `API_PUBLIC_URL` | Public origin for Agent Auth proxy |
+| `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` | Auth. `BETTER_AUTH_URL` is the public origin, `https://prood.com` (locally the gateway, `http://localhost:3001`) |
+| `API_PUBLIC_URL` | Public origin for Agent Auth proxy and discovery: `https://prood.com` |
 | `CHECKOUT_API_SECRET` | Webhook route protection |
 | Payment/storage env vars | Provider instantiation |
 

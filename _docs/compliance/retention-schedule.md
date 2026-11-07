@@ -13,7 +13,7 @@ Last reviewed: 2026-11-07. Counsel has not reviewed this yet. **Ships with this 
 | Data | Table | Rule in `RETENTION_DAYS` | Published today | Published must say |
 |---|---|---|---|---|
 | Sessions | `session` | Deleted once expired (0 days) | `/privacy`: "We don't yet clear expired session records automatically: they stay until the account is closed" | Sessions are deleted when they expire |
-| Verification records (email-verification and password-reset tokens, and the trusted-device record behind "Trust this device for 30 days") | `verification` | Deleted once expired | Not published separately. `privacy-data.mdx` says they are not purged | Add a row |
+| Verification records (email-verification and password-reset tokens; "Trust this device" was removed, so no trusted-device record is made, and any older one expires and is deleted like the rest) | `verification` | Deleted once expired | Not published separately. `privacy-data.mdx` says they are not purged | Add a row |
 | Invitations | `invitation` | 30 days after expiry | `/privacy`: valid 48 hours, nothing about deletion | Deleted 30 days after expiry |
 | Agent activity | `agent_event` | 730 days (24 months) after the event (`RETENTION_DAYS.agentEvents`, deleted where `created_at` is older, in `purgeExpiredAuthData`). Confirmed 2026-11-07 | `/privacy`: "While the organization exists" | 24 months |
 | Administrator actions | `admin_audit_event` | 730 days (24 months) after the event (`RETENTION_DAYS.adminAuditEvents`, same function, deleted where `created_at` is older). Added 2026-11-07. The count is in the job's log line as `adminAuditEvents` | `/privacy` lists "What Prood administrators do to accounts" and `/dpa` Annex 2 says 24 months | 24 months. Matches the code |
@@ -29,7 +29,7 @@ Last reviewed: 2026-11-07. Counsel has not reviewed this yet. **Ships with this 
 | `approvalRequest` | Holds `login_hint` and `binding_message` after `expires_at` passes | Not deleted until the user is deleted (cascade). Gap |
 | `agent`, `agentHost` | Expired agents and hosts stay | Same. Gap |
 | `two_factor` | Secret and backup codes (encrypted) | Not on a timer, by design: it lives while the person keeps two-factor on. Deleted with the user (`user_id` cascades) or when the person turns it off. Reset by a platform administrator with **Reset two-factor** if the person is locked out: see [data subject requests](./data-subject-requests.md) |
-| `passkey` | Public key, credential ID, name, device type (no private key) | Not on a timer, by design: it lives until the person removes it. Deleted with the user (`user_id` cascades). Empty while passkeys are off in production |
+| `passkey` | Public key, credential ID, name, device type (no private key) | Not on a timer, by design: it lives until the person removes it. Deleted with the user (`user_id` cascades). Empty until someone adds one |
 | `apikey` | Expired keys stay. The plugin sweeps them only when keys are listed or created (`apps/api/lib/api-key-limit.ts`) | Same. Low |
 | `user` (merchant), no membership | Left behind when a store is deleted | Kept until the person deletes the account. Gap |
 | `user` (shopper) | Linked to merchants' orders through `customers.auth_user_id` | Kept until the person deletes it, reviewed yearly. **No automated deletion of dormant shopper accounts, by decision** |

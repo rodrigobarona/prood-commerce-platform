@@ -1,13 +1,20 @@
 import { createAuthClient } from "better-auth/react"
 import { requiredEnv } from "@prood/types"
+import { withBase } from "@/lib/base-path"
 import { organizationClient, twoFactorClient } from "better-auth/client/plugins"
 import { passkeyClient } from "@better-auth/passkey/client"
 import { stripeClient } from "@better-auth/stripe/client"
 
-/** Same-origin /api/auth (proxied to apps/api); the env URL is only for SSR. */
+/**
+ * This app's own /api/auth route (proxied to apps/api), which lives under the base path. Better
+ * Auth takes a base URL with a path as it is. The env URL only serves server rendering.
+ */
 function authClientBaseUrl(): string {
-  if (typeof window !== "undefined") return window.location.origin
-  return requiredEnv(process.env.NEXT_PUBLIC_DASHBOARD_URL, "NEXT_PUBLIC_DASHBOARD_URL")
+  const origin =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : new URL(requiredEnv(process.env.NEXT_PUBLIC_DASHBOARD_URL, "NEXT_PUBLIC_DASHBOARD_URL")).origin
+  return `${origin}${withBase("/api/auth")}`
 }
 
 /** Browser auth client — same-origin BFF at /api/auth proxies to apps/api. */
@@ -22,7 +29,7 @@ export const authClient = createAuthClient({
     // /login's own query (`?redirect=`) goes along, so the person lands where they were headed.
     twoFactorClient({
       onTwoFactorRedirect() {
-        window.location.assign(`/two-factor${window.location.search}`)
+        window.location.assign(withBase(`/two-factor${window.location.search}`))
       },
     }),
   ],

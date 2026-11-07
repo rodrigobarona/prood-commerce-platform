@@ -75,8 +75,10 @@ async function ApiKeysContent() {
     )
   }
 
-  const apiBase = requiredEnv(process.env.COMMERCE_API_URL, "COMMERCE_API_URL")
-  const agentDiscovery = `${new URL(apiBase).origin}/.well-known/agent-configuration`
+  // What merchants copy is the public address. COMMERCE_API_URL is the API project's internal one, for this server only.
+  const publicApiOrigin = new URL(requiredEnv(process.env.NEXT_PUBLIC_API_URL, "NEXT_PUBLIC_API_URL")).origin
+  const apiBase = `${publicApiOrigin}/v1`
+  const agentDiscovery = `${publicApiOrigin}/.well-known/agent-configuration`
   const docsHref = `${requiredEnv(process.env.NEXT_PUBLIC_DOCS_URL, "NEXT_PUBLIC_DOCS_URL").replace(/\/$/, "")}/docs/api`
   const plan = await getActiveOrganizationPlan().catch(() => null)
   const { apiWriteEnabled: adminAllowed, agentAuthEnabled } = getEntitlements(plan?.planId ?? "free")

@@ -12,7 +12,7 @@ function parseOrigin(value: string): URL {
     if (url.origin === "null" || url.origin !== value.replace(/\/+$/, "")) throw new Error("not an origin")
     return url
   } catch {
-    throw new Error(`PASSKEY_ORIGINS has "${value}", which is not an origin. Use https://host with no path, like https://dashboard.prood.com.`)
+    throw new Error(`PASSKEY_ORIGINS has "${value}", which is not an origin. Use https://host with no path, like https://prood.com.`)
   }
 }
 

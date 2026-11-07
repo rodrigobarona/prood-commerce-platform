@@ -44,9 +44,11 @@ sequenceDiagram
 
 | Route | Purpose |
 | --- | --- |
-| `/` | Landing / entry page |
-| `/c/[id]` | Payment UI |
-| `/confirm/[id]` | Post-3DS / async confirmation |
+| `/pay` | Landing / entry page |
+| `/pay/c/[id]` | Payment UI |
+| `/pay/confirm/[id]` | Post-3DS / async confirmation |
+
+The app is built with `basePath: "/pay"`, so every route, asset and API call lives under `/pay`: `https://prood.com/pay` in production, `http://localhost:3004/pay` locally. The routes below are written relative to it.
 
 See [Sessions](/docs/apps/checkout/sessions) for API route details.
 
@@ -57,13 +59,13 @@ See [Sessions](/docs/apps/checkout/sessions) for API route details.
 | `KV_REST_API_URL` | Yes | Redis REST endpoint |
 | `KV_REST_API_TOKEN` | Yes | Redis REST token |
 | `CHECKOUT_API_SECRET` | Yes | Protects session creation API |
-| `CHECKOUT_URL` | Yes | Public checkout base URL |
+| `CHECKOUT_URL` | Yes | Public checkout base URL including its path, `https://prood.com/pay` |
 | `COMMERCE_API_URL` | Yes | Webhook forwarding target |
 
 ## Security
 
 - Session creation requires `x-checkout-secret` header — only trusted callers (storefront) can create sessions
-- Webhook routes are org-scoped: `/api/webhooks/{provider}/{orgId}`
+- Webhook routes are org-scoped: `/pay/api/webhooks/{provider}/{orgId}`
 - Payment provider credentials loaded per tenant from encrypted integration config
 - No direct database access — all order updates go through the Commerce API
 

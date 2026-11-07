@@ -40,6 +40,5 @@ export {
   resolveTrustedOrigins,
 } from "./server"
 export { isTrustedAuthOrigin } from "./origins"
-export { createAppAuthClient, type AppAuthClient } from "./client"
 export { authDb } from "./db"
 export * from "./schema"

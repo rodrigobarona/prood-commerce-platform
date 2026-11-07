@@ -1,9 +1,12 @@
 import type { NextConfig } from "next"
 
+import { BASE_PATH } from "./lib/base-path"
 import { mediaRemotePattern } from "@prood/media/remote-pattern"
 import { securityHeaders } from "@prood/security-headers"
 
 const nextConfig: NextConfig = {
+  // The gateway on prood.com sends this prefix here; see lib/base-path.ts.
+  basePath: BASE_PATH,
   cacheComponents: true,
   partialPrefetching: true,
   transpilePackages: ["@prood/ui", "@prood/media"],

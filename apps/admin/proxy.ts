@@ -19,7 +19,10 @@ export function proxy(request: NextRequest) {
   const serverAction = request.headers.has("next-action")
 
   if (!sessionCookie && !publicRoute && !serverAction) {
-    const loginUrl = new URL("/login", request.url)
+    // `nextUrl.pathname` has the base path stripped; cloning keeps it, so the redirect stays under /admin.
+    const loginUrl = request.nextUrl.clone()
+    loginUrl.pathname = "/login"
+    loginUrl.search = ""
     loginUrl.searchParams.set("redirect", pathname)
     return NextResponse.redirect(loginUrl)
   }
@@ -28,5 +31,6 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|icon.svg|apple-icon).*)"],
+  // Under a base path the second pattern needs something after the slash, so the home page (/admin) is listed on its own.
+  matcher: ["/", "/((?!api|_next/static|_next/image|favicon.ico|icon.svg|apple-icon).*)"],
 }

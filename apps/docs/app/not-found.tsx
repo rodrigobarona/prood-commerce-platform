@@ -15,7 +15,7 @@ export default function NotFound() {
             It may have moved. Search the docs, or start again from the home page.
           </p>
           <Button size="lg" className="mt-9" asChild>
-            <Link href="/">Go to the docs home</Link>
+            <Link href="/docs">Go to the docs home</Link>
           </Button>
         </Container>
       </main>

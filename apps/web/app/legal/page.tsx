@@ -22,6 +22,7 @@ const sections: readonly LegalSection[] = [
             ["Legal form", "Sociedade por quotas (private limited company)"],
             ["Registered office", legal.address],
             ["Commercial registry", legal.registry],
+            ["Share capital (capital social)", legal.capital],
             ["Tax and registry number (NIPC)", legal.vat],
             ["VAT number", `PT${legal.vat}`],
             ["Service", `Prood, at prood.com and on \`prood.app\``],

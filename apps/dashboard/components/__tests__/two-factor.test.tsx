@@ -36,19 +36,19 @@ describe("TwoFactorPanel on the Profile page", () => {
 })
 
 describe("TwoFactorForm", () => {
-  const form = (offerTrustDevice: boolean) =>
-    renderToStaticMarkup(<TwoFactorForm client={client} redirect={null} offerTrustDevice={offerTrustDevice} />)
+  const form = () => renderToStaticMarkup(<TwoFactorForm client={client} redirect={null} />)
 
   it("asks for the 6-digit code first, with a way to use a backup code", () => {
-    const html = form(true)
+    const html = form()
     expect(html).toContain("6-digit code")
     expect(html).toContain('autoComplete="one-time-code"')
     expect(html).toContain("Use a backup code")
     expect(html).toContain("Back to sign in")
   })
 
-  it("offers to trust the device only where asked", () => {
-    expect(form(true)).toContain("Trust this device for 30 days")
-    expect(form(false)).not.toContain("Trust this device")
+  it("never offers to trust the device", () => {
+    expect(form()).not.toMatch(/trust this device/i)
+    expect(form()).not.toContain('type="checkbox"')
+    expect(form()).not.toContain('role="checkbox"')
   })
 })

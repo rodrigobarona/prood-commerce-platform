@@ -3,7 +3,11 @@ import type { NextConfig } from "next"
 import { mediaRemotePattern } from "@prood/media/remote-pattern"
 import { securityHeaders } from "@prood/security-headers"
 
+import { BASE_PATH } from "./lib/base-path"
+
 const nextConfig: NextConfig = {
+  // The app is served at prood.com/pay: the gateway rewrites /pay/:path* to this project unchanged.
+  basePath: BASE_PATH,
   cacheComponents: true,
   partialPrefetching: true,
   transpilePackages: [

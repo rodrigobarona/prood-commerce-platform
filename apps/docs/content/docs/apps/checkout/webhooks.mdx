@@ -20,9 +20,9 @@ GET  /api/webhooks/{provider}/{org}  (provider verification)
 ### Example URLs
 
 ```
-POST https://checkout.example.com/api/webhooks/stripe/org_abc123
-POST https://checkout.example.com/api/webhooks/easypay/org_abc123
-POST https://checkout.example.com/api/webhooks/ifthenpay/org_abc123
+POST https://prood.com/pay/api/webhooks/stripe/org_abc123
+POST https://prood.com/pay/api/webhooks/easypay/org_abc123
+POST https://prood.com/pay/api/webhooks/ifthenpay/org_abc123
 ```
 
 ## Flow
@@ -67,7 +67,7 @@ export async function verifyPaymentWebhook(tenantId, providerId, payload, signat
 ### Stripe
 
 1. In Stripe Dashboard → Webhooks → Add endpoint
-2. URL: `https://checkout.example.com/api/webhooks/stripe/{orgId}`
+2. URL: `https://prood.com/pay/api/webhooks/stripe/{orgId}`
 3. Events: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`, `charge.refunded`
 4. Copy signing secret → dashboard Integrations → Stripe → webhook secret
 
@@ -76,13 +76,13 @@ Or run `./scripts/stripe-webhook-setup.sh` to configure via CLI.
 ### Easypay
 
 1. Configure webhook URL in Easypay merchant panel
-2. URL: `https://checkout.example.com/api/webhooks/easypay/{orgId}`
+2. URL: `https://prood.com/pay/api/webhooks/easypay/{orgId}`
 3. Easypay sends payment status notifications
 
 ### Ifthenpay
 
 1. Configure callback URL in Ifthenpay backoffice
-2. URL: `https://checkout.example.com/api/webhooks/ifthenpay/{orgId}`
+2. URL: `https://prood.com/pay/api/webhooks/ifthenpay/{orgId}`
 3. Anti-phishing key used for verification
 
 ## Webhook as safety net

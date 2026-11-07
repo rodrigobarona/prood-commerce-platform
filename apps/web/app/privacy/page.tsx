@@ -198,12 +198,11 @@ const sections: readonly LegalSection[] = [
           rows: [
             [
               "`__Secure-better-auth.session_token`",
-              "When you sign in to the dashboard, admin console or API. It can also be sent to other prood.com sites, and is set on a store if a shopper signs in",
+              "When you sign in to the dashboard, admin console or API on prood.com (one cookie for prood.com), and on a store if a shopper signs in",
               "Keeps you signed in",
               "7 days from last use",
             ],
             ["`better-auth.two_factor`", "Dashboard and admin, during the second sign-in step", "Holds your sign-in between your password and your code", "10 minutes"],
-            ["`better-auth.trust_device`", "Dashboard only, and only if you tick “Trust this device”", "Skips the code on this browser", "30 days"],
             ["`commerce_cart_id`", "Stores", "Keeps your cart", "30 days"],
             ["`sidebar_state`", "Dashboard and admin", "Remembers whether the side menu is open, because you chose it", "7 days"],
             ["`c15t`", "prood.com and stores", "Remembers your privacy choice", "12 months"],

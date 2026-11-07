@@ -9,6 +9,7 @@ import { useCheckoutContext } from "@/components/checkout-context"
 import { PaymentReceipt } from "@/components/payment-receipt"
 import { StatusPanel, StoreContact, onwardProps } from "@/components/status-panel"
 import type { SessionDetails } from "@/lib/session-details"
+import { withBasePath } from "@/lib/base-path"
 import { storeUrl } from "@/lib/store-url"
 
 /** Long enough to read the receipt before the store's fuller order page takes over. */
@@ -53,7 +54,7 @@ export function ConfirmClient({
   useEffect(() => {
     let active = true
     const controller = new AbortController()
-    fetch(`/api/sessions/${sessionId}`, { signal: controller.signal })
+    fetch(withBasePath(`/api/sessions/${sessionId}`), { signal: controller.signal })
       .then((r) => (r.ok ? (r.json() as Promise<SessionDetails>) : null))
       .catch(() => null)
       .then((session) => {
@@ -74,7 +75,7 @@ export function ConfirmClient({
     let active = true
     const controller = new AbortController()
     const query = declined ? `?${PAYMENT_DECLINED_PARAM}=${PAYMENT_DECLINED_VALUE}` : ""
-    fetch(`/api/sessions/${sessionId}/confirm${query}`, {
+    fetch(withBasePath(`/api/sessions/${sessionId}/confirm${query}`), {
       method: "POST",
       signal: controller.signal,
     })
@@ -173,7 +174,7 @@ export function ConfirmClient({
           action={
             <>
               <CommerceButton asChild>
-                <a href={`/c/${sessionId}`}>Try again</a>
+                <a href={withBasePath(`/c/${sessionId}`)}>Try again</a>
               </CommerceButton>
               {backToStore}
             </>

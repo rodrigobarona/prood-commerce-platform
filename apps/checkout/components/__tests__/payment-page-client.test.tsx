@@ -49,7 +49,8 @@ function json(body: unknown, status = 200) {
 
 function stubFetch(routes: Record<string, () => Response>) {
   const fn = vi.fn(async (url: string) => {
-    const route = Object.keys(routes).find((path) => url.endsWith(path))
+    // The app is served under /pay, so every request it makes must carry that prefix.
+    const route = Object.keys(routes).find((path) => url === `/pay${path}`)
     if (!route) throw new Error(`Unexpected request to ${url}`)
     return routes[route]!()
   })
@@ -95,7 +96,7 @@ describe("when the order stops waiting for payment", () => {
     vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] })
     stubFetch({
       "/api/sessions/s1": () => json(startedMbWay),
-      "/confirm": () => json({ state: "failed", payable: false }),
+      "/api/sessions/s1/confirm": () => json({ state: "failed", payable: false }),
     })
     await open()
 
@@ -114,7 +115,7 @@ describe("when the order stops waiting for payment", () => {
     vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] })
     stubFetch({
       "/api/sessions/s1": () => json(startedMbWay),
-      "/confirm": () => json({ state: "failed", payable: true }),
+      "/api/sessions/s1/confirm": () => json({ state: "failed", payable: true }),
     })
     await open()
 
@@ -129,7 +130,7 @@ describe("when the order stops waiting for payment", () => {
   it("shows the way out when Pay finds the order is closed", async () => {
     stubFetch({
       "/api/sessions/s1": () => json({ ...session, state: "failed" }),
-      "/pay": () => json({ code: "VALIDATION", message: "closed" }, 409),
+      "/api/sessions/s1/pay": () => json({ code: "VALIDATION", message: "closed" }, 409),
     })
     await open()
 
@@ -169,7 +170,7 @@ describe("coming back from a hosted card page", () => {
     const stuck = { ...started, paymentSession: { ...started.paymentSession, redirectUrl: null } }
     const fetch = stubFetch({
       "/api/sessions/s1": () => json(stuck),
-      "/pay": () => json({ ...stuck, redirectUrl: null }),
+      "/api/sessions/s1/pay": () => json({ ...stuck, redirectUrl: null }),
     })
     await open()
 
@@ -184,7 +185,7 @@ describe("coming back from a hosted card page", () => {
   it("moves on to a reference Pay comes back with", async () => {
     stubFetch({
       "/api/sessions/s1": () => json({ ...session, state: "failed" }),
-      "/pay": () =>
+      "/api/sessions/s1/pay": () =>
         json({
           state: "payment",
           redirectUrl: null,
@@ -207,7 +208,7 @@ describe("coming back from a hosted card page", () => {
     expect(screen.queryByRole("button", { name: /^Pay / })).toBeNull()
     expect(screen.getByText(/123\s?456\s?789/)).toBeTruthy()
     expect(screen.getByText("Save these details. We won't email them.")).toBeTruthy()
-    expect(screen.getByRole("link", { name: "View your order" }).getAttribute("href")).toBe("/confirm/s1")
+    expect(screen.getByRole("link", { name: "View your order" }).getAttribute("href")).toBe("/pay/confirm/s1")
     expect(screen.queryByText(/completed payment/)).toBeNull()
   })
 })
@@ -216,7 +217,7 @@ describe("where focus goes when Pay can't go ahead", () => {
   it("moves to the error when the call fails", async () => {
     stubFetch({
       "/api/sessions/s1": () => json({ ...session, state: "failed" }),
-      "/pay": () => json({}, 423),
+      "/api/sessions/s1/pay": () => json({}, 423),
     })
     await open()
     await act(async () => {
@@ -272,7 +273,7 @@ describe("when another tab is already starting the payment", () => {
   it("says so instead of a failed payment", async () => {
     stubFetch({
       "/api/sessions/s1": () => json({ ...session, state: "failed" }),
-      "/pay": () => json({ code: "VALIDATION", message: "busy" }, 423),
+      "/api/sessions/s1/pay": () => json({ code: "VALIDATION", message: "busy" }, 423),
     })
     await open()
 
@@ -366,7 +367,7 @@ describe("MB WAY", () => {
     }
     stubFetch({
       "/api/sessions/s1": () => json({ ...session, methods: ["mbway"] }),
-      "/pay": () => json(started),
+      "/api/sessions/s1/pay": () => json(started),
     })
     await open()
     await act(async () => {
@@ -424,7 +425,7 @@ describe("when the card form can't load", () => {
   it("says so when the started card payment can't be swapped", async () => {
     stubFetch({
       "/api/sessions/s1": () => json(startedCard),
-      "/pay": () => json(startedCard),
+      "/api/sessions/s1/pay": () => json(startedCard),
     })
     await open()
     fireEvent.click(screen.getByRole("button", { name: "Choose another way to pay" }))

@@ -22,6 +22,8 @@ stateDiagram-v2
 
 ## API routes
 
+Paths are relative to the checkout's base path: `POST /api/sessions` is `POST {CHECKOUT_URL}/api/sessions`, `https://prood.com/pay/api/sessions` in production.
+
 ### Create session
 
 ```
@@ -53,7 +55,7 @@ Header: x-checkout-secret: {CHECKOUT_API_SECRET}
 ```json
 {
   "id": "cs_abc123",
-  "checkoutUrl": "http://localhost:3004/c/cs_abc123",
+  "checkoutUrl": "http://localhost:3004/pay/c/cs_abc123",
   "expiresAt": "2026-05-29T11:00:00.000Z"
 }
 ```
@@ -150,7 +152,7 @@ Creates a shareable payment link (POS, invoice, etc.) without an existing order:
 }
 ```
 
-Returns a URL like `http://localhost:3004/c/cs_link_abc`.
+Returns a URL like `http://localhost:3004/pay/c/cs_link_abc`.
 
 ## Implementation
 

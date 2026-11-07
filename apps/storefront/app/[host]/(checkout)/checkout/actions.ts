@@ -41,7 +41,8 @@ export async function startCheckout(raw: StartCheckoutInput): Promise<CheckoutRe
     const cartId = await getCartId()
     if (!cartId) return { ok: false, error: "Your cart is empty." }
 
-    const checkoutUrl = process.env.CHECKOUT_URL
+    // The public base including its path (https://prood.com/pay): routes are appended to it.
+    const checkoutUrl = process.env.CHECKOUT_URL?.replace(/\/$/, "")
     const checkoutSecret = process.env.CHECKOUT_API_SECRET
     if (!checkoutUrl || !checkoutSecret) {
       throw new Error("CHECKOUT_URL and CHECKOUT_API_SECRET are required")

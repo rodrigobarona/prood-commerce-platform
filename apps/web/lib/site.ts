@@ -18,6 +18,8 @@ export const siteConfig = {
     vat: "515001708",
     address: "Rua Gil Vicente 2, 2775-198 Parede, Portugal",
     registry: "Conservatória do Registo Comercial de Cascais",
+    /** Capital social, as the owner confirmed on 2026-11-07. */
+    capital: "€100",
     /** Shown on /terms, /privacy, /dpa and /subprocessors. Change it with the text, never alone. */
     updated: "7 November 2026",
   },

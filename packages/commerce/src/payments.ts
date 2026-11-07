@@ -50,7 +50,11 @@ function instantiate(id: PaymentProviderId, config: PaymentProviderConfig): Paym
   }
 }
 
-/** Base URL of the hosted checkout, where shoppers pay and webhooks arrive. */
+/**
+ * Public base URL of the hosted checkout, path included (https://prood.com/pay),
+ * where shoppers pay and webhooks arrive. Append routes to it as a string: resolving
+ * `new URL('/c/x', base)` against it would drop the path.
+ */
 export function resolveCheckoutBaseUrl(): string {
   const url = process.env.CHECKOUT_URL
   if (!url) throw new Error('CHECKOUT_URL is required')

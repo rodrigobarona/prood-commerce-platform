@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 import { AuthPage } from "@/components/auth/auth-page"
 import { AuthFormSkeleton } from "@/components/auth/form-skeleton"
-import { ResetPasswordPanel } from "@prood/auth/password-reset-panels"
+import { ResetPasswordPanel } from "@/components/auth/auth-panels"
 
 export const metadata = { title: "Choose a new password" }
 

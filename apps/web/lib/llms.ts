@@ -14,7 +14,6 @@ function section(name: PageSection): string[] {
 
 /** `/llms.txt`: what Prood is and where to read more, per https://llmstxt.org. */
 export function llmsTxt(): string {
-  const docsOrigin = new URL(siteConfig.docsUrl).origin
   return [
     `# ${siteConfig.name}`,
     "",
@@ -28,8 +27,8 @@ export function llmsTxt(): string {
     "",
     "## Developers",
     "",
-    `- [Developer docs](${docsOrigin}/llms.txt): guides and API reference, also as Markdown`,
-    `- [Full docs in one file](${docsOrigin}/llms-full.txt)`,
+    `- [Developer docs](${siteConfig.docsUrl}/llms.txt): guides and API reference, also as Markdown`,
+    `- [Full docs in one file](${siteConfig.docsUrl}/llms-full.txt)`,
     `- [API reference](${siteConfig.apiReferenceUrl}): REST \`/v1\`, OpenAPI, MCP and Agent Auth`,
     `- [Demo store](${siteConfig.demoStoreUrl}/llms.txt): a store's own llms.txt, with sample data`,
     "",

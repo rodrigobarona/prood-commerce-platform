@@ -57,7 +57,7 @@ export function SiteHeader({
         )}
       />
       <div className="relative mx-auto flex h-16 max-w-[84rem] items-center gap-6 px-5 sm:px-8 lg:px-12">
-        <Link href="/" aria-label="Prood docs home" className="flex items-center gap-3.5 rounded-md">
+        <Link href="/docs" aria-label="Prood docs home" className="flex items-center gap-3.5 rounded-md">
           <Logo title={null} className="h-7" />
           <span className="text-sm font-medium text-muted-foreground">Docs</span>
         </Link>

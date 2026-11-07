@@ -84,9 +84,9 @@ The platform follows a layered architecture with clear separation of concerns:
 ```
 Public-Facing                    Merchant Tools               Platform Core
 ─────────────────                ──────────────               ─────────────
-prood.com (Marketing)            dashboard.prood.com          api.prood.com
-*.prood.app (Storefronts)        checkout.prood.com           admin.prood.com
-docs.prood.com (Docs)
+prood.com (Marketing)            prood.com/dashboard          prood.com/v1, /mcp, /api/auth
+*.prood.app (Storefronts)        prood.com/pay                prood.com/admin
+prood.com/docs (Docs)
 
                                       │
                            ┌──────────┼──────────┐
@@ -133,15 +133,51 @@ docs.prood.com (Docs)
 Prood consists of 7 independently deployed Next.js applications sharing a
 single Neon Postgres database.
 
-| App            | Port  | Production URL                | Role                          |
-| -------------- | ----- | ----------------------------- | ----------------------------- |
-| `storefront`   | :3000 | `https://{slug}.prood.app`    | Tenant storefront             |
-| `web`          | :3001 | `https://prood.com`           | Marketing site                |
-| `dashboard`    | :3002 | `https://dashboard.prood.com` | Merchant dashboard            |
-| `docs`         | :3003 | `https://docs.prood.com`      | Documentation                 |
-| `checkout`     | :3004 | `https://checkout.prood.com`  | Hosted checkout               |
-| `api`          | :3005 | `https://api.prood.com`       | Commerce API, auth, MCP       |
-| `admin`        | :3006 | `https://admin.prood.com`     | Platform super-admin          |
+| App            | Port  | Production address                        | Role                          |
+| -------------- | ----- | ----------------------------------------- | ----------------------------- |
+| `storefront`   | :3000 | `https://{slug}.prood.app`                | Tenant storefront             |
+| `web`          | :3001 | `https://prood.com`                       | Marketing site and gateway    |
+| `dashboard`    | :3002 | `https://prood.com/dashboard`             | Merchant dashboard            |
+| `docs`         | :3003 | `https://prood.com/docs`                  | Documentation                 |
+| `checkout`     | :3004 | `https://prood.com/pay`                   | Hosted checkout               |
+| `api`          | :3005 | `https://prood.com/v1`, `/mcp`, `/api/auth` | Commerce API, auth, MCP     |
+| `admin`        | :3006 | `https://prood.com/admin`                 | Platform super-admin          |
+
+Locally, open the gateway at `http://localhost:3001`; the other ports are where
+each app listens behind it.
+
+### How prood.com is wired
+
+prood.com is one domain. `apps/web` owns it: its own pages are the marketing
+site, and rewrites in `apps/web/next.config.ts` send every other path to the
+Vercel project that serves it, so the address bar never leaves prood.com.
+
+| Path on prood.com                  | App              | Notes                                         |
+| ---------------------------------- | ---------------- | --------------------------------------------- |
+| `/` and the marketing pages        | `apps/web`       | The gateway itself                            |
+| `/dashboard`                       | `apps/dashboard` | `basePath: "/dashboard"`                      |
+| `/admin`                           | `apps/admin`     | `basePath: "/admin"`                          |
+| `/pay`                             | `apps/checkout`  | `basePath: "/pay"`; payment webhooks at `/pay/api/webhooks/{provider}/{orgId}` |
+| `/docs`                            | `apps/docs`      | Assets load from `/_docs/_next`               |
+| `/v1/*`, `/mcp`                    | `apps/api`       | REST API and MCP server                       |
+| `/api/auth/*`                      | `apps/api`       | Sign-in API                                   |
+| `/.well-known/agent-configuration` | `apps/api`       | Agent Auth discovery                          |
+
+- **Zones.** Each app is its own Vercel project with its own `*.vercel.app`
+  address. The gateway reaches it through `DASHBOARD_ORIGIN`, `ADMIN_ORIGIN`,
+  `DOCS_ORIGIN`, `CHECKOUT_ORIGIN` and `API_ORIGIN`, set on the prood-web
+  project only. A deployed `apps/web` build fails if one is missing; locally
+  they default to the apps' ports.
+- **Why stores are on another domain.** Merchants publish their own pages, and
+  a browser treats everything on one domain as related. Merchant stores stay on
+  `{store}.prood.app` (or the merchant's own domain) so store content shares no
+  cookies or storage with the dashboard, admin console or sign-in API.
+- **Adding a zone.** Give the new app a `basePath` or an `assetPrefix`, so its
+  files cannot collide with another app's `/_next`. Add a `*_ORIGIN` variable
+  and two rewrites (the bare path and `/path/:path*`) to
+  `apps/web/next.config.ts`, add the path to its `PROXIED` pattern so the
+  gateway's security headers stay off the zone's responses, add the variable to
+  `globalEnv` in `turbo.json`, and set it on the prood-web Vercel project.
 
 ---
 
@@ -223,7 +259,7 @@ Next.js 16, React 19, `@prood/ui` (shadcn/Radix), `react-hook-form` + Zod,
 ### 2. Dashboard — Merchant Dashboard
 
 **Location:** `apps/dashboard`
-**Production URL:** `https://dashboard.prood.com`
+**Production URL:** `https://prood.com/dashboard`
 
 Full merchant administration panel. Store owners sign in, create/select
 organizations (stores), and manage every aspect of their commerce operations.
@@ -301,7 +337,7 @@ Merchant browser
 ### 3. API — Commerce API
 
 **Location:** `apps/api`
-**Production URL:** `https://api.prood.com`
+**Production URL:** `https://prood.com` (`/v1`, `/mcp`, `/api/auth`, `/.well-known/agent-configuration`)
 
 Central API contract boundary. REST `/v1` endpoints, live OpenAPI 3.1 spec, MCP
 server for AI agents, Better Auth issuer, and Agent Auth discovery. All commerce
@@ -434,11 +470,14 @@ as REST. 20 storefront-scope tools (catalog, cart CRUD, checkout, orders) and
 ### 4. Checkout — Hosted Checkout
 
 **Location:** `apps/checkout`
-**Production URL:** `https://checkout.prood.com`
+**Production URL:** `https://prood.com/pay`
 
 Standalone, hosted payment surface. Customers are redirected here from
 storefronts to complete payment. Sessions are stored in Upstash Redis with a
 24-hour TTL.
+
+The app is built with `basePath: "/pay"`, so the routes below are relative to
+`https://prood.com/pay`.
 
 #### Pages
 
@@ -488,7 +527,7 @@ storefronts to complete payment. Sessions are stored in Upstash Redis with a
 
 Public marketing and landing site. Explains the product, pricing, integrations,
 agency workflow, and AI capabilities. Drives sign-ups to
-`dashboard.prood.com/register`.
+`prood.com/dashboard/register`.
 
 #### Pages
 
@@ -533,7 +572,7 @@ domains, integrations, agent auth, and multi-store management.
 ### 6. Docs — Documentation Site
 
 **Location:** `apps/docs`
-**Production URL:** `https://docs.prood.com`
+**Production URL:** `https://prood.com/docs`
 
 Fumadocs-powered documentation with 59 MDX pages, interactive OpenAPI reference,
 full-text search (Orama), dynamic OG images, and LLM-readable exports.
@@ -570,7 +609,7 @@ detect drift.
 ### 7. Admin — Platform Super-Admin
 
 **Location:** `apps/admin`
-**Production URL:** `https://admin.prood.com`
+**Production URL:** `https://prood.com/admin`
 
 Restricted operations console for platform operators. Provides cross-tenant
 visibility via direct Neon DB queries (Drizzle). Not merchant-facing.
@@ -775,7 +814,7 @@ plugin, API keys, admin plugin, and Agent Auth tables.
 | `getSession()`           | React `cache()` + `connection()` wrapper     |
 | `getActiveOrganizationId()` | Resolve active tenant from session        |
 | `createAppAuthClient()`  | Browser client for sign-in/out/org management|
-| `resolveTrustedOrigins()`| CORS-safe origin list for cross-subdomain auth |
+| `resolveTrustedOrigins()`| Origins allowed to call the auth issuer (all of prood.com collapses to one) |
 
 ---
 
@@ -1069,9 +1108,9 @@ data access.
 | ------------------------- | ----------- | ------------------------------------ |
 | `{slug}.prood.app`        | Storefront  | `organization.slug` lookup           |
 | `shop.client.com`         | Storefront  | `tenant_domain` table (verified)     |
-| `dashboard.prood.com`     | Dashboard   | `session.activeOrganizationId`       |
-| `api.prood.com`           | API         | `x-storefront-host` header or session |
-| `checkout.prood.com`      | Checkout    | `tenantId` on session                |
+| `prood.com/dashboard`     | Dashboard   | `session.activeOrganizationId`       |
+| `prood.com/v1`            | API         | `x-storefront-host` header or session |
+| `prood.com/pay`           | Checkout    | `tenantId` on session                |
 
 ### Per-Tenant Isolation Features
 
@@ -1079,12 +1118,12 @@ data access.
   decrypted only at payment-time
 - **Storage namespacing** — All uploads prefixed `org/{organizationId}/`
 - **Cache isolation** — Tenant-scoped Next.js cache tags (`products-{orgId}`)
-- **Webhook URLs** — Org-scoped: `/api/webhooks/{provider}/{orgId}`
+- **Webhook URLs**, org-scoped: `/pay/api/webhooks/{provider}/{orgId}`
 - **Unknown-host fallback** — Unresolved hosts return 404 in production
 
 ### Merchant Onboarding Flow
 
-1. Register at `dashboard.prood.com/register` → creates user + first org
+1. Register at `prood.com/dashboard/register` → creates user + first org
 2. Organization ID becomes tenant key for all commerce data
 3. Storefront automatically available at `{slug}.prood.app`
 4. Add custom domain in Dashboard → Vercel SDK + DNS verification
@@ -1128,11 +1167,17 @@ type ApiScope = "storefront" | "admin"
 - **storefront** — catalog browsing, carts, checkout, customer orders
 - **admin** — product/order/customer CRUD, store settings, inventory
 
-### Cross-Subdomain Sessions
+### One Session on prood.com
 
-When `AUTH_COOKIE_DOMAIN` is configured, session cookies are shared across
-`dashboard.prood.com`, `api.prood.com`, and `admin.prood.com`, enabling
-seamless authentication across platform subdomains.
+The dashboard, the admin console and the API are on one origin, prood.com, so
+the session cookie is one cookie and a session started at the dashboard is also
+valid at `/admin`. That is by design. Two-factor sign-in and passkeys are
+optional for administrators, so an administrator should turn one on. Prood does
+not remember devices: the code is asked for at every sign-in.
+
+`AUTH_COOKIE_DOMAIN` is not needed and stays unset. The code still honours it
+(`apps/api/lib/auth/server.ts`, `packages/auth`), but with one host there is no
+other subdomain to share the cookie with.
 
 ---
 
@@ -1163,7 +1208,7 @@ environment variables per field.
   stored webhook secret
 - **Easypay / Ifthenpay:** Anti-phishing key verification or shared checkout
   secret (`x-checkout-secret`)
-- Webhooks routed per tenant: `/api/webhooks/{provider}/{orgId}`
+- Webhooks routed per tenant: `/pay/api/webhooks/{provider}/{orgId}`
 
 ---
 
@@ -1293,8 +1338,8 @@ Limits are enforced at the API level:
 4. **Webhook verification** — Provider-specific signature verification (Stripe
    HMAC-SHA256) or shared checkout secret (`x-checkout-secret`).
 
-5. **CORS** — Explicit trusted origins for cross-subdomain auth. Only known
-   dashboard/storefront origins allowed.
+5. **CORS**: explicit trusted origins for the auth issuer. Only known
+   Prood origins (prood.com and this deployment's own address) are allowed.
 
 6. **Storage namespacing** — All tenant uploads prefixed `org/{orgId}/` via
    `uploadForTenant()`. Uploaded filenames get a short random suffix.
@@ -1324,7 +1369,7 @@ Limits are enforced at the API level:
 ### MCP Server
 
 The platform exposes a **Model Context Protocol (MCP)** server at
-`api.prood.com/mcp` via streamable HTTP transport. AI agents can browse
+`prood.com/mcp` via streamable HTTP transport. AI agents can browse
 catalogs, manage carts, place orders, and perform admin operations.
 
 **38 tools available:**
@@ -1439,15 +1484,21 @@ cross-tenant file access.
 
 Each app deploys as a separate Vercel project sharing the same Neon database:
 
-| App            | Production URL                  | Notes                             |
+| App            | Public address                  | Notes                             |
 | -------------- | ------------------------------- | --------------------------------- |
-| `apps/web`     | `https://prood.com`             | Marketing site                    |
-| `apps/dashboard` | `https://dashboard.prood.com` | Merchant dashboard                |
-| `apps/api`     | `https://api.prood.com`         | Auth issuer, REST API, MCP        |
-| `apps/checkout` | `https://checkout.prood.com`   | Hosted checkout + payment webhooks |
-| `apps/docs`    | `https://docs.prood.com`        | Documentation                     |
+| `apps/web`     | `https://prood.com`             | Marketing site and gateway        |
+| `apps/dashboard` | `https://prood.com/dashboard` | Merchant dashboard                |
+| `apps/api`     | `https://prood.com/v1`, `/mcp`, `/api/auth` | Auth issuer, REST API, MCP |
+| `apps/checkout` | `https://prood.com/pay`        | Hosted checkout + payment webhooks |
+| `apps/docs`    | `https://prood.com/docs`        | Documentation                     |
 | `apps/storefront` | `https://{slug}.prood.app`   | Wildcard tenant storefront        |
-| `apps/admin`   | `https://admin.prood.com`       | Platform admins only              |
+| `apps/admin`   | `https://prood.com/admin`       | Platform admins only              |
+
+Only the prood-web project holds the prood.com domain. It needs `DASHBOARD_ORIGIN`,
+`ADMIN_ORIGIN`, `DOCS_ORIGIN`, `CHECKOUT_ORIGIN` and `API_ORIGIN`, each the
+`*.vercel.app` address of that app's project. The public URL variables
+(`NEXT_PUBLIC_*_URL`, `BETTER_AUTH_URL`, `CHECKOUT_URL`) and the passkey
+settings are listed per project in the docs deployment guide.
 
 ### Required Production Secrets
 

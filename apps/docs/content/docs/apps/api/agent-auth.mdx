@@ -34,29 +34,29 @@ Response includes:
   "version": "1.0-draft",
   "provider_name": "Prood Commerce API",
   "description": "Multi-tenant commerce HTTP API. ...",
-  "issuer": "http://localhost:3005/api/auth",
-  "default_location": "http://localhost:3005/api/auth/capability/execute",
+  "issuer": "http://localhost:3001/api/auth",
+  "default_location": "http://localhost:3001/api/auth/capability/execute",
   "algorithms": ["Ed25519"],
   "modes": ["delegated", "autonomous"],
   "approval_methods": ["ciba", "device_authorization"],
   "endpoints": {
-    "register": "http://localhost:3005/api/auth/agent/register",
-    "capabilities": "http://localhost:3005/api/auth/capability/list",
-    "describe_capability": "http://localhost:3005/api/auth/capability/describe",
-    "execute": "http://localhost:3005/api/auth/capability/execute",
-    "request_capability": "http://localhost:3005/api/auth/agent/request-capability",
-    "status": "http://localhost:3005/api/auth/agent/status",
-    "reactivate": "http://localhost:3005/api/auth/agent/reactivate",
-    "revoke": "http://localhost:3005/api/auth/agent/revoke",
-    "revoke_host": "http://localhost:3005/api/auth/host/revoke",
-    "rotate_key": "http://localhost:3005/api/auth/agent/rotate-key",
-    "rotate_host_key": "http://localhost:3005/api/auth/host/rotate-key",
-    "introspect": "http://localhost:3005/api/auth/agent/introspect"
+    "register": "http://localhost:3001/api/auth/agent/register",
+    "capabilities": "http://localhost:3001/api/auth/capability/list",
+    "describe_capability": "http://localhost:3001/api/auth/capability/describe",
+    "execute": "http://localhost:3001/api/auth/capability/execute",
+    "request_capability": "http://localhost:3001/api/auth/agent/request-capability",
+    "status": "http://localhost:3001/api/auth/agent/status",
+    "reactivate": "http://localhost:3001/api/auth/agent/reactivate",
+    "revoke": "http://localhost:3001/api/auth/agent/revoke",
+    "revoke_host": "http://localhost:3001/api/auth/host/revoke",
+    "rotate_key": "http://localhost:3001/api/auth/agent/rotate-key",
+    "rotate_host_key": "http://localhost:3001/api/auth/host/rotate-key",
+    "introspect": "http://localhost:3001/api/auth/agent/introspect"
   }
 }
 ```
 
-Better Auth routes (registration, capability execute, device approval) are mounted at `/api/auth/*` on the API app (port **3005** in local dev).
+Better Auth routes (registration, capability execute, device approval) are mounted at `/api/auth/*` on the API app (port **3005** in local dev). On prood.com the gateway serves them at `https://prood.com/api/auth/*`, so the addresses in the discovery document are `API_PUBLIC_URL` plus that path: `http://localhost:3001` locally, `https://prood.com` in production.
 
 ## Capabilities from OpenAPI
 
@@ -97,7 +97,7 @@ When an agent calls `/v1/*` with an `Authorization: Bearer` agent JWT:
 
 ```bash
 curl -H "Authorization: Bearer eyJ..." \
-  "https://api.prood.com/v1/products?perPage=5"
+  "https://prood.com/v1/products?perPage=5"
 ```
 
 ## OpenAPI proxy execution

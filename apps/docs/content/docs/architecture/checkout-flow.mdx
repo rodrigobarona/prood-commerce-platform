@@ -258,7 +258,7 @@ Prood separates **where customers browse** from **where they pay**:
 | Surface | Domain | Example |
 | --- | --- | --- |
 | Storefront | `{slug}.prood.app` or custom domain | `https://demo-store.prood.app` |
-| Hosted checkout (Phase 1 — current) | `checkout.prood.com` | `https://checkout.prood.com/c/cs_...` |
+| Hosted checkout (Phase 1 — current) | `prood.com/pay` | `https://prood.com/pay/c/cs_...` |
 | Store-hosted checkout (Phase 2 — planned) | Same as storefront host | `https://demo-store.prood.app/c/cs_...` |
 
 ### Phase 1 — shared checkout on prood.com
@@ -266,13 +266,13 @@ Prood separates **where customers browse** from **where they pay**:
 After the storefront places an order, it creates a session via `POST {CHECKOUT_URL}/api/sessions` and redirects the customer to:
 
 ```
-https://checkout.prood.com/c/{sessionId}
+https://prood.com/pay/c/{sessionId}
 ```
 
-- `CHECKOUT_URL=https://checkout.prood.com` in production
+- `CHECKOUT_URL=https://prood.com/pay` in production: the public base **including** the `/pay` path. Links are built by appending to it (`{CHECKOUT_URL}/c/{id}`, `{CHECKOUT_URL}/confirm/{id}`, `{CHECKOUT_URL}/api/webhooks/...`), never resolved against it
 - `tenantId` is resolved from the storefront host
 - `returnUrl` points back to the store host (e.g. `https://demo-store.prood.app/order-confirmation?orderId=...`)
-- Webhooks: `https://checkout.prood.com/api/webhooks/{provider}/{orgId}`
+- Webhooks: `https://prood.com/pay/api/webhooks/{provider}/{orgId}`
 
 This is the simplest multi-tenant setup: one checkout deployment, tenant context on the session.
 

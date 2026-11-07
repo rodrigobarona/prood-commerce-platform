@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import { redirect } from "next/navigation"
-import { TwoFactorPanel } from "@prood/auth/two-factor-panel"
+import { TwoFactorPanel } from "@/components/auth/auth-panels"
 import { AuthPage } from "@/components/auth/auth-page"
 import { AuthFormSkeleton } from "@/components/auth/form-skeleton"
 import { getSession } from "@/lib/auth"

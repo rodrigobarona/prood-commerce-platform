@@ -75,7 +75,7 @@ export function WaysToRun() {
                   lines={[
                     { text: "# List the store's products", tone: "comment" },
                     { text: "curl \\", tone: "command" },
-                    { text: "  https://api.prood.com/v1/products \\", tone: "command" },
+                    { text: "  https://prood.com/v1/products \\", tone: "command" },
                     { text: '  -H "x-api-key: $PROOD_API_KEY"', tone: "command" },
                   ]}
                 />

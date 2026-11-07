@@ -10,12 +10,14 @@ Prood ships seven deployable Next.js applications, each with a distinct role in 
 | App | Port | Deploy target | Database | Primary packages |
 | --- | --- | --- | --- | --- |
 | **storefront** | 3000 | Vercel (per-tenant domains) | Auth + tenant lookup | `@prood/api-client`, `@prood/ui`, `@prood/types` |
-| **dashboard** | 3002 | Vercel (single admin URL) | Auth + integrations + domains | `@prood/api-client`, `@prood/commerce`, `@prood/ui` |
-| **checkout** | 3004 | Vercel (single checkout URL) | None (Redis only) | `@prood/checkout-host`, `@prood/ui` |
-| **api** | 3005 | Vercel (API subdomain) | Full commerce + auth | `@prood/commerce`, `@prood/types` |
-| **admin** | 3006 | Vercel (restricted ops URL) | Auth/session/admin tables | `@prood/auth`, `@prood/ui` |
-| **web** | 3001 | Vercel | None | `@prood/ui` |
-| **docs** | 3003 | Vercel | None | Fumadocs |
+| **dashboard** | 3002 | Vercel (`prood.com/dashboard`) | Auth + integrations + domains | `@prood/api-client`, `@prood/commerce`, `@prood/ui` |
+| **checkout** | 3004 | Vercel (`prood.com/pay`) | None (Redis only) | `@prood/checkout-host`, `@prood/ui` |
+| **api** | 3005 | Vercel (`prood.com/v1`, `/mcp`, `/api/auth`) | Full commerce + auth | `@prood/commerce`, `@prood/types` |
+| **admin** | 3006 | Vercel (`prood.com/admin`) | Auth/session/admin tables | `@prood/auth`, `@prood/ui` |
+| **web** | 3001 | Vercel (`prood.com`, the gateway) | None | `@prood/ui` |
+| **docs** | 3003 | Vercel (`prood.com/docs`) | None | Fumadocs |
+
+prood.com is one domain: `apps/web` is the gateway and rewrites each path to the app's own Vercel project. See [Deployment](/docs/guides/deployment).
 
 ## Interaction diagram
 
@@ -73,11 +75,11 @@ In production, each app is a **separate Vercel project** sharing the same Neon d
 | Project | Custom domains | Notes |
 | --- | --- | --- |
 | Storefront | Per-merchant domains + subdomains | Tenant resolved from Host |
-| Dashboard | Single admin URL (e.g. `admin.example.com`) | Org switching in session |
-| Checkout | Single checkout URL (e.g. `checkout.example.com`) | Shared across all tenants |
-| API | Single API URL (e.g. `api.prood.com`) | All callers hit one origin |
-| Admin | Restricted admin URL (e.g. `ops-admin.example.com`) | Platform operations only |
-| Docs | `docs.example.com` | Static + OpenAPI |
+| Dashboard | Single admin URL (e.g. `prood.com/dashboard`) | Org switching in session |
+| Checkout | Single checkout URL (e.g. `prood.com/pay`) | Shared across all tenants |
+| API | Single API URL (e.g. `prood.com/v1`) | All callers hit one origin |
+| Admin | Restricted admin URL (e.g. `prood.com/admin`) | Platform operations only |
+| Docs | `prood.com/docs` | Static + OpenAPI |
 
 See [Deployment guide](/docs/guides/deployment) for the full checklist.
 

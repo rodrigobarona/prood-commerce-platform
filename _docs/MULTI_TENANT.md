@@ -20,19 +20,30 @@ Better Auth org (tenant)
 
 ## Domain architecture
 
-Prood uses a **Vercel-style split** between the company domain and tenant store URLs:
+Prood splits the company domain from tenant store URLs. prood.com is one domain
+with a path per app; `apps/web` owns it and rewrites the paths to the other
+apps (its `next.config.ts` has the rules):
 
 | URL | App | Purpose |
 | --- | --- | --- |
-| `prood.com` | `apps/web` | Marketing |
-| `dashboard.prood.com` | `apps/dashboard` | Merchant admin |
-| `api.prood.com` | `apps/api` | Commerce API |
-| `checkout.prood.com` | `apps/checkout` | Hosted checkout (`/c/{sessionId}`) |
-| `docs.prood.com` | `apps/docs` | Documentation |
+| `prood.com` | `apps/web` | Marketing, and the gateway for the paths below |
+| `prood.com/dashboard` | `apps/dashboard` | Merchant admin |
+| `prood.com/admin` | `apps/admin` | Platform ops |
+| `prood.com/v1`, `/mcp`, `/api/auth`, `/.well-known/agent-configuration` | `apps/api` | Commerce API, sign-in API, MCP, Agent Auth discovery |
+| `prood.com/pay` | `apps/checkout` | Hosted checkout (`/pay/c/{sessionId}`) |
+| `prood.com/docs` | `apps/docs` | Documentation |
 | `{slug}.prood.app` | `apps/storefront` | Free store subdomain (automatic) |
 | `shop.client.com` | `apps/storefront` | Optional store custom domain |
 
-`NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app` is **only** the apex for merchant storefront subdomains — not for dashboard or API hosts.
+`NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app` is **only** the apex for merchant storefront subdomains, not for any prood.com path.
+
+Stores are on a separate registrable domain on purpose. Merchants publish their
+own pages, and a browser treats everything on one domain as related, so keeping
+stores on prood.app keeps tenant content, cookies and storage away from the
+dashboard, the admin console and the sign-in API. Each app is still its own
+Vercel project; the gateway reaches it through `DASHBOARD_ORIGIN`,
+`ADMIN_ORIGIN`, `DOCS_ORIGIN`, `CHECKOUT_ORIGIN` and `API_ORIGIN`, set on the
+prood-web project. See "How prood.com is wired" in the README.
 
 ## How tenant resolution works
 
@@ -84,7 +95,7 @@ pnpm db:migrate           # runs migrateDrizzle -> applyTenantIsolation + seed
 pnpm --filter dashboard db:push
 
 # 4. Run
-pnpm dev                  # storefront :3000, checkout :3004, dashboard :3002
+pnpm dev                  # storefront :3000; open the gateway at :3001 (dashboard at :3001/dashboard)
 ```
 
 `applyTenantIsolation()` (in `packages/platform/.../drizzle/migrate.ts`) adds an
@@ -125,7 +136,7 @@ into the provider factory at runtime:
   credentials (and publishable key) on pay/confirm.
 - Provider registry field keys (`lib/providers.ts`) match the provider
   constructor params, so stored config maps directly.
-- Webhooks are routed per tenant (`/api/webhooks/[provider]/[org]`) and verified
+- Webhooks are routed per tenant (`/pay/api/webhooks/[provider]/[org]`) and verified
   against the merchant's stored secret.
 
 ## Package security audit (secure-by-design)
@@ -158,7 +169,7 @@ Every package was reviewed for cross-tenant leakage. Posture by package:
    merchants can't collide with each other's assets. Uploaded filenames get a
    short random suffix, and every object is public. Always upload via these helpers.
 3. **Per-tenant webhooks.** Provider webhooks are routed per tenant at
-   `/api/webhooks/[provider]/[org]`; `verifyPaymentWebhook(payload, sig,
+   `/pay/api/webhooks/[provider]/[org]`; `verifyPaymentWebhook(payload, sig,
    provider, org)` verifies against the merchant's stored secret (configured env defaults
    when org is `_`). The checkout host registers the org-scoped webhook URL on
    each session.

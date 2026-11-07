@@ -9,6 +9,7 @@ import { Label } from "@prood/ui/components/label"
 import { RadioGroup, RadioGroupItem } from "@prood/ui/components/radio-group"
 import { Skeleton } from "@prood/ui/components/skeleton"
 import { toPortugueseMobile, type PaymentMethodKind } from "@prood/types"
+import { withBasePath } from "@/lib/base-path"
 import { formatAmount } from "@/lib/format-amount"
 import type { OrderSummary, SessionDetails } from "@/lib/session-details"
 import { storeHome, storeUrl } from "@/lib/store-url"
@@ -159,7 +160,7 @@ export function PaymentPageClient({
   useEffect(() => {
     let active = true
     const controller = new AbortController()
-    fetch(`/api/sessions/${sessionId}`, { signal: controller.signal })
+    fetch(withBasePath(`/api/sessions/${sessionId}`), { signal: controller.signal })
       .then(async (r) => {
         if (!r.ok) throw new Error(`Session request failed (${r.status})`)
         return (await r.json()) as SessionData
@@ -238,7 +239,7 @@ export function PaymentPageClient({
     setPaying(true)
     setPayError(null)
     try {
-      const res = await fetch(`/api/sessions/${sessionId}/pay`, {
+      const res = await fetch(withBasePath(`/api/sessions/${sessionId}/pay`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -406,7 +407,7 @@ export function PaymentPageClient({
           reference={reference}
           amount={formatted}
           expiresAt={text(startedData, "expiresAt")}
-          confirmUrl={`/confirm/${sessionId}`}
+          confirmUrl={withBasePath(`/confirm/${sessionId}`)}
         />
       </div>
     )

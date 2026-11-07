@@ -19,6 +19,7 @@ import { unlinkAuthUserFromCustomers } from "@prood/commerce/store-data"
 import { listSoleOwnedStores } from "@prood/auth/retention"
 import { membershipLimit, organizationHooks } from "./organization-hooks"
 import { guardRoleChange } from "./role-guard"
+import { guardTrustDevice } from "./two-factor-guard"
 import { CLIENT_IP_HEADER } from "@prood/auth/client-ip"
 import { sharedAuthOptions, sharedEmailAndPassword } from "@prood/auth/shared-options"
 import { sendPasswordResetEmail } from "./password-reset-email"
@@ -67,6 +68,7 @@ function createAuth() {
           throw new APIError("FORBIDDEN", { message: "Plans are bought for a store." })
         }
         await guardRoleChange(ctx)
+        guardTrustDevice(ctx)
         // Everyone who signs up here runs a store or joins one, so they accept the merchant
         // terms. The sign-up form sends the version it showed; the account keeps it.
         if (ctx.path === "/sign-up/email" && ctx.body?.termsVersion !== LEGAL_VERSION) {

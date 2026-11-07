@@ -1,6 +1,6 @@
 import { Suspense } from "react"
 import { redirect } from "next/navigation"
-import { StaffTwoFactorPanel } from "@prood/auth/two-factor-panel"
+import { TwoFactorPanel } from "@/components/auth/auth-panels"
 import { LoginSkeleton } from "@/components/admin/skeletons"
 import { getSession } from "@/lib/auth"
 
@@ -10,7 +10,7 @@ async function TwoFactorGate() {
   const session = await getSession()
   // Signed in already: the login page opens admin, or says the account can't.
   if (session) redirect(session.user.role === "admin" ? "/" : "/login")
-  return <StaffTwoFactorPanel />
+  return <TwoFactorPanel />
 }
 
 export default function TwoFactorPage() {

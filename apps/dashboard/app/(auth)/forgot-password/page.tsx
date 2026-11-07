@@ -1,5 +1,5 @@
 import { AuthPage } from "@/components/auth/auth-page"
-import { ForgotPasswordPanel } from "@prood/auth/password-reset-panels"
+import { ForgotPasswordPanel } from "@/components/auth/auth-panels"
 
 export const metadata = { title: "Reset your password" }
 

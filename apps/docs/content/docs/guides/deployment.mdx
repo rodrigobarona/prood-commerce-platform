@@ -5,20 +5,52 @@ description: Deploy Prood applications to Vercel with Neon Postgres, Upstash Red
 
 Prood deploys as **separate Vercel projects** sharing a single Neon Postgres database. Each app has its own environment variables and build configuration.
 
-## Production URL map (Prood)
+## One domain, one project per app
 
-| URL | App |
-| --- | --- |
-| `prood.com` | Marketing (`apps/web`) |
-| `dashboard.prood.com` | Merchant admin |
-| `api.prood.com` | Commerce API |
-| `checkout.prood.com` | Hosted checkout |
-| `docs.prood.com` | Documentation |
-| `admin.prood.com` | Platform super-admin |
-| `{slug}.prood.app` | Storefront (wildcard on storefront project) |
-| `shop.example.com` | Store custom domain (per merchant) |
+prood.com is one domain with a path per app. `apps/web` owns it: its own pages are the marketing site, and rewrites in `apps/web/next.config.ts` send every other path to the Vercel project that serves it, so the address bar never leaves prood.com.
 
-Set `NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app` for storefront subdomain resolution only. Platform services use `*.prood.com` via each app's `BETTER_AUTH_URL` and public URL env vars.
+| Address | App | Vercel project |
+| --- | --- | --- |
+| `prood.com` | Marketing (`apps/web`), and the gateway for the paths below | `prood-web` |
+| `prood.com/dashboard` | Merchant dashboard | `prood-dashboard` |
+| `prood.com/admin` | Platform admin | `prood-admin` |
+| `prood.com/pay` | Hosted checkout, and the payment webhooks at `/pay/api/webhooks/{provider}/{orgId}` | `prood-checkout` |
+| `prood.com/docs` | Documentation | `prood-docs` |
+| `prood.com/v1`, `/mcp`, `/api/auth`, `/.well-known/agent-configuration` | Commerce API, MCP, sign-in API, Agent Auth discovery | `prood-api` |
+| `{slug}.prood.app` | Storefront (wildcard on the storefront project) | `prood-storefront` |
+| `shop.example.com` | Store custom domain (per merchant) | `prood-storefront` |
+
+Each app keeps its own Vercel project and its own `*.vercel.app` address. Only `prood-web` has the prood.com domain. The other projects are reached through it, so they need no domain of their own, and a browser never sees their addresses.
+
+Merchant stores stay on `prood.app`, a different registrable domain, on purpose. Merchants publish their own pages, and a browser treats everything on one domain as related. Keeping stores on another domain means store content shares no cookies or storage with the dashboard, the admin console or the sign-in API.
+
+Set `NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app` for storefront subdomain resolution only.
+
+### How the gateway finds each app
+
+`prood-web` rewrites each path to the project behind it, using five variables set on that project only:
+
+| Variable | Value | Receives |
+| --- | --- | --- |
+| `DASHBOARD_ORIGIN` | `https://<dashboard project>.vercel.app` | `/dashboard` |
+| `ADMIN_ORIGIN` | `https://<admin project>.vercel.app` | `/admin` |
+| `DOCS_ORIGIN` | `https://<docs project>.vercel.app` | `/docs`, `/docs.md`, `/_docs/_next`, `/api/search` |
+| `CHECKOUT_ORIGIN` | `https://<checkout project>.vercel.app` | `/pay` |
+| `API_ORIGIN` | `https://<api project>.vercel.app` | `/v1`, `/mcp`, `/api/auth`, `/.well-known/agent-configuration` |
+
+Use the origin only, with no path. A build on Vercel fails when one is missing, because a localhost fallback in production would break that whole part of the site silently. Locally they default to the apps' own ports.
+
+The apps know their place on the domain too. The dashboard, admin console and checkout are built with `basePath` set to `/dashboard`, `/admin` and `/pay`, and the docs load their scripts and styles from `/_docs/_next`, so none of them collides with another app's files.
+
+The gateway also redirects the short addresses `/login`, `/register` and `/signup` to the dashboard.
+
+### Adding another app to prood.com
+
+1. Give the new app a `basePath`, or an `assetPrefix` if it must serve a path it doesn't own, so its files can't collide with another app's `/_next`.
+2. In `apps/web/next.config.ts`, add a `*_ORIGIN` variable and two rewrites, one for the bare path and one for `/path/:path*`.
+3. Add the path to the `PROXIED` pattern in the same file. The gateway's security headers apply to its own pages only, because each app sends its own Content-Security-Policy.
+4. Add the variable to `globalEnv` in `turbo.json`.
+5. Set the variable on the `prood-web` project, then redeploy it.
 
 ## Deployment architecture
 
@@ -26,11 +58,11 @@ Set `NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app` for storefront subdomain resolution 
 flowchart TB
   subgraph vercel [Vercel projects]
     SF[storefront<br/>*.prood.app]
-    DB[dashboard<br/>dashboard.prood.com]
-    CHK[checkout<br/>checkout.prood.com]
-    API[api<br/>api.prood.com]
-    ADMIN[admin<br/>admin.prood.com]
-    DOCS[docs<br/>docs.prood.com]
+    DB[dashboard<br/>prood.com/dashboard]
+    CHK[checkout<br/>prood.com/pay]
+    API[api<br/>prood.com/v1]
+    ADMIN[admin<br/>prood.com/admin]
+    DOCS[docs<br/>prood.com/docs]
     WEB[web<br/>prood.com]
   end
 
@@ -91,13 +123,16 @@ The API must be deployed first — other apps depend on it.
 DATABASE_URL=postgresql://...
 BETTER_AUTH_SECRET=<openssl rand -base64 32>
 AUTH_PROXY_SECRET=<openssl rand -base64 32>
-BETTER_AUTH_URL=https://api.prood.com
-AUTH_COOKIE_DOMAIN=.prood.com
+BETTER_AUTH_URL=https://prood.com
 KV_REST_API_URL=https://...
 KV_REST_API_TOKEN=...
-NEXT_PUBLIC_DASHBOARD_URL=https://dashboard.prood.com
-NEXT_PUBLIC_DOCS_URL=https://docs.prood.com
-API_PUBLIC_URL=https://api.prood.com
+NEXT_PUBLIC_WEB_URL=https://prood.com
+NEXT_PUBLIC_DASHBOARD_URL=https://prood.com/dashboard
+NEXT_PUBLIC_ADMIN_URL=https://prood.com/admin
+NEXT_PUBLIC_DOCS_URL=https://prood.com
+API_PUBLIC_URL=https://prood.com
+PASSKEY_RP_ID=prood.com
+PASSKEY_ORIGINS=https://prood.com
 S3_ENDPOINT=https://<account>.eu.r2.cloudflarestorage.com
 S3_BUCKET=prood-public
 S3_ACCESS_KEY_ID=...
@@ -112,6 +147,12 @@ RESEND_FROM_EMAIL="Prood <noreply@prood.com>"
 NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app
 ```
 
+`BETTER_AUTH_URL` and `API_PUBLIC_URL` are the public address, `https://prood.com`, not this project's `*.vercel.app` address: Better Auth builds its links and checks the origin of every sign-in against them, and the Agent Auth discovery document advertises them.
+
+Leave `AUTH_COOKIE_DOMAIN` unset. The dashboard, the admin console and the API share one host, so the session cookie is already shared, and no other subdomain needs it.
+
+Passkeys are on when `PASSKEY_RP_ID` and `PASSKEY_ORIGINS` are both set, and off when both are empty. Set them to the same values on `prood-api`, `prood-dashboard` and `prood-admin`. The ID must be a registrable domain, so it can't be a `*.vercel.app` address.
+
 ## Step 3 — Deploy the storefront
 
 | Setting | Value |
@@ -123,11 +164,11 @@ NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app
 
 ```bash
 DATABASE_URL=postgresql://...
-COMMERCE_API_URL=https://api.prood.com/v1
+COMMERCE_API_URL=https://<api project>.vercel.app/v1
 BETTER_AUTH_SECRET=<same as API>
 KV_REST_API_URL=<same as API>
 KV_REST_API_TOKEN=<same as API>
-CHECKOUT_URL=https://checkout.prood.com
+CHECKOUT_URL=https://prood.com/pay
 CHECKOUT_API_SECRET=<same as API>
 RESEND_API_KEY=re_...
 RESEND_FROM_EMAIL="Prood <noreply@casalume.example>"
@@ -149,14 +190,15 @@ Custom domains are added per-merchant via the dashboard Domains page.
 KV_REST_API_URL=https://...
 KV_REST_API_TOKEN=...
 CHECKOUT_API_SECRET=<same as API>
-CHECKOUT_URL=https://checkout.prood.com
-COMMERCE_API_URL=https://api.prood.com/v1
-STOREFRONT_URL=https://storefront.example.com
+CHECKOUT_URL=https://prood.com/pay
+COMMERCE_API_URL=https://<api project>.vercel.app/v1
 ```
 
 Payment credentials aren't environment variables. Each store enters its own under Integrations in the dashboard, and there is no platform fallback.
 
-Configure payment webhooks to: `https://checkout.prood.com/api/webhooks/{provider}/{orgId}`
+`CHECKOUT_URL` is the public base including its path. The storefront, the dashboard and the checkout all build their links from it, so it is `https://prood.com/pay`, not `https://prood.com`.
+
+Configure payment webhooks to: `https://prood.com/pay/api/webhooks/{provider}/{orgId}`. The webhook URL in each store's provider settings is built from `CHECKOUT_URL`, so a store that registered an older address must register this one again.
 
 ## Step 5 — Deploy the dashboard
 
@@ -169,10 +211,17 @@ Configure payment webhooks to: `https://checkout.prood.com/api/webhooks/{provide
 
 ```bash
 DATABASE_URL=postgresql://...
-COMMERCE_API_URL=https://api.prood.com/v1
+COMMERCE_API_URL=https://<api project>.vercel.app/v1
 BETTER_AUTH_SECRET=<same as API>
 AUTH_PROXY_SECRET=<same as API>
-NEXT_PUBLIC_AUTH_URL=https://api.prood.com
+BETTER_AUTH_URL=https://prood.com
+NEXT_PUBLIC_AUTH_URL=https://<api project>.vercel.app
+NEXT_PUBLIC_DASHBOARD_URL=https://prood.com/dashboard
+NEXT_PUBLIC_API_URL=https://prood.com
+NEXT_PUBLIC_DOCS_URL=https://prood.com
+CHECKOUT_URL=https://prood.com/pay
+PASSKEY_RP_ID=prood.com
+PASSKEY_ORIGINS=https://prood.com
 INTEGRATION_ENCRYPTION_KEY=<same as API>
 VERCEL_TOKEN=<for domain provisioning>
 STOREFRONT_VERCEL_PROJECT_ID=<storefront project ID>
@@ -180,7 +229,7 @@ VERCEL_TEAM_ID=<team ID>
 NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app
 ```
 
-Dashboard auth (sign-in, sign-up, organization ops) is issued by **apps/api** but proxied through the dashboard at `/api/auth/*` so session cookies stay on the dashboard origin. This is required on separate `*.vercel.app` preview URLs; with custom domains, set `AUTH_COOKIE_DOMAIN=.prood.com` on the API project so cookies are also shared across subdomains.
+Dashboard auth (sign-in, sign-up, organization ops) is issued by **apps/api** but proxied through the dashboard at `/dashboard/api/auth/*`. The proxy runs on the server and reaches the API project at `NEXT_PUBLIC_AUTH_URL`, which is that project's own `*.vercel.app` address, not prood.com. The two `*.vercel.app` addresses (`COMMERCE_API_URL` and `NEXT_PUBLIC_AUTH_URL`) are only for server-to-server calls; a browser never uses them.
 
 ## Step 6 — Deploy the platform admin
 
@@ -195,30 +244,84 @@ Dashboard auth (sign-in, sign-up, organization ops) is issued by **apps/api** bu
 DATABASE_URL=postgresql://...
 BETTER_AUTH_SECRET=<same as API>
 AUTH_PROXY_SECRET=<same as API>
-BETTER_AUTH_URL=https://api.prood.com
-NEXT_PUBLIC_AUTH_URL=https://api.prood.com
-NEXT_PUBLIC_ADMIN_URL=https://admin.prood.com
+BETTER_AUTH_URL=https://prood.com
+API_PUBLIC_URL=https://prood.com
+NEXT_PUBLIC_AUTH_URL=https://<api project>.vercel.app
+NEXT_PUBLIC_ADMIN_URL=https://prood.com/admin
+PASSKEY_RP_ID=prood.com
+PASSKEY_ORIGINS=https://prood.com
 ```
 
-`apps/admin` is for platform operations only. Keep it on a restricted domain. Access is limited to users with the `admin` role.
+`apps/admin` is for platform operations only. Access is limited to users with the `admin` role.
+
+The admin console is on the same origin as the dashboard, so a session started at the dashboard is also valid at `/admin`, and a platform administrator who signs in at the dashboard is signed in to both. Two-factor sign-in is optional for administrators, and the console shows a banner until it is on. Turn on two-factor or add a passkey on every administrator account. Prood does not remember devices, so the code is asked for at each sign-in.
 
 ## Step 7 — Deploy docs and web
 
 | App | Root directory | Notes |
 | --- | --- | --- |
 | `docs` | `apps/docs` | Runs `sync:openapi` at build time |
-| `web` | `apps/web` | Static marketing site |
+| `web` | `apps/web` | Marketing site, and the gateway for every other path |
 
 ```bash
 # Docs
-NEXT_PUBLIC_DOCS_URL=https://docs.prood.com
+NEXT_PUBLIC_WEB_URL=https://prood.com
+NEXT_PUBLIC_DOCS_URL=https://prood.com
+NEXT_PUBLIC_DASHBOARD_URL=https://prood.com/dashboard
+NEXT_PUBLIC_API_URL=https://prood.com
 
 # Web
 NEXT_PUBLIC_WEB_URL=https://prood.com
-NEXT_PUBLIC_DOCS_URL=https://docs.prood.com
-NEXT_PUBLIC_DASHBOARD_URL=https://dashboard.prood.com
-NEXT_PUBLIC_API_URL=https://api.prood.com
+NEXT_PUBLIC_DOCS_URL=https://prood.com
+NEXT_PUBLIC_DASHBOARD_URL=https://prood.com/dashboard
+NEXT_PUBLIC_API_URL=https://prood.com
+DASHBOARD_ORIGIN=https://<dashboard project>.vercel.app
+ADMIN_ORIGIN=https://<admin project>.vercel.app
+DOCS_ORIGIN=https://<docs project>.vercel.app
+CHECKOUT_ORIGIN=https://<checkout project>.vercel.app
+API_ORIGIN=https://<api project>.vercel.app
 ```
+
+Deploy `web` last: it needs the other projects' addresses.
+
+## Step 8: Point the domain at the web project
+
+1. Add `prood.com` to the `prood-web` project and set it as the production domain.
+2. Add no domain to the other projects. They stay on their `*.vercel.app` addresses, which only the gateway uses.
+3. Add `prood.app` and `*.prood.app` to the storefront project, as before.
+4. Open the addresses in the verification list below.
+
+Traffic to the old subdomains (`dashboard.prood.com`, `api.prood.com`, `checkout.prood.com`, `docs.prood.com`, `admin.prood.com`) is not served any more. Remove those domains from their projects. If you want old links to keep working, add redirects on `prood-web` from each hostname to the matching path; nothing in the repo does this.
+
+## Verify the deployment
+
+| Address | Expect |
+| --- | --- |
+| `https://prood.com/dashboard/login` | The dashboard sign-in page |
+| `https://prood.com/admin/login` | The admin sign-in page |
+| `https://prood.com/docs` | These docs |
+| `https://prood.com/pay/c/x` | The checkout app's page for an unknown session, not the marketing site |
+| `https://prood.com/v1/health` | The API's health response |
+| `https://prood.com/.well-known/agent-configuration` | The Agent Auth discovery document, with `https://prood.com` addresses |
+
+Then sign in at the dashboard, turn on two-factor, add a passkey on a real device, and take a test payment through `/pay` with a store connected to Stripe test mode.
+
+An address on a `*.vercel.app` host (a bookmark to an app's own project) isn't the product's address any more. Use prood.com. Payment providers that were given a webhook URL on the old checkout host need the new `https://prood.com/pay/api/webhooks/{provider}/{orgId}` registered.
+
+## Local development through the gateway
+
+Locally the gateway is `apps/web` on port 3001, and it stands in for prood.com. Open it, not each app's own port, so the dashboard, admin console, checkout, docs and API share one origin as they do in production:
+
+| Address | App |
+| --- | --- |
+| `http://localhost:3001` | Marketing |
+| `http://localhost:3001/dashboard` | Dashboard |
+| `http://localhost:3001/admin` | Admin |
+| `http://localhost:3001/docs` | Docs |
+| `http://localhost:3001/pay` | Checkout |
+| `http://localhost:3001/v1/health` | API |
+
+The apps listen on 3002 (dashboard), 3003 (docs), 3004 (checkout), 3005 (api) and 3006 (admin), and the gateway's `*_ORIGIN` variables default to those ports. `pnpm env:link` writes the matching URL variables into each app. See [Environment variables](/docs/run-locally/environment).
 
 ## Shared secrets
 
@@ -226,7 +329,7 @@ These must be **identical** across projects:
 
 | Secret | Apps |
 | --- | --- |
-| `BETTER_AUTH_SECRET` | API, dashboard (SSR session validation), storefront |
+| `BETTER_AUTH_SECRET` | API, dashboard (SSR session validation), admin, storefront |
 | `AUTH_PROXY_SECRET` | API, dashboard, admin |
 | `CHECKOUT_API_SECRET` | API, storefront, checkout |
 | `INTEGRATION_ENCRYPTION_KEY` | API, dashboard |
@@ -246,11 +349,14 @@ The storefront uses Next.js Cache Components:
 - Strong secrets generated for `BETTER_AUTH_SECRET`, `AUTH_PROXY_SECRET`, `CHECKOUT_API_SECRET`, `INTEGRATION_ENCRYPTION_KEY`
 - `NEXT_PUBLIC_PLATFORM_DOMAIN` configured
 - Upstash Redis provisioned for checkout and auth rate limits, with `KV_REST_API_URL` and `KV_REST_API_TOKEN` set on API, storefront and checkout
-- Payment webhooks pointed to checkout domain
+- Payment webhooks pointed to `https://prood.com/pay/api/webhooks/{provider}/{orgId}`
+- `prood-web` has all five `*_ORIGIN` variables, and every project uses the one-domain URL values above
+- `AUTH_COOKIE_DOMAIN` is unset, and the passkey variables are set on API, dashboard and admin
+- Two-factor or a passkey is on for every platform administrator
 - Resend sender uses a verified production domain
 - `pnpm db:migrate` run against production database
 - Custom domains verified for at least one merchant
-- SSL certificates active on all domains
+- SSL certificates active on prood.com, prood.app and its wildcard
 
 ## Related pages
 

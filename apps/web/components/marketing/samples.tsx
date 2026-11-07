@@ -17,7 +17,7 @@ const orders: { id: string; customer: string; total: string; status: { label: st
 /** The orders screen with sample data, simplified by hand: one line per order, and one status to act on. */
 export function OrdersSample({ className }: { className?: string }) {
   return (
-    <BrowserFrame url="dashboard.prood.com/orders" className={className}>
+    <BrowserFrame url="prood.com/dashboard/orders" className={className}>
       <div className="p-5">
         <div className="flex items-baseline justify-between gap-4">
           <p className="font-heading text-lg font-medium tracking-[-0.01em]">Orders</p>
@@ -184,7 +184,7 @@ const connections: { name: string; methods: string; status: string; tone: Status
 /** The dashboard's integrations list, for one store, with sample data. */
 export function IntegrationsSample({ className }: { className?: string }) {
   return (
-    <BrowserFrame url="dashboard.prood.com/integrations" className={className}>
+    <BrowserFrame url="prood.com/dashboard/integrations" className={className}>
       <div className="p-5">
         <div className="flex items-baseline justify-between gap-4">
           <p className="font-heading text-lg font-medium tracking-[-0.01em]">Integrations</p>

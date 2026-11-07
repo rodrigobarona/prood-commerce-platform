@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation"
 
 import { safeRedirectPath } from "@prood/types"
 import { Button } from "@prood/ui/components/button"
-import { Checkbox } from "@prood/ui/components/checkbox"
 import { Input } from "@prood/ui/components/input"
 import { Label } from "@prood/ui/components/label"
 import { PageHeader } from "@prood/ui/components/page-header"
@@ -19,7 +18,6 @@ interface VerifyResult {
 
 interface VerifyInput {
   code: string
-  trustDevice?: boolean
 }
 
 /** The part of an app's Better Auth client that the second step of a sign-in needs. */
@@ -68,18 +66,14 @@ function verifyErrorMessage(method: Method, error: { status: number; code?: stri
 export function TwoFactorForm({
   client,
   redirect,
-  offerTrustDevice,
 }: {
   client: TwoFactorClient
   /** Where to go once the code is accepted. Checked again here, so any string is safe. */
   redirect: string | null
-  /** Lets a person skip the code on this browser for 30 days. Not for staff tools. */
-  offerTrustDevice: boolean
 }) {
   const router = useRouter()
   const [method, setMethod] = useState<Method>("totp")
   const [code, setCode] = useState("")
-  const [trustDevice, setTrustDevice] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -103,7 +97,7 @@ export function TwoFactorForm({
     setLoading(true)
     setError(null)
     try {
-      const input = { code: value, ...(offerTrustDevice ? { trustDevice } : {}) }
+      const input = { code: value }
       const { error: verifyError } =
         method === "totp" ? await client.verifyTotp(input) : await client.verifyBackupCode(input)
       if (verifyError) {
@@ -142,18 +136,6 @@ export function TwoFactorForm({
             onChange={(event) => setCode(event.target.value)}
           />
         </div>
-        {offerTrustDevice ? (
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="trust-device"
-              checked={trustDevice}
-              onCheckedChange={(checked) => setTrustDevice(checked === true)}
-            />
-            <Label htmlFor="trust-device" className="font-normal">
-              Trust this device for 30 days
-            </Label>
-          </div>
-        ) : null}
         {error ? (
           <p id="code-error" role="alert" className="text-sm text-pretty text-destructive">
             {error}
@@ -181,15 +163,9 @@ export function TwoFactorForm({
 }
 
 /** The two-factor screen, wired to an app's auth client. */
-export function twoFactorPanel(client: TwoFactorClient, options: { offerTrustDevice: boolean }) {
+export function twoFactorPanel(client: TwoFactorClient) {
   return function TwoFactorPanel() {
     const searchParams = useSearchParams()
-    return (
-      <TwoFactorForm
-        client={client}
-        redirect={searchParams.get("redirect")}
-        offerTrustDevice={options.offerTrustDevice}
-      />
-    )
+    return <TwoFactorForm client={client} redirect={searchParams.get("redirect")} />
   }
 }

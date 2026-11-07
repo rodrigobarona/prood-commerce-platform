@@ -13,7 +13,7 @@ set -euo pipefail
 #   WEBHOOK_URL=https://custom.url/v1/webhooks/payments/stripe ./scripts/stripe-webhook-setup.sh
 # ---------------------------------------------------------------------------
 
-WEBHOOK_URL="${WEBHOOK_URL:-https://api-prood.vercel.app/v1/webhooks/payments/stripe}"
+WEBHOOK_URL="${WEBHOOK_URL:-https://prood.com/v1/webhooks/payments/stripe}"
 
 EVENTS=$(
   IFS=','

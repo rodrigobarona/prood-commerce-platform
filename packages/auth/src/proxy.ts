@@ -3,8 +3,8 @@ import { requiredEnv } from "@prood/types"
 import { forwardClientIp } from "./client-ip"
 
 // Dashboard and admin have no auth handler of their own: their same-origin
-// /api/auth/* routes forward to apps/api (the issuer) and rewrite Set-Cookie
-// so sessions bind to the calling app's host.
+// /dashboard/api/auth/* and /admin/api/auth/* routes forward to apps/api (the
+// issuer) and rewrite Set-Cookie so sessions bind to the calling host.
 
 const HOP_BY_HOP_HEADERS = new Set([
   "connection",
@@ -44,51 +44,28 @@ function rewriteSetCookie(setCookie: string, requestHost: string | undefined): s
     .join("; ")
 }
 
-/** The two-factor plugin's "trust this device" cookie, whatever its prefix. */
-function isTrustedDeviceCookie(name: string): boolean {
-  return name.trim().toLowerCase().endsWith("trust_device")
-}
-
-/** The Cookie header without the trusted-device cookie. */
-function withoutTrustedDevice(cookieHeader: string): string {
-  return cookieHeader
-    .split(";")
-    .filter((pair) => !isTrustedDeviceCookie(pair.split("=")[0] ?? ""))
-    .join(";")
-    .trim()
-}
-
-function upstreamHeaders(request: Request, ignoreTrustedDevice: boolean): Headers {
+function upstreamHeaders(request: Request): Headers {
   const headers = new Headers()
   for (const [key, value] of request.headers.entries()) {
     const lower = key.toLowerCase()
     if (lower === "host" || lower === "accept-encoding" || HOP_BY_HOP_HEADERS.has(lower)) continue
-    headers.set(key, lower === "cookie" && ignoreTrustedDevice ? withoutTrustedDevice(value) : value)
+    headers.set(key, value)
   }
   forwardClientIp(request.headers, headers)
   return headers
 }
 
-/** Forward an /api/auth/* request to apps/api and return its response. */
-export async function proxyAuthRequest(request: Request): Promise<Response> {
-  return forward(request, false)
-}
-
 /**
- * The same, for the admin app: it never honours a trusted device and never sets one. Platform
- * administrators can see every account, so each sign-in asks for the second step, even on a
- * browser a merchant trusted at the dashboard.
+ * Forward an /api/auth/* request to apps/api and return its response. Under a base path
+ * (/dashboard/api/auth/*) Next.js hands route handlers the path without it, so `request.url`
+ * already reads /api/auth/*, which is what the issuer serves.
  */
-export async function proxyAdminAuthRequest(request: Request): Promise<Response> {
-  return forward(request, true)
-}
-
-async function forward(request: Request, ignoreTrustedDevice: boolean): Promise<Response> {
+export async function proxyAuthRequest(request: Request): Promise<Response> {
   const method = request.method.toUpperCase()
   const url = new URL(request.url)
   const upstream = await fetch(new URL(`${url.pathname}${url.search}`, authUpstreamOrigin()), {
     method,
-    headers: upstreamHeaders(request, ignoreTrustedDevice),
+    headers: upstreamHeaders(request),
     body: method === "GET" || method === "HEAD" ? undefined : await request.arrayBuffer(),
     redirect: "manual",
   })
@@ -101,7 +78,6 @@ async function forward(request: Request, ignoreTrustedDevice: boolean): Promise<
   })
   const requestHost = request.headers.get("host") ?? undefined
   for (const cookie of upstream.headers.getSetCookie()) {
-    if (ignoreTrustedDevice && isTrustedDeviceCookie(cookie.split("=")[0] ?? "")) continue
     headers.append("Set-Cookie", rewriteSetCookie(cookie, requestHost))
   }
 

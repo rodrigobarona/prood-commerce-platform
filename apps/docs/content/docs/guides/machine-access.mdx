@@ -5,11 +5,11 @@ description: API keys, Agent Auth, MCP, OpenAPI and the CLI, for code and AI age
 
 Prood has one API for people, services and AI agents:
 
-- **OpenAPI:** `GET https://api.prood.com/v1/openapi.json`
+- **OpenAPI:** `GET https://prood.com/v1/openapi.json`
 - **Reference:** [Commerce API](/docs/api)
 - **TypeScript client:** `@prood/api-client`, available from the source repo for now
-- **MCP:** `POST https://api.prood.com/mcp`
-- **Agent Auth:** `GET https://api.prood.com/.well-known/agent-configuration`
+- **MCP:** `POST https://prood.com/mcp`
+- **Agent Auth:** `GET https://prood.com/.well-known/agent-configuration`
 - **CLI:** `prood`, available from the source repo for now
 
 ## API keys
@@ -28,7 +28,7 @@ Free API keys reach the public storefront API: catalog, carts and placing orders
 Use the key with REST, MCP or the CLI:
 
 ```bash
-curl -H "x-api-key: $PROOD_API_KEY" https://api.prood.com/v1/me
+curl -H "x-api-key: $PROOD_API_KEY" https://prood.com/v1/me
 ```
 
 Errors come back as JSON: `{ "code": "UNAUTHORIZED", "message": "Invalid API key. It may be mistyped, or it may have expired. Create a new one in your dashboard, under API keys." }`.
@@ -44,13 +44,13 @@ Agent Auth is coming with Grow.
 Agents discover the provider configuration:
 
 ```bash
-curl https://api.prood.com/.well-known/agent-configuration
+curl https://prood.com/.well-known/agent-configuration
 ```
 
 Every OpenAPI `operationId` becomes an Agent Auth capability. Direct REST calls use a bearer token:
 
 ```bash
-curl -H "Authorization: Bearer eyJ..." https://api.prood.com/v1/products
+curl -H "Authorization: Bearer eyJ..." https://prood.com/v1/products
 ```
 
 See [Agent Auth](/docs/apps/api/agent-auth) for the full flow.
@@ -63,7 +63,7 @@ MCP tools use the same names as OpenAPI operation IDs. Free keys reach the 21 st
 {
   "mcpServers": {
     "prood-commerce": {
-      "url": "https://api.prood.com/mcp",
+      "url": "https://prood.com/mcp",
       "headers": {
         "x-api-key": "pkAbC123..."
       }
@@ -78,7 +78,7 @@ MCP tools use the same names as OpenAPI operation IDs. Free keys reach the 21 st
 import { createCommerceApiClient, unwrap } from '@prood/api-client'
 
 const api = createCommerceApiClient({
-  baseUrl: 'https://api.prood.com/v1',
+  baseUrl: 'https://prood.com/v1',
   apiKey: process.env.PROOD_API_KEY,
 })
 
@@ -88,8 +88,8 @@ const caller = await unwrap(api.GET('/me'))
 ## CLI
 
 ```bash
-prood auth whoami --api-url https://api.prood.com/v1 --api-key "$PROOD_API_KEY" --json
-prood products list --api-url https://api.prood.com/v1 --api-key "$PROOD_API_KEY" --json
-prood mcp config --api-url https://api.prood.com/v1 --api-key "$PROOD_API_KEY"
+prood auth whoami --api-url https://prood.com/v1 --api-key "$PROOD_API_KEY" --json
+prood products list --api-url https://prood.com/v1 --api-key "$PROOD_API_KEY" --json
+prood mcp config --api-url https://prood.com/v1 --api-key "$PROOD_API_KEY"
 prood openapi sync --check
 ```

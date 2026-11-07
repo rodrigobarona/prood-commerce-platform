@@ -30,7 +30,7 @@ const session = await createCheckoutSession({
 })
 
 // session.id → 'cs_abc123'
-// checkoutUrl → 'http://localhost:3004/c/cs_abc123'
+// checkoutUrl → 'http://localhost:3004/pay/c/cs_abc123'
 ```
 
 Internally:
@@ -77,7 +77,7 @@ const link = await createPaymentLink({
   expiresIn: 86400000, // 24 hours
 })
 
-// link.url → 'http://localhost:3004/c/cs_link_abc'
+// link.url → 'http://localhost:3004/pay/c/cs_link_abc'
 ```
 
 ## Webhook forwarding

@@ -154,18 +154,18 @@ export default function DevelopersPage() {
               lines={[
                 { text: "# Check a key with Storefront", tone: "comment" },
                 { text: "prood auth whoami --json \\", tone: "command" },
-                { text: "  --api-url https://api.prood.com/v1", tone: "command" },
+                { text: "  --api-url https://prood.com/v1", tone: "command" },
                 { text: "" },
                 { text: "# Create a product (Grow and above)", tone: "comment" },
                 { text: "curl -X POST \\", tone: "command" },
-                { text: "  https://api.prood.com/v1/admin/products \\", tone: "command" },
+                { text: "  https://prood.com/v1/admin/products \\", tone: "command" },
                 { text: '  -H "x-api-key: $PROOD_API_KEY" \\', tone: "command" },
                 { text: '  -H "content-type: application/json" \\', tone: "command" },
                 { text: "  -d @linen-tote.json", tone: "command" },
                 { text: " " },
                 { text: "# Point an MCP client at the store", tone: "comment" },
                 { text: "prood mcp config \\", tone: "command" },
-                { text: "  --api-url https://api.prood.com/v1 ", tone: "command" },
+                { text: "  --api-url https://prood.com/v1 ", tone: "command" },
               ]}
             />
           </div>

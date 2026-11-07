@@ -25,6 +25,17 @@ describe("resolvePasskeyConfig", () => {
     ).toEqual({ rpID: "localhost", origin: ["http://localhost:4002", "http://localhost:4006"] })
   })
 
+  it("accepts the shared domain behind the gateway, in production and locally", () => {
+    expect(resolvePasskeyConfig({ PASSKEY_RP_ID: "prood.com", PASSKEY_ORIGINS: "https://prood.com" })).toEqual({
+      rpID: "prood.com",
+      origin: ["https://prood.com"],
+    })
+    expect(resolvePasskeyConfig({ PASSKEY_RP_ID: "localhost", PASSKEY_ORIGINS: "http://localhost:3001" })).toEqual({
+      rpID: "localhost",
+      origin: ["http://localhost:3001"],
+    })
+  })
+
   it("accepts the ID itself as an origin", () => {
     expect(resolvePasskeyConfig({ PASSKEY_RP_ID: "prood.com", PASSKEY_ORIGINS: "https://prood.com" })?.origin).toEqual([
       "https://prood.com",

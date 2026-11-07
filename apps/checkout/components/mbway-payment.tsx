@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { DeviceMobileIcon } from "@phosphor-icons/react"
 import { Progress } from "@prood/ui/components/progress"
 import { MBWAY_WINDOW_MS } from "@prood/types"
+import { withBasePath } from "@/lib/base-path"
 
 const CHECK_EVERY_MS = 4000
 // Past the server's window, so a retry is sure to find the request dead.
@@ -48,11 +49,11 @@ export function MbWayPayment({
     let active = true
     const check = async () => {
       try {
-        const res = await fetch(`/api/sessions/${sessionId}/confirm`, { method: "POST" })
+        const res = await fetch(withBasePath(`/api/sessions/${sessionId}/confirm`), { method: "POST" })
         // A failed check says nothing about the payment: keep waiting.
         if (!res.ok || !active) return
         const { state, payable } = (await res.json()) as { state: string; payable: boolean }
-        if (state === "complete" || state === "pending") window.location.href = `/confirm/${sessionId}`
+        if (state === "complete" || state === "pending") window.location.href = withBasePath(`/confirm/${sessionId}`)
         if (state === "failed") onEnd("failed", payable)
       } catch {
         // Same: the next check decides.

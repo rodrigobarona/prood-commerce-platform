@@ -9,14 +9,16 @@ Prood runs as a **white-label, multi-tenant commerce platform**: one deployment 
 
 | URL | App | Tenant resolution |
 | --- | --- | --- |
-| `prood.com` | Marketing | N/A |
-| `dashboard.prood.com` | Merchant admin | Session `activeOrganizationId` |
-| `api.prood.com` | Commerce API | Session / API key / forwarded `x-storefront-host` |
-| `checkout.prood.com` | Hosted checkout (`/c/{sessionId}`) | `tenantId` on checkout session |
+| `prood.com` | Marketing (`apps/web`, the gateway for the paths below) | N/A |
+| `prood.com/dashboard` | Merchant admin | Session `activeOrganizationId` |
+| `prood.com/admin` | Platform admin | `admin` role |
+| `prood.com/v1`, `/mcp`, `/api/auth` | Commerce API | Session / API key / forwarded `x-storefront-host` |
+| `prood.com/pay` | Hosted checkout (`/pay/c/{sessionId}`) | `tenantId` on checkout session |
+| `prood.com/docs` | Documentation | N/A |
 | `{slug}.prood.app` | Storefront | Host → org slug or custom domain |
 | `shop.example.com` | Storefront | Verified `tenant_domain` row |
 
-`NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app` applies **only** to merchant storefront subdomains (`{slug}.prood.app`), not to platform services on `prood.com`.
+`NEXT_PUBLIC_PLATFORM_DOMAIN=prood.app` applies **only** to merchant storefront subdomains (`{slug}.prood.app`), not to platform services on `prood.com`, which share that one domain and are told apart by path.
 
 ## Tenant model
 
@@ -172,7 +174,7 @@ Merchants can have **two different kinds** of custom domain:
 | Type | Default | Custom (paid tiers vary) | Routes to | Purpose |
 | --- | --- | --- | --- | --- |
 | **Store domain** | `{slug}.prood.app` | e.g. `loja.casalume.example` | Storefront | Customer-facing catalog and cart |
-| **Admin domain (white-label)** | `dashboard.prood.com` | e.g. `admin.casalume.example` | Dashboard | Team-facing admin (DatoCMS-style) |
+| **Admin domain (white-label)** | `prood.com/dashboard` | e.g. `admin.casalume.example` | Dashboard | Team-facing admin (DatoCMS-style) |
 
 ### Store custom domain (partially implemented)
 
@@ -185,7 +187,7 @@ Merchants can have **two different kinds** of custom domain:
 
 Similar to DatoCMS `dashboard.datocms.com` vs `admin.casalume.example`:
 
-- Default admin URL for all merchants: **`dashboard.prood.com`**
+- Default admin URL for all merchants: **`prood.com/dashboard`**
 - Scale / Agency (planned): optional **`admin.casalume.example`** with DNS verification
 - Routes to `apps/dashboard`, not the storefront
 - Requires a separate Vercel project attachment, dashboard host → org lookup, and Better Auth trusted origins per custom admin host

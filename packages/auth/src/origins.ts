@@ -1,12 +1,14 @@
 /**
- * Origins allowed to call the platform auth issuer (apps/api): the Prood apps
- * configured through env, plus this deployment's own Vercel URL.
+ * Origins allowed to call the platform auth issuer (apps/api): the origin of each Prood app URL
+ * in env, plus this deployment's own Vercel URL. Several of them carry a path (the dashboard is
+ * https://prood.com/dashboard), which is not part of an origin, so on the shared domain they all
+ * collapse to https://prood.com. NEXT_PUBLIC_AUTH_URL is left out on purpose: it is the API
+ * project's internal address, reached by the apps' auth proxy, and no browser calls from it.
  */
 export function resolveTrustedOrigins(): string[] {
-  const origins = [
+  const urls = [
     process.env.NEXT_PUBLIC_DASHBOARD_URL,
     process.env.NEXT_PUBLIC_WEB_URL,
-    process.env.NEXT_PUBLIC_AUTH_URL,
     process.env.NEXT_PUBLIC_ADMIN_URL,
     process.env.NEXT_PUBLIC_DOCS_URL,
     process.env.BETTER_AUTH_URL,
@@ -14,9 +16,9 @@ export function resolveTrustedOrigins(): string[] {
   ]
   return [
     ...new Set(
-      origins
-        .filter((o): o is string => Boolean(o?.trim()))
-        .map((o) => new URL(o.trim()).origin),
+      urls
+        .filter((url): url is string => Boolean(url?.trim()))
+        .map((url) => new URL(url.trim()).origin),
     ),
   ]
 }

@@ -3,7 +3,18 @@ title: Environment variables
 description: Complete reference for every environment variable used across Prood applications.
 ---
 
-Prood uses a **single root** `.env.local` file for local development. Run `pnpm env:link` to generate ignored `apps/*/.env.local` files with app-specific auth URL overrides.
+Prood uses a **single root** `.env.local` file for local development. Run `pnpm env:link` to generate ignored `apps/*/.env.local` files; it copies the root file and writes the local one-domain URLs shown below into each app.
+
+## One domain
+
+Production is one domain, `https://prood.com`, with a path per app: `/dashboard`, `/admin`, `/pay`, `/docs`, and `/v1`, `/mcp`, `/api/auth` and `/.well-known/agent-configuration` for the API. `apps/web` is the gateway that rewrites those paths to each app's own Vercel project (see [Deployment](/docs/guides/deployment)). Merchant stores stay on `{store}.prood.app`.
+
+Locally, run every app and open the gateway at `http://localhost:3001`, so the apps share one origin. The apps listen on 3002 (dashboard), 3003 (docs), 3004 (checkout), 3005 (api) and 3006 (admin).
+
+Two kinds of address appear below:
+
+- **Public URLs**: what a browser sees. They point at the gateway: `https://prood.com` in production and `http://localhost:3001` locally, with `/dashboard`, `/admin` or `/pay` on the end where noted.
+- **Internal URLs**: server-to-server calls (`NEXT_PUBLIC_AUTH_URL`, `COMMERCE_API_URL`). They point straight at the API app: its `*.vercel.app` address in production, `http://localhost:3005` locally.
 
 ## Database
 
@@ -39,12 +50,30 @@ Files uploaded through `uploadForTenant()` are namespaced per tenant: `org/<orgI
 | --- | --- | --- | --- |
 | `BETTER_AUTH_SECRET` | Yes | API, dashboard, admin, storefront | Session signing secret. Generate: `openssl rand -base64 32` |
 | `AUTH_PROXY_SECRET` | Prod | API, dashboard, admin | Dashboard and admin send it in a header next to the client address they pass to the API. The API believes that address only when the secret matches, and keys auth rate limits on it. Use the same value on all three. Required in production. Generate: `openssl rand -base64 32` |
-| `BETTER_AUTH_URL` | Yes | API, dashboard, admin | Public origin of the API, which issues all merchant sessions: `http://localhost:3005`. Do not set it on the storefront, which infers its origin per store. |
-| `NEXT_PUBLIC_AUTH_URL` | Yes | Dashboard, admin | Origin their auth proxies forward sign-in/sign-up/org ops to. Same as API: `http://localhost:3005` |
-| `NEXT_PUBLIC_DASHBOARD_URL` | Yes | API, dashboard | Merchant admin URL, e.g. `https://dashboard.prood.com`. On Vercel preview deploys, set this on the **API** project to your dashboard URL (e.g. `https://dashboard-prood.vercel.app`). |
-| `NEXT_PUBLIC_ADMIN_URL` | Yes | API, admin | Platform admin URL, e.g. `https://admin.prood.com`. |
+| `BETTER_AUTH_URL` | Yes | API, dashboard, admin | Public origin of the auth issuer, which is the gateway: `https://prood.com` (locally `http://localhost:3001`). Do not set it on the storefront, which infers its origin per store. |
+| `NEXT_PUBLIC_AUTH_URL` | Yes | Dashboard, admin | Internal origin their server-side auth proxies forward sign-in/sign-up/org ops to: the API project's own address, `http://localhost:3005` locally. No browser calls it. |
+| `NEXT_PUBLIC_WEB_URL` | Yes | API, dashboard, docs, web | The marketing site and gateway: `https://prood.com` (locally `http://localhost:3001`). |
+| `NEXT_PUBLIC_DASHBOARD_URL` | Yes | API, dashboard, docs, web | Merchant dashboard URL, **with its path**: `https://prood.com/dashboard` (locally `http://localhost:3001/dashboard`). |
+| `NEXT_PUBLIC_ADMIN_URL` | Yes | API, admin | Platform admin URL, with its path: `https://prood.com/admin` (locally `http://localhost:3001/admin`). |
+| `NEXT_PUBLIC_API_URL` | Yes | Dashboard, docs, web | Public origin of the REST API, which the gateway serves: `https://prood.com` (locally `http://localhost:3001`). |
 | `NEXT_PUBLIC_STOREFRONT_URL` | Yes | API, dashboard, storefront | Storefront **apex**, e.g. `https://prood.app`. Stores are its subdomains, so never a single store's host. |
-| `AUTH_COOKIE_DOMAIN` | Prod | API | Shared cookie domain for dashboard + API on `*.prood.com`, e.g. `.prood.com`. Unset locally and on `*.vercel.app` preview URLs (browsers cannot share cookies across separate `*.vercel.app` hostnames). |
+| `AUTH_COOKIE_DOMAIN` | No | API | Leave it unset. The dashboard, admin console and API share one host, so the session cookie is already shared. The code still reads it and, if set, shares the cookie across subdomains of that domain, which nothing needs. |
+| `PASSKEY_RP_ID` | Optional | API, dashboard, admin | The domain passkeys belong to: `prood.com` in production, `localhost` locally. Set it together with `PASSKEY_ORIGINS`, or leave both empty to keep passkeys off. It can't be a `*.vercel.app` address. |
+| `PASSKEY_ORIGINS` | Optional | API, dashboard, admin | The exact origins that may use passkeys, comma separated, with no path: `https://prood.com` in production, `http://localhost:3001` locally. Each must be the ID or a subdomain of it. |
+
+Prood doesn't remember devices, so there is no trusted-device cookie or setting: the two-factor code is asked for at every sign-in.
+
+### The gateway
+
+Set on the `prood-web` project only. Each is the origin of an app's own Vercel project, with no path. A build on Vercel fails when one is missing. Locally they default to the ports shown and can stay unset.
+
+| Variable | Required | Receives | Local default |
+| --- | --- | --- | --- |
+| `DASHBOARD_ORIGIN` | On Vercel | `/dashboard` | `http://localhost:3002` |
+| `ADMIN_ORIGIN` | On Vercel | `/admin` | `http://localhost:3006` |
+| `DOCS_ORIGIN` | On Vercel | `/docs`, `/api/search` | `http://localhost:3003` |
+| `CHECKOUT_ORIGIN` | On Vercel | `/pay` | `http://localhost:3004` |
+| `API_ORIGIN` | On Vercel | `/v1`, `/mcp`, `/api/auth`, `/.well-known/agent-configuration` | `http://localhost:3005` |
 
 ### Seed credentials
 
@@ -61,9 +90,9 @@ There are no payment environment variables. Each store connects its own account 
 
 | Variable | Required | Description |
 | --- | --- | --- |
-| `CHECKOUT_URL` | Yes | Public URL of `apps/checkout`. Storefront redirects here after order placement. Default: `http://localhost:3004` |
+| `CHECKOUT_URL` | Yes | Public base URL of `apps/checkout`, including its `/pay` path: `https://prood.com/pay` in production, `http://localhost:3001/pay` through the local gateway. Storefront calls its API and redirects here after order placement, and the payment return and webhook URLs are built from it. |
 | `CHECKOUT_API_SECRET` | Yes | Shared secret between storefront and checkout. Sent as `x-checkout-secret` header. Generate: `openssl rand -base64 32` |
-| `COMMERCE_API_URL` | Yes | API base for webhook forwarding. Default: `http://localhost:3005/v1` |
+| `COMMERCE_API_URL` | Yes | Internal API base, with `/v1`, for webhook forwarding: the API project's own address in production. Default: `http://localhost:3005/v1` |
 
 ## Upstash Redis
 
@@ -88,8 +117,8 @@ Optional for local dev; required for custom domain provisioning in production:
 
 | Variable | Default | Description |
 | --- | --- | --- |
-| `COMMERCE_API_URL` | `http://localhost:3005/v1` | Base URL for `@prood/api-client` in storefront and dashboard |
-| `API_PUBLIC_URL` | `http://localhost:3005` | Public API origin for Agent Auth OpenAPI proxy and discovery |
+| `COMMERCE_API_URL` | `http://localhost:3005/v1` | Internal base URL for `@prood/api-client` in storefront and dashboard: the API project's own address, with `/v1` |
+| `API_PUBLIC_URL` | `http://localhost:3001` | Public API origin for Agent Auth OpenAPI proxy and discovery: `https://prood.com` in production |
 | `TRUST_PROXY` | `false` | Set `true` behind a reverse proxy for JWT `aud` validation |
 
 ## Integration encryption
@@ -102,23 +131,25 @@ Optional for local dev; required for custom domain provisioning in production:
 
 | Variable | Description |
 | --- | --- |
-| `NEXT_PUBLIC_DOCS_URL` | Docs site URL (default `http://localhost:3003`) |
+| `NEXT_PUBLIC_DOCS_URL` | Origin the docs are served from. The docs live at `{origin}/docs`: `https://prood.com` in production, `http://localhost:3001` through the local gateway |
 
 ## Per-app summary
 
 | App | Critical vars |
 | --- | --- |
+| **web** | `NEXT_PUBLIC_WEB_URL`, `NEXT_PUBLIC_DOCS_URL`, `NEXT_PUBLIC_DASHBOARD_URL`, `NEXT_PUBLIC_API_URL`, and the five `*_ORIGIN` variables on Vercel |
 | **storefront** | `DATABASE_URL`, `COMMERCE_API_URL`, `BETTER_AUTH_SECRET`, `KV_REST_API_*`, `CHECKOUT_URL`, `CHECKOUT_API_SECRET` |
-| **dashboard** | `DATABASE_URL`, `COMMERCE_API_URL`, `BETTER_AUTH_SECRET`, `AUTH_PROXY_SECRET`, `NEXT_PUBLIC_AUTH_URL`, `INTEGRATION_ENCRYPTION_KEY` |
+| **dashboard** | `DATABASE_URL`, `COMMERCE_API_URL`, `BETTER_AUTH_SECRET`, `AUTH_PROXY_SECRET`, `NEXT_PUBLIC_AUTH_URL`, `BETTER_AUTH_URL`, `NEXT_PUBLIC_DASHBOARD_URL`, `CHECKOUT_URL`, `INTEGRATION_ENCRYPTION_KEY`, `PASSKEY_*` (optional) |
 | **checkout** | `KV_REST_API_*`, `CHECKOUT_API_SECRET`, `COMMERCE_API_URL` |
-| **api** | `DATABASE_URL`, `BETTER_AUTH_*`, `AUTH_PROXY_SECRET`, `KV_REST_API_*`, `AUTH_COOKIE_DOMAIN`, storage keys, `CHECKOUT_API_SECRET`, `INTEGRATION_ENCRYPTION_KEY`, `RESEND_*` |
-| **admin** | `DATABASE_URL`, `BETTER_AUTH_SECRET`, `AUTH_PROXY_SECRET`, `NEXT_PUBLIC_ADMIN_URL` |
-| **docs** | None (static site; OpenAPI synced at build time) |
+| **api** | `DATABASE_URL`, `BETTER_AUTH_*`, `AUTH_PROXY_SECRET`, `KV_REST_API_*`, `NEXT_PUBLIC_*_URL`, `API_PUBLIC_URL`, `PASSKEY_*` (optional), storage keys, `CHECKOUT_API_SECRET`, `INTEGRATION_ENCRYPTION_KEY`, `RESEND_*` |
+| **admin** | `DATABASE_URL`, `BETTER_AUTH_SECRET`, `AUTH_PROXY_SECRET`, `BETTER_AUTH_URL`, `API_PUBLIC_URL`, `NEXT_PUBLIC_AUTH_URL`, `NEXT_PUBLIC_ADMIN_URL`, `PASSKEY_*` (optional) |
+| **docs** | `NEXT_PUBLIC_WEB_URL`, `NEXT_PUBLIC_DOCS_URL`, `NEXT_PUBLIC_DASHBOARD_URL`, `NEXT_PUBLIC_API_URL` (OpenAPI synced at build time) |
 
 ## Production checklist
 
 1. Generate strong secrets: `BETTER_AUTH_SECRET`, `AUTH_PROXY_SECRET`, `CHECKOUT_API_SECRET`, `INTEGRATION_ENCRYPTION_KEY`
 2. Configure `NEXT_PUBLIC_PLATFORM_DOMAIN` for subdomain tenants
+   Set the one-domain URLs, the gateway's five `*_ORIGIN` variables on `prood-web`, and `PASSKEY_RP_ID=prood.com` with `PASSKEY_ORIGINS=https://prood.com`. Leave `AUTH_COOKIE_DOMAIN` unset
 3. Provision Upstash Redis for checkout and auth rate limits, and set `KV_REST_API_*` on API, storefront and checkout
 4. Set `RESEND_API_KEY` and a verified-domain `RESEND_FROM_EMAIL`
 5. Run `pnpm db:migrate` against the production database on every deploy that adds migrations

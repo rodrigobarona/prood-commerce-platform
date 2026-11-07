@@ -3,6 +3,12 @@
   "ui": "tui",
   "globalEnv": [
     "NODE_ENV",
+    "VERCEL",
+    "DASHBOARD_ORIGIN",
+    "ADMIN_ORIGIN",
+    "DOCS_ORIGIN",
+    "CHECKOUT_ORIGIN",
+    "API_ORIGIN",
     "NEXT_PHASE",
     "DATABASE_URL",
     "ADMIN_EMAIL",
