@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "echo \"Static proposal — skipping monorepo install\"",
+  "buildCommand": "echo \"Static proposal — no build step\"",
+  "outputDirectory": "."
+}

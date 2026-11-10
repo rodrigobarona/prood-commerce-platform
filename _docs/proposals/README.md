@@ -26,3 +26,4 @@ vercel --prod
 | Slug | Description |
 | --- | --- |
 | [mania4-helio-platform](./mania4-helio-platform/) | HELIOtextil / Mania4 multi-brand commerce & 3D customization SoW |
+| [mania4-phase-1](./mania4-phase-1/) | HELIOtextil / HELIOPromo / Mania4 Phase 1 Commercial MVP, €49.5k plus success fee or licence: client-branded proposal, PowerPoint deck, clickable prototype and demo video. Only the prototype deploys: Root Directory `_docs/proposals/mania4-phase-1/prototype` |

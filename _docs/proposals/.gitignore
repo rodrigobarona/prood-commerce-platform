@@ -1,0 +1,6 @@
+# This repository is public. Keep pricing research and internal notes out of it.
+research/
+**/INTERNAL-NOTES.md
+
+# Office lock files (a deck that is open in PowerPoint)
+~$*

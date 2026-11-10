@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mania4 Platform Prototype</title>
+    <meta
+      name="description"
+      content="Clickable prototype and demo of the Mania4 commerce platform, Phase 1: a partner store, 3D personalisation, the Mania4 checkout, production, pickup and month-end reports."
+    />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23111114'/%3E%3Ctext x='16' y='22' font-family='Arial' font-weight='700' font-size='15' text-anchor='middle' fill='%23fff'%3EM4%3C/text%3E%3C/svg%3E" />
+    <link rel="preload" href="assets/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="assets/fonts/oswald-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./vendor/three/three.module.min.js",
+          "three/addons/": "./vendor/three/addons/"
+        }
+      }
+    </script>
+    <script src="vendor/qrcode/qrcode.js"></script>
+  </head>
+  <body class="explore">
+    <header class="topbar">
+      <div class="brand" aria-label="HELIOPROMO and MANIA4">
+        <img src="assets/heliopromo-logo-white.png" alt="HELIOPROMO" class="logo-helio" />
+        <span class="brand-x" aria-hidden="true">×</span>
+        <img src="assets/mania4-logo-white.png" alt="MANIA4" class="logo-mania4" />
+      </div>
+      <div class="topbar-title">
+        <strong>Commerce platform</strong>
+        <span>Phase 1 prototype</span>
+      </div>
+      <div class="modes" role="tablist" aria-label="Mode">
+        <button type="button" class="mode-btn" data-mode="explore" role="tab" aria-selected="true">Explore</button>
+        <button type="button" class="mode-btn" data-mode="demo" role="tab" aria-selected="false">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z" fill="currentColor" /></svg>
+          <span class="lbl-long">Watch the demo</span><span class="lbl-short">Demo</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <nav class="rail" aria-label="Journey">
+        <div class="rail-head">The journey</div>
+        <ol id="chapters" class="chapters"></ol>
+        <div class="rail-legend" id="roles"></div>
+      </nav>
+
+      <main class="stage" id="stage">
+        <div class="stage-head">
+          <span class="role-chip" id="stage-role"></span>
+          <h1 id="stage-title"></h1>
+          <span class="phase-tag" id="stage-phase"></span>
+        </div>
+        <div class="stage-body" id="stage-body">
+          <div class="scene" id="scene"></div>
+        </div>
+      </main>
+
+      <aside class="behind" aria-label="Behind the scenes">
+        <div class="behind-head">Behind the scenes</div>
+        <ul id="behind" class="behind-list"></ul>
+        <div class="behind-ws" id="behind-ws"></div>
+        <p class="disclaimer">
+          Illustrative prototype with sample data. Marés FC and the other partners are fictional. Screens show the
+          intended Phase 1 experience, not the final design.
+        </p>
+        <p class="credit">
+          3D model based on “Men Regular Apparel Fit Sporty T-Shirt” by BINARYCLOTH, licensed under
+          <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>
+          (<a href="https://sketchfab.com/3d-models/men-regular-apparel-fit-sporty-t-shirt-4d055bb8c1e04549a4b2dac7b27ebb2c" target="_blank" rel="noopener">source</a>), recoloured and printed in this prototype.
+        </p>
+      </aside>
+    </div>
+
+    <footer class="captionbar">
+      <div class="caption-wrap">
+        <div class="caption" id="caption" aria-live="polite"></div>
+      </div>
+      <div class="player">
+        <button type="button" class="pl-btn" id="prev" aria-label="Previous chapter">
+          <svg viewBox="0 0 16 16"><path d="M10.5 3 5.5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </button>
+        <button type="button" class="pl-btn pl-main" id="play" aria-label="Play the demo">
+          <svg viewBox="0 0 16 16" class="i-play"><path d="M4.5 2.5v11l9-5.5z" fill="currentColor" /></svg>
+          <svg viewBox="0 0 16 16" class="i-pause"><path d="M4.5 3h2.5v10H4.5zM9 3h2.5v10H9z" fill="currentColor" /></svg>
+        </button>
+        <button type="button" class="pl-btn" id="next" aria-label="Next chapter">
+          <svg viewBox="0 0 16 16"><path d="M5.5 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </button>
+        <div class="progress" id="progress" aria-hidden="true"></div>
+      </div>
+    </footer>
+
+    <div class="cursor" id="cursor" aria-hidden="true">
+      <svg class="cursor-arrow" viewBox="0 0 24 24"><path d="M4 2.5 19.5 13l-7 1.2-3.8 6.3z" fill="#111114" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" /></svg>
+      <span class="cursor-touch"></span>
+    </div>
+
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

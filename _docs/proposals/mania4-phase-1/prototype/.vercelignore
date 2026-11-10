@@ -1,0 +1,6 @@
+# Not part of the site
+README.md
+tools/
+.DS_Store
+.env*
+.gitignore
